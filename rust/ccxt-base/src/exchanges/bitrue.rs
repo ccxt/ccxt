@@ -1554,9 +1554,9 @@ impl Bitrue {
         let mut settleId: Option<String> = None;
         let mut settle: Option<String> = None;
         if isContract {
-            let mut symbolSplit: Value = Value::Array(id.split("-").map(Value::from).collect());
-            baseId = self.safe_string(symbolSplit.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
-            quoteId = self.safe_string(symbolSplit, Value::Int(2), &[]).as_str().map(str::to_owned);
+            let mut symbolSplit: crate::value::List = Value::Array(id.split("-").map(Value::from).collect()).into_list();
+            baseId = self.safe_string(&symbolSplit, Value::Int(1), &[]).as_str().map(str::to_owned);
+            quoteId = self.safe_string(&symbolSplit, Value::Int(2), &[]).as_str().map(str::to_owned);
             if (isLinear == Some(true)) {
                 settleId = quoteId.clone();
             }  else {
@@ -2281,10 +2281,10 @@ impl Bitrue {
         });
         if (symbolsNormalized.is_some()) {
             let mut first: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(first.as_deref().unwrap_or_default()));
-            if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+            let mut market: crate::types::Market = (match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            if (market).swap {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers does not support swap markets, please use fetchTicker instead".into()))));
-            }  else if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
+            }  else if (market).spot {
                 let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_12]).await;
                 data = self.to_array(response.clone()).into_list();
@@ -2361,8 +2361,8 @@ impl Bitrue {
             if (marketId.is_none()) {
                 continue;
             }
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
-            tickers.insert(crate::runtime::stringify_param(&(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), ticker);
+            let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+            tickers.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&market, "id"))), ticker);
         }
         }
         return self.parse_tickers(Value::Map(tickers), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -3759,9 +3759,9 @@ impl Bitrue {
         let mut fromAccount: Option<String> = None;
         let mut toAccount: Option<String> = None;
         if (transferType.is_some()) {
-            let mut accountSplit: Value = Value::Array(if let Some(__s) = transferType.as_deref() { __s.split("_to_").map(Value::from).collect() } else { Vec::new() });
-            fromAccount = self.safe_string(accountSplit.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            toAccount = self.safe_string(accountSplit, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut accountSplit: crate::value::List = Value::Array(if let Some(__s) = transferType.as_deref() { __s.split("_to_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            fromAccount = self.safe_string(&accountSplit, Value::Int(0), &[]).as_str().map(str::to_owned);
+            toAccount = self.safe_string(&accountSplit, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "ctime", &[]).as_i64();
         return Value::Map({
@@ -4121,11 +4121,11 @@ impl Bitrue {
                     }));
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
                 }  else {
-                    let mut query: Value = self.extend(Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                            m.insert("recvWindow".to_string(), Value::from(recvWindow));
-                        m
-                    }), &[paramsOmitted.clone()]);
+                    let mut query: Option<crate::value::Dict> = self.extend(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("recvWindow".to_string(), Value::from(recvWindow));
+    m
+}), &[paramsOmitted.clone()]).into_opt_dict();
                     requestBody = json_stringify(&query);
                     signMessage = Value::Str(format!("{}{}", signMessage, requestBody).into());
                     let mut signature: String = self.hmac(self.encode(signMessage), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);

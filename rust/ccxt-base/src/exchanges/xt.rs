@@ -2105,7 +2105,7 @@ impl Xt {
     m
 })]).into_dict();
         let mut currenciesData: crate::value::List = self.safe_list_k(&currenciesResult, "currencies", &[Value::from(vec![])]).into_list();
-        let mut chainsDataIndexed: Value = self.index_by(chainsData, Value::Str("currency".into()));
+        let mut chainsDataIndexed: crate::value::Dict = self.index_by(chainsData, Value::Str("currency".into())).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2117,7 +2117,7 @@ impl Xt {
             let mut entry: crate::value::Dict = currenciesData.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            let mut networkEntry: crate::value::Dict = self.safe_dict(chainsDataIndexed.clone(), currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut networkEntry: crate::value::Dict = self.safe_dict(&chainsDataIndexed, currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -4073,15 +4073,15 @@ impl Xt {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         if (market).spot {
             let mut isTrailing: bool = (matches!(&params, Value::Dict(__d) if __d.contains_key("trailingPercent"))) || (matches!(&params, Value::Dict(__d) if __d.contains_key("trailingAmount"))) || (matches!(&params, Value::Dict(__d) if __d.contains_key("trailingTriggerPrice")));
             if isTrailing {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() trailing orders are only supported on swap markets".into()))));
             }
-            return self.create_spot_order(symbolValue.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), params.clone()]).await;
+            return self.create_spot_order(symbolValue.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), params.clone()]).await;
         }  else {
-            return self.create_contract_order(symbolValue.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).await;
+            return self.create_contract_order(symbolValue.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).await;
         }
         Value::Null
         }).await?))
@@ -4211,11 +4211,11 @@ impl Xt {
         if postOnly {
             timeInForce = Some("GTX".to_string());
         }
-        let mut paramsOmitted4: Value = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
+        let mut paramsOmitted4: crate::value::Dict = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]).into_dict();
         if (timeInForce.is_some()) {
             request.insert("timeInForce".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut reduceOnly: bool = self.safe_bool_k(paramsOmitted4.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k(&paramsOmitted4, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if (side.as_str() == Some("buy")) {
             let mut requestType: String = "LONG".to_string();
             if reduceOnly {
@@ -4233,12 +4233,12 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut triggerPrice: Option<f64> = self.safe_number2(paramsOmitted4.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-        let mut stopLoss: Option<f64> = self.safe_number2(paramsOmitted4.clone(), Value::Str("stopLoss".into()), Value::Str("triggerStopPrice".into()), &[]).as_f64();
-        let mut takeProfit: Option<f64> = self.safe_number2(paramsOmitted4.clone(), Value::Str("takeProfit".into()), Value::Str("triggerProfitPrice".into()), &[]).as_f64();
-        let mut trailingPercent: Option<String> = self.safe_string_k(paramsOmitted4.clone(), "trailingPercent", &[]).as_str().map(str::to_owned);
-        let mut trailingAmount: Option<String> = self.safe_string_k(paramsOmitted4.clone(), "trailingAmount", &[]).as_str().map(str::to_owned);
-        let mut trailingTriggerPrice: Option<f64> = self.safe_number_k(paramsOmitted4.clone(), "trailingTriggerPrice", &[]).as_f64();
+        let mut triggerPrice: Option<f64> = self.safe_number2(&paramsOmitted4, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+        let mut stopLoss: Option<f64> = self.safe_number2(&paramsOmitted4, Value::Str("stopLoss".into()), Value::Str("triggerStopPrice".into()), &[]).as_f64();
+        let mut takeProfit: Option<f64> = self.safe_number2(&paramsOmitted4, Value::Str("takeProfit".into()), Value::Str("triggerProfitPrice".into()), &[]).as_f64();
+        let mut trailingPercent: Option<String> = self.safe_string_k(&paramsOmitted4, "trailingPercent", &[]).as_str().map(str::to_owned);
+        let mut trailingAmount: Option<String> = self.safe_string_k(&paramsOmitted4, "trailingAmount", &[]).as_str().map(str::to_owned);
+        let mut trailingTriggerPrice: Option<f64> = self.safe_number_k(&paramsOmitted4, "trailingTriggerPrice", &[]).as_f64();
         let mut isTrigger: bool = triggerPrice.is_some();
         let mut isStopLoss: bool = stopLoss.is_some();
         let mut isTakeProfit: bool = takeProfit.is_some();
@@ -4256,8 +4256,8 @@ impl Xt {
         }
         if isTrailing {
             request.insert("orderSide".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-            request.insert("triggerPriceType".into(), self.safe_string_k(paramsOmitted4.clone(), "triggerPriceType", &[Value::Str("LATEST_PRICE".into())]));
-            let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted4.clone(), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
+            request.insert("triggerPriceType".into(), self.safe_string_k(&paramsOmitted4, "triggerPriceType", &[Value::Str("LATEST_PRICE".into())]));
+            let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsOmitted4), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             request.insert("positionType".into(), (if (marginMode.as_deref() == Some("isolated")) { Value::Str("ISOLATED".into()) } else { Value::Str("CROSSED".into()) }));
@@ -4281,7 +4281,7 @@ impl Xt {
             }
         }  else if isTrigger {
             request.insert("timeInForce".into(), (if (timeInForce.is_none()) { Value::Str("GTC".into()) } else { timeInForce.clone().map(Value::from).unwrap_or(Value::Null) }));
-            request.insert("triggerPriceType".into(), self.safe_string_k(paramsOmitted4.clone(), "triggerPriceType", &[Value::Str("LATEST_PRICE".into())]));
+            request.insert("triggerPriceType".into(), self.safe_string_k(&paramsOmitted4, "triggerPriceType", &[Value::Str("LATEST_PRICE".into())]));
             request.insert("orderSide".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             request.insert("stopPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
             let mut entrustType: String = "STOP".to_string();
@@ -4289,7 +4289,7 @@ impl Xt {
                 entrustType = "STOP_MARKET".to_string();
             }
             request.insert("entrustType".into(), Value::from(entrustType));
-            let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted4.clone(), Value::Str("triggerPrice".into()), &[]).into_dict();
+            let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted4, Value::Str("triggerPrice".into()), &[]).into_dict();
             if ((market).linear == Some(true)) {
                 let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
                 response = self.private_linear_post_future_trade_v1_entrust_create_plan(&[__ws_arg_24]).await;
@@ -4303,7 +4303,7 @@ impl Xt {
             }  else {
                 request.insert("triggerProfitPrice".into(), self.price_to_precision(symbol, Value::from(takeProfit)));
             }
-            let mut paramsOmitted: crate::value::Dict = self.omit(paramsOmitted4.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOmitted4, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).into_dict();
             if ((market).linear == Some(true)) {
                 let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_linear_post_future_trade_v1_entrust_create_profit(&[__ws_arg_26]).await;
@@ -4315,10 +4315,10 @@ impl Xt {
             request.insert("orderSide".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             request.insert("orderType".into(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             if ((market).linear == Some(true)) {
-                let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[paramsOmitted4.clone()]);
+                let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsOmitted4]);
                 response = self.private_linear_post_future_trade_v1_order_create(&[__ws_arg_28]).await;
             }  else if ((market).inverse == Some(true)) {
-                let __ws_arg_29 = self.extend(Value::Map(request), &[paramsOmitted4]);
+                let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted4]);
                 response = self.private_inverse_post_future_trade_v1_order_create(&[__ws_arg_29]).await;
             }
         }
@@ -5107,8 +5107,8 @@ impl Xt {
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
             let mut parsedOrders: crate::value::List = self.parse_orders(orders.clone(), market.as_ref(), &[]).into_list();
-            let mut filteredOrders: Value = self.filter_by(Value::Arr(parsedOrders), Value::Str("status".into()), status, &[]);
-            return self.filter_by_since_limit(filteredOrders, since.as_i64(), limit.as_i64(), &[]);
+            let mut filteredOrders: crate::value::List = self.filter_by(Value::Arr(parsedOrders), Value::Str("status".into()), status, &[]).into_list();
+            return self.filter_by_since_limit(&filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         }
         return self.parse_orders(orders, market.as_ref(), &[since, limit]);
 
@@ -6684,21 +6684,21 @@ impl Xt {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1193: bool = true;
             while { if !__for_first_1193 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1193 = false; i.as_f64().unwrap_or(f64::NAN) < ((brackets.len() as i64) as f64) } {
-            let mut tier: Value = self.safe_dict(&brackets, i.clone(), &[]);
+            let mut tier: Option<crate::value::Dict> = self.safe_dict(&brackets, i.clone(), &[]).into_opt_dict();
             let mut marketId: Option<String> = self.safe_string_k(info.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into()), Value::Str("contract".into())]);
             let mut minNotional: Value = self.safe_number(self.safe_dict(&brackets, (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]), Value::Str("maxNominalValue".into()), &[Value::Int(0)]);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.safe_integer_k(tier.clone(), "bracket", &[]));
+                    m.insert("tier".to_string(), self.safe_integer_k(&tier, "bracket", &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[Value::Str("_".into()), Value::Str("contract".into())]));
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
                     m.insert("minNotional".to_string(), minNotional);
-                    m.insert("maxNotional".to_string(), self.safe_number_k(tier.clone(), "maxNominalValue", &[]));
-                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "maintMarginRate", &[]));
-                    m.insert("maxLeverage".to_string(), self.safe_number_k(tier.clone(), "maxLeverage", &[]));
-                    m.insert("info".to_string(), tier);
+                    m.insert("maxNotional".to_string(), self.safe_number_k(&tier, "maxNominalValue", &[]));
+                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(&tier, "maintMarginRate", &[]));
+                    m.insert("maxLeverage".to_string(), self.safe_number_k(&tier, "maxLeverage", &[]));
+                    m.insert("info".to_string(), tier.clone().map_or(Value::Null, Value::Dict));
                 m
             }));
         }
@@ -6816,7 +6816,7 @@ impl Xt {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7267,12 +7267,12 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_1196: bool = true;
             while { if !__for_first_1196 { i += 1; } __for_first_1196 = false; i < (items.len() as i64) } {
-            let mut entry: Value = self.safe_dict(&items, Value::Int(i), &[]);
-            result.push(self.parse_funding_history(entry, Some(&market)));
+            let mut entry: Option<crate::value::Dict> = self.safe_dict(&items, Value::Int(i), &[]).into_opt_dict();
+            result.push(self.parse_funding_history(entry.map_or(Value::Null, Value::Dict), Some(&market)));
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_since_limit(Value::Arr(sorted), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_since_limit(&sorted, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -7669,7 +7669,7 @@ impl Xt {
         })]).into_dict();
         let mut items: crate::value::List = self.safe_list_k(&result, "items", &[Value::from(vec![])]).into_list();
         let mut positions: crate::value::List = self.parse_positions(&items, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]).into_list();
-        return self.filter_by_since_limit(Value::Arr(positions), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

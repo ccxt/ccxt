@@ -1383,7 +1383,7 @@ impl Blofin {
         let mut maker: Option<f64> = self.safe_number_k(&fees, "maker", &[]).as_f64();
         let mut maxLeverage: Option<String> = self.safe_string_k(market.clone(), "maxLeverage", &[Value::Str("100".into())]).as_str().map(str::to_owned);
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_str().map(str::to_owned);
-        let mut isActive: Value = (Value::Bool(self.safe_string_k(market.clone(), "state", &[]).as_str() == Some("live")));
+        let mut isActive: bool = (self.safe_string_k(market.clone(), "state", &[]).as_str() == Some("live"));
         let mut isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_bool() == Some(true));
         let mut contractType: Option<String> = self.safe_string_k(market.clone(), "contractType", &[]).as_str().map(str::to_owned);
         let mut maxLimitAmount: Option<f64> = self.safe_number_k(market.clone(), "maxLimitSize", &[]).as_f64();
@@ -1404,7 +1404,7 @@ impl Blofin {
         m.insert("margin".to_string(), isMargin);
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(future));
-        m.insert("active".to_string(), isActive);
+        m.insert("active".to_string(), Value::Bool(isActive));
         m.insert("taker".to_string(), Value::from(taker));
         m.insert("maker".to_string(), Value::from(maker));
         m.insert("contract".to_string(), Value::Bool(contract.clone()));
@@ -2025,7 +2025,7 @@ impl Blofin {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2769,8 +2769,8 @@ impl Blofin {
         let mut query: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("orderId".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into())]), &[]).into_dict();
         if isTpsl {
             let mut tpslResponse: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut first: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tpslResponse), Value::Int(0), &[]);
-            return first;
+            let mut first: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tpslResponse), Value::Int(0), &[]).into_opt_dict();
+            return first.map_or(Value::Null, Value::Dict);
         }  else if isTrigger {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&query]);
             let mut triggerResponse: crate::value::Dict = self.private_post_trade_cancel_algo(&[__ws_arg_10]).await.into_dict();
@@ -2824,8 +2824,8 @@ impl Blofin {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), extendedParams]).into_dict();
+            let mut extendedParams: crate::value::Dict = self.extend(orderParams, &[params.clone()]).into_dict(); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(extendedParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
@@ -3238,10 +3238,10 @@ impl Blofin {
             // php-safe suffix extraction: split instead of index arithmetic,
             // because a stored strpos result and a two-argument slice do not
             // survive the php conversion (false-vs-int compare; length arg)
-            let mut parts: Value = Value::Array(if let Some(__s) = chainId.as_str() { __s.split("(").map(Value::from).collect() } else { Vec::new() });
-            let mut tail: String = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut tailParts: Value = Value::Array(tail.split(")").map(Value::from).collect());
-            let mut suffix: Value = self.safe_string(tailParts, Value::Int(0), &[]);
+            let mut parts: crate::value::List = Value::Array(if let Some(__s) = chainId.as_str() { __s.split("(").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut tail: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut tailParts: crate::value::List = Value::Array(tail.split(")").map(Value::from).collect()).into_list();
+            let mut suffix: Value = self.safe_string(&tailParts, Value::Int(0), &[]);
             let mut suffixCode: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkCodesBySuffix")).cloned().unwrap_or(Value::Null), suffix.clone(), &[]).as_str().map(str::to_owned);
             if (suffixCode.is_some()) {
                 return suffixCode.map(Value::from).unwrap_or(Value::Null);
@@ -3255,7 +3255,7 @@ impl Blofin {
             }
             // the suffix is not always a chain: 'Optimism (USDT0)' carries
             // the token name (verified live 2026-09-30), resolve by prefix
-            let mut head: String = self.safe_string(parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut head: String = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             return Value::from(self.network_id_to_code(&[Value::from(head.trim().to_string())]));
         }
         return Value::from(self.network_id_to_code(&[chainId]));
@@ -3342,8 +3342,8 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_463: bool = true;
             while { if !__for_first_463 { i += 1; } __for_first_463 = false; (i as f64) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone(), Value::Int(i), &[]);
-            let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chain", &[]).as_str().map(str::to_owned);
+            let mut chain: Option<crate::value::Dict> = self.safe_dict(chains.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.chain_id_to_network_code(networkId.as_deref());
             if (networkCode == Value::Null) {
                 continue;
@@ -3353,27 +3353,27 @@ impl Blofin {
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool(self.safe_integer_k(chain.clone(), "isDepositAvailable", &[]).as_f64() == Some(1.0)));
-        m.insert("withdraw".to_string(), Value::Bool(self.safe_integer_k(chain.clone(), "isWithdrawAvailable", &[]).as_f64() == Some(1.0)));
-        m.insert("fee".to_string(), self.safe_number_k(chain.clone(), "withdrawFee", &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(chain.clone(), "withdrawPrecision", &[])]), &[]));
+        m.insert("deposit".to_string(), Value::Bool(self.safe_integer_k(&chain, "isDepositAvailable", &[]).as_f64() == Some(1.0)));
+        m.insert("withdraw".to_string(), Value::Bool(self.safe_integer_k(&chain, "isWithdrawAvailable", &[]).as_f64() == Some(1.0)));
+        m.insert("fee".to_string(), self.safe_number_k(&chain, "withdrawFee", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&chain, "withdrawPrecision", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "depositMinAmount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&chain, "depositMinAmount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "withdrawMinAmount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&chain, "withdrawMinAmount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
     m
 }));
-        m.insert("info".to_string(), chain);
+        m.insert("info".to_string(), chain.clone().map_or(Value::Null, Value::Dict));
     m
 }));
         }
@@ -4395,7 +4395,7 @@ impl Blofin {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut positions: crate::value::List = self.parse_positions(&data, &[symbols, Value::Dict(paramsUntil)]).into_list();
-        return self.filter_by_since_limit(Value::Arr(positions), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -4523,7 +4523,7 @@ impl Blofin {
                 liquidationPriceString = crate::precise::Precise::stringDiv(&num, &denom.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
-        let mut liquidationPrice: Value = (if ((liquidationPriceString.is_some()) && crate::precise::Precise::stringGt(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) { self.parse_number(liquidationPriceString.map(Value::from).unwrap_or(Value::Null), &[]) } else { Value::Null });
+        let mut liquidationPrice: Option<f64> = (if ((liquidationPriceString.is_some()) && crate::precise::Precise::stringGt(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) { self.parse_number(liquidationPriceString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64() } else { None });
         let mut percentageString: Option<String> = self.safe_string_k(position.clone(), "unrealizedPnlRatio", &[]).as_str().map(str::to_owned);
         let mut percentage: Value = self.parse_number(crate::precise::Precise::stringMul(&percentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updateTime", &[]).as_i64();
@@ -4535,7 +4535,7 @@ impl Blofin {
         m.insert("symbol".to_string(), symbol);
         m.insert("notional".to_string(), notional);
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
-        m.insert("liquidationPrice".to_string(), liquidationPrice);
+        m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
         m.insert("entryPrice".to_string(), self.parse_number(entryPriceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("exitPrice".to_string(), self.safe_number_k(position.clone(), "closeAveragePrice", &[]));
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnlString.map(Value::from).unwrap_or(Value::Null), &[]));

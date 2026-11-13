@@ -593,16 +593,16 @@ impl Phemex {
             let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_622: bool = true;
-                while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (data.len() as i64) } {
+                let mut __for_first_620: bool = true;
+                while { if !__for_first_620 { i += 1; } __for_first_620 = false; i < (data.len() as i64) } {
                 tickers.push(self.parse_perpetual_ticker(data.get(i as usize).cloned().unwrap_or(Value::Null), None));
             }
             }
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_623: bool = true;
-            while { if !__for_first_623 { i += 1; } __for_first_623 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { i += 1; } __for_first_621 = false; i < (tickers.len() as i64) } {
             let mut ticker: Value = tickers.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: String = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
@@ -698,8 +698,8 @@ impl Phemex {
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message.clone()); }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_624: bool = true;
-            while { if !__for_first_624 { i += 1; } __for_first_624 = false; i < (message.len() as i64) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (message.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(message.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
@@ -778,8 +778,8 @@ impl Phemex {
         let mut parsed: Value = self.parse_trades(&trades, Some(&market), &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i += 1; } __for_first_625 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_623: bool = true;
+            while { if !__for_first_623 { i += 1; } __for_first_623 = false; i < (parsed.len() as i64) } {
             stored.append(parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -837,8 +837,8 @@ impl Phemex {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_626: bool = true;
-                while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (ohlcvs.len() as i64) } {
+                let mut __for_first_624: bool = true;
+                while { if !__for_first_624 { i += 1; } __for_first_624 = false; i < (ohlcvs.len() as i64) } {
                 let mut candle: Value = ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null);
                 stored.append(candle);
             }
@@ -873,7 +873,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
         let mut name: String = "spot_market24h".to_string();
@@ -938,8 +938,8 @@ impl Phemex {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i += 1; } __for_first_627 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { i += 1; } __for_first_625 = false; i < (symbolsNormalized.len() as i64) } {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
         }
         }
@@ -998,7 +998,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
@@ -1021,7 +1021,7 @@ impl Phemex {
         let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolValue.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -1057,7 +1057,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
@@ -1115,7 +1115,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
@@ -1138,7 +1138,7 @@ impl Phemex {
         let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
@@ -1274,8 +1274,8 @@ impl Phemex {
         let mut subscriptionHashes: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_628: bool = true;
-            while { if !__for_first_628 { i += 1; } __for_first_628 = false; i < (subscriptionHashes.len() as i64) } {
+            let mut __for_first_626: bool = true;
+            while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (subscriptionHashes.len() as i64) } {
             let mut subscriptionHash: Option<String> = subscriptionHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut subscription: Value = __ch.get_subscription(subscriptionHash.as_deref());
             let mut isUnSubscription: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -1300,8 +1300,8 @@ impl Phemex {
 
     pub fn custom_handle_delta(&self, mut bookside: Value, mut delta: Value, optional_args: &[Value]) {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut bidAsk: Value = self.parent.custom_parse_bid_ask(delta, &[Value::Int(0), Value::Int(1), market]);
-        bookside.store_array(bidAsk);
+        let mut bidAsk: crate::value::List = self.parent.custom_parse_bid_ask(delta, &[Value::Int(0), Value::Int(1), market]).into_list();
+        bookside.store_array(Value::Arr(bidAsk));
 }
 
     pub fn custom_handle_deltas(&self, mut bookside: Value, mut deltas: Value, optional_args: &[Value]) {
@@ -1310,8 +1310,8 @@ impl Phemex {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_629: bool = true;
-            while { if !__for_first_629 { i += 1; } __for_first_629 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_627: bool = true;
+            while { if !__for_first_627 { i += 1; } __for_first_627 = false; i < (deltas.len() as i64) } {
             self.custom_handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
         }
         }
@@ -1388,18 +1388,18 @@ impl Phemex {
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
             // after a re-subscription snapshot
-            if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                { let __be_tmp = self.order_book(&[Value::Map({
+            if !(self.orderbooks.has(&symbol)) {
+                { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), depth]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+}), depth]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
-            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(orderbook.clone(), messageHash.as_str());
         }  else {
-            if (matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            if (self.orderbooks.has(&symbol)) {
+                let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
                 let mut changes: crate::value::Dict = self.safe_dict2(message, Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1411,7 +1411,7 @@ impl Phemex {
                 orderbook.set_book_meta("nonce", Value::from(nonce));
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
                 orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
-                if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
+                CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
                 client.resolve(orderbook, messageHash.as_str());
             }
         }
@@ -1597,17 +1597,17 @@ impl Phemex {
         let mut type_var: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { i += 1; } __for_first_630 = false; (i as f64) < tradesLength } {
+            let mut __for_first_628: bool = true;
+            while { if !__for_first_628 { i += 1; } __for_first_628 = false; (i as f64) < tradesLength } {
             let mut rawTrade: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(rawTrade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
+            let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut parsed: crate::value::Dict = self.parse_trade(rawTrade, None).into_dict();
             cachedTrades.append(Value::from(&parsed));
             let mut symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
             if (type_var == Value::Null) {
-                let mut marketSettle: Option<String> = self.safe_string_k(market.clone(), "settle", &[]).as_str().map(str::to_owned);
-                type_var = (if (marketSettle.as_deref() == Some("USDT")) { Value::Str("perpetual".into()) } else { market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) });
+                let mut marketSettle: Option<String> = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
+                type_var = (if (marketSettle.as_deref() == Some("USDT")) { Value::Str("perpetual".into()) } else { crate::value::KeyRead::key_read(&&market, "type") });
             }
             if (symbol != Value::Null) {
                 if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
@@ -1617,8 +1617,8 @@ impl Phemex {
         let mut keys: Vec<Value> = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_631: bool = true;
-            while { if !__for_first_631 { i += 1; } __for_first_631 = false; i < (keys.len() as i64) } {
+            let mut __for_first_629: bool = true;
+            while { if !__for_first_629 { i += 1; } __for_first_629 = false; i < (keys.len() as i64) } {
             let mut market: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut hash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), market.map(Value::from).unwrap_or(Value::Null));
             client.resolve(Value::from(&cachedTrades), hash.as_str());
@@ -1868,8 +1868,8 @@ impl Phemex {
             trades = self.safe_list_k(message.clone(), "fills", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_632: bool = true;
-                while { if !__for_first_632 { i += 1; } __for_first_632 = false; i < (orders.len() as i64) } {
+                let mut __for_first_630: bool = true;
+                while { if !__for_first_630 { i += 1; } __for_first_630 = false; i < (orders.len() as i64) } {
                 let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut parsedOrder: Value = self.parse_order(rawOrder, None);
                 parsedOrders.push(parsedOrder.clone());
@@ -1882,8 +1882,8 @@ impl Phemex {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_633: bool = true;
-                while { if !__for_first_633 { i += 1; } __for_first_633 = false; (i as f64) < messageLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_631: bool = true;
+                while { if !__for_first_631 { i += 1; } __for_first_631 = false; (i as f64) < messageLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut update: Value = get_value(&message, &Value::Int(i));
                 let mut action: Option<String> = self.safe_string_k(update.clone(), "action", &[]).as_str().map(str::to_owned);
                 if (action.is_some()) && (action.as_deref() != Some("Cancel")) {
@@ -1908,8 +1908,8 @@ impl Phemex {
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_634: bool = true;
-            while { if !__for_first_634 { i += 1; } __for_first_634 = false; i < (parsedOrders.len() as i64) } {
+            let mut __for_first_632: bool = true;
+            while { if !__for_first_632 { i += 1; } __for_first_632 = false; i < (parsedOrders.len() as i64) } {
             let mut parsed: Value = parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             stored.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1924,8 +1924,8 @@ impl Phemex {
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_635: bool = true;
-            while { if !__for_first_635 { i += 1; } __for_first_635 = false; i < (keys.len() as i64) } {
+            let mut __for_first_633: bool = true;
+            while { if !__for_first_633 { i += 1; } __for_first_633 = false; i < (keys.len() as i64) } {
             let mut currentMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), keys.get(i as usize).cloned().unwrap_or(Value::Null));
             client.resolve(Value::from(&self.orders), currentMessageHash.as_str());
         }

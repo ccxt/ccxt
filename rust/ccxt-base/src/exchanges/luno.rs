@@ -841,8 +841,8 @@ impl Luno {
                         let mut i: i64 = 0;
             let mut __for_first_938: bool = true;
             while { if !__for_first_938 { i += 1; } __for_first_938 = false; i < (rawCurrency.len() as i64) } {
-            let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
-            let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "name", &[]).as_str().map(str::to_owned);
+            let mut networkEntry: Option<crate::value::Dict> = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "name", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -870,7 +870,7 @@ impl Luno {
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
-        m.insert("info".to_string(), networkEntry);
+        m.insert("info".to_string(), networkEntry.map_or(Value::Null, Value::Dict));
     m
 }));
             }
@@ -2114,8 +2114,8 @@ impl Luno {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a currency code argument if no account id specified in params".into()))));
             }
             currency = Some(self.currency(code.clone()));
-            let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("currency".into()));
-            let mut account: Option<crate::value::Dict> = self.safe_dict(accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
+            let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("currency".into())).into_dict();
+            let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
             if (account.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".into())).into()), code)));
             }
@@ -2156,7 +2156,7 @@ impl Luno {
 
     pub fn parse_ledger_comment(&self, comment: &str) -> Value {
         let mut comment: Value = comment.into();
-        let mut words: Value = Value::Array(if let Some(__s) = comment.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
+        let mut words: crate::value::List = Value::Array(if let Some(__s) = comment.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Withdrawal".to_string(), Value::Str("fee".into()));
@@ -2173,15 +2173,15 @@ impl Luno {
             m
         });
         let mut referenceId: Option<String> = None;
-        let mut firstWord: Option<String> = self.safe_string(words.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut thirdWord: Option<String> = self.safe_string(words.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
-        let mut fourthWord: Option<String> = self.safe_string(words.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
+        let mut firstWord: Option<String> = self.safe_string(&words, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut thirdWord: Option<String> = self.safe_string(&words, Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut fourthWord: Option<String> = self.safe_string(&words, Value::Int(3), &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string(&types, firstWord.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (type_var.is_none()) && (thirdWord.as_deref() == Some("fee")) {
             type_var = Some("fee".to_string());
         }
         if (type_var.as_deref() == Some("reserved")) && (fourthWord.as_deref() == Some("order")) {
-            referenceId = self.safe_string(words, Value::Int(4), &[]).as_str().map(str::to_owned);
+            referenceId = self.safe_string(&words, Value::Int(4), &[]).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

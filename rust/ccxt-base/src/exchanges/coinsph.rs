@@ -1491,8 +1491,8 @@ impl Coinsph {
                 let mut __for_first_577: bool = true;
                 while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (symbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                let mut id: Value = Value::from((market).id.as_deref());
-                ids.push(id);
+                let mut id: Option<String> = (market).id.as_deref().map(str::to_owned);
+                ids.push(id.map(Value::from).unwrap_or(Value::Null));
             }
             }
             request.insert("symbols".into(), Value::Array(ids));
@@ -2799,7 +2799,7 @@ impl Coinsph {
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[]);
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[]).into_dict();
         let mut warning: bool = self.safe_bool_k(&options, "warning", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if warning {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".into()))));
@@ -3178,23 +3178,23 @@ impl Coinsph {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let __ws_arg_23 = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut query: Value = self.extend(Value::Map({
+        let mut query: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        }), &[__ws_arg_23]);
+        }), &[__ws_arg_23]).into_dict();
         let mut endpoint: String = self.implode_params(path, params);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            add_element_to_object(&mut query, &Value::Str("timestamp".into()), Value::Int(self.milliseconds()));
-            let mut recvWindow: Option<i64> = self.safe_integer_k(query.clone(), "recvWindow", &[]).as_i64();
+            std::sync::Arc::make_mut(&mut query).insert("timestamp".into(), Value::Int(self.milliseconds()));
+            let mut recvWindow: Option<i64> = self.safe_integer_k(&query, "recvWindow", &[]).as_i64();
             if (recvWindow.is_none()) {
                 let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
                 if (defaultRecvWindow.is_some()) {
-                    add_element_to_object(&mut query, &Value::Str("recvWindow".into()), Value::from(defaultRecvWindow));
+                    std::sync::Arc::make_mut(&mut query).insert("recvWindow".into(), Value::from(defaultRecvWindow));
                 }
             }
-            let mut signedQuery: Value = self.url_encode_query(&[query.clone()]);
+            let mut signedQuery: Value = self.url_encode_query(&[Value::from(&query)]);
             let mut signature: String = self.hmac(self.encode(signedQuery.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint).into()), Value::Str("?".into())).into()), signedQuery).into()), Value::Str("&signature=".into())).into()), signature);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
@@ -3211,7 +3211,7 @@ impl Coinsph {
     m
 });
         }
-        let mut encodedQuery: Option<String> = self.url_encode_query(&[query]).as_str().map(str::to_owned);
+        let mut encodedQuery: Option<String> = self.url_encode_query(&[Value::Dict(query)]).as_str().map(str::to_owned);
         if (((encodedQuery.as_deref().unwrap_or_default().chars().count() as i64)) != 0) {
             url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint).into()), Value::Str("?".into())).into()), encodedQuery.map(Value::from).unwrap_or(Value::Null));
         }

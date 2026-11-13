@@ -137,9 +137,9 @@ pub fn testMilliseconds() {
         m
     }));
     let mut value: i64 = exchange.milliseconds();
-    let mut valueString: Value = Value::Str(format!("{}", value).into());
+    let mut valueString: String = format!("{}", value);
     assert!(ccxt::runtime::is_true(&(Value::Bool(value > 0))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(valueString.len() as i64).as_f64() == Some(13.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(((valueString.chars().count() as i64)) == 13))));
 }
 pub fn testSeconds() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

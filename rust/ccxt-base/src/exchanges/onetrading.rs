@@ -1856,7 +1856,7 @@ impl Onetrading {
         //         ]
         //     }
         //
-        let mut rawOrder: Value = self.safe_dict_k(order.clone(), "order", &[order.clone()]);
+        let mut rawOrder: crate::value::Dict = self.safe_dict_k(order.clone(), "order", &[order.clone()]).into_dict();
         let mut id: Option<String> = self.safe_string_k(&rawOrder, "order_id", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(&rawOrder, "client_id", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&rawOrder, "time", &[]));

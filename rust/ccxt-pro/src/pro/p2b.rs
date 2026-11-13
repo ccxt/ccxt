@@ -466,8 +466,8 @@ impl P2b {
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_570: bool = true;
-            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_568: bool = true;
+            while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, Value::Str("::".into())).into()), Value::from((market).symbol.as_str())).into()));
             args.push(Value::from((market).id.as_deref()));
@@ -549,8 +549,8 @@ impl P2b {
         if (symbolsNormalized.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_571: bool = true;
-                while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_569: bool = true;
+                while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("deals::".into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
@@ -639,8 +639,8 @@ impl P2b {
         let mut params: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
         let mut data: Option<crate::value::List> = self.safe_list(&params, Value::Int(0), &[]).into_opt_list();
         let mut method: Option<String> = match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        let mut splitMethod: Value = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-        let mut channel: Option<String> = self.safe_string(splitMethod, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut splitMethod: crate::value::List = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut channel: Option<String> = self.safe_string(&splitMethod, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string(&data, Value::Int(7), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -704,8 +704,8 @@ impl P2b {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (trades.len() as i64) } {
+            let mut __for_first_570: bool = true;
+            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (trades.len() as i64) } {
             let mut item: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut trade: crate::value::Dict = self.parse_trade(item, Some(&market)).into_dict();
             tradesArray.append(Value::Dict(trade));
@@ -757,9 +757,9 @@ impl P2b {
         let mut marketId: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut method: Option<String> = match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        let mut splitMethod: Value = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
-        let mut messageHashStart: Option<String> = self.safe_string(splitMethod, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut tickerData: Value = self.safe_dict(&data, Value::Int(1), &[]);
+        let mut splitMethod: crate::value::List = Value::Array(if let Some(__s) = method.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut messageHashStart: Option<String> = self.safe_string(&splitMethod, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut tickerData: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(1), &[]).into_opt_dict();
         let mut ticker: Value = Value::Null;
         if (method.as_deref() == Some("price.update")) {
             let mut lastPrice: Option<String> = self.safe_string(&data, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -771,7 +771,7 @@ impl P2b {
                 m
             }), None);
         }  else {
-            ticker = self.parse_ticker(tickerData, Some(&market));
+            ticker = self.parse_ticker(tickerData.map_or(Value::Null, Value::Dict), Some(&market));
         }
         let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
@@ -813,20 +813,20 @@ impl P2b {
         let mut bids: Option<crate::value::List> = self.safe_list_k(&data, "bids", &[]).into_opt_list();
         let mut marketId: Option<String> = self.safe_string(&params, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol);
         let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
         let mut limit: Value = self.safe_integer_k(&subscription, "limit", &[]);
-        let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
-        if (orderbook == Value::Null) {
-            { let __be_tmp = self.order_book(&[Value::Map({
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
+        if (orderbook.is_none()) {
+            { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
-            orderbook = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+}), limit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+            orderbook = self.orderbooks.at(&symbol);
         }
         if isFullUpdate {
             // the first parameter signals whether the message carries all
@@ -841,12 +841,12 @@ impl P2b {
         if (bids.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_573: bool = true;
-                while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_571: bool = true;
+                while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[]).into_list();
                 let mut price: Value = self.safe_number(&bid, Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(&bid, Value::Int(1), &[]);
-                let mut bookSide: Value = crate::value::get_value_k(&orderbook, "bids");
+                let mut bookSide: Value = orderbook.book_field("bids");
                 bookSide.store(price.clone(), amount.clone());
             }
             }
@@ -854,18 +854,18 @@ impl P2b {
         if (asks.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_574: bool = true;
-                while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_572: bool = true;
+                while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[]).into_list();
                 let mut price: Value = self.safe_number(&ask, Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(&ask, Value::Int(1), &[]);
-                let mut bookside: Value = crate::value::get_value_k(&orderbook, "asks");
+                let mut bookside: Value = orderbook.book_field("asks");
                 bookside.store(price, amount);
             }
             }
         }
-        orderbook.set_book_meta("symbol", symbol);
-        client.resolve(orderbook, messageHash.as_str());
+        orderbook.set_book_meta("symbol", Value::from(symbol));
+        client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {

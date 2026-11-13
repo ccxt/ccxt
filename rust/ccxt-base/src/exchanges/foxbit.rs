@@ -2158,9 +2158,9 @@ impl Foxbit {
 }));
         let mut withdrawals: Vec<crate::types::Transaction> = (match self.fetch_withdrawals(code.as_str(), since.as_i64(), limit.as_i64(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut deposits: Vec<crate::types::Transaction> = (match self.fetch_deposits(code.as_str(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut allTransactions: Value = self.array_concat(crate::types::IntoRaw::into_raw(withdrawals), crate::types::IntoRaw::into_raw(deposits));
-        let mut result: Value = self.sort_by(allTransactions, Value::Str("timestamp".into()), &[]);
-        return result;
+        let mut allTransactions: crate::value::List = self.array_concat(crate::types::IntoRaw::into_raw(withdrawals), crate::types::IntoRaw::into_raw(deposits)).into_list();
+        let mut result: crate::value::List = self.sort_by(Value::Arr(allTransactions), Value::Str("timestamp".into()), &[]).into_list();
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }

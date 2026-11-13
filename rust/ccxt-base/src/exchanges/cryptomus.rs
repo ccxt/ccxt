@@ -629,9 +629,9 @@ impl Cryptomus {
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
         }
-        let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-        let mut baseId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut quoteId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -769,13 +769,13 @@ impl Cryptomus {
                         let mut i: i64 = 0;
             let mut __for_first_602: bool = true;
             while { if !__for_first_602 { i += 1; } __for_first_602 = false; i < (rawCurrency.len() as i64) } {
-            let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
+            let mut networkEntry: Option<crate::value::Dict> = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]).into_opt_dict();
             // set ID on first loop
             if (id.is_none()) {
-                id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]).as_str().map(str::to_owned);
+                id = self.safe_string_k(&networkEntry, "currency_code", &[]).as_str().map(str::to_owned);
                 code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
             }
-            let mut networkId: Option<String> = self.safe_string_k(networkEntry.clone(), "network_code", &[]).as_str().map(str::to_owned);
+            let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network_code", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -786,24 +786,24 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(networkEntry.clone(), "min_withdraw", &[]));
-        m.insert("max".to_string(), self.safe_number_k(networkEntry.clone(), "max_withdraw", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&networkEntry, "min_withdraw", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&networkEntry, "max_withdraw", &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(networkEntry.clone(), "min_deposit", &[]));
-        m.insert("max".to_string(), self.safe_number_k(networkEntry.clone(), "max_deposit", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&networkEntry, "min_deposit", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&networkEntry, "max_deposit", &[]));
     m
 }));
     m
 }));
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), self.safe_bool_k(networkEntry.clone(), "can_deposit", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(networkEntry.clone(), "can_withdraw", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(&networkEntry, "can_deposit", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(&networkEntry, "can_withdraw", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
-        m.insert("info".to_string(), networkEntry);
+        m.insert("info".to_string(), networkEntry.clone().map_or(Value::Null, Value::Dict));
     m
 }));
             }

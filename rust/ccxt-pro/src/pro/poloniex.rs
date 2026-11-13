@@ -653,8 +653,8 @@ impl Poloniex {
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut orders: Value = self.trade_request("createOrder", &[__ws_arg_1]).await;
-        let mut order: Value = self.safe_dict(orders, Value::Int(0), &[]);
-        return order;
+        let mut order: Option<crate::value::Dict> = self.safe_dict(orders, Value::Int(0), &[]).into_opt_dict();
+        return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -688,8 +688,8 @@ impl Poloniex {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clientOrderIds".into(), self.array_concat(&clientOrderIds, Value::from(vec![clientOrderId.map(Value::from).unwrap_or(Value::Null)]))); }
         }
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders_ws((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Value = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]);
-        return order;
+        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -780,8 +780,8 @@ impl Poloniex {
         let mut orders: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_636: bool = true;
-            while { if !__for_first_636 { i += 1; } __for_first_636 = false; i < (data.len() as i64) } {
+            let mut __for_first_634: bool = true;
+            while { if !__for_first_634 { i += 1; } __for_first_634 = false; i < (data.len() as i64) } {
             let mut order: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
             orders.push(Value::Dict(parsedOrder));
@@ -1013,8 +1013,8 @@ impl Poloniex {
         if (symbolsNormalized.is_some()) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_637: bool = true;
-                while { if !__for_first_637 { i += 1; } __for_first_637 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_635: bool = true;
+                while { if !__for_first_635 { i += 1; } __for_first_635 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
@@ -1084,8 +1084,8 @@ impl Poloniex {
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_638: bool = true;
-            while { if !__for_first_638 { i += 1; } __for_first_638 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_636: bool = true;
+            while { if !__for_first_636 { i += 1; } __for_first_636 = false; i < (symbolsNormalized.len() as i64) } {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
         }
         }
@@ -1259,7 +1259,7 @@ impl Poloniex {
         if (__ch.has_subscription(&type_var)) {
             return;
         }
-        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
+        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if fetchBalanceSnapshot {
             let mut messageHash: String = format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into()));
@@ -1281,8 +1281,8 @@ impl Poloniex {
         let mut keys: Vec<Value> = object_keys(&response).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_639: bool = true;
-            while { if !__for_first_639 { i += 1; } __for_first_639 = false; i < (keys.len() as i64) } {
+            let mut __for_first_637: bool = true;
+            while { if !__for_first_637 { i += 1; } __for_first_637 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if self.in_array(key.clone(), reserved.clone()).as_bool() == Some(true) {
                 continue;
@@ -1338,9 +1338,9 @@ impl Poloniex {
         //    }
         //
         let mut dataList: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-        let mut data: Value = self.safe_dict(&dataList, Value::Int(0), &[]);
+        let mut data: Option<crate::value::Dict> = self.safe_dict(&dataList, Value::Int(0), &[]).into_opt_dict();
         let mut channel: Option<String> = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut market: crate::types::Market = self.safe_market(symbol.clone(), None, &[]);
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
@@ -1348,7 +1348,7 @@ impl Poloniex {
             m
         })]);
         let mut timeframe: Option<String> = self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[timeframes]);
-        let mut parsed: crate::value::List = self.parse_ws_ohlcv(data, Some(&market)).into_list();
+        let mut parsed: crate::value::List = self.parse_ws_ohlcv(data.map_or(Value::Null, Value::Dict), Some(&market)).into_list();
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = (if (timeframe.is_none()) { None } else { self.ohlcvs.shelf_text(&symbol).lookup(&timeframe) });
         if (symbol != Value::Null) {
@@ -1393,8 +1393,8 @@ impl Poloniex {
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_640: bool = true;
-            while { if !__for_first_640 { i += 1; } __for_first_640 = false; i < (data.len() as i64) } {
+            let mut __for_first_638: bool = true;
+            while { if !__for_first_638 { i += 1; } __for_first_638 = false; i < (data.len() as i64) } {
             let mut item: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
             let mut marketId: Option<String> = self.safe_string_k(&item, "symbol", &[]).as_str().map(str::to_owned);
             if (marketId.is_some()) {
@@ -1615,8 +1615,8 @@ impl Poloniex {
         let mut marketIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_642: bool = true;
-            while { if !__for_first_642 { i += 1; } __for_first_642 = false; i < (data.len() as i64) } {
+            let mut __for_first_640: bool = true;
+            while { if !__for_first_640 { i += 1; } __for_first_640 = false; i < (data.len() as i64) } {
             let mut order: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut eventType: Option<String> = self.safe_string_k(&order, "eventType", &[]).as_str().map(str::to_owned);
@@ -1652,8 +1652,8 @@ impl Poloniex {
                     let mut previousOrderTrades: crate::value::List = self.safe_list_k(previousOrder.clone(), "trades", &[Value::from(vec![])]).into_list();
                     {
                                                 let mut j: i64 = 0;
-                        let mut __for_first_641: bool = true;
-                        while { if !__for_first_641 { j += 1; } __for_first_641 = false; j < (previousOrderTrades.len() as i64) } {
+                        let mut __for_first_639: bool = true;
+                        while { if !__for_first_639 { j += 1; } __for_first_639 = false; j < (previousOrderTrades.len() as i64) } {
                         let mut previousOrderTrade: indexmap::IndexMap<String, Value> = self.safe_dict(&previousOrderTrades, Value::Int(j), &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
                             m
@@ -1704,8 +1704,8 @@ impl Poloniex {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_643: bool = true;
-            while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_641: bool = true;
+            while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1829,18 +1829,18 @@ impl Poloniex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_644: bool = true;
-            while { if !__for_first_644 { i += 1; } __for_first_644 = false; i < (data.len() as i64) } {
+            let mut __for_first_642: bool = true;
+            while { if !__for_first_642 { i += 1; } __for_first_642 = false; i < (data.len() as i64) } {
             let mut item: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&item, "symbol", &[]).as_str().map(str::to_owned);
             if (marketId.is_some()) {
-                let mut ticker: Value = self.parse_ticker(Value::Dict(item), None);
-                let mut symbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
+                let mut ticker: crate::value::Dict = self.parse_ticker(Value::Dict(item), None).into_dict();
+                let mut symbol: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
+                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
                 }
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut newTickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker); }
+                    if let Value::Dict(__d) = &mut newTickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker)); }
                 }
             }
         }
@@ -1848,8 +1848,8 @@ impl Poloniex {
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("ticker::".into())).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_645: bool = true;
-            while { if !__for_first_645 { i += 1; } __for_first_645 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_643: bool = true;
+            while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -1923,8 +1923,8 @@ impl Poloniex {
         let mut update: bool = type_var.as_deref() == Some("update");
         {
                         let mut i: i64 = 0;
-            let mut __for_first_648: bool = true;
-            while { if !__for_first_648 { i += 1; } __for_first_648 = false; i < (data.len() as i64) } {
+            let mut __for_first_646: bool = true;
+            while { if !__for_first_646 { i += 1; } __for_first_646 = false; i < (data.len() as i64) } {
             let mut item: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&item, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -1940,15 +1940,15 @@ impl Poloniex {
             let mut asks: Option<crate::value::List> = self.safe_list_k(&item, "asks", &[]).into_opt_list();
             let mut bids: Option<crate::value::List> = self.safe_list_k(&item, "bids", &[]).into_opt_list();
             if snapshot || update {
-                let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
-                if snapshot && (orderbook == Value::Null) {
-                    orderbook = self.order_book(&[Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                        m
-                    }), Value::from(limit)]);
-                    if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
+                let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
+                if snapshot && (orderbook.is_none()) {
+                    orderbook = Some(self.order_book(&[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}), Value::from(limit)]));
+                    CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
                 }
-                if (orderbook == Value::Null) {
+                if (orderbook.is_none()) {
                     continue;
                 }
                 if snapshot {
@@ -1964,12 +1964,12 @@ impl Poloniex {
                 if (bids.is_some()) {
                     {
                                                 let mut j: i64 = 0;
-                        let mut __for_first_646: bool = true;
-                        while { if !__for_first_646 { j += 1; } __for_first_646 = false; j < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                        let mut __for_first_644: bool = true;
+                        while { if !__for_first_644 { j += 1; } __for_first_644 = false; j < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                         let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(j), &[]).into_list();
                         let mut price: Value = self.safe_number(&bid, Value::Int(0), &[]);
                         let mut amount: Value = self.safe_number(&bid, Value::Int(1), &[]);
-                        let mut bidsSide: Value = crate::value::get_value_k(&orderbook, "bids");
+                        let mut bidsSide: Value = orderbook.book_field("bids");
                         bidsSide.store(price.clone(), amount.clone());
                     }
                     }
@@ -1977,12 +1977,12 @@ impl Poloniex {
                 if (asks.is_some()) {
                     {
                                                 let mut j: i64 = 0;
-                        let mut __for_first_647: bool = true;
-                        while { if !__for_first_647 { j += 1; } __for_first_647 = false; j < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                        let mut __for_first_645: bool = true;
+                        while { if !__for_first_645 { j += 1; } __for_first_645 = false; j < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                         let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(j), &[]).into_list();
                         let mut price: Value = self.safe_number(&ask, Value::Int(0), &[]);
                         let mut amount: Value = self.safe_number(&ask, Value::Int(1), &[]);
-                        let mut asksSide: Value = crate::value::get_value_k(&orderbook, "asks");
+                        let mut asksSide: Value = orderbook.book_field("asks");
                         asksSide.store(price, amount);
                     }
                     }
@@ -1990,7 +1990,7 @@ impl Poloniex {
                 orderbook.set_book_meta("symbol", symbol);
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
                 orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
-                client.resolve(orderbook, messageHash.as_str());
+                client.resolve(Value::from(&orderbook), messageHash.as_str());
             }
         }
         }
@@ -2043,8 +2043,8 @@ impl Poloniex {
         { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_649: bool = true;
-            while { if !__for_first_649 { i += 1; } __for_first_649 = false; i < (data.len() as i64) } {
+            let mut __for_first_647: bool = true;
+            while { if !__for_first_647 { i += 1; } __for_first_647 = false; i < (data.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -2155,8 +2155,8 @@ impl Poloniex {
         let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.clone()), &[timeframes]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_650: bool = true;
-            while { if !__for_first_650 { i += 1; } __for_first_650 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_648: bool = true;
+            while { if !__for_first_648 { i += 1; } __for_first_648 = false; i < (marketIds.len() as i64) } {
             let mut symbol: Option<String> = self.safe_symbol(self.safe_string(&marketIds, Value::Int(i), &[]), None, &[]).as_str().map(str::to_owned);
             let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
             if (channel == "trades") {
@@ -2257,7 +2257,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         let mut success: bool = self.safe_bool_k(&data, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut messageHash: String = "authenticated".to_string();
         if success {

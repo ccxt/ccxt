@@ -669,9 +669,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut stopWords: Value = Value::from(vec![Value::Str("will".into()), Value::Str("the".into()), Value::Str("a".into()), Value::Str("an".into()), Value::Str("after".into()), Value::Str("before".into()), Value::Str("in".into()), Value::Str("at".into()), Value::Str("by".into()), Value::Str("of".into()), Value::Str("there".into()),
             Value::Str("be".into()), Value::Str("to".into()), Value::Str("or".into()), Value::Str("and".into()), Value::Str("for".into()), Value::Str("on".into()), Value::Str("its".into()), Value::Str("that".into()), Value::Str("this".into()), Value::Str("from".into()), Value::Str("with".into()), Value::Str("as".into()), Value::Str("is".into()),
             Value::Str("are".into()), Value::Str("was".into()), Value::Str("were".into()), Value::Str("?".into()), Value::Str("how".into()), Value::Str("many".into()), Value::Str("who".into()), Value::Str("what".into()), Value::Str("when".into()), Value::Str("where".into()), Value::Str("which".into()), Value::Str("much".into())]);
-        let mut lower: Value = (if (slug == Value::Null) { Value::Str("".into()) } else { (if let Some(__s) = slug.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }) });
+        let mut lower: Option<String> = (if (slug == Value::Null) { Some("".to_string()) } else { slug.as_str().map(str::to_lowercase) });
         let mut allowed: String = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
-        let mut chars: Vec<Value> = self.string_to_chars_array(lower).as_array().cloned().unwrap_or_default();
+        let mut chars: Vec<Value> = self.string_to_chars_array(lower.map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
         let mut s: Value = Value::Str("".into());
         let mut lastDash: bool = true; // start true to drop leading separators
         {
@@ -787,12 +787,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_203: bool = true;
             while { if !__for_first_203 { i += 1; } __for_first_203 = false; i < (marketsList.len() as i64) } {
             let mut row: Value = marketsList.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut copy: Value = self.extend(Value::Map({
+            let mut copy: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[row.clone()]);
-            if let Value::Dict(__d) = &mut copy { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string2(row, Value::Str("market".into()), Value::Str("symbol".into()), &[])); }
-            aliased.push(copy);
+            }), &[row.clone()]).into_dict();
+            std::sync::Arc::make_mut(&mut copy).insert("symbol".into(), self.safe_string2(row, Value::Str("market".into()), Value::Str("symbol".into()), &[]));
+            aliased.push(Value::Dict(copy));
         }
         }
         let mut stored: Value = self.super_set_markets(Value::from(aliased), currencies);
@@ -2355,8 +2355,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_214: bool = true;
             while { if !__for_first_214 { i += 1; } __for_first_214 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
-            let mut trade: Value = self.extend(parsed, &[params.clone()]);
-            if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(trade); }
+            let mut trade: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
+            if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(Value::Dict(trade)); }
         }
         }
         results = self.sort_by2(results.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
@@ -2394,8 +2394,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_215: bool = true;
             while { if !__for_first_215 { i += 1; } __for_first_215 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref());
-            let mut order: Value = self.extend(parsed, &[params.clone()]);
-            if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(order); }
+            let mut order: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
+            if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(Value::Dict(order)); }
         }
         }
         results = self.sort_by(results.clone(), Value::Str("timestamp".into()), &[]);
@@ -2430,8 +2430,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_216: bool = true;
             while { if !__for_first_216 { i += 1; } __for_first_216 = false; i < (rows.len() as i64) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), None);
-            let mut position: Value = self.extend(parsed, &[params.clone()]);
-            results.push(position);
+            let mut position: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
+            results.push(Value::Dict(position));
         }
         }
         return Value::from(results);

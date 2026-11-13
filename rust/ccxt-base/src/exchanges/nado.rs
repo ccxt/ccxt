@@ -1178,8 +1178,8 @@ impl Nado {
     m
 }));
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut canceled: Value = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]);
-        return canceled;
+        let mut canceled: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        return canceled.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1984,7 +1984,7 @@ impl Nado {
         //
         let mut matches: crate::value::List = self.safe_list_k(&response, "matches", &[Value::from(vec![])]).into_list();
         let mut txs: Value = self.safe_list_k(&response, "txs", &[Value::from(vec![])]);
-        let mut txsBySubmission: Value = self.index_by(txs, Value::Str("submission_idx".into()));
+        let mut txsBySubmission: crate::value::Dict = self.index_by(txs, Value::Str("submission_idx".into())).into_dict();
         let mut trades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1992,7 +1992,7 @@ impl Nado {
             while { if !__for_first_982 { i += 1; } __for_first_982 = false; i < (matches.len() as i64) } {
             let mut match_val: crate::value::Dict = matches.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut submissionIdx: Option<String> = self.safe_string_k(&match_val, "submission_idx", &[]).as_str().map(str::to_owned);
-            let mut tx: crate::value::Dict = self.safe_dict(txsBySubmission.clone(), submissionIdx.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut tx: crate::value::Dict = self.safe_dict(&txsBySubmission, submissionIdx.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2773,11 +2773,11 @@ impl Nado {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue.clone()), &[]);
-        if (ticker == Value::Null) {
+        let mut ticker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue.clone()), &[]).into_opt_dict();
+        if (ticker.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() ticker not found for ".into())).into()), symbolValue)));
         }
-        return ticker;
+        return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2924,7 +2924,7 @@ impl Nado {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

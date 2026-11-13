@@ -1518,32 +1518,32 @@ impl Weex {
                         let mut j: i64 = 0;
             let mut __for_first_1145: bool = true;
             while { if !__for_first_1145 { j += 1; } __for_first_1145 = false; j < (chains.len() as i64) } {
-            let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
-            let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "network", &[]).as_str().map(str::to_owned);
+            let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&chain, "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), chain.clone());
+        m.insert("info".to_string(), chain.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), self.safe_bool_k(chain.clone(), "depositEnable", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(chain.clone(), "withdrawEnable", &[]));
-        m.insert("fee".to_string(), self.safe_number_k(chain.clone(), "withdrawFee", &[]));
-        m.insert("precision".to_string(), self.safe_number_k(chain.clone(), "withdrawIntegerMultiple", &[]));
-        m.insert("isDefault".to_string(), self.safe_bool_k(chain.clone(), "isDefault", &[Value::Bool(false)]));
+        m.insert("deposit".to_string(), self.safe_bool_k(&chain, "depositEnable", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(&chain, "withdrawEnable", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&chain, "withdrawFee", &[]));
+        m.insert("precision".to_string(), self.safe_number_k(&chain, "withdrawIntegerMultiple", &[]));
+        m.insert("isDefault".to_string(), self.safe_bool_k(&chain, "isDefault", &[Value::Bool(false)]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "withdrawMin", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&chain, "withdrawMin", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain, "depositDust", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&chain, "depositDust", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1557,7 +1557,7 @@ impl Weex {
         let mut networkKeys: Vec<Value> = Value::Array(networks.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut networksLength: i64 = networkKeys.len() as i64;
         let mut emptyChains: bool = networksLength == 0; // non-functional coins
-        let mut valueForEmpty: Value = (if emptyChains { Value::Bool(false) } else { Value::Null });
+        let mut valueForEmpty: Option<bool> = (if emptyChains { Some(false) } else { None });
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency);
@@ -1566,8 +1566,8 @@ impl Weex {
         m.insert("type".to_string(), Value::Str("crypto".into()));
         m.insert("name".to_string(), name.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), valueForEmpty.clone());
-        m.insert("withdraw".to_string(), valueForEmpty);
+        m.insert("deposit".to_string(), valueForEmpty.map_or(Value::Null, Value::Bool));
+        m.insert("withdraw".to_string(), valueForEmpty.map_or(Value::Null, Value::Bool));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
@@ -2172,16 +2172,16 @@ impl Weex {
         //     }
         //
         // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
-        let mut ticker: Value = self.extend(Value::Map({
+        let mut ticker: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        }), &[&response]);
+        }), &[&response]).into_dict();
         if (priceType.as_deref() == Some("INDEX")) {
-            { let __be_tmp = self.safe_string_k(ticker.clone(), "price", &[]); if let Value::Dict(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("indexPrice".into(), __be_tmp); } }
+            { let __be_tmp = self.safe_string_k(&ticker, "price", &[]); std::sync::Arc::make_mut(&mut ticker).insert("indexPrice".into(), __be_tmp); }
         }  else {
-            { let __be_tmp = self.safe_string_k(ticker.clone(), "price", &[]); if let Value::Dict(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("markPrice".into(), __be_tmp); } }
+            { let __be_tmp = self.safe_string_k(&ticker, "price", &[]); std::sync::Arc::make_mut(&mut ticker).insert("markPrice".into(), __be_tmp); }
         }
-        return self.parse_ticker(ticker, Some(&market));
+        return self.parse_ticker(&ticker, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2412,12 +2412,12 @@ impl Weex {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            let mut paramsExtended: Value = self.extend(&paramsPaginate, &[Value::Map({
+            let mut paramsExtended: crate::value::Dict = self.extend(&paramsPaginate, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("historical".to_string(), Value::Bool(true));
                 m
-            })]);
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsExtended, maxHistoricalLimit.clone()]).await;
+            })]).into_dict();
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::Dict(paramsExtended), maxHistoricalLimit.clone()]).await;
         }
         let mut until: Value = self.safe_integer_k(&paramsPaginate, "until", &[]);
         let historicalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsPaginate, Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();

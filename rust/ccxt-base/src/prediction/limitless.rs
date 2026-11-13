@@ -936,11 +936,11 @@ impl Limitless {
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
             // label rather than by loop position — otherwise Go/Java flag the wrong winner
-            let mut labelLower: Value = (if let Some(__s) = outcomeLabel.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+            let mut labelLower: Option<String> = outcomeLabel.as_str().map(str::to_lowercase);
             let mut legIndex: Value = Value::Int(i);
-            if (labelLower.as_str() == Some("yes")) {
+            if (labelLower.as_deref() == Some("yes")) {
                 legIndex = Value::Int(0);
-            }  else if (labelLower.as_str() == Some("no")) {
+            }  else if (labelLower.as_deref() == Some("no")) {
                 legIndex = Value::Int(1);
             }
             let mut winnerRaw: Value = Value::Null;
@@ -1094,12 +1094,12 @@ impl Limitless {
         // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
         // and wraps as its own one-market event, which parseEvent's loop then parses
         let mut rows: crate::value::List = self.expand_group_rows(Value::from(vec![response.clone()])).into_list();
-        let mut wrapped: Value = self.extend(response, &[Value::Map({
+        let mut wrapped: crate::value::Dict = self.extend(response, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("markets".to_string(), Value::Arr(rows));
             m
-        })]);
-        let mut event: crate::value::Dict = self.parse_event(wrapped).into_dict();
+        })]).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(Value::Dict(wrapped)).into_dict();
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -1137,13 +1137,13 @@ impl Limitless {
                     let mut __for_first_1307: bool = true;
                     while { if !__for_first_1307 { j += 1; } __for_first_1307 = false; (j as f64) < nestedMarketsLength } {
                     // extend copies — the raw child stays untouched
-                    let mut tagged: Value = self.extend(nestedMarkets.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+                    let mut tagged: crate::value::Dict = self.extend(nestedMarkets.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("groupSlug".to_string(), groupSlug.clone().map(Value::from).unwrap_or(Value::Null));
                             m.insert("groupTitle".to_string(), Value::from(groupTitle.as_deref()));
                         m
-                    })]);
-                    result.push(tagged);
+                    })]).into_dict();
+                    result.push(Value::Dict(tagged));
                 }
                 }
             }  else {
@@ -1835,12 +1835,12 @@ impl Limitless {
             while { if !__for_first_1313 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1313 = false; i.as_f64().unwrap_or(f64::NAN) < ((slugs.len() as i64) as f64) } {
             let mut slug: Value = slugs.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut detailIndex: Value = (match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut detail: Value = self.safe_dict(responses.clone(), detailIndex.clone(), &[]);
-            let mut book: Value = self.safe_dict(responses.clone(), self.sum(&[detailIndex, Value::Int(1)]), &[]);
+            let mut detail: Option<crate::value::Dict> = self.safe_dict(responses.clone(), detailIndex.clone(), &[]).into_opt_dict();
+            let mut book: Option<crate::value::Dict> = self.safe_dict(responses.clone(), self.sum(&[detailIndex, Value::Int(1)]), &[]).into_opt_dict();
             let mut tickerInput: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("market".to_string(), detail);
-                    m.insert("book".to_string(), book);
+                    m.insert("market".to_string(), detail.map_or(Value::Null, Value::Dict));
+                    m.insert("book".to_string(), book.map_or(Value::Null, Value::Dict));
                 m
             });
             let mut grouped: crate::value::List = self.safe_list(outcomesBySlug.clone(), slug, &[Value::from(vec![])]).into_list();
@@ -2323,12 +2323,12 @@ impl Limitless {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders requires an outcome argument".into()))));
         }
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut paramsExtended: Value = self.extend(params, &[Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("statuses".to_string(), Value::from(vec![Value::Str("LIVE".into())]));
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), paramsExtended).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(paramsExtended)).await);
         Value::Null
         }).await?))
     }
@@ -2361,12 +2361,12 @@ impl Limitless {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders requires an outcome argument".into()))));
         }
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut paramsExtended: Value = self.extend(params, &[Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("statuses".to_string(), Value::from(vec![Value::Str("MATCHED".into())]));
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), paramsExtended).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(paramsExtended)).await);
         Value::Null
         }).await?))
     }
@@ -2558,11 +2558,11 @@ impl Limitless {
             self.load_outcome(outcome.clone(), &[]).await;
         }
         let mut orders: Value = self.fetch_orders_by_ids(Value::from(vec![id.clone()]), outcome.as_str(), &[params]).await;
-        let mut order: Value = self.safe_dict(orders, Value::Int(0), &[]);
-        if (order == Value::Null) {
+        let mut order: Option<crate::value::Dict> = self.safe_dict(orders, Value::Int(0), &[]).into_opt_dict();
+        if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order ".into())).into()), id)));
         }
-        return order;
+        return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3752,10 +3752,10 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1325: bool = true;
             while { if !__for_first_1325 { i += 1; } __for_first_1325 = false; i < (outcomes.len() as i64) } {
-            let mut outcome: Value = self.safe_dict(&outcomes, Value::Int(i), &[]);
-            let mut outcomeLabel: Option<String> = self.safe_string_k(outcome.clone(), "label", &[]).as_str().map(str::to_owned);
+            let mut outcome: Option<crate::value::Dict> = self.safe_dict(&outcomes, Value::Int(i), &[]).into_opt_dict();
+            let mut outcomeLabel: Option<String> = self.safe_string_k(&outcome, "label", &[]).as_str().map(str::to_owned);
             if (outcomeLabel == label.as_str().map(str::to_owned)) {
-                return outcome;
+                return outcome.map_or(Value::Null, Value::Dict);
             }
         }
         }
@@ -3881,13 +3881,13 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1327: bool = true;
             while { if !__for_first_1327 { i += 1; } __for_first_1327 = false; i < (clob.len() as i64) } {
-            let mut entry: Value = self.safe_dict(&clob, Value::Int(i), &[]);
+            let mut entry: Option<crate::value::Dict> = self.safe_dict(&clob, Value::Int(i), &[]).into_opt_dict();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1326: bool = true;
                 while { if !__for_first_1326 { j += 1; } __for_first_1326 = false; j < (labels.len() as i64) } {
                 let mut label: Option<String> = self.safe_string(&labels, Value::Int(j), &[]).as_str().map(str::to_owned);
-                let mut position: Value = self.get_position_from_clob_entry(label.as_deref(), &[entry.clone()]);
+                let mut position: Value = self.get_position_from_clob_entry(label.as_deref(), &[entry.clone().map_or(Value::Null, Value::Dict)]);
                 if (position != Value::Null) {
                     result.push(position);
                 }

@@ -1377,8 +1377,8 @@ impl Bullish {
                 swap = true;
             }  else {
                 expiryDatetime = self.safe_string_k(market.clone(), "expiryDatetime", &[]).as_str().map(str::to_owned);
-                let mut idParts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                let mut datePart: Option<String> = self.safe_string_opt(idParts.clone(), Value::Int(2), &[]);
+                let mut idParts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
+                let mut datePart: Option<String> = self.safe_string_opt(&idParts, Value::Int(2), &[]);
                 let mut dateYmd: Value = datePart.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                 symbol.push_str(&format!("{}{}", Value::Str("-".into()), dateYmd));
                 if (type_var.as_str() == Some("future")) {
@@ -1387,7 +1387,7 @@ impl Bullish {
                     option = true;
                     optionType = self.safe_string_lower_k(market.clone(), "optionType", &[]).as_str().map(str::to_owned);
                     strike = self.parse_to_numeric(self.safe_string_k(market.clone(), "optionStrikePrice", &[]));
-                    symbol.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), Value::from(self.number_to_string(strike.clone()))).into()), Value::Str("-".into())).into()), self.safe_string(idParts, Value::Int(4), &[])));
+                    symbol.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), Value::from(self.number_to_string(strike.clone()))).into()), Value::Str("-".into())).into()), self.safe_string(&idParts, Value::Int(4), &[])));
                 }
             }
         }
@@ -1574,8 +1574,8 @@ impl Bullish {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            let mut paramsPagination: Value = self.handle_pagination_params("fetchTrades", since.as_i64(), &[Value::from(&paramsPaginate)]);
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, Value::from(maxLimit)]).await;
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTrades", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1644,8 +1644,8 @@ impl Bullish {
             let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if paginate {
-                let mut paramsPagination: Value = self.handle_pagination_params("fetchMyTrades", since.as_i64(), &[Value::from(&paramsPaginate)]);
-                return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol, since.clone(), limit.clone(), paramsPagination, Value::Int(100)]).await;
+                let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchMyTrades", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+                return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol, since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::Int(100)]).await;
             }
             let mut paramsSinceAndUntil: Value = self.handle_since_and_until(since.as_i64(), &[Value::from(&paramsPaginate)]);
             if (limit != Value::Null) {
@@ -2089,8 +2089,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            let mut paramsPagination: Value = self.handle_pagination_params("fetchFundingRateHistory", since.as_i64(), &[Value::from(&paramsPaginate)]);
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, Value::from(maxLimit)]).await;
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchFundingRateHistory", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::from(maxLimit)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {
@@ -2125,13 +2125,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_493: bool = true;
             while { if !__for_first_493 { i += 1; } __for_first_493 = false; i < (result.len() as i64) } {
-            let mut entry: Value = result.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut datetime: Option<String> = self.safe_string_k(entry.clone(), "updatedAtDatetime", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut datetime: Option<String> = self.safe_string_k(&entry, "updatedAtDatetime", &[]).as_str().map(str::to_owned);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), entry.clone());
+                    m.insert("info".to_string(), Value::from(&entry));
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
                     m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
                 m
@@ -2178,8 +2178,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut tradingAccountId: Option<String> = self.load_account(&[params.clone()]).await.as_str().map(str::to_owned);
         let mut paginate: bool = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if paginate {
-            let mut paramsPagination: Value = self.handle_pagination_params("fetchOrders", since.as_i64(), &[params.clone()]);
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPagination, Value::Int(100)]).await;
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchOrders", since.as_i64(), &[params.clone()]).into_dict();
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::Int(100)]).await;
         }
         let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2256,20 +2256,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), method).into()), Value::Str("() only allows fetching entries up to 90 days in the past".into()))));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("paginate".into()), &[]).into_dict();
-        let mut paramsExtended: Value = self.extend(paramsOmitted, &[Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(paramsOmitted, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("paginationDirection".to_string(), Value::Str("backward".into()));
             m
-        })]);
-        let mut until: Option<i64> = self.safe_integer_k(paramsExtended.clone(), "until", &[]).as_i64();
+        })]).into_dict();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsExtended, "until", &[]).as_i64();
         if (until.is_none()) {
-            return self.extend(paramsExtended.clone(), &[Value::Map({
+            return self.extend(&paramsExtended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("until".to_string(), Value::from(now));
     m
 })]);
         }
-        return paramsExtended;
+        return Value::Dict(paramsExtended);
 
     Value::Null
 }
@@ -3559,8 +3559,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            let mut paramsPagination: Value = self.handle_pagination_params("fetchTransfers", since.as_i64(), &[Value::from(&paramsPaginate)]);
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), paramsPagination, Value::from(maxLimit)]).await;
+            let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchTransfers", since.as_i64(), &[Value::from(&paramsPaginate)]).into_dict();
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

@@ -268,8 +268,8 @@ impl Kucoinfutures {
                 m.insert("method".to_string(), Value::Str("futuresPublicGetAllTickers".into()));
             m
         });
-        let mut extendedRequest: Value = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_tickers(symbols.to_opt_str_vec(), extendedRequest).await);
+        let mut extendedRequest: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_tickers(symbols.to_opt_str_vec(), Value::Dict(extendedRequest)).await);
         Value::Null
         }).await?))
     }

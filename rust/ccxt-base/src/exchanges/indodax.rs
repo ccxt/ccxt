@@ -657,16 +657,16 @@ impl Indodax {
                         let mut i: i64 = 0;
             let mut __for_first_838: bool = true;
             while { if !__for_first_838 { i += 1; } __for_first_838 = false; i < (rawMarkets.len() as i64) } {
-            let mut market: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
-            let mut baseId: Option<String> = self.safe_string_k(market.clone(), "traded_currency", &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "base_currency", &[]).as_str().map(str::to_owned);
+            let mut market: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Option<String> = self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = self.safe_string_k(&market, "traded_currency", &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_k(&market, "base_currency", &[]).as_str().map(str::to_owned);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut isMaintenance: Option<i64> = self.safe_integer_k(market.clone(), "is_maintenance", &[]).as_i64();
+            let mut isMaintenance: Option<i64> = self.safe_integer_k(&market, "is_maintenance", &[]).as_i64();
             let mut inMaintenance: bool = (isMaintenance.is_some()) && (isMaintenance != Some(0));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -688,7 +688,7 @@ impl Indodax {
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
-                    m.insert("taker".to_string(), self.safe_number_k(market.clone(), "trade_fee_percent", &[]));
+                    m.insert("taker".to_string(), self.safe_number_k(&market, "trade_fee_percent", &[]));
                     m.insert("contractSize".to_string(), Value::Null);
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);
@@ -698,8 +698,8 @@ impl Indodax {
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(Value::Str("1e-8".into()), &[]));
-        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "price_round", &[])]), &[]));
-        m.insert("cost".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "volume_precision", &[])]), &[]));
+        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "price_round", &[])]), &[]));
+        m.insert("cost".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "volume_precision", &[])]), &[]));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -712,13 +712,13 @@ impl Indodax {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "trade_min_traded_currency", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "trade_min_traded_currency", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "trade_min_base_currency", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "trade_min_base_currency", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -731,7 +731,7 @@ impl Indodax {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), market);
+                    m.insert("info".to_string(), Value::from(&market));
                 m
             }));
         }

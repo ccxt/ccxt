@@ -1649,8 +1649,8 @@ impl Derive {
                 m
             });
             let __ws_arg_1 = self.extend(request.clone(), &[Value::Map(requestExtension)]);
-            let mut requestExtended: Value = self.extend(__ws_arg_1, &[&paramsOmitted]); // nested because the csharp base defines extend with two arguments only
-            let mut response: crate::value::Dict = self.public_post_get_all_instruments(&[requestExtended]).await.into_dict();
+            let mut requestExtended: crate::value::Dict = self.extend(__ws_arg_1, &[&paramsOmitted]).into_dict(); // nested because the csharp base defines extend with two arguments only
+            let mut response: crate::value::Dict = self.public_post_get_all_instruments(&[Value::Dict(requestExtended)]).await.into_dict();
             let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2616,15 +2616,15 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_632: bool = true;
             while { if !__for_first_632 { i += 1; } __for_first_632 = false; i < (tradesArray.len() as i64) } {
-            let mut rawTrade: Value = tradesArray.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut isFetchTrades: bool = !(in_op(&rawTrade, &Value::Str("order_id".into())));
-            let mut liquidityRole: Option<String> = self.safe_string_k(rawTrade.clone(), "liquidity_role", &[]).as_str().map(str::to_owned);
+            let mut rawTrade: crate::value::Dict = tradesArray.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut isFetchTrades: bool = !(rawTrade.contains_key("order_id"));
+            let mut liquidityRole: Option<String> = self.safe_string_k(&rawTrade, "liquidity_role", &[]).as_str().map(str::to_owned);
             if isFetchTrades && (liquidityRole.as_deref() == Some("maker")) {
                 continue;
             }
-            let mut parsed: crate::value::Dict = self.parse_trade(rawTrade, market.clone()).into_dict();
-            let mut trade: Value = self.extend(parsed, &[params.clone()]);
-            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(trade); }
+            let mut parsed: crate::value::Dict = self.parse_trade(&rawTrade, market.clone()).into_dict();
+            let mut trade: crate::value::Dict = self.extend(parsed, &[params.clone()]).into_dict();
+            if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Dict(trade)); }
         }
         }
         result = self.sort_by2(result.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
@@ -2916,7 +2916,7 @@ impl Derive {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3780,7 +3780,7 @@ impl Derive {
         }
         let mut orders: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
         let mut parsedOrders: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(parsedOrders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&parsedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3937,7 +3937,7 @@ impl Derive {
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
         let mut orders: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
         let mut parsedOrders: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(parsedOrders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&parsedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -2114,11 +2114,11 @@ impl Paradex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut rate: Value = self.safe_dict(crate::types::IntoRaw::into_raw(rates), Value::from((market).symbol.clone()), &[]);
-        if (rate == Value::Null) {
+        let mut rate: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(rates), Value::from((market).symbol.clone()), &[]).into_opt_dict();
+        if (rate.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() could not find a funding rate for ".into())).into()), symbol)));
         }
-        return rate;
+        return rate.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3078,13 +3078,13 @@ impl Paradex {
         let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[]).await.into_dict();
         let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(orderReq.clone()), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
         let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut signedRequest: Value = self.extend(request, &[Value::Map({
+        let mut signedRequest: crate::value::Dict = self.extend(request, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signature_timestamp".to_string(), orderReq.get("timestamp").cloned().unwrap_or(Value::Null));
             m
-        })]);
-        return signedRequest;
+        })]).into_dict();
+        return Value::Dict(signedRequest);
 
     Value::Null
 }
@@ -3264,8 +3264,8 @@ impl Paradex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut extendedParams: Value = self.extend(params.clone(), &[&orderParams]);
-            let mut orderRequest: Value = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), extendedParams]);
+            let mut extendedParams: crate::value::Dict = self.extend(params.clone(), &[&orderParams]).into_dict();
+            let mut orderRequest: Value = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(extendedParams)]);
             orderRequest = self.sign_order_request(orderRequest.clone(), &[]).await;
             ordersRequests.push(orderRequest);
         }
@@ -3307,10 +3307,10 @@ impl Paradex {
             if (responseOrder.is_some()) {
                 result.push(self.parse_order(&responseOrder, None));
             }  else {
-                let mut error: Value = self.safe_dict(&errors, Value::Int(i), &[]);
+                let mut error: Option<crate::value::Dict> = self.safe_dict(&errors, Value::Int(i), &[]).into_opt_dict();
                 result.push(self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), error);
+                        m.insert("info".to_string(), error.map_or(Value::Null, Value::Dict));
                         m.insert("status".to_string(), Value::Str("rejected".into()));
                     m
                 }), None));
@@ -4227,7 +4227,7 @@ impl Paradex {
 })]);
             let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code, since.clone(), Value::Null, __ws_arg_18, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
             let mut transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "DEPOSIT").into_list();
-            return self.filter_by_since_limit(Value::Arr(transactionsOfKind), since.as_i64(), limit.as_i64(), &[]);
+            return self.filter_by_since_limit(&transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
         }
         let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
@@ -4335,7 +4335,7 @@ impl Paradex {
 })]);
             let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), Value::Null, __ws_arg_20, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
             let mut transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "WITHDRAWAL").into_list();
-            return self.filter_by_since_limit(Value::Arr(transactionsOfKind), since.as_i64(), limit.as_i64(), &[]);
+            return self.filter_by_since_limit(&transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
         }
         let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
@@ -5304,7 +5304,7 @@ impl Paradex {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -630,10 +630,10 @@ impl Bitflyer {
                         let mut i: i64 = 0;
             let mut __for_first_362: bool = true;
             while { if !__for_first_362 { i += 1; } __for_first_362 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "product_code", &[]);
-            let mut currencies: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut marketType: Option<String> = self.safe_string_k(market.clone(), "market_type", &[]).as_str().map(str::to_owned);
+            let mut market: crate::value::Dict = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Option<String> = self.safe_string_k_opt(&market, "product_code", &[]);
+            let mut currencies: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut marketType: Option<String> = self.safe_string_k(&market, "market_type", &[]).as_str().map(str::to_owned);
             let mut swap: bool = marketType.as_deref() == Some("FX");
             let mut future: bool = marketType.as_deref() == Some("Futures");
             let mut spot: bool = (!(swap) && !(future));
@@ -643,14 +643,14 @@ impl Bitflyer {
             let mut quoteId: Value = Value::Null;
             let mut expiry: Value = Value::Null;
             if spot {
-                baseId = self.safe_string(currencies.clone(), Value::Int(0), &[]);
-                quoteId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
+                baseId = self.safe_string(&currencies, Value::Int(0), &[]);
+                quoteId = self.safe_string(&currencies, Value::Int(1), &[]);
             }  else if swap {
                 type_var = "swap".to_string();
-                baseId = self.safe_string(currencies.clone(), Value::Int(1), &[]);
-                quoteId = self.safe_string(currencies, Value::Int(2), &[]);
+                baseId = self.safe_string(&currencies, Value::Int(1), &[]);
+                quoteId = self.safe_string(&currencies, Value::Int(2), &[]);
             }  else if future {
-                let mut alias: Option<String> = self.safe_string_k(market.clone(), "alias", &[]).as_str().map(str::to_owned);
+                let mut alias: Option<String> = self.safe_string_k(&market, "alias", &[]).as_str().map(str::to_owned);
                 if (alias.is_none()) {
                     // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
@@ -661,12 +661,12 @@ impl Bitflyer {
                     let mut expiryDate: Value = id.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 9).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                     expiry = self.parse_expiry_date(expiryDate.as_str().unwrap_or_default());
                 }  else {
-                    let mut splitAlias: Value = Value::Array(if let Some(__s) = alias.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-                    let mut currencyIds: Option<String> = self.safe_string_opt(splitAlias, Value::Int(0), &[]);
+                    let mut splitAlias: crate::value::List = Value::Array(if let Some(__s) = alias.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+                    let mut currencyIds: Option<String> = self.safe_string_opt(&splitAlias, Value::Int(0), &[]);
                     baseId = currencyIds.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                     quoteId = currencyIds.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 3).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                    let mut splitId: Value = Value::Array(id.as_deref().zip(currencyIds.as_deref()).map(|(__s, __d)| __s.split(__d).map(Value::from).collect()).unwrap_or_default());
-                    let mut expiryDate: Option<String> = self.safe_string_opt(splitId, Value::Int(1), &[]);
+                    let mut splitId: crate::value::List = Value::Array(id.as_deref().zip(currencyIds.as_deref()).map(|(__s, __d)| __s.split(__d).map(Value::from).collect()).unwrap_or_default()).into_list();
+                    let mut expiryDate: Option<String> = self.safe_string_opt(&splitId, Value::Int(1), &[]);
                     if (expiryDate.is_none()) {
                         continue;
                     }
@@ -757,7 +757,7 @@ impl Bitflyer {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), market);
+                    m.insert("info".to_string(), Value::Dict(market));
                 m
             }));
         }
@@ -1397,10 +1397,10 @@ impl Bitflyer {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ordersById: Value = self.index_by(crate::types::IntoRaw::into_raw(orders), Value::Str("id".into()));
-        let mut found: Value = self.safe_dict(ordersById, id.clone(), &[]);
-        if (found != Value::Null) {
-            return found;
+        let mut ordersById: crate::value::Dict = self.index_by(crate::types::IntoRaw::into_raw(orders), Value::Str("id".into())).into_dict();
+        let mut found: Option<crate::value::Dict> = self.safe_dict(&ordersById, id.clone(), &[]).into_opt_dict();
+        if (found.is_some()) {
+            return found.map_or(Value::Null, Value::Dict);
         }
         panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" No order found with id ".into())).into()), id)));
         Value::Null

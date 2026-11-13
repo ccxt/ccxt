@@ -907,10 +907,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // series tickers are single alphanumeric segments, so the handle's first '_' token is
             // its series ticker — fetch that series' open events (server-side filter, one page in
             // the common case) and re-check the cache for the exact handle
-            let mut handleParts: Value = Value::Array(if let Some(__s) = outcomeSymbol.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
-            let mut marketPart: String = self.safe_string(handleParts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut parts: Value = Value::Array(marketPart.split("_").map(Value::from).collect());
-            let mut seriesTicker: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut handleParts: crate::value::List = Value::Array(if let Some(__s) = outcomeSymbol.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut marketPart: String = self.safe_string(&handleParts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut parts: crate::value::List = Value::Array(marketPart.split("_").map(Value::from).collect()).into_list();
+            let mut seriesTicker: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (seriesTicker.is_some()) && (seriesTicker.as_deref() != Some("")) {
                 let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                     if let Err(__e) = self.fetch_events(Value::Map({
@@ -3028,7 +3028,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isNo {
             bookSide = (if (isBuy) { "ask".to_string() } else { "bid".to_string() });
         }
-        let mut yesPrice: Value = (if (isNo && (price != Value::Null)) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(price.clone()))), &[]) } else { price.clone() });
+        let mut yesPrice: Option<f64> = (if (isNo && (price != Value::Null)) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(price.clone()))), &[]).as_f64() } else { price.as_f64() });
         let mut isMarket: bool = type_var.as_str() == Some("market");
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
@@ -3062,8 +3062,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("self_trade_prevention_type".to_string(), stp.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        if (yesPrice != Value::Null) {
-            request.insert("price".into(), Value::from(self.number_to_string(yesPrice)));
+        if (yesPrice.is_some()) {
+            request.insert("price".into(), Value::from(self.number_to_string(Value::from(yesPrice))));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsSelfTradePreventionType]);
         let mut response: crate::value::Dict = self.kalshi_private_post_portfolio_events_orders(&[__ws_arg_12]).await.into_dict();
@@ -3470,15 +3470,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = self.kalshi_public_get_events_event_ticker(&[__ws_arg_15]).await;
         // a typed copy of the event row: the caller-facing dict is never the raw response
         let __ws_arg_16 = self.safe_dict_k(response.clone(), "event", &[response.clone()]);
-        let mut fullEvent: Value = self.extend(Value::Map({
+        let mut fullEvent: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        }), &[__ws_arg_16]);
-        let mut nestedMarkets: Option<crate::value::List> = self.safe_list_k(fullEvent.clone(), "markets", &[]).into_opt_list();
+        }), &[__ws_arg_16]).into_dict();
+        let mut nestedMarkets: Option<crate::value::List> = self.safe_list_k(&fullEvent, "markets", &[]).into_opt_list();
         if (nestedMarkets.is_none()) {
-            add_element_to_object(&mut fullEvent, &Value::Str("markets".into()), self.safe_list_k(response, "markets", &[Value::from(vec![])]));
+            std::sync::Arc::make_mut(&mut fullEvent).insert("markets".into(), self.safe_list_k(response, "markets", &[Value::from(vec![])]));
         }
-        return fullEvent;
+        return Value::Dict(fullEvent);
 
     Value::Null
 }

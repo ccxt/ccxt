@@ -477,9 +477,9 @@ impl Btcbox {
             let mut __for_first_470: bool = true;
             while { if !__for_first_470 { i += 1; } __for_first_470 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut symbolParts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut baseCurr: String = self.safe_string(symbolParts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut quote: String = self.safe_string(symbolParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut symbolParts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut baseCurr: String = self.safe_string(&symbolParts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut quote: String = self.safe_string(&symbolParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteId: String = quote.to_lowercase();
             let mut id: String = baseCurr.to_lowercase();
             let mut res: indexmap::IndexMap<String, Value> = self.safe_dict(response1.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -487,7 +487,7 @@ impl Btcbox {
     m
 })]).as_map().cloned().unwrap_or_default();
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".into())).into()), quote);
-            let mut fee: Value = (if (id == "BTC") { self.parse_number(Value::Str("0.0005".into()), &[]) } else { self.parse_number(Value::Str("0.0010".into()), &[]) });
+            let mut fee: Option<f64> = (if (id == "BTC") { Some(0.0005_f64) } else { Some(0.0010_f64) });
             let mut details: crate::value::Dict = self.safe_dict(&result2Data, Value::from(id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -513,8 +513,8 @@ impl Btcbox {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("taker".to_string(), fee.clone());
-        m.insert("maker".to_string(), fee);
+        m.insert("taker".to_string(), Value::from(fee));
+        m.insert("maker".to_string(), Value::from(fee));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -1275,16 +1275,16 @@ impl Btcbox {
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Option<String> = self.number_to_string(self.nonce());
-            let mut query: Value = self.extend(Value::Map({
+            let mut query: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("key".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
-            }), &[params]);
-            let mut request: String = self.urlencode(query.clone(), &[]);
+            }), &[params]).into_dict();
+            let mut request: String = self.urlencode(&query, &[]);
             let mut secret: String = self.hash(self.encode(self.secret.clone()), Value::Str("md5".into()), &[]);
-            if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert("signature".into(), Value::from(self.hmac(self.encode(Value::from(request)), self.encode(Value::from(secret)), Value::Str("sha256".into()), &[]))); }
-            let mut signedBody: String = self.urlencode(query, &[]);
+            std::sync::Arc::make_mut(&mut query).insert("signature".into(), Value::from(self.hmac(self.encode(Value::from(request)), self.encode(Value::from(secret)), Value::Str("sha256".into()), &[])));
+            let mut signedBody: String = self.urlencode(&query, &[]);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));

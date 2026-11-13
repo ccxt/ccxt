@@ -1330,12 +1330,12 @@ impl Deepcoin {
             maxLimit = Value::Int(1000);
         }
         if paginate {
-            let mut paramsExtended: Value = self.extend(&paramsPaginate, &[Value::Map({
+            let mut paramsExtended: crate::value::Dict = self.extend(&paramsPaginate, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("calculateUntil".to_string(), Value::Bool(true));
                 m
-            })]);
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), paramsExtended, maxLimit.clone()]).await;
+            })]).into_dict();
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::Dict(paramsExtended), maxLimit.clone()]).await;
         }
         let mut bar: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2622,8 +2622,8 @@ impl Deepcoin {
             paramsRequest = self.omit(&paramsOrderType, Value::from(keysToOmit.clone()), &[]);
         }  else {
             request.insert("sz".into(), self.amount_to_precision(symbol, amount));
-            let mut paramsOmitted: Value = self.omit(&paramsOrderType, Value::from(keysToOmit), &[]);
-            let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOrderType, Value::from(keysToOmit), &[]).into_dict();
+            let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::Dict(paramsOmitted), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             request.insert("tdMode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
@@ -2792,12 +2792,12 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsExtended: Value = self.extend(params, &[Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost);
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), 0.0, None, paramsExtended).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), 0.0, None, Value::Dict(paramsExtended)).await);
         Value::Null
         }).await?))
     }
@@ -2823,12 +2823,12 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsExtended: Value = self.extend(params, &[Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost);
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", 0.0, None, paramsExtended).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", 0.0, None, Value::Dict(paramsExtended)).await);
         Value::Null
         }).await?))
     }
@@ -2854,12 +2854,12 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsExtended: Value = self.extend(params, &[Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost);
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", 0.0, None, paramsExtended).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", 0.0, None, Value::Dict(paramsExtended)).await);
         Value::Null
         }).await?))
     }
@@ -3049,7 +3049,7 @@ impl Deepcoin {
         }
         let mut trigger: bool = self.safe_bool_k(&paramsPaginate, "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut methodName: String = self.safe_string_k(&paramsPaginate, "methodName", &[Value::Str("fetchCanceledAndClosedOrders".into())]).as_str().unwrap_or("fetchCanceledAndClosedOrders").to_string();
-        let mut paramsMethodName: Value = self.omit(&paramsPaginate, Value::Str("methodName".into()), &[]);
+        let mut paramsMethodName: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("methodName".into()), &[]).into_dict();
         let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3059,7 +3059,7 @@ impl Deepcoin {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::from(methodName.clone()), market.as_ref(), &[paramsMethodName, Value::Str("spot".into())]).as_array().cloned().unwrap_or_default();
+        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::from(methodName.clone()), market.as_ref(), &[Value::Dict(paramsMethodName), Value::Str("spot".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         request.insert("instType".into(), self.convert_to_instrument_type(marketType.as_deref()).map(Value::from).unwrap_or(Value::Null));
@@ -3192,12 +3192,12 @@ impl Deepcoin {
                 m.insert("methodName".to_string(), Value::from(methodName));
             m
         })]).into_dict();
-        let mut paramsExtended2: Value = self.extend(paramsExtended, &[Value::Map({
+        let mut paramsExtended2: crate::value::Dict = self.extend(paramsExtended, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), Value::Str("canceled".into()));
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), paramsExtended2).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(paramsExtended2)).await);
         Value::Null
         }).await?))
     }
@@ -3233,12 +3233,12 @@ impl Deepcoin {
                 m.insert("methodName".to_string(), Value::from(methodName));
             m
         })]).into_dict();
-        let mut paramsExtended2: Value = self.extend(paramsExtended, &[Value::Map({
+        let mut paramsExtended2: crate::value::Dict = self.extend(paramsExtended, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("state".to_string(), Value::Str("filled".into()));
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), paramsExtended2).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(paramsExtended2)).await);
         Value::Null
         }).await?))
     }
@@ -4445,12 +4445,12 @@ impl Deepcoin {
         if (symbol == Value::Null) && (marketType.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades requires a symbol argument or a market type in the params".into()))));
         }
-        let mut paramsExtended: Value = self.extend(Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ordId".to_string(), id);
             m
-        }), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), paramsExtended).await);
+        }), &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(paramsExtended)).await);
         Value::Null
         }).await?))
     }

@@ -1688,12 +1688,12 @@ impl Bithumb {
                     if (marketId.is_none()) {
                         continue;
                     }
-                    let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(Value::from(marketId.as_deref()), None, &[]));
-                    let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
+                    let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
+                    let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
                     if (symbol.is_none()) {
                         continue;
                     }
-                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()));
+                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&entry, Some(&market)));
                 }
                 }
             }
@@ -1714,8 +1714,8 @@ impl Bithumb {
                     let mut __for_first_401: bool = true;
                     while { if !__for_first_401 { i += 1; } __for_first_401 = false; i < (symbols.len() as i64) } {
                     let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                    let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-                    let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteId", &[]);
+                    let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                    let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteId", &[]);
                     if (quoteId.is_some()) && (matches!((&quoteCurrencies, &quoteId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         requiredQuotes.insert(quoteId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                     }
@@ -1762,9 +1762,9 @@ impl Bithumb {
                         continue;
                     }
                     let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote).into());
-                    let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(symbol.clone(), None, &[]));
+                    let mut market: crate::types::Market = self.safe_market(symbol.clone(), None, &[]);
                     add_element_to_object(&mut ticker, &Value::Str("date".into()), Value::from(timestamp));
-                    result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()));
+                    result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, Some(&market)));
                 }
                 }
             }
@@ -2128,11 +2128,11 @@ impl Bithumb {
         let mut isGenerationTwo: bool = generationTwoTimestamp.is_some();
         let mut transactionDatetime: Option<String> = self.safe_string_k(trade.clone(), "transaction_date", &[]).as_str().map(str::to_owned);
         if (transactionDatetime.is_some()) {
-            let mut parts: Value = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
+            let mut parts: crate::value::List = Value::Array(if let Some(__s) = transactionDatetime.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut numParts: i64 = parts.len() as i64;
             if numParts > 1 {
-                let mut transactionDate: Option<String> = parts.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
-                let mut rawTransactionTime: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut transactionDate: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);
+                let mut rawTransactionTime: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut transactionTime: String = rawTransactionTime.clone();
                 if ((rawTransactionTime.chars().count() as i64)) < 8 {
                     transactionTime = format!("{}{}", Value::Str("0".into()), rawTransactionTime);

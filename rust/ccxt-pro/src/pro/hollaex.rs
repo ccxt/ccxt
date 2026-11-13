@@ -376,20 +376,20 @@ impl Hollaex {
             let mut timestamp: Option<String> = self.safe_string_k(&data, "timestamp", &[]).as_str().map(str::to_owned);
             let mut timestampMs: Option<i64> = self.parse8601(timestamp.map(Value::from).unwrap_or(Value::Null));
             let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestampMs)]).into_dict();
-            let mut orderbook: Value = Value::Null;
-            if !(matches!((&self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                orderbook = self.order_book(&[Value::from(&snapshot)]);
-                if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), orderbook.clone()); }
+            let mut orderbook: Option<crate::pro::order_book::Book> = None;
+            if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) {
+                orderbook = Some(self.order_book(&[Value::from(&snapshot)]));
+                CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), orderbook.clone());
             }  else {
-                orderbook = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-                if (orderbook == Value::Null) {
+                orderbook = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
+                if (orderbook.is_none()) {
                     return;
                 }
                 orderbook.reset(Value::Dict(snapshot));
             }
             if (channel.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketIdValue);
-                client.resolve(orderbook, messageHash.as_str());
+                client.resolve(Value::from(&orderbook), messageHash.as_str());
             }
         }
 }
@@ -468,8 +468,8 @@ impl Hollaex {
         let mut parsedTrades: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_379: bool = true;
-            while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (parsedTrades.len() as i64) } {
+            let mut __for_first_377: bool = true;
+            while { if !__for_first_377 { i += 1; } __for_first_377 = false; i < (parsedTrades.len() as i64) } {
             stored.append(self.safe_dict(&parsedTrades, Value::Int(i), &[]));
         }
         }
@@ -570,12 +570,12 @@ impl Hollaex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_380: bool = true;
-            while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (rawTrades.len() as i64) } {
-            let mut trade: Value = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: crate::value::Dict = self.parse_trade(trade.clone(), None).into_dict();
+            let mut __for_first_378: bool = true;
+            while { if !__for_first_378 { i += 1; } __for_first_378 = false; i < (rawTrades.len() as i64) } {
+            let mut trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_trade(Value::from(&trade), None).into_dict();
             stored.append(Value::Dict(parsed));
-            let mut symbol: Option<String> = self.safe_string_k(trade, "symbol", &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_string_k(&trade, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             if (marketId.is_some()) {
@@ -588,8 +588,8 @@ impl Hollaex {
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_381: bool = true;
-            while { if !__for_first_381 { i += 1; } __for_first_381 = false; i < (keys.len() as i64) } {
+            let mut __for_first_379: bool = true;
+            while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -726,8 +726,8 @@ impl Hollaex {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_382: bool = true;
-            while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (rawOrders.len() as i64) } {
+            let mut __for_first_380: bool = true;
+            while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (rawOrders.len() as i64) } {
             let mut order: Value = self.safe_value(rawOrders.clone(), Value::Int(i), &[]);
             let mut parsed: crate::value::Dict = self.parse_order(order.clone(), None).into_dict();
             stored.append(Value::Dict(parsed));
@@ -744,8 +744,8 @@ impl Hollaex {
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_383: bool = true;
-            while { if !__for_first_383 { i += 1; } __for_first_383 = false; i < (keys.len() as i64) } {
+            let mut __for_first_381: bool = true;
+            while { if !__for_first_381 { i += 1; } __for_first_381 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -810,17 +810,17 @@ impl Hollaex {
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_384: bool = true;
-            while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (keys.len() as i64) } {
+            let mut __for_first_382: bool = true;
+            while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut parts: Value = Value::Array(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut currencyId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut parts: crate::value::List = Value::Array(if let Some(__s) = key.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut currencyId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: Value = self.account();
             if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 account = (if let (Some(__m), Some(__k)) = (self.balance.as_map(), code.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
-            let mut second: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut second: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut freeOrTotal: Value = (if (second.as_deref() == Some("available")) { Value::Str("free".into()) } else { Value::Str("total".into()) });
             add_element_to_object(&mut account, &freeOrTotal, self.safe_string(data.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]));
             if (code.is_some()) {

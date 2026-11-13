@@ -954,7 +954,7 @@ impl Revolutx {
             m
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&metadata, "timestamp", &[]).as_i64();
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -972,7 +972,7 @@ impl Revolutx {
             if (symbol == "") {
                 continue;
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol, Value::Dict(ticker)); }
+            result.insert(symbol, Value::Dict(ticker));
         }
         }
         if (symbols != Value::Null) {
@@ -985,14 +985,14 @@ impl Revolutx {
                 let mut __for_first_1119: bool = true;
                 while { if !__for_first_1119 { i += 1; } __for_first_1119 = false; i < (symbols.len() as i64) } {
                 let mut s: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                if (matches!((&result, &s), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    filtered.insert(crate::runtime::stringify_param(&s), (if let (Some(__m), Some(__k)) = (result.as_map(), s.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+                if (matches!(&s, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+                    filtered.insert(crate::runtime::stringify_param(&s), result.get(s.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
                 }
             }
             }
             return Value::Map(filtered);
         }
-        return result;
+        return Value::Map(result);
         Value::Null
         }).await?))
     }
@@ -1022,11 +1022,11 @@ impl Revolutx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol.clone(), &[]);
-        if (ticker == Value::Null) {
+        let mut ticker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol.clone(), &[]).into_opt_dict();
+        if (ticker.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find ticker for symbol ".into())).into()), symbol)));
         }
-        return ticker;
+        return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1580,10 +1580,10 @@ impl Revolutx {
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
-        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: bool = (stopLossPrice.is_some()) || (stopLoss != Value::Null);
-        let mut hasTakeProfit: bool = (takeProfitPrice.is_some()) || (takeProfit != Value::Null);
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut hasStopLoss: bool = (stopLossPrice.is_some()) || (stopLoss.is_some());
+        let mut hasTakeProfit: bool = (takeProfitPrice.is_some()) || (takeProfit.is_some());
         let mut isTpsl: bool = hasStopLoss || hasTakeProfit;
         if (triggerPrice.is_some()) || isTpsl {
             if (type_var.as_str() != Some("limit")) && (type_var.as_str() != Some("market")) {
@@ -1628,10 +1628,10 @@ impl Revolutx {
                 m
             });
             if hasTakeProfit {
-                tpslConfig.insert("take_profit".into(), self.create_trigger_leg_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), price.as_f64(), takeProfitPrice.as_deref(), takeProfit, singleLeg.clone()));
+                tpslConfig.insert("take_profit".into(), self.create_trigger_leg_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), price.as_f64(), takeProfitPrice.as_deref(), takeProfit.map_or(Value::Null, Value::Dict), singleLeg.clone()));
             }
             if hasStopLoss {
-                tpslConfig.insert("stop_loss".into(), self.create_trigger_leg_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), price.as_f64(), stopLossPrice.as_deref(), stopLoss, singleLeg));
+                tpslConfig.insert("stop_loss".into(), self.create_trigger_leg_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), price.as_f64(), stopLossPrice.as_deref(), stopLoss.map_or(Value::Null, Value::Dict), singleLeg));
             }
             orderConfiguration.insert("tpsl".into(), Value::Map(tpslConfig));
         }  else if (type_var.as_str() == Some("limit")) {
@@ -2102,12 +2102,12 @@ impl Revolutx {
 }));
         let mut orderStates: Value = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[Value::from(vec![Value::Str("filled".into()), Value::Str("cancelled".into()), Value::Str("rejected".into()), Value::Str("replaced".into())])]);
         let __ws_arg_12 = self.omit(params, Value::from(vec![Value::Str("orderStates".into()), Value::Str("order_states".into())]), &[]);
-        let mut requestParams: Value = self.extend(__ws_arg_12, &[Value::Map({
+        let mut requestParams: crate::value::Dict = self.extend(__ws_arg_12, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_states".to_string(), orderStates);
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), requestParams).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), Value::Dict(requestParams)).await);
         Value::Null
         }).await?))
     }

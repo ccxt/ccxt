@@ -2296,7 +2296,7 @@ impl Hibachi {
         //
         let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         let mut parsedOrders: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(parsedOrders), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&parsedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -2328,8 +2328,8 @@ impl Hibachi {
     m
 }));
         let mut orders: Value = self.fetch_orders_by_status(Some("filled"), symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]).await;
-        let mut filtered: Value = self.filter_by(orders, Value::Str("status".into()), Value::Str("closed".into()), &[]);
-        return self.filter_by_since_limit(filtered, since.as_i64(), limit.as_i64(), &[]);
+        let mut filtered: crate::value::List = self.filter_by(orders, Value::Str("status".into()), Value::Str("closed".into()), &[]).into_list();
+        return self.filter_by_since_limit(&filtered, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2361,8 +2361,8 @@ impl Hibachi {
     m
 }));
         let mut orders: Value = self.fetch_orders_by_status(None, symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]).await;
-        let mut filtered: Value = self.filter_by(orders, Value::Str("status".into()), Value::Str("canceled".into()), &[]);
-        return self.filter_by_since_limit(filtered, since.as_i64(), limit.as_i64(), &[]);
+        let mut filtered: crate::value::List = self.filter_by(orders, Value::Str("status".into()), Value::Str("canceled".into()), &[]).into_list();
+        return self.filter_by_since_limit(&filtered, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -3032,8 +3032,8 @@ impl Hibachi {
     m
 }));
         let mut transactions: Vec<crate::types::Transaction> = (match self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut deposits: Value = self.filter_by(crate::types::IntoRaw::into_raw(transactions), Value::Str("type".into()), Value::Str("deposit".into()), &[]);
-        return self.filter_by_since_limit(deposits, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
+        let mut deposits: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(transactions), Value::Str("type".into()), Value::Str("deposit".into()), &[]).into_list();
+        return self.filter_by_since_limit(&deposits, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -3063,8 +3063,8 @@ impl Hibachi {
     m
 }));
         let mut transactions: Vec<crate::types::Transaction> = (match self.fetch_deposits_withdrawals(code.as_str(), since.as_i64(), None, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut withdrawals: Value = self.filter_by(crate::types::IntoRaw::into_raw(transactions), Value::Str("type".into()), Value::Str("withdrawal".into()), &[]);
-        return self.filter_by_since_limit(withdrawals, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
+        let mut withdrawals: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(transactions), Value::Str("type".into()), Value::Str("withdrawal".into()), &[]).into_list();
+        return self.filter_by_since_limit(&withdrawals, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))
     }
@@ -3399,7 +3399,7 @@ impl Hibachi {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

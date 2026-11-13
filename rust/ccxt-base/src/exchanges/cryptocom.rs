@@ -1713,8 +1713,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     "strike", &[Value::Str("".into())])).into()), Value::Str("-".into())).into()), symbolOptionType);
                 contract = Some(true);
             }
-            let mut isLinear: Value = (if (contract == Some(true)) { Value::Bool(true) } else { Value::Null });
-            let mut isInverse: Value = (if (contract == Some(true)) { Value::Bool(false) } else { Value::Null });
+            let mut isLinear: Option<bool> = (if (contract == Some(true)) { Some(true) } else { None });
+            let mut isInverse: Option<bool> = (if (contract == Some(true)) { Some(false) } else { None });
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(&market, "symbol", &[]));
@@ -1733,8 +1733,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("option".to_string(), Value::Bool(option));
                     m.insert("active".to_string(), self.safe_bool_k(&market, "tradable", &[]));
                     m.insert("contract".to_string(), contract.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("linear".to_string(), isLinear);
-                    m.insert("inverse".to_string(), isInverse);
+                    m.insert("linear".to_string(), isLinear.map_or(Value::Null, Value::Bool));
+                    m.insert("inverse".to_string(), isInverse.map_or(Value::Null, Value::Bool));
                     m.insert("contractSize".to_string(), self.safe_number_k(&market, "contract_size", &[]));
                     m.insert("expiry".to_string(), Value::from(expiry));
                     m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
@@ -1889,8 +1889,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolValue: String = self.symbol(symbol.clone());
         let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue), &[]);
-        return ticker;
+        let mut ticker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue), &[]).into_opt_dict();
+        return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3429,20 +3429,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_593: bool = true;
             while { if !__for_first_593 { i += 1; } __for_first_593 = false; (i as f64) < addressesLength } {
-            let mut value: Value = self.safe_dict(&addresses, Value::Int(i), &[]);
-            let mut addressString: Option<String> = self.safe_string_k(value.clone(), "address", &[]).as_str().map(str::to_owned);
-            let mut currencyId: Option<String> = self.safe_string_k(value.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut value: Option<crate::value::Dict> = self.safe_dict(&addresses, Value::Int(i), &[]).into_opt_dict();
+            let mut addressString: Option<String> = self.safe_string_k(&value, "address", &[]).as_str().map(str::to_owned);
+            let mut currencyId: Option<String> = self.safe_string_k(&value, "currency", &[]).as_str().map(str::to_owned);
             let mut responseCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let addresstagVariable: Vec<Value> = self.parse_address(addressString.as_deref()).as_array().cloned().unwrap_or_default();
             let mut address: Value = addresstagVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut tag: Option<String> = addresstagVariable.get(1).and_then(Value::as_str).map(str::to_owned);
             self.check_address(&[address.clone()]);
-            let mut networkId: Option<String> = self.safe_string_k(value.clone(), "network", &[]).as_str().map(str::to_owned);
+            let mut networkId: Option<String> = self.safe_string_k(&value, "network", &[]).as_str().map(str::to_owned);
             let mut network: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), responseCode.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (network != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&network), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), value);
+        m.insert("info".to_string(), value.map_or(Value::Null, Value::Dict));
         m.insert("currency".to_string(), responseCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), network.clone());
         m.insert("address".to_string(), address);
@@ -4804,7 +4804,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, (Value::from((market).symbol.clone())).as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5238,11 +5238,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "effective_deriv_taker_rate_bps": "3"
         //  }
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("info".into(), response.clone()); }
+        result.insert("info".into(), response.clone());
         {
                         let mut i: i64 = 0;
             let mut __for_first_601: bool = true;
@@ -5268,10 +5268,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("tierBased".to_string(), Value::Null);
                 m
             });
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(symbol, Value::Map(tradingFee)); }
+            result.insert(symbol, Value::Map(tradingFee));
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -5326,12 +5326,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Option<String> = self.number_to_string(self.nonce());
-            let mut requestParams: Value = self.extend(Value::Map({
+            let mut requestParams: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[params.clone()]);
-            let mut paramsKeys: Vec<Value> = Value::Array(requestParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut strSortKey: Value = self.params_to_string(requestParams, Value::Int(0));
+            }), &[params.clone()]).into_dict();
+            let mut paramsKeys: Vec<Value> = Value::Array(requestParams.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+            let mut strSortKey: Value = self.params_to_string(Value::Dict(requestParams), Value::Int(0));
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, nonce.clone().map(Value::from).unwrap_or(Value::Null)).into()), self.apiKey.clone()).into()), strSortKey).into()), nonce.clone().map(Value::from).unwrap_or(Value::Null));
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut paramsKeysLength: i64 = paramsKeys.len() as i64;

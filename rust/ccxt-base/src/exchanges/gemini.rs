@@ -1318,7 +1318,7 @@ impl Gemini {
             let mut __for_first_711: bool = true;
             while { if !__for_first_711 { i += 1; } __for_first_711 = false; (i as f64) < numRows } {
             let mut row: Option<String> = rows.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut cells: Value = Value::Array(if let Some(__s) = row.as_deref() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }); // eslint-disable-line quotes
+            let mut cells: crate::value::List = Value::Array(if let Some(__s) = row.as_deref() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }).into_list(); // eslint-disable-line quotes
             let mut numCells: i64 = cells.len() as i64;
             if numCells < 5 {
                 panic!("{}", crate::exchange_errors::not_supported(error.clone()));
@@ -1330,27 +1330,27 @@ impl Gemini {
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            let mut cell0: String = self.safe_string(cells.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut cell0: String = self.safe_string(&cells, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketIdRaw: String = cell0.replace("<td>", "");
             let mut marketId: Value = Value::from(marketIdRaw.replace("*", ""));
             // const base = this.safeCurrencyCode (baseId);
-            let mut cell1: String = self.safe_string(cells.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut cell1: String = self.safe_string(&cells, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut minAmountString: String = cell1.replace("<td>", "");
-            let mut minAmountParts: Value = Value::Array(minAmountString.split(" ").map(Value::from).collect());
-            let mut minAmount: Option<f64> = self.safe_number(minAmountParts, Value::Int(0), &[]).as_f64();
-            let mut cell2: String = self.safe_string(cells.clone(), Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut minAmountParts: crate::value::List = Value::Array(minAmountString.split(" ").map(Value::from).collect()).into_list();
+            let mut minAmount: Option<f64> = self.safe_number(&minAmountParts, Value::Int(0), &[]).as_f64();
+            let mut cell2: String = self.safe_string(&cells, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut amountPrecisionString: String = cell2.replace("<td>", "");
-            let mut amountPrecisionParts: Value = Value::Array(amountPrecisionString.split(" ").map(Value::from).collect());
+            let mut amountPrecisionParts: crate::value::List = Value::Array(amountPrecisionString.split(" ").map(Value::from).collect()).into_list();
             let mut idLength: Value = Value::Int(marketId.len() as i64);
             let mut startingIndex: Value = (match (&(idLength), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut cell3: String = self.safe_string(cells, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut cell3: String = self.safe_string(&cells, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut pricePrecisionString: String = cell3.replace("<td>", "");
-            let mut pricePrecisionParts: Value = Value::Array(pricePrecisionString.split(" ").map(Value::from).collect());
-            let mut quoteId: Value = self.safe_string_lower(pricePrecisionParts.clone(), Value::Int(1), &[(match (&(marketId), (match &(startingIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0),
+            let mut pricePrecisionParts: crate::value::List = Value::Array(pricePrecisionString.split(" ").map(Value::from).collect()).into_list();
+            let mut quoteId: Value = self.safe_string_lower(&pricePrecisionParts, Value::Int(1), &[(match (&(marketId), (match &(startingIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0),
                 (match &(idLength) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) },
                 match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null })]);
-            let mut baseId: Value = self.safe_string_lower(amountPrecisionParts.clone(), Value::Int(1), &[marketId.as_str().zip(quoteId.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| marketId.clone())]);
+            let mut baseId: Value = self.safe_string_lower(&amountPrecisionParts, Value::Int(1), &[marketId.as_str().zip(quoteId.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| marketId.clone())]);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone(), None);
             if (base.is_none()) || (quote.is_none()) {
@@ -1383,8 +1383,8 @@ impl Gemini {
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.safe_number(amountPrecisionParts, Value::Int(0), &[]));
-        m.insert("price".to_string(), self.safe_number(pricePrecisionParts, Value::Int(0), &[]));
+        m.insert("amount".to_string(), self.safe_number(&amountPrecisionParts, Value::Int(0), &[]));
+        m.insert("price".to_string(), self.safe_number(&pricePrecisionParts, Value::Int(0), &[]));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -1545,13 +1545,13 @@ impl Gemini {
             // use trading-pairs info, if it was fetched
             let mut tradingPairs: Option<crate::value::List> = self.safe_list_k(self.options.clone(), "tradingPairs", &[]).into_opt_list();
             if (tradingPairs.is_some()) {
-                let mut indexedTradingPairs: Value = self.index_by(tradingPairs.map_or(Value::Null, Value::Arr), Value::Int(0));
+                let mut indexedTradingPairs: crate::value::Dict = self.index_by(tradingPairs.map_or(Value::Null, Value::Arr), Value::Int(0)).into_dict();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_716: bool = true;
                     while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                    let mut pairInfo: Option<crate::value::List> = self.safe_list(indexedTradingPairs.clone(), marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), &[]).into_opt_list();
+                    let mut pairInfo: Option<crate::value::List> = self.safe_list(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), &[]).into_opt_list();
                     if (pairInfo.is_some()) && !(self.in_array(marketId.map(Value::from).unwrap_or(Value::Null), brokenPairs.clone()).as_bool() == Some(true)) {
                         let mut parsed: Value = self.parse_market(pairInfo.map_or(Value::Null, Value::Arr));
                         if (parsed != Value::Null) {
@@ -1654,9 +1654,9 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut lowerCaseId: Value = (if let Some(__s) = marketIdWithoutPerp.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-            if (matches!((&conflictingMarkets, &lowerCaseId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut conflictingMarket: Value = (if let (Some(__m), Some(__k)) = (conflictingMarkets.as_map(), lowerCaseId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut lowerCaseId: Option<String> = marketIdWithoutPerp.as_str().map(str::to_lowercase);
+            if (matches!((&conflictingMarkets, lowerCaseId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                let mut conflictingMarket: Value = (if let (Some(__m), Some(__k)) = (conflictingMarkets.as_map(), lowerCaseId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 baseId = self.safe_string_k(conflictingMarket.clone(), "base", &[]);
                 quoteId = self.safe_string_k(conflictingMarket.clone(), "quote", &[]);
                 if isPerp {

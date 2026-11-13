@@ -344,10 +344,10 @@ impl Coincheck {
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&data, "last_update_at", &[]).as_i64();
         let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp)]).into_dict();
-        let mut orderbook: Value = self.order_book(&[Value::Dict(snapshot)]);
-        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
+        let mut orderbook: crate::pro::order_book::Book = self.order_book(&[Value::Dict(snapshot)]);
+        CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
-        client.resolve(orderbook, messageHash.as_str());
+        client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
 /*
@@ -422,8 +422,8 @@ impl Coincheck {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_266: bool = true;
-            while { if !__for_first_266 { i += 1; } __for_first_266 = false; i < (message.len() as i64) } {
+            let mut __for_first_264: bool = true;
+            while { if !__for_first_264 { i += 1; } __for_first_264 = false; i < (message.len() as i64) } {
             let mut data: Value = self.safe_value(message.clone(), Value::Int(i), &[]);
             let mut trade: crate::value::Dict = self.parse_ws_trade(data, None).into_dict();
             stored.append(Value::Dict(trade));

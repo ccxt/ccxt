@@ -1681,8 +1681,8 @@ impl Toobit {
         let mut id: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut baseId: String = self.safe_string_k(market.clone(), "baseAsset", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quoteAsset", &[]).as_str().map(str::to_owned);
-        let mut baseParts: Value = Value::Array(baseId.split("-").map(Value::from).collect());
-        let mut baseIdClean: Option<String> = self.safe_string(baseParts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut baseParts: crate::value::List = Value::Array(baseId.split("-").map(Value::from).collect()).into_list();
+        let mut baseIdClean: Option<String> = self.safe_string(&baseParts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseIdClean.map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -2337,8 +2337,8 @@ impl Toobit {
             let mut __for_first_1133: bool = true;
             while { if !__for_first_1133 { i += 1; } __for_first_1133 = false; i < (tickers.len() as i64) } {
             let mut parsedTicker: crate::value::Dict = self.parse_bid_ask_custom(tickers.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
-            let mut ticker: Value = self.extend(parsedTicker, &[params.clone()]);
-            results.push(ticker);
+            let mut ticker: crate::value::Dict = self.extend(parsedTicker, &[params.clone()]).into_dict();
+            results.push(Value::Dict(ticker));
         }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
@@ -2648,10 +2648,10 @@ impl Toobit {
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
         }
-        let mut id: Value = Value::from((market).id.as_deref());
+        let mut id: Option<String> = (market).id.as_deref().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), id.clone());
+                m.insert("symbol".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         };
@@ -2849,12 +2849,12 @@ impl Toobit {
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
-            let mut sideParts: Value = Value::Array(if let Some(__s) = rawSideLower.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-            let mut sideSuffix: Option<String> = self.safe_string(sideParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut sideParts: crate::value::List = Value::Array(if let Some(__s) = rawSideLower.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut sideSuffix: Option<String> = self.safe_string(&sideParts, Value::Int(1), &[]).as_str().map(str::to_owned);
             if (sideSuffix.is_some()) {
                 reduceOnly = Some(sideSuffix.as_deref() == Some("close"));
             }
-            rawSideLower = self.safe_string(sideParts, Value::Int(0), &[]).as_str().map(str::to_owned);
+            rawSideLower = self.safe_string(&sideParts, Value::Int(0), &[]).as_str().map(str::to_owned);
         }
         // omitZero already maps '0.0' to undefined
         let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "stopPrice", &[]));
@@ -3636,9 +3636,9 @@ impl Toobit {
             m
         });
         let mut entry: Value = response;
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(self.safe_string_k(entry.clone(), "symbol", &[]), market.as_ref(), &[]));
-        let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(entry, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved.clone()).as_ref()).as_map().cloned().unwrap_or_default();
-        result.insert(crate::runtime::stringify_param(&(marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Map(fee));
+        let mut marketResolved: crate::types::Market = self.safe_market(self.safe_string_k(entry.clone(), "symbol", &[]), market.as_ref(), &[]);
+        let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(entry, Some(&marketResolved)).as_map().cloned().unwrap_or_default();
+        result.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&marketResolved, "symbol"))), Value::Map(fee));
         return Value::Map(result);
         Value::Null
         }).await?))
@@ -4310,19 +4310,19 @@ impl Toobit {
             // Add timestamp to parameters for signed endpoints
             extraQuery.insert("recvWindow".into(), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("5000".into())]));
             extraQuery.insert("timestamp".into(), Value::Str(format!("{}", timestamp).into()));
-            let mut queryExtended: Value = self.extend(query.clone(), &[Value::Map(extraQuery.clone())]);
+            let mut queryExtended: crate::value::Dict = self.extend(query.clone(), &[Value::Map(extraQuery.clone())]).into_dict();
             let mut queryString: String = "".to_string();
             let mut privateBody: Value = Value::Str("".into());
             if isPost || isDelete {
                 // everything else except Batch-Orders
                 if !(matches!(&params, Value::Arr(_))) {
-                    privateBody = Value::from(self.urlencode(queryExtended.clone(), &[]));
+                    privateBody = Value::from(self.urlencode(&queryExtended, &[]));
                 }  else {
                     queryString = self.urlencode(Value::Map(extraQuery), &[]);
                     privateBody = json_stringify(&query);
                 }
             }  else {
-                queryString = self.urlencode(queryExtended, &[]);
+                queryString = self.urlencode(&queryExtended, &[]);
             }
             let mut payload: String = queryString.clone();
             if isPost || isDelete {

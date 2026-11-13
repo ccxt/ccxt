@@ -389,8 +389,8 @@ impl Blockchaincom {
         let mut balances: crate::value::List = __pro_message.get("balances").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_163: bool = true;
-            while { if !__for_first_163 { i += 1; } __for_first_163 = false; i < (balances.len() as i64) } {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i += 1; } __for_first_161 = false; i < (balances.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -915,8 +915,8 @@ impl Blockchaincom {
             let mut orders: crate::value::List = __pro_message.get("orders").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_164: bool = true;
-                while { if !__for_first_164 { i += 1; } __for_first_164 = false; i < (orders.len() as i64) } {
+                let mut __for_first_162: bool = true;
+                while { if !__for_first_162 { i += 1; } __for_first_162 = false; i < (orders.len() as i64) } {
                 let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
                 cachedOrders.append(Value::Dict(parsedOrder));
@@ -1118,10 +1118,10 @@ impl Blockchaincom {
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), type_var);
         let mut datetime: Option<String> = self.safe_string_k(message.clone(), "timestamp", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
-        if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            { let __be_tmp = self.counted_order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
+        if !(self.orderbooks.has(&symbol)) {
+            { let __cv = self.counted_order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         if (event == "snapshot") {
             let mut snapshot: crate::value::Dict = self.parse_order_book(message, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
@@ -1135,12 +1135,12 @@ impl Blockchaincom {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() does not support ".into())).into()), event).into()), Value::Str(" yet".into()))));
         }
-        client.resolve(orderbook, messageHash.as_str());
+        client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bookArray: Value = self.parse_order_book_bid_ask(delta, &[Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]);
-        bookside.store_array(bookArray);
+        let mut bookArray: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("px".into()), Value::Str("qty".into()), Value::Str("num".into())]).into_list();
+        bookside.store_array(Value::Arr(bookArray));
 }
 
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
@@ -1148,8 +1148,8 @@ impl Blockchaincom {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_165: bool = true;
-            while { if !__for_first_165 { i += 1; } __for_first_165 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_163: bool = true;
+            while { if !__for_first_163 { i += 1; } __for_first_163 = false; i < (deltas.len() as i64) } {
             self.handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }

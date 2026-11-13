@@ -1376,12 +1376,12 @@ impl Polymarket {
                                 let mut ti: i64 = 0;
                 let mut __for_first_1415: bool = true;
                 while { if !__for_first_1415 { ti += 1; } __for_first_1415 = false; (ti as f64) < requestedTagsLength } {
-                let mut singleTagParams: Value = self.extend(Value::Map({
+                let mut singleTagParams: crate::value::Dict = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                }), &[params.clone()]);
-                add_element_to_object(&mut singleTagParams, &Value::Str("tags".into()), Value::from(vec![requestedTags.get(ti as usize).cloned().unwrap_or(Value::Null)]));
-                let mut tagEvents: Value = Box::pin(self.fetch_raw_events_list(&[singleTagParams])).await;
+                }), &[params.clone()]).into_dict();
+                std::sync::Arc::make_mut(&mut singleTagParams).insert("tags".into(), Value::from(vec![requestedTags.get(ti as usize).cloned().unwrap_or(Value::Null)]));
+                let mut tagEvents: Value = Box::pin(self.fetch_raw_events_list(&[Value::Dict(singleTagParams)])).await;
                 {
                                         let mut ei: i64 = 0;
                     let mut __for_first_1414: bool = true;
@@ -2524,15 +2524,15 @@ impl Polymarket {
         //     { "base_fee": 30 }   // base fee in basis points
         //
         let mut baseFeeBps: Option<String> = self.safe_string_k(response.clone(), "base_fee", &[]).as_str().map(str::to_owned);
-        let mut rate: Value = (if (baseFeeBps.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&baseFeeBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())), &[]) } else { Value::Null });
+        let mut rate: Option<f64> = (if (baseFeeBps.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&baseFeeBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())), &[]).as_f64() } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
         m.insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[outcomeObj.clone()]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
-        m.insert("maker".to_string(), rate.clone());
-        m.insert("taker".to_string(), rate);
+        m.insert("maker".to_string(), Value::from(rate));
+        m.insert("taker".to_string(), Value::from(rate));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -3549,12 +3549,12 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = self.extend(params, &[Value::Map({
+        let mut request: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
             m
-        })]);
-        return crate::types::IntoRaw::into_raw(self.create_order(outcome.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, request).await);
+        })]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.create_order(outcome.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, Value::Dict(request)).await);
         Value::Null
         }).await?))
     }
@@ -4777,14 +4777,14 @@ if _try_result.is_err() {
         if (outcome == Value::Null) {
             return;
         }
-        if !(matches!((&self.orderbooks, &outcome), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut seededBook: Value = self.order_book(&[Value::Map({
+        if !(self.orderbooks.has(&outcome)) {
+            let mut seededBook: crate::pro::order_book::Book = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if let Value::Dict(__d) = &mut self.orderbooks.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), seededBook); }
+            CacheStore::put(&mut self.orderbooks.clone(), &outcome, seededBook);
         }
-        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcome.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcome);
         let mut timestamp: Value = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str());
         let mut rawBids: crate::value::List = __pro_message.get("bids").cloned().unwrap_or_default().into_list();
         let mut rawAsks: crate::value::List = __pro_message.get("asks").cloned().unwrap_or_default().into_list();
@@ -4818,8 +4818,8 @@ if _try_result.is_err() {
                 m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
             m
         }));
-        client.resolve(orderbook.clone(), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into())));
-        client.resolve(orderbook, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcome).into())));
+        client.resolve(Value::from(&orderbook), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into())));
+        client.resolve(Value::from(&orderbook), &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcome).into())));
 }
 
     pub fn handle_order_book_delta(&self, mut client: Value, mut event: Value) {
@@ -4838,10 +4838,10 @@ if _try_result.is_err() {
             let mut change: crate::value::Dict = self.safe_dict(&changes, Value::Int(i), &[]).into_dict();
             let mut tokenId: Option<String> = self.safe_string_k(&change, "asset_id", &[]).as_str().map(str::to_owned);
             let mut outcome: Value = self.token_id_to_symbol(tokenId.as_deref()).map(Value::from).unwrap_or(Value::Null);
-            if (outcome == Value::Null) || !(matches!((&self.orderbooks, &outcome), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (outcome == Value::Null) || !(self.orderbooks.has(&outcome)) {
                 continue;
             }
-            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcome.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut orderbook: Value = Value::from(self.orderbooks.at(&outcome));
             let mut price: Option<f64> = self.safe_number_k(&change, "price", &[]).as_f64();
             let mut size: Option<f64> = self.safe_number_k(&change, "size", &[]).as_f64();
             let mut isBuy: bool = self.safe_string_upper_k(&change, "side", &[Value::Str("".into())]).as_str() == Some("BUY");
@@ -4860,7 +4860,7 @@ if _try_result.is_err() {
             let mut __for_first_1455: bool = true;
             while { if !__for_first_1455 { k += 1; } __for_first_1455 = false; k < (updatedSymbols.len() as i64) } {
             let mut outcome: Value = updatedSymbols.get(k as usize).cloned().unwrap_or(Value::Null);
-            let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), outcome.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut orderbook: Value = Value::from(self.orderbooks.at(&outcome));
             client.resolve(orderbook.clone(), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), outcome).into())));
             client.resolve(orderbook, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), outcome).into())));
         }
@@ -5025,13 +5025,13 @@ if _try_result.is_err() {
                 m.insert("type".to_string(), Value::Str("market".into()));
             m
         });
-        if !(matches!((&self.orderbooks, &outcomeValue.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut seededBook: Value = self.order_book(&[Value::Map({
+        if !(self.orderbooks.has(&outcomeValue.clone().map(Value::from).unwrap_or(Value::Null))) {
+            let mut seededBook: crate::pro::order_book::Book = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             if (outcomeValue.is_some()) {
-                if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(outcomeValue.as_deref().unwrap_or("null").to_string(), seededBook); }
+                CacheStore::put(&mut self.orderbooks, &outcomeValue.clone().map(Value::from).unwrap_or(Value::Null), seededBook);
             }
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);

@@ -1168,7 +1168,7 @@ impl Tokocrypto {
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
             let mut filters: Value = self.safe_list_k(&market, "filters", &[Value::from(vec![])]);
-            let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".into()));
+            let mut filtersByType: crate::value::Dict = self.index_by(filters, Value::Str("filterType".into())).into_dict();
             let mut status: Option<String> = self.safe_string_k(&market, "spotTradingEnable", &[]).as_str().map(str::to_owned);
             let mut active: bool = status.as_deref() == Some("1");
             let mut permissions: crate::value::List = self.safe_list_k(&market, "permissions", &[Value::from(vec![])]).into_list();
@@ -1220,11 +1220,11 @@ impl Tokocrypto {
 }));
                 m
             });
-            if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("PRICE_FILTER"))) {
-                let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            if (filtersByType.contains_key("PRICE_FILTER")) {
+                let mut filter: Value = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -1237,11 +1237,11 @@ impl Tokocrypto {
 }));
                 precision.insert("price".into(), filter.as_map().and_then(|__m| __m.get("tickSize")).cloned().unwrap_or(Value::Null));
             }
-            if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("LOT_SIZE"))) {
-                let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            if (filtersByType.contains_key("LOT_SIZE")) {
+                let mut filter: Value = self.safe_dict_k(&filtersByType, "LOT_SIZE", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
                 precision.insert("amount".into(), self.safe_number_k(filter.clone(), "stepSize", &[]));
                 limits.insert("amount".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1250,11 +1250,11 @@ impl Tokocrypto {
     m
 }));
             }
-            if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MARKET_LOT_SIZE"))) {
-                let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "MARKET_LOT_SIZE", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            if (filtersByType.contains_key("MARKET_LOT_SIZE")) {
+                let mut filter: Value = self.safe_dict_k(&filtersByType, "MARKET_LOT_SIZE", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
                 limits.insert("market".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(filter.clone(), "minQty", &[]));
@@ -1294,11 +1294,11 @@ impl Tokocrypto {
                     m.insert("info".to_string(), Value::Dict(market));
                 m
             });
-            if (matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MIN_NOTIONAL"))) {
-                let mut filter: Value = self.safe_dict_k(filtersByType, "MIN_NOTIONAL", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            if (filtersByType.contains_key("MIN_NOTIONAL")) {
+                let mut filter: Value = self.safe_dict_k(&filtersByType, "MIN_NOTIONAL", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
                 costMin = self.safe_number2(filter, Value::Str("minNotional".into()), Value::Str("notional".into()), &[]).as_f64();
             }
             result.push(entry);
@@ -3478,24 +3478,24 @@ impl Tokocrypto {
             let mut query: String = "".to_string();
             let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
             let __ws_arg_21 = self.nonce();
-            let mut extendedParams: Value = self.extend(Value::Map({
+            let mut extendedParams: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), __ws_arg_21);
                 m
-            }), &[params.clone()]);
+            }), &[params.clone()]).into_dict();
             if (defaultRecvWindow.is_some()) {
-                if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("recvWindow".into(), Value::from(defaultRecvWindow)); }
+                std::sync::Arc::make_mut(&mut extendedParams).insert("recvWindow".into(), Value::from(defaultRecvWindow));
             }
             let mut recvWindow: Option<i64> = self.safe_integer_k(params.clone(), "recvWindow", &[]).as_i64();
             if (recvWindow.is_some()) {
-                if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("recvWindow".into(), Value::from(recvWindow)); }
+                std::sync::Arc::make_mut(&mut extendedParams).insert("recvWindow".into(), Value::from(recvWindow));
             }
             if (apiName.as_str() == Some("sapi")) && (path.as_str() == Some("asset/dust")) {
-                query = self.urlencode_with_array_repeat(extendedParams.clone());
+                query = self.urlencode_with_array_repeat(&extendedParams);
             }  else if (path.as_str() == Some("batchOrders")) || (path.as_str().unwrap_or("").contains("sub-account")) || (path.as_str() == Some("capital/withdraw/apply")) || (path.as_str().unwrap_or("").contains("staking")) {
-                query = self.rawencode(extendedParams.clone(), &[]);
+                query = self.rawencode(&extendedParams, &[]);
             }  else {
-                query = self.urlencode(extendedParams, &[]);
+                query = self.urlencode(&extendedParams, &[]);
             }
             let mut signature: String = self.hmac(self.encode(Value::from(query.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             query.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature));

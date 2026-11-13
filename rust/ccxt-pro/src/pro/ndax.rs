@@ -353,16 +353,16 @@ impl Ndax {
         //         "TimeStamp": "1534862990358"
         //     }
         //
-        let mut ticker: Value = self.parse_ticker(payload, None);
-        let mut symbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut ticker: crate::value::Dict = self.parse_ticker(payload, None).into_dict();
+        let mut symbol: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (symbol.is_some()) {
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         }
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut name: String = "SubscribeLevel1".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId);
-        client.resolve(ticker, messageHash.as_str());
+        client.resolve(Value::Dict(ticker), messageHash.as_str());
 }
 
 /*
@@ -459,8 +459,8 @@ impl Ndax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_520: bool = true;
-            while { if !__for_first_520 { i += 1; } __for_first_520 = false; i < (payload.len() as i64) } {
+            let mut __for_first_518: bool = true;
+            while { if !__for_first_518 { i += 1; } __for_first_518 = false; i < (payload.len() as i64) } {
             let mut trade: crate::value::Dict = self.parse_trade(payload.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             let mut tradesArray: Option<crate::pro::cache::Cache> = (if (symbol.is_none()) { None } else { self.trades.lookup(&symbol.clone().map(Value::from).unwrap_or(Value::Null)) });
@@ -480,8 +480,8 @@ impl Ndax {
         let mut symbols: Vec<Value> = Value::Array(updates.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_521: bool = true;
-            while { if !__for_first_521 { i += 1; } __for_first_521 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_519: bool = true;
+            while { if !__for_first_519 { i += 1; } __for_first_519 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -593,12 +593,12 @@ impl Ndax {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_523: bool = true;
-            while { if !__for_first_523 { i += 1; } __for_first_523 = false; i < (payload.len() as i64) } {
+            let mut __for_first_521: bool = true;
+            while { if !__for_first_521 { i += 1; } __for_first_521 = false; i < (payload.len() as i64) } {
             let mut ohlcv: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
             let mut marketId: Option<String> = self.safe_string_opt(&ohlcv, Value::Int(8), &[]);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]));
-            let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
+            let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
+            let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
             let mut marketUpdates: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -607,8 +607,8 @@ impl Ndax {
             let mut keys: Vec<Value> = Value::Array(self.timeframes.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_522: bool = true;
-                while { if !__for_first_522 { j += 1; } __for_first_522 = false; j < (keys.len() as i64) } {
+                let mut __for_first_520: bool = true;
+                while { if !__for_first_520 { j += 1; } __for_first_520 = false; j < (keys.len() as i64) } {
                 let mut timeframe: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
                 let mut duration: Value = (match (&(Value::from(self.parse_to_int(interval))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -673,18 +673,18 @@ impl Ndax {
         let mut marketIds: Vec<Value> = Value::Array(updates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_525: bool = true;
-            while { if !__for_first_525 { i += 1; } __for_first_525 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_523: bool = true;
+            while { if !__for_first_523 { i += 1; } __for_first_523 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timeframes: Vec<Value> = object_keys(&updates.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_524: bool = true;
-                while { if !__for_first_524 { j += 1; } __for_first_524 = false; j < (timeframes.len() as i64) } {
+                let mut __for_first_522: bool = true;
+                while { if !__for_first_522 { j += 1; } __for_first_522 = false; j < (timeframes.len() as i64) } {
                 let mut timeframe: Value = timeframes.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId);
-                let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.clone(), None, &[]));
-                let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
+                let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut symbolOhlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
                 client.resolve(Value::from(&symbolOhlcv), messageHash.as_str());
             }
@@ -796,9 +796,9 @@ impl Ndax {
             return;
         }
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-        let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
-        if (orderbook == Value::Null) {
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
+        if (orderbook.is_none()) {
             return;
         }
         // seeded from the first entry so the locals keep a typed initializer (the loop re-reads it as a no-op)
@@ -806,8 +806,8 @@ impl Ndax {
         let mut nonce: Option<i64> = self.safe_integer(&firstBidAsk, Value::Int(0), &[]).as_i64();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_526: bool = true;
-            while { if !__for_first_526 { i += 1; } __for_first_526 = false; i < (payload.len() as i64) } {
+            let mut __for_first_524: bool = true;
+            while { if !__for_first_524 { i += 1; } __for_first_524 = false; i < (payload.len() as i64) } {
             let mut bidask: crate::value::List = self.safe_list(&payload, Value::Int(i), &[]).into_list();
             if (timestamp.is_none()) {
                 timestamp = self.safe_integer(&bidask, Value::Int(2), &[]).as_i64();
@@ -831,7 +831,7 @@ impl Ndax {
             let mut amount: Value = self.safe_float(&bidask, Value::Int(8), &[]);
             let mut side: Option<i64> = self.safe_integer(&bidask, Value::Int(9), &[]).as_i64();
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            let mut orderbookSide: Value = (if (side == Some(0)) { crate::value::get_value_k(&orderbook, "bids") } else { crate::value::get_value_k(&orderbook, "asks") });
+            let mut orderbookSide: Value = (if (side == Some(0)) { orderbook.book_field("bids") } else { orderbook.book_field("asks") });
             // 0 new, 1 update, 2 remove
             if (type_var == Some(0)) {
                 orderbookSide.store(price.clone(), amount.clone());
@@ -847,8 +847,8 @@ impl Ndax {
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         let mut name: String = "SubscribeLevel2".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
-        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(orderbook, messageHash.as_str());
+        CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
+        client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
     pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
@@ -888,16 +888,16 @@ impl Ndax {
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates
         // after a re-subscription snapshot
-        if !(matches!((&self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            { let __be_tmp = self.order_book(&[Value::Map({
+        if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) {
+            { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+}), limit]); CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
         }
-        let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
         orderbook.reset(Value::Dict(snapshot));
         let mut messageHash: Option<String> = self.safe_string_k(subscription, "messageHash", &[]).as_str().map(str::to_owned);
-        client.resolve(orderbook, messageHash.as_deref());
+        client.resolve(Value::from(&orderbook), messageHash.as_deref());
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
@@ -912,10 +912,10 @@ impl Ndax {
         //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
-        let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
+        let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
         let mut id: Option<i64> = (match __pro_message.get("i").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64),
             _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut subscription: Value = (if (id.is_none()) { Value::Null } else { self.safe_dict(subscriptionsById, Value::from(id), &[]) });
+        let mut subscription: Value = (if (id.is_none()) { Value::Null } else { self.safe_dict(&subscriptionsById, Value::from(id), &[]) });
         if (subscription != Value::Null) {
             let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
             if (method != Value::Null) {

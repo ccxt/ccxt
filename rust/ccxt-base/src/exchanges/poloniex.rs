@@ -2045,26 +2045,26 @@ impl Poloniex {
                         let mut j: i64 = 0;
             let mut __for_first_1084: bool = true;
             while { if !__for_first_1084 { j += 1; } __for_first_1084 = false; (j as f64) < chainsLength } {
-            let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
-            let mut chainId: Option<String> = self.safe_string_k(chain.clone(), "blockchain", &[]).as_str().map(str::to_owned);
+            let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
+            let mut chainId: Option<String> = self.safe_string_k(&chain, "blockchain", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), chain.clone());
+        m.insert("info".to_string(), chain.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), chainId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), Value::Null);
         m.insert("code".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("fee".to_string(), self.safe_number_k(chain.clone(), "withdrawFee", &[]));
-        m.insert("deposit".to_string(), self.safe_bool_k(chain.clone(), "depositEnable", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(chain.clone(), "withdrawalEnable", &[]));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(chain.clone(), "decimals", &[])]), &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&chain, "withdrawFee", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(&chain, "depositEnable", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(&chain, "withdrawalEnable", &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&chain, "decimals", &[])]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain, "withdrawMin", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&chain, "withdrawMin", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -2132,8 +2132,8 @@ impl Poloniex {
         });
         if (market).contract {
             let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut contractTicker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol, &[]);
-            return contractTicker;
+            let mut contractTicker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol, &[]).into_opt_dict();
+            return contractTicker.map_or(Value::Null, Value::Dict);
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_markets_symbol_ticker24h(&[__ws_arg_3]).await.into_dict();
@@ -2622,7 +2622,7 @@ impl Poloniex {
         let mut marginMode: Option<String> = self.safe_string_lower_k(order.clone(), "mgnMode", &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
         let mut leverage: Option<i64> = self.safe_integer_k(order.clone(), "lever", &[]).as_i64();
-        let mut hedged: Value = Value::Bool(self.safe_string_k(order.clone(), "posSide", &[]).as_str() != Some("BOTH"));
+        let mut hedged: bool = (self.safe_string_k(order.clone(), "posSide", &[]).as_str() != Some("BOTH"));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -2649,7 +2649,7 @@ impl Poloniex {
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("leverage".to_string(), Value::from(leverage));
-        m.insert("hedged".to_string(), hedged);
+        m.insert("hedged".to_string(), Value::Bool(hedged));
     m
 }), Some(&marketResolved));
 
@@ -3059,17 +3059,17 @@ impl Poloniex {
             });
             { let __destr_tmp: Vec<Value> = self.order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), request.clone(), &[Value::from(price), extendedParams.clone()]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
                 extendedParams = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            let mut merged: Value = self.extend(request, &[extendedParams]);
+            let mut merged: crate::value::Dict = self.extend(request, &[extendedParams]).into_dict();
             if isContract {
                 // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
-                if !(merged.as_map().is_some_and(|__m| __m.contains_key("mgnMode"))) {
-                    if let Value::Dict(__r03d) = &mut merged { std::sync::Arc::make_mut(__r03d).insert("mgnMode".into(), Value::Str("CROSS".into())); }
+                if !(merged.contains_key("mgnMode")) {
+                    std::sync::Arc::make_mut(&mut merged).insert("mgnMode".into(), Value::Str("CROSS".into()));
                 }
-                if (self.safe_string_k(merged.clone(), "posSide", &[]) == Value::Null) {
-                    if let Value::Dict(__r03d) = &mut merged { std::sync::Arc::make_mut(__r03d).insert("posSide".into(), Value::Str("BOTH".into())); }
+                if (self.safe_string_k(&merged, "posSide", &[]) == Value::Null) {
+                    std::sync::Arc::make_mut(&mut merged).insert("posSide".into(), Value::Str("BOTH".into()));
                 }
             }
-            ordersRequests.push(merged);
+            ordersRequests.push(Value::Dict(merged));
             ordersMarkets.push(marketInner);
         }
         }
@@ -4448,8 +4448,8 @@ impl Poloniex {
         let mut deposits: crate::value::List = self.safe_list_k(response, "deposits", &[Value::from(vec![])]).into_list();
         let mut withdrawalTransactions: crate::value::List = self.parse_transactions(&withdrawals, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
         let mut depositTransactions: crate::value::List = self.parse_transactions(&deposits, currency.as_ref(), &[since.clone(), limit.clone()]).into_list();
-        let mut transactions: Value = self.array_concat(&depositTransactions, &withdrawalTransactions);
-        return self.filter_by_currency_since_limit(self.sort_by(transactions, Value::Str("timestamp".into()), &[]), &[code, since, limit]);
+        let mut transactions: crate::value::List = self.array_concat(&depositTransactions, &withdrawalTransactions).into_list();
+        return self.filter_by_currency_since_limit(self.sort_by(Value::Arr(transactions), Value::Str("timestamp".into()), &[]), &[code, since, limit]);
         Value::Null
         }).await?))
     }

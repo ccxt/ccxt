@@ -1149,7 +1149,7 @@ impl Bitopro {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut first: Value = self.safe_dict(&tradingFeeRate, Value::Int(0), &[]);
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&tradingFeeRate, Value::Int(0), &[]).into_opt_dict();
         //
         //     {
         //         "tradingFeeRate":[
@@ -1215,8 +1215,8 @@ impl Bitopro {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut maker: Option<f64> = self.safe_number_k(first.clone(), "makerFee", &[]).as_f64();
-        let mut taker: Option<f64> = self.safe_number_k(first.clone(), "takerFee", &[]).as_f64();
+        let mut maker: Option<f64> = self.safe_number_k(&first, "makerFee", &[]).as_f64();
+        let mut taker: Option<f64> = self.safe_number_k(&first, "takerFee", &[]).as_f64();
         let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
@@ -1225,7 +1225,7 @@ impl Bitopro {
             let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), first.clone());
+        m.insert("info".to_string(), first.clone().map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), Value::from(maker));
         m.insert("taker".to_string(), Value::from(taker));

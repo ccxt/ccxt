@@ -872,16 +872,16 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_452: bool = true;
             while { if !__for_first_452 { i += 1; } __for_first_452 = false; i < (markets.len() as i64) } {
-            let mut market: Value = self.safe_dict(markets.clone(), Value::Int(i), &[]);
-            let mut id: Option<String> = self.safe_string_k(market.clone(), "market", &[]).as_str().map(str::to_owned);
-            let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
+            let mut market: Option<crate::value::Dict> = self.safe_dict(markets.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut id: Option<String> = self.safe_string_k(&market, "market", &[]).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = self.safe_string_k(&market, "base", &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_k(&market, "quote", &[]).as_str().map(str::to_owned);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+            let mut status: Option<String> = self.safe_string_k(&market, "status", &[]).as_str().map(str::to_owned);
             result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -911,9 +911,9 @@ impl Bitvavo {
         m.insert("maker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityDecimals", &[])]), &[]));
-        m.insert("price".to_string(), self.safe_number_k(market.clone(), "tickSize", &[]));
-        m.insert("cost".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "notionalDecimals", &[])]), &[]));
+        m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "quantityDecimals", &[])]), &[]));
+        m.insert("price".to_string(), self.safe_number_k(&market, "tickSize", &[]));
+        m.insert("cost".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "notionalDecimals", &[])]), &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -926,8 +926,8 @@ impl Bitvavo {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minOrderInBaseAsset", &[]));
-        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxOrderInBaseAsset", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "minOrderInBaseAsset", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&market, "maxOrderInBaseAsset", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
@@ -938,14 +938,14 @@ impl Bitvavo {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minOrderInQuoteAsset", &[]));
-        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maxOrderInQuoteAsset", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "minOrderInQuoteAsset", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&market, "maxOrderInQuoteAsset", &[]));
     m
 }));
     m
 }));
         m.insert("created".to_string(), Value::Null);
-        m.insert("info".to_string(), market);
+        m.insert("info".to_string(), market.clone().map_or(Value::Null, Value::Dict));
     m
 })]));
         }
@@ -1023,9 +1023,9 @@ impl Bitvavo {
             m
         });
         let mut networksArray: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]).into_list();
-        let mut deposit: bool = self.safe_string_k(rawCurrency.clone(), "depositStatus", &[]).as_str() == Some("OK");
-        let mut withdrawal: bool = self.safe_string_k(rawCurrency.clone(), "withdrawalStatus", &[]).as_str() == Some("OK");
-        let mut active: Value = Value::Bool(deposit && withdrawal);
+        let mut deposit: bool = (self.safe_string_k(rawCurrency.clone(), "depositStatus", &[]).as_str() == Some("OK"));
+        let mut withdrawal: bool = (self.safe_string_k(rawCurrency.clone(), "withdrawalStatus", &[]).as_str() == Some("OK"));
+        let mut active: Value = Value::Bool((deposit && withdrawal));
         let mut withdrawFee: Option<f64> = self.safe_number_k(rawCurrency.clone(), "withdrawalFee", &[]).as_f64();
         let mut precision: String = self.safe_string_k(rawCurrency.clone(), "decimals", &[Value::Str("8".into())]).as_str().unwrap_or("8").to_string();
         let mut minWithdraw: Option<f64> = self.safe_number_k(rawCurrency.clone(), "withdrawalMinAmount", &[]).as_f64();
@@ -1042,8 +1042,8 @@ impl Bitvavo {
         m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), active.clone());
-        m.insert("deposit".to_string(), Value::Bool(deposit.clone()));
-        m.insert("withdraw".to_string(), Value::Bool(withdrawal.clone()));
+        m.insert("deposit".to_string(), Value::Bool(deposit));
+        m.insert("withdraw".to_string(), Value::Bool(withdrawal));
         m.insert("fee".to_string(), Value::from(withdrawFee));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[Value::from(precision.clone())]), &[]));
         m.insert("limits".to_string(), Value::Map({

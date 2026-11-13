@@ -1049,9 +1049,9 @@ impl Upbit {
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
         }
-        let mut parts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-        let mut quoteId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut baseId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut quoteId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -1320,8 +1320,8 @@ impl Upbit {
     m
 }));
         let mut orderbooks: crate::types::OrderBooks = (match self.fetch_order_books((Value::from(vec![symbol.clone()])).to_opt_str_vec(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderbook: Value = self.safe_dict(crate::types::IntoRaw::into_raw(orderbooks), symbol, &[]);
-        return orderbook;
+        let mut orderbook: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orderbooks), symbol, &[]).into_opt_dict();
+        return orderbook.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1522,8 +1522,8 @@ impl Upbit {
     m
 }));
         let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol, &[]);
-        return ticker;
+        let mut ticker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol, &[]).into_opt_dict();
+        return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

@@ -1767,8 +1767,8 @@ impl Btse {
             let mut length: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if (length == 1) {
                 let mut requestedSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
-                let mut market: Value = crate::types::IntoRaw::into_raw(self.market(requestedSymbol.as_deref().unwrap_or_default()));
-                request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                let mut market: crate::types::Market = (match self.market(requestedSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                request.insert("symbol".into(), Value::from((market).id.as_deref()));
             }
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -1807,8 +1807,8 @@ impl Btse {
             while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
-            let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             if (symbolsNormalized.is_none()) || self.in_array(symbol.clone(), symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true) {
                 let mut levels: crate::value::List = self.safe_list_k(&entry, "riskLimits", &[Value::from(vec![])]).into_list();
                 let mut tiers: Value = Value::from(vec![]);
@@ -1826,7 +1826,7 @@ impl Btse {
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tier".to_string(), self.safe_integer_k(&level, "level", &[]));
                             m.insert("symbol".to_string(), symbol.clone());
-                            m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null));
+                            m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&market, "settle"));
                             m.insert("minNotional".to_string(), (if (j.as_f64() == Some(0.0)) { Value::Int(0) } else { Value::from(minNotional) }));
                             m.insert("maxNotional".to_string(), Value::from(maxNotional));
                             m.insert("maintenanceMarginRate".to_string(), Value::Null);
@@ -4442,12 +4442,12 @@ impl Btse {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let __ws_arg_32 = self.futures_request_id(Some(&market));
-        let mut paramsExtended: Value = self.extend(Value::Map({
+        let mut paramsExtended: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), __ws_arg_32);
             m
-        }), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_positions((Value::from(vec![symbol])).to_opt_str_vec(), paramsExtended).await);
+        }), &[params]).into_dict();
+        return crate::types::IntoRaw::into_raw(self.fetch_positions((Value::from(vec![symbol])).to_opt_str_vec(), Value::Dict(paramsExtended)).await);
         Value::Null
         }).await?))
     }
@@ -4496,8 +4496,8 @@ impl Btse {
         // id, optionally suffixed with the isolated wallet discriminator after a pipe
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "positionId", &[]).as_str().map(str::to_owned);
         if (marketId.is_some()) {
-            let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() });
-            marketId = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut parts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("|").map(Value::from).collect() } else { Vec::new() }).into_list();
+            marketId = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         }  else {
             marketId = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
         }

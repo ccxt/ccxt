@@ -1365,14 +1365,14 @@ impl Coinmate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut withdrawOptions: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut methods: crate::value::Dict = self.safe_dict_k(&withdrawOptions, "methods", &[Value::Map({
+        let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
+        let mut methods: crate::value::Dict = self.safe_dict_k(&withdrawOptions, "methods", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut method: Option<String> = self.safe_string(&methods, code.clone(), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
             let mut allowedCurrencies: Value = Value::Array(methods.keys().cloned().map(Value::from).collect());
@@ -1387,26 +1387,26 @@ impl Coinmate {
         if (tagWithdrawTag.is_some()) {
             request.insert("destinationTag".into(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut requestParams: Value = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
+        let mut requestParams: crate::value::Dict = self.extend(Value::Map(request), &[&paramsWithdrawTag]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privatePostBitcoinWithdrawal")) {
-            response = self.private_post_bitcoin_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_bitcoin_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostLitecoinWithdrawal")) {
-            response = self.private_post_litecoin_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_litecoin_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostBitcoinCashWithdrawal")) {
-            response = self.private_post_bitcoin_cash_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_bitcoin_cash_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostEthereumWithdrawal")) {
-            response = self.private_post_ethereum_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_ethereum_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostRippleWithdrawal")) {
-            response = self.private_post_ripple_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_ripple_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostDashWithdrawal")) {
-            response = self.private_post_dash_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_dash_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostDaiWithdrawal")) {
-            response = self.private_post_dai_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_dai_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostAdaWithdrawal")) {
-            response = self.private_post_ada_withdrawal(&[requestParams.clone()]).await.into_opt_dict();
+            response = self.private_post_ada_withdrawal(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privatePostSolWithdrawal")) {
-            response = self.private_post_sol_withdrawal(&[requestParams]).await.into_opt_dict();
+            response = self.private_post_sol_withdrawal(&[Value::Dict(requestParams)]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not support the ".into())).into()), method.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" method".into()))));
         }
@@ -1932,16 +1932,16 @@ impl Coinmate {
             request.insert("price".into(), self.price_to_precision(symbol, price));
             method.push_str(&(self.capitalize(type_var.clone())).to_string());
         }
-        let mut requestParams: Value = self.extend(Value::Map(request), &[params]);
+        let mut requestParams: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         let mut response: Value = Value::Null;
         if (method == "privatePostBuyInstant") {
-            response = self.private_post_buy_instant(&[requestParams.clone()]).await;
+            response = self.private_post_buy_instant(&[Value::from(&requestParams)]).await;
         }  else if (method == "privatePostSellInstant") {
-            response = self.private_post_sell_instant(&[requestParams.clone()]).await;
+            response = self.private_post_sell_instant(&[Value::from(&requestParams)]).await;
         }  else if (method == "privatePostBuyLimit") {
-            response = self.private_post_buy_limit(&[requestParams.clone()]).await;
+            response = self.private_post_buy_limit(&[Value::from(&requestParams)]).await;
         }  else if (method == "privatePostSellLimit") {
-            response = self.private_post_sell_limit(&[requestParams]).await;
+            response = self.private_post_sell_limit(&[Value::Dict(requestParams)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
         }
@@ -2069,12 +2069,12 @@ impl Coinmate {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path);
         if (apiName.as_deref() == Some("public")) {
-            let mut publicQuery: Value = self.extend(Value::Map({
+            let mut publicQuery: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[params.clone()]);
-            if ((Value::Array(publicQuery.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(publicQuery, &[])));
+            }), &[params.clone()]).into_dict();
+            if ((Value::Array(publicQuery.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&publicQuery, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);

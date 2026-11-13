@@ -776,9 +776,9 @@ impl Bitteam {
         let mut market: Value = market.into();
         let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "name", &[]);
         let mut numericId: Option<i64> = self.safe_integer_k(market.clone(), "id", &[]).as_i64();
-        let mut parts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-        let mut baseId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut quoteId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -3085,8 +3085,8 @@ impl Bitteam {
         //         }
         //     }
         //
-        let mut currencyObject: Value = self.safe_dict_k(transaction.clone(), "currency", &[]);
-        let mut currencyId: Option<String> = self.safe_string_k(currencyObject.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut currencyObject: Option<crate::value::Dict> = self.safe_dict_k(transaction.clone(), "currency", &[]).into_opt_dict();
+        let mut currencyId: Option<String> = self.safe_string_k(&currencyObject, "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut params: crate::value::Dict = self.safe_dict_k(transaction.clone(), "params", &[]).into_dict();
@@ -3094,7 +3094,7 @@ impl Bitteam {
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "timestamp", &[]).as_i64();
         let mut networkId: Option<String> = self.safe_string_k(transaction.clone(), "blockChain", &[]).as_str().map(str::to_owned);
         if (networkId.is_none()) {
-            let mut links: crate::value::List = self.safe_list_k(currencyObject.clone(), "links", &[Value::from(vec![])]).into_list();
+            let mut links: crate::value::List = self.safe_list_k(&currencyObject, "links", &[Value::from(vec![])]).into_list();
             let mut blockChain: crate::value::Dict = self.safe_dict(&links, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3105,7 +3105,7 @@ impl Bitteam {
         let mut addressTo: Option<String> = self.safe_string_k(transaction.clone(), "recipient", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(transaction.clone(), "message", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "type", &[])).as_str());
-        let mut amount: Option<String> = self.parse_value_to_pricision(transaction.clone(), "amount", currencyObject, "decimals");
+        let mut amount: Option<String> = self.parse_value_to_pricision(transaction.clone(), "amount", currencyObject.map_or(Value::Null, Value::Dict), "decimals");
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

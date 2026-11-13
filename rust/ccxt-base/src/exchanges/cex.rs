@@ -727,10 +727,10 @@ impl Cex {
             let mut __for_first_527: bool = true;
             while { if !__for_first_527 { j += 1; } __for_first_527 = false; j < (keys.len() as i64) } {
             let mut networkId: Option<String> = keys.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut rawNetwork: Value = self.safe_dict(&rawNetworks, Value::from(networkId.as_deref()), &[]);
+            let mut rawNetwork: Option<crate::value::Dict> = self.safe_dict(&rawNetworks, Value::from(networkId.as_deref()), &[]).into_opt_dict();
             let mut networkCode: Value = Value::from(self.network_id_to_code(&[Value::from(networkId.as_deref()), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            let mut deposit: Value = Value::Bool(self.safe_string_k(rawNetwork.clone(), "deposit", &[]).as_str() == Some("enabled"));
-            let mut withdraw: Value = Value::Bool(self.safe_string_k(rawNetwork.clone(), "withdrawal", &[]).as_str() == Some("enabled"));
+            let mut deposit: Value = Value::Bool(self.safe_string_k(&rawNetwork, "deposit", &[]).as_str() == Some("enabled"));
+            let mut withdraw: Value = Value::Bool(self.safe_string_k(&rawNetwork, "withdrawal", &[]).as_str() == Some("enabled"));
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -740,25 +740,25 @@ impl Cex {
         m.insert("deposit".to_string(), deposit);
         m.insert("withdraw".to_string(), withdraw);
         m.insert("active".to_string(), Value::Null);
-        m.insert("fee".to_string(), self.safe_number_k(rawNetwork.clone(), "withdrawalFee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&rawNetwork, "withdrawalFee", &[]));
         m.insert("precision".to_string(), currencyPrecision.clone());
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(rawNetwork.clone(), "minDeposit", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&rawNetwork, "minDeposit", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(rawNetwork.clone(), "minWithdrawal", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&rawNetwork, "minWithdrawal", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
     m
 }));
-        m.insert("info".to_string(), rawNetwork);
+        m.insert("info".to_string(), rawNetwork.clone().map_or(Value::Null, Value::Dict));
     m
 }));
             }
@@ -1414,11 +1414,11 @@ impl Cex {
             let mut __for_first_528: bool = true;
             while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = Value::Null;
+            let mut market: Option<crate::types::Market> = None;
             if useKeyAsId.as_bool() == Some(true) {
-                market = crate::types::IntoRaw::into_raw(self.safe_market(key.clone().map(Value::from).unwrap_or(Value::Null), None, &[]));
+                market = Some(self.safe_market(key.clone().map(Value::from).unwrap_or(Value::Null), None, &[]));
             }
-            let mut parsed: crate::value::Dict = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), market.as_ref()).into_dict();
             let mut parsedSymbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
             if (parsedSymbol.is_some()) {
                 result.insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
@@ -1432,8 +1432,8 @@ impl Cex {
             while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(matches!(&symbol, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
-                let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-                result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()));
+                let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), Some(&market)));
             }
         }
         }
@@ -1826,8 +1826,8 @@ impl Cex {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut result: Vec<crate::types::Order> = (match self.fetch_open_orders(symbol.as_str(), None, None, __ws_arg_5).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Value = self.safe_dict(crate::types::IntoRaw::into_raw(result), Value::Int(0), &[]);
-        return order;
+        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(result), Value::Int(0), &[]).into_opt_dict();
+        return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1864,8 +1864,8 @@ impl Cex {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut result: Vec<crate::types::Order> = (match self.fetch_closed_orders(symbol.as_str(), None, None, __ws_arg_6).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Value = self.safe_dict(crate::types::IntoRaw::into_raw(result), Value::Int(0), &[]);
-        return order;
+        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(result), Value::Int(0), &[]).into_opt_dict();
+        return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

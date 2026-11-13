@@ -917,14 +917,14 @@ impl Bit2c {
             while { if !__for_first_333 { i += 1; } __for_first_333 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(Value::from(marketId.as_deref()), None, &[]);
-            let mut fee: Value = self.safe_dict(&fees, marketId.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut makerString: Option<String> = self.safe_string_k(fee.clone(), "FeeMaker", &[]).as_str().map(str::to_owned);
-            let mut takerString: Option<String> = self.safe_string_k(fee.clone(), "FeeTaker", &[]).as_str().map(str::to_owned);
+            let mut fee: Option<crate::value::Dict> = self.safe_dict(&fees, marketId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut makerString: Option<String> = self.safe_string_k(&fee, "FeeMaker", &[]).as_str().map(str::to_owned);
+            let mut takerString: Option<String> = self.safe_string_k(&fee, "FeeTaker", &[]).as_str().map(str::to_owned);
             let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
             let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), fee);
+        m.insert("info".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("taker".to_string(), taker);
         m.insert("maker".to_string(), maker);
@@ -1551,14 +1551,14 @@ impl Bit2c {
             self.check_required_credentials(&[]);
             // bit2c requires an increasing nonce per key
             let mut nonce: i64 = self.incrementing_nonce();
-            let mut query: Value = self.extend(Value::Map({
+            let mut query: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
-            }), &[params]);
-            let mut auth: String = self.urlencode(query.clone(), &[]);
+            }), &[params]).into_dict();
+            let mut auth: String = self.urlencode(&query, &[]);
             if (method.as_str() == Some("GET")) {
-                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
                 }
             }  else {

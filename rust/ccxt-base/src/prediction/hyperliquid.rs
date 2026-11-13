@@ -546,7 +546,7 @@ impl Hyperliquid {
                 let mut thresholdsRaw: String = self.safe_string_k(&questionDesc, "priceThresholds", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut indexStr: Option<String> = self.safe_string_k(desc.clone(), "index", &[]).as_str().map(str::to_owned);
                 let mut rawDescription: Option<String> = self.safe_string_lower_k(desc, "description", &[Value::Str("".into())]).as_str().map(str::to_owned);
-                let mut nameLower: Value = (if let Some(__s) = name.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+                let mut nameLower: Option<String> = name.as_str().map(str::to_lowercase);
                 if ((questionUnderlying.is_some()) && (questionUnderlying.as_deref() != Some(""))) && (thresholdsRaw != "") && (indexStr.is_some()) {
                     let mut thresholdParts: Vec<Value> = Value::Array(thresholdsRaw.split(",").map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                     let mut thresholds: Value = Value::from(vec![]);
@@ -576,7 +576,7 @@ impl Hyperliquid {
                         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), bucketLabel).into()), questionExpiryPart).into()).as_str().map(str::to_owned);
                     }
                 }
-                let mut isFallbackLike: bool = (rawDescription.as_deref() == Some("other")) || (nameLower.as_str().unwrap_or("").contains("fallback")) || (nameLower.as_str().unwrap_or("").contains("other"));
+                let mut isFallbackLike: bool = (rawDescription.as_deref() == Some("other")) || (nameLower.as_deref().unwrap_or_default().contains("fallback")) || (nameLower.as_deref().unwrap_or_default().contains("other"));
                 if ((questionUnderlying.is_some()) && (questionUnderlying.as_deref() != Some(""))) && isFallbackLike {
                     return Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), Value::Str("_OTHER".into())).into()), questionExpiryPart).into()).as_str().map(str::to_owned);
                 }
@@ -2037,8 +2037,8 @@ impl Hyperliquid {
     m
 }));
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), outcome.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut first: Value = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]);
-        return first;
+        let mut first: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        return first.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2071,11 +2071,11 @@ impl Hyperliquid {
         }
         self.initialize_client().await;
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
         let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut assetId: Option<i64> = self.safe_integer_k(&outcomeInfo, "assetId", &[]).as_i64();
         let mut nonce: i64 = self.incrementing_nonce();
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
@@ -2428,7 +2428,7 @@ impl Hyperliquid {
         //   "statusTimestamp": 1704346468838
         // }
         //
-        let mut entry: Value = self.safe_dict_k(order.clone(), "order", &[order.clone()]); // eslint-disable-line
+        let mut entry: crate::value::Dict = self.safe_dict_k(order.clone(), "order", &[order.clone()]).into_dict(); // eslint-disable-line
         let mut status: Option<String> = self.parse_order_status((self.safe_string2(order.clone(), Value::Str("ccxtStatus".into()), Value::Str("status".into()), &[])).as_str());
         let mut coin: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(coin.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]).into_dict();
@@ -2809,10 +2809,10 @@ impl Hyperliquid {
             if lowerQueriesLength > 0 {
                 let mut description: Value = (self.safe_string_k(&info, "description", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
                 let mut parentSymbolOrEmpty: Value = (if (parentSymbol != Value::Null) { parentSymbol.clone() } else { Value::Str("".into()) });
-                let mut symLower: Value = (if let Some(__s) = parentSymbolOrEmpty.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+                let mut symLower: Option<String> = parentSymbolOrEmpty.as_str().map(str::to_lowercase);
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
-                let mut haystack: String = format!("{}{}", Value::Str(format!("{}{}", description, Value::Str(" ".into())).into()), symLower);
+                let mut haystack: String = format!("{}{}", Value::Str(format!("{}{}", description, Value::Str(" ".into())).into()), symLower.map(Value::from).unwrap_or(Value::Null));
                 let mut matches: bool = false;
                 {
                                         let mut qi: i64 = 0;

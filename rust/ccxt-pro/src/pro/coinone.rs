@@ -377,27 +377,27 @@ impl Coinone {
         }
         let mut symbol: Value = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into())));
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
-        let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
-        if (orderbook == Value::Null) {
-            orderbook = self.order_book(&[]);
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
+        if (orderbook.is_none()) {
+            orderbook = Some(self.order_book(&[]));
         }  else {
             orderbook.reset0();
         }
         orderbook.set_book_meta("symbol", symbol.clone());
         let mut asks: Value = self.safe_list_k(&data, "asks", &[Value::from(vec![])]);
         let mut bids: Value = self.safe_list_k(&data, "bids", &[Value::from(vec![])]);
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks);
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids);
+        self.handle_deltas(orderbook.book_field("asks"), asks);
+        self.handle_deltas(orderbook.book_field("bids"), bids);
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
-        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
-        client.resolve(orderbook, messageHash.as_str());
+        CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
+        client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut bidAsk: Value = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("qty".into())]);
-        bookside.store_array(bidAsk);
+        let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("qty".into())]).into_list();
+        bookside.store_array(Value::Arr(bidAsk));
 }
 
 /*
@@ -737,8 +737,8 @@ impl Coinone {
             let mut keys: Vec<Value> = Value::Array(methods.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_267: bool = true;
-                while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (keys.len() as i64) } {
+                let mut __for_first_265: bool = true;
+                while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (keys.len() as i64) } {
                 let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 if Value::Int(topic.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     let mut method: Value = methods.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);

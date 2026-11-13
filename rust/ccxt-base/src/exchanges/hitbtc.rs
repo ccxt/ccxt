@@ -1432,19 +1432,19 @@ impl Hitbtc {
             if (id.as_deref().unwrap_or_default().ends_with("_BQX")) {
                 continue;
             }
-            let mut market: Value = self.safe_dict(&response, id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut marketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut expiry: Option<i64> = self.safe_integer_k(market.clone(), "expiry", &[]).as_i64();
+            let mut market: Option<crate::value::Dict> = self.safe_dict(&response, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut marketType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
+            let mut expiry: Option<i64> = self.safe_integer_k(&market, "expiry", &[]).as_i64();
             let mut contract: Value = (Value::Bool(marketType.as_deref() == Some("futures")));
             let mut spot: bool = marketType.as_deref() == Some("spot");
-            let mut marginTrading: bool = self.safe_bool_k(market.clone(), "margin_trading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut marginTrading: bool = self.safe_bool_k(&market, "margin_trading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut margin: Value = Value::Bool((spot && marginTrading));
             let mut future: Value = (Value::Bool(expiry.is_some()));
             let mut swap: Value = Value::Bool(matches!(&contract, Value::Bool(true)) && !(matches!(&future, Value::Bool(true))));
             let mut option: bool = false;
-            let mut baseId: Option<String> = self.safe_string2(market.clone(), Value::Str("base_currency".into()), Value::Str("underlying".into()), &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote_currency", &[]).as_str().map(str::to_owned);
-            let mut feeCurrencyId: Option<String> = self.safe_string_k(market.clone(), "fee_currency", &[]).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = self.safe_string2(&market, Value::Str("base_currency".into()), Value::Str("underlying".into()), &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_k(&market, "quote_currency", &[]).as_str().map(str::to_owned);
+            let mut feeCurrencyId: Option<String> = self.safe_string_k(&market, "fee_currency", &[]).as_str().map(str::to_owned);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
             if (base.is_none()) || (quote.is_none()) {
@@ -1468,14 +1468,14 @@ impl Hitbtc {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle);
                 if matches!(&future, Value::Bool(true)) {
                     symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()),
-                        Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.safe_string_k(market.clone(), "expiry", &[Value::Str("".into())]));
+                        Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.safe_string_k(&market, "expiry", &[Value::Str("".into())]));
                     type_var = "future".to_string();
                 }  else {
                     type_var = "swap".to_string();
                 }
             }
-            let mut lotString: Option<String> = self.safe_string_k(market.clone(), "quantity_increment", &[]).as_str().map(str::to_owned);
-            let mut stepString: Option<String> = self.safe_string_k(market.clone(), "tick_size", &[]).as_str().map(str::to_owned);
+            let mut lotString: Option<String> = self.safe_string_k(&market, "quantity_increment", &[]).as_str().map(str::to_owned);
+            let mut stepString: Option<String> = self.safe_string_k(&market, "tick_size", &[]).as_str().map(str::to_owned);
             let mut lot: Value = self.parse_number(lotString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut step: Value = self.parse_number(stepString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             result.push(Value::Map({
@@ -1498,8 +1498,8 @@ impl Hitbtc {
                     m.insert("contract".to_string(), contract);
                     m.insert("linear".to_string(), linear);
                     m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("taker".to_string(), self.safe_number_k(market.clone(), "take_rate", &[]));
-                    m.insert("maker".to_string(), self.safe_number_k(market.clone(), "make_rate", &[]));
+                    m.insert("taker".to_string(), self.safe_number_k(&market, "take_rate", &[]));
+                    m.insert("maker".to_string(), self.safe_number_k(&market, "make_rate", &[]));
                     m.insert("contractSize".to_string(), contractSize);
                     m.insert("expiry".to_string(), Value::from(expiry));
                     m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1517,7 +1517,7 @@ impl Hitbtc {
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("1".into()), &[]));
-        m.insert("max".to_string(), self.safe_number_k(market.clone(), "max_initial_leverage", &[Value::Int(1)]));
+        m.insert("max".to_string(), self.safe_number_k(&market, "max_initial_leverage", &[Value::Int(1)]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
@@ -1541,7 +1541,7 @@ impl Hitbtc {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), market);
+                    m.insert("info".to_string(), market.clone().map_or(Value::Null, Value::Dict));
                 m
             }));
         }
@@ -4214,7 +4214,7 @@ impl Hitbtc {
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
         let mut symbolResolved: Option<String> = (if (market.is_none()) { symbol.as_str().map(str::to_owned) } else { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) });
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

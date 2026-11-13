@@ -1356,18 +1356,18 @@ impl Deribit {
         // support expired option contracts
         let mut quote: String = "USD".to_string();
         let mut settle: Value = Value::Str("".into());
-        let mut optionParts: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-        let mut symbolBase: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
+        let mut optionParts: crate::value::List = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut symbolBase: crate::value::List = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut hasSlash: bool = symbol.as_str().unwrap_or("").contains("/");
         let mut hasUsdc: bool = symbol.as_str().unwrap_or("").contains("USDC");
         let mut base: Option<String> = None;
         let mut expiry: Value = Value::Null;
         if hasSlash {
-            base = self.safe_string(symbolBase, Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
-            expiry = self.safe_string(optionParts.clone(), Value::Int(1), &[]);
+            base = self.safe_string(&symbolBase, Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
+            expiry = self.safe_string(&optionParts, Value::Int(1), &[]);
         }  else {
-            base = self.safe_string(optionParts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
-            expiry = self.convert_market_id_expire_date(self.safe_string(optionParts.clone(), Value::Int(1), &[]));
+            base = self.safe_string(&optionParts, Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
+            expiry = self.convert_market_id_expire_date(self.safe_string(&optionParts, Value::Int(1), &[]));
         }
         if (base.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createExpiredOptionMarket() missing base".into()))));
@@ -1387,8 +1387,8 @@ impl Deribit {
         }
         // the part of the base before the first underscore, or the whole base when it has none
         let mut splitBase: String = self.safe_string(Value::Array(if let Some(__s) = baseResolved.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut strike: String = self.safe_string(optionParts.clone(), Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut optionType: String = self.safe_string(optionParts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut strike: String = self.safe_string(&optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut optionType: String = self.safe_string(&optionParts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut datetime: Value = self.convert_expire_date(expiry.clone());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1741,7 +1741,7 @@ impl Deribit {
 }));
         let mut instrumentsResponses: Vec<Value> = Vec::new();
         let mut result: Vec<Value> = Vec::new();
-        let mut parsedMarkets: indexmap::IndexMap<String, Value> = ({
+        let mut parsedMarkets: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1933,12 +1933,12 @@ impl Deribit {
                     inverse = Some(quote != settle);
                     linear = Some(settle == quote);
                 }
-                let mut parsedMarketValue: Option<bool> = self.safe_bool(Value::Map(parsedMarkets.clone()), symbol.clone(), &[]).as_bool();
+                let mut parsedMarketValue: Option<bool> = self.safe_bool(parsedMarkets.clone(), symbol.clone(), &[]).as_bool();
                 if (parsedMarketValue.is_some()) {
                     continue;
                 }
                 if (symbol != Value::Null) {
-                    parsedMarkets.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
+                    if let Value::Dict(__d) = &mut parsedMarkets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
                 }
                 let mut minTradeAmount: Option<f64> = self.safe_number_k(&market, "min_trade_amount", &[]).as_f64();
                 let mut tickSize: Option<f64> = self.safe_number_k(&market, "tick_size", &[]).as_f64();
@@ -4877,12 +4877,12 @@ impl Deribit {
         let mut eachItemDuration: String = "1h".to_string();
         if paginate {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
-            let mut paginationParams: Value = self.extend(&paramsPaginate, &[Value::Map({
+            let mut paginationParams: crate::value::Dict = self.extend(&paramsPaginate, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("isDeribitPaginationCall".to_string(), Value::Bool(true));
                 m
-            })]);
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(eachItemDuration.clone()), paginationParams, Value::from(maxEntriesPerRequest)]).await;
+            })]).into_dict();
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(eachItemDuration.clone()), Value::Dict(paginationParams), Value::from(maxEntriesPerRequest)]).await;
         }
         let mut duration: Value = (match (&(Value::Int(self.parse_timeframe(Value::from(eachItemDuration)))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut now: Value = Value::Int(self.milliseconds());

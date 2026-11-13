@@ -935,8 +935,8 @@ impl Apex {
                         let mut j: i64 = 0;
             let mut __for_first_225: bool = true;
             while { if !__for_first_225 { j += 1; } __for_first_225 = false; j < (chains.len() as i64) } {
-            let mut chain: Value = self.safe_dict(&chains, Value::Int(j), &[]);
-            let mut tokens: crate::value::List = self.safe_list_k(chain.clone(), "tokens", &[Value::from(vec![])]).into_list();
+            let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
+            let mut tokens: crate::value::List = self.safe_list_k(&chain, "tokens", &[Value::from(vec![])]).into_list();
             {
                                 let mut f: i64 = 0;
                 let mut __for_first_224: bool = true;
@@ -944,16 +944,16 @@ impl Apex {
                 let mut token: crate::value::Dict = self.safe_dict(&tokens, Value::Int(f), &[]).into_dict();
                 let mut tokenName: Option<String> = self.safe_string_k(&token, "token", &[]).as_str().map(str::to_owned);
                 if (tokenName == currencyId) {
-                    let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chainId", &[]).as_str().map(str::to_owned);
+                    let mut networkId: Option<String> = self.safe_string_k(&chain, "chainId", &[]).as_str().map(str::to_owned);
                     let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
                     if (networkCode != Value::Null) {
                         networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), chain.clone());
+        m.insert("info".to_string(), chain.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool((!(self.safe_bool_k(chain.clone(), "depositDisable", &[Value::Bool(false)]).as_bool() == Some(true)))));
+        m.insert("deposit".to_string(), Value::Bool((!(self.safe_bool_k(&chain, "depositDisable", &[Value::Bool(false)]).as_bool() == Some(true)))));
         m.insert("withdraw".to_string(), self.safe_bool_k(&token, "withdrawEnable", &[]));
         m.insert("fee".to_string(), self.safe_number_k(&token, "minFee", &[]));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&token, "decimals", &[])]), &[]));
@@ -967,7 +967,7 @@ impl Apex {
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "minDeposit", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&chain, "minDeposit", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -984,7 +984,7 @@ impl Apex {
         let mut networkKeys: Vec<Value> = Value::Array(networks.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut networksLength: i64 = networkKeys.len() as i64;
         let mut emptyChains: bool = networksLength == 0; // non-functional coins
-        let mut valueForEmpty: Value = (if emptyChains { Value::Bool(false) } else { Value::Null });
+        let mut valueForEmpty: Option<bool> = (if emptyChains { Some(false) } else { None });
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency);
@@ -993,8 +993,8 @@ impl Apex {
         m.insert("type".to_string(), Value::Str("crypto".into()));
         m.insert("name".to_string(), name.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), valueForEmpty.clone());
-        m.insert("withdraw".to_string(), valueForEmpty);
+        m.insert("deposit".to_string(), valueForEmpty.map_or(Value::Null, Value::Bool));
+        m.insert("withdraw".to_string(), valueForEmpty.map_or(Value::Null, Value::Bool));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
@@ -1693,7 +1693,7 @@ impl Apex {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

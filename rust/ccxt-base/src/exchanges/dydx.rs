@@ -993,8 +993,8 @@ impl Dydx {
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
         }
-        let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-        let mut baseName: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut baseName: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseId", &[baseName.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned); // idk where 'baseId' comes from, but leaving as is
         let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.as_deref()), None);
         let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.clone()), None);
@@ -1412,7 +1412,7 @@ impl Dydx {
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(rates), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2302,12 +2302,12 @@ impl Dydx {
         let mut account: Value = self.fetch_dydx_account().await;
         let mut lastBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
         // params['latestBlockHeight'] = lastBlockHeight;
-        let mut newParams: Value = self.extend(params, &[Value::Map({
+        let mut newParams: crate::value::Dict = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("latestBlockHeight".to_string(), Value::from(lastBlockHeight));
             m
-        })]);
-        let mut orderRequestRes: Vec<Value> = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, newParams]).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut orderRequestRes: Vec<Value> = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, Value::Dict(newParams)]).as_array().cloned().unwrap_or_default();
         let mut orderId: Value = orderRequestRes.get(0).cloned().unwrap_or(Value::Null);
         let mut orderRequest: Value = orderRequestRes.get(1).cloned().unwrap_or(Value::Null);
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
@@ -3018,9 +3018,9 @@ impl Dydx {
             currency = Some(self.currency(code.clone()));
         }
         let mut response: crate::value::List = self.fetch_transactions_helper("fetchTransfers", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
-        let mut transferIn: Value = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]);
-        let mut transferOut: Value = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]);
-        let mut rows: Value = self.array_concat(transferIn, transferOut);
+        let mut transferIn: crate::value::List = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]).into_list();
+        let mut transferOut: crate::value::List = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]).into_list();
+        let mut rows: Value = self.array_concat(&transferIn, &transferOut);
         return self.parse_transfers(rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3292,9 +3292,9 @@ impl Dydx {
             currency = Some(self.currency(code.clone()));
         }
         let mut response: crate::value::List = self.fetch_transactions_helper("fetchDepositsWithdrawals", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
-        let mut withdrawals: Value = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]);
-        let mut deposits: Value = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]);
-        let mut rows: Value = self.array_concat(withdrawals, deposits);
+        let mut withdrawals: crate::value::List = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]).into_list();
+        let mut deposits: crate::value::List = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]).into_list();
+        let mut rows: Value = self.array_concat(&withdrawals, &deposits);
         return self.parse_transactions(rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

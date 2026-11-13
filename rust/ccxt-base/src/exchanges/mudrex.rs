@@ -561,14 +561,14 @@ impl Mudrex {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errCode.map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), text.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             let mut msg: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text);
-            let mut low: Value = (if let Some(__s) = text.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-            if (code.as_f64() == Some(401.0)) || low.as_str().unwrap_or("").contains("auth") {
+            let mut low: Option<String> = text.as_str().map(str::to_lowercase);
+            if (code.as_f64() == Some(401.0)) || low.as_deref().unwrap_or_default().contains("auth") {
                 panic!("{}", crate::exchange_errors::authentication_error(msg.clone()));
             }
-            if (code.as_f64() == Some(429.0)) || low.as_str().unwrap_or("").contains("rate") {
+            if (code.as_f64() == Some(429.0)) || low.as_deref().unwrap_or_default().contains("rate") {
                 panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg.clone()));
             }
-            if low.as_str().unwrap_or("").contains("insufficient") {
+            if low.as_deref().unwrap_or_default().contains("insufficient") {
                 panic!("{}", crate::exchange_errors::insufficient_funds(msg.clone()));
             }
             if (code.as_f64() == Some(400.0)) {
@@ -872,13 +872,13 @@ impl Mudrex {
         let mut pageLimit: i64 = 100;
         let mut paging: bool = true;
         while paging {
-            let mut q: Value = self.extend(Value::Map({
+            let mut q: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("limit".to_string(), Value::Int(pageLimit.clone()));
                     m.insert("offset".to_string(), offset.clone());
                 m
-            }), &[params.clone()]);
-            let mut response: crate::value::Dict = self.private_get_futures(&[q]).await.into_dict();
+            }), &[params.clone()]).into_dict();
+            let mut response: crate::value::Dict = self.private_get_futures(&[Value::Dict(q)]).await.into_dict();
             let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
             let mut items: Value = Value::from(vec![]);
             if matches!(&data, Value::Dict(_)) && !(matches!(&data, Value::Arr(_))) {
@@ -1572,12 +1572,12 @@ impl Mudrex {
         if (limit != Value::Null) {
             q.insert("limit".into(), limit.clone());
         }
-        let mut request: Value = self.extend(Value::Map(q), &[params]);
+        let mut request: crate::value::Dict = self.extend(Value::Map(q), &[params]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (state.as_str() == Some("closed")) {
-            response = self.private_get_futures_orders_history(&[request.clone()]).await.into_opt_dict();
+            response = self.private_get_futures_orders_history(&[Value::from(&request)]).await.into_opt_dict();
         }  else {
-            response = self.private_get_futures_orders(&[request]).await.into_opt_dict();
+            response = self.private_get_futures_orders(&[Value::Dict(request)]).await.into_opt_dict();
         }
         let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
         let mut rows: crate::value::List = self.to_array(data).into_list();
@@ -1725,10 +1725,10 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_973: bool = true;
             while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < (rows.len() as i64) } {
-            let mut p: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut symRaw: Option<String> = self.safe_string_k(p.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut p: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut symRaw: Option<String> = self.safe_string_k(&p, "symbol", &[]).as_str().map(str::to_owned);
             let mut m: crate::types::Market = self.safe_market(symRaw.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut pos: crate::value::Dict = self.parse_position(p, Some(&m)).into_dict();
+            let mut pos: crate::value::Dict = self.parse_position(&p, Some(&m)).into_dict();
             outPos.push(Value::Dict(pos));
         }
         }
@@ -1798,7 +1798,7 @@ impl Mudrex {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut positions: crate::value::List = self.parse_positions(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]).into_list();
-        return self.filter_by_since_limit(Value::Arr(positions), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -652,23 +652,23 @@ impl Bitbns {
                         let mut i: i64 = 0;
             let mut __for_first_337: bool = true;
             while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (rawMarkets.len() as i64) } {
-            let mut market: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k(market.clone(), "id", &[]).as_str().map(str::to_owned);
-            let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
+            let mut market: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Option<String> = self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = self.safe_string_k(&market, "base", &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_k(&market, "quote", &[]).as_str().map(str::to_owned);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
             if (baseId.is_none()) || (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut marketPrecision: crate::value::Dict = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-            let mut marketLimits: crate::value::Dict = self.safe_dict_k(market.clone(), "limits", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut marketPrecision: crate::value::Dict = self.safe_dict_k(&market, "precision", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut marketLimits: crate::value::Dict = self.safe_dict_k(&market, "limits", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut amountLimits: crate::value::Dict = self.safe_dict_k(&marketLimits, "amount", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -704,7 +704,7 @@ impl Bitbns {
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), self.safe_bool_k(market.clone(), "active", &[]));
+                    m.insert("active".to_string(), self.safe_bool_k(&market, "active", &[]));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -748,7 +748,7 @@ impl Bitbns {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), market);
+                    m.insert("info".to_string(), Value::from(&market));
                 m
             }));
         }
@@ -928,11 +928,11 @@ impl Bitbns {
             let mut __for_first_338: bool = true;
             while { if !__for_first_338 { i += 1; } __for_first_338 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut parts: Value = Value::Array(if let Some(__s) = key.as_deref() { __s.split("availableorder").map(Value::from).collect() } else { Vec::new() });
+            let mut parts: crate::value::List = Value::Array(if let Some(__s) = key.as_deref() { __s.split("availableorder").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut numParts: i64 = parts.len() as i64;
             if numParts > 1 {
-                let mut usedCurrencyId: String = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut currencyId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+                let mut usedCurrencyId: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut currencyId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("free".into(), self.safe_string(&data, key.map(Value::from).unwrap_or(Value::Null), &[]));

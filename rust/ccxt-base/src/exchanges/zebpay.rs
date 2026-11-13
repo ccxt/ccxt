@@ -2955,14 +2955,14 @@ impl Zebpay {
         }  else {
             self.check_required_credentials(&[]);
             let mut isSpot: bool = marketType == "spot";
-            let mut paramsSigned: Value = self.extend(paramsOmitted, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("timestamp".to_string(), timestamp);
-                m
-            })]);
+            let mut paramsSigned: Option<crate::value::Dict> = self.extend(paramsOmitted, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("timestamp".to_string(), timestamp);
+    m
+})]).into_opt_dict();
             if (method.as_str() == Some("GET")) || ((method.as_str() == Some("DELETE")) && isSpot) {
                 // For GET/DELETE: Append params to URL and sign the query string
-                let mut queryString: String = self.urlencode(paramsSigned.clone(), &[]);
+                let mut queryString: String = self.urlencode(&paramsSigned, &[]);
                 signature = self.hmac(self.encode(Value::from(queryString.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 suffix = format!("{}{}", Value::Str("?".into()), queryString);
             }  else {

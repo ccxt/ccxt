@@ -1149,10 +1149,10 @@ impl Alpaca {
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
         }
-        let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
+        let mut parts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut assetClass: Option<String> = self.safe_string_k(asset.clone(), "class", &[]).as_str().map(str::to_owned);
-        let mut baseId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut quoteId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         // Us equity markets do not include quote in symbol.
@@ -1652,8 +1652,8 @@ impl Alpaca {
         }
         let mut symbolValue: String = self.symbol(symbol.clone());
         let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from(symbolValue.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue), &[]);
-        return ticker;
+        let mut ticker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue), &[]).into_opt_dict();
+        return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1761,27 +1761,27 @@ impl Alpaca {
             while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
-            let mut entry: Value = self.safe_dict(&snapshots, marketId.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut dailyBar: crate::value::Dict = self.safe_dict_k(entry.clone(), "dailyBar", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-            let mut prevDailyBar: crate::value::Dict = self.safe_dict_k(entry.clone(), "prevDailyBar", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-            let mut latestQuote: crate::value::Dict = self.safe_dict_k(entry.clone(), "latestQuote", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-            let mut latestTrade: crate::value::Dict = self.safe_dict_k(entry.clone(), "latestTrade", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut entry: Option<crate::value::Dict> = self.safe_dict(&snapshots, marketId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            let mut dailyBar: crate::value::Dict = self.safe_dict_k(&entry, "dailyBar", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut prevDailyBar: crate::value::Dict = self.safe_dict_k(&entry, "prevDailyBar", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut latestQuote: crate::value::Dict = self.safe_dict_k(&entry, "latestQuote", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut latestTrade: crate::value::Dict = self.safe_dict_k(&entry, "latestTrade", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut datetime: Option<String> = self.safe_string_k(&latestQuote, "t", &[]).as_str().map(str::to_owned);
             let mut ticker: Value = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), entry);
+                    m.insert("info".to_string(), entry.map_or(Value::Null, Value::Dict));
                     m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                     m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
                     m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3194,8 +3194,8 @@ impl Alpaca {
             }
             let mut baseId: Value = Value::Null;
             if positionSymbol.as_str().unwrap_or("").contains("/") {
-                let mut parts: Value = Value::Array(if let Some(__s) = positionSymbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
-                baseId = self.safe_string(parts, Value::Int(0), &[]);
+                let mut parts: crate::value::List = Value::Array(if let Some(__s) = positionSymbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
+                baseId = self.safe_string(&parts, Value::Int(0), &[]);
             }  else {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 let mut baseLength: Value = (match (&(Value::Int(positionSymbol.len() as i64)), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });

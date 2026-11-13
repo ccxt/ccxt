@@ -393,7 +393,7 @@ fn helperTestProperties() {
         m
     }).clone(), Value::Str("ohlcvs".into()).clone(), exchange.prop(&&Value::Str("ohlcvs".into())).clone(), exchange.create_safe_dictionary(&[Value::Bool(true)]).clone()]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("myTrades".into())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("positions".into())) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.prop(&&Value::Str("positions".into())), &Value::Null)))));
     //
     // common props
     //

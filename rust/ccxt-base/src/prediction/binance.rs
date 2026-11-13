@@ -2406,14 +2406,14 @@ impl Binance {
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("accountType".into()), Value::Str("cost".into())]), &[]);
         let __ws_arg_14 = self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amountStr.map(Value::from).unwrap_or(Value::Null));
-        let mut quoteRequest: Value = self.extend(Value::Map(commonRequest.clone()), &[Value::Map({
+        let mut quoteRequest: crate::value::Dict = self.extend(Value::Map(commonRequest.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tokenId".to_string(), crate::value::KeyRead::key_read(&&outcomeObj, "id"));
                 m.insert("side".to_string(), Value::from(sideUpper));
                 m.insert("amountIn".to_string(), crate::precise::Precise::stringMul(&__ws_arg_14, &Value::Str("1000000000000000000".into())));
             m
-        })]);
-        let mut quote: Value = self.fetch_quote(quoteRequest, &[paramsOmitted.clone()]).await;
+        })]).into_dict();
+        let mut quote: Value = self.fetch_quote(Value::Dict(quoteRequest), &[paramsOmitted.clone()]).await;
         let mut quoteId: Option<String> = self.safe_string_k(quote, "quoteId", &[]).as_str().map(str::to_owned);
         let __ws_arg_15 = self.safe_string_k(wallet, "walletId", &[]);
         let mut orderRequest: crate::value::Dict = self.extend(Value::Map(commonRequest), &[Value::Map({
@@ -2670,16 +2670,16 @@ impl Binance {
         let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         self.check_required_credentials(&[]);
         let __ws_arg_19 = self.nonce();
-        let mut extendedParams: Value = self.extend(Value::Map({
+        let mut extendedParams: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), __ws_arg_19);
             m
-        }), &[&query]);
+        }), &[&query]).into_dict();
         let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
         if (defaultRecvWindow.is_some()) {
-            add_element_to_object(&mut extendedParams, &Value::Str("recvWindow".into()), Value::from(defaultRecvWindow));
+            std::sync::Arc::make_mut(&mut extendedParams).insert("recvWindow".into(), Value::from(defaultRecvWindow));
         }
-        let mut querystring: Value = Value::from(self.urlencode_nested(extendedParams, &[]));
+        let mut querystring: Value = Value::from(self.urlencode_nested(&extendedParams, &[]));
         querystring = querystring.as_str().map(|__s| Value::Str(__s.replace("%5B", "[").into())).unwrap_or_else(|| querystring.clone());
         querystring = querystring.as_str().map(|__s| Value::Str(__s.replace("%5D", "]").into())).unwrap_or_else(|| querystring.clone());
         let mut signature: String = self.hmac(self.encode(querystring.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);

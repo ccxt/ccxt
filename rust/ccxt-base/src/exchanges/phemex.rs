@@ -1939,9 +1939,9 @@ impl Phemex {
         let mut riskLimitsV2: crate::value::List = self.safe_list_k(&v2ProductsData, "riskLimitsV2", &[Value::from(vec![])]).into_list();
         riskLimits = self.array_concat(riskLimits.clone(), &riskLimitsV2);
         let mut currencies: Value = self.safe_list_k(&v2ProductsData, "currencies", &[Value::from(vec![])]);
-        let mut riskLimitsById: Value = self.index_by(riskLimits, Value::Str("symbol".into()));
-        let mut v1ProductsById: Value = self.index_by(v1ProductsData, Value::Str("symbol".into()));
-        let mut currenciesByCode: Value = self.index_by(currencies, Value::Str("currency".into()));
+        let mut riskLimitsById: crate::value::Dict = self.index_by(riskLimits, Value::Str("symbol".into())).into_dict();
+        let mut v1ProductsById: crate::value::Dict = self.index_by(v1ProductsData, Value::Str("symbol".into())).into_dict();
+        let mut currenciesByCode: crate::value::Dict = self.index_by(currencies, Value::Str("currency".into())).into_dict();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1951,12 +1951,12 @@ impl Phemex {
             let mut type_var: Option<String> = self.safe_string_lower_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("perpetual")) || (type_var.as_deref() == Some("perpetualv2")) || (type_var.as_deref() == Some("perpetualpilot")) {
                 let mut id: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
-                let mut riskLimitValues: crate::value::Dict = self.safe_dict(riskLimitsById.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+                let mut riskLimitValues: crate::value::Dict = self.safe_dict(&riskLimitsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
                 market = self.extend(market.clone(), &[&riskLimitValues]);
-                let mut v1ProductsValues: crate::value::Dict = self.safe_dict(v1ProductsById.clone(), id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+                let mut v1ProductsValues: crate::value::Dict = self.safe_dict(&v1ProductsById, id.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1964,7 +1964,7 @@ impl Phemex {
                 market = self.parse_swap_market(market.clone());
             }  else {
                 let mut baseCurrency: Option<String> = self.safe_string_k(market.clone(), "baseCurrency", &[]).as_str().map(str::to_owned);
-                let mut currencyValues: crate::value::Dict = self.safe_dict(currenciesByCode.clone(), baseCurrency.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+                let mut currencyValues: crate::value::Dict = self.safe_dict(&currenciesByCode, baseCurrency.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -5447,7 +5447,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut positions: crate::value::List = self.parse_positions(&data, &[Value::from(vec![symbolValue.clone()])]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(positions), symbolValue.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&positions, symbolValue.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -6237,8 +6237,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1081: bool = true;
             while { if !__for_first_1081 { i += 1; } __for_first_1081 = false; i < (riskLimits.len() as i64) } {
-            let mut tier: Value = self.safe_dict(&riskLimits, Value::Int(i), &[]);
-            let mut maxNotional: Option<i64> = self.safe_integer_k(tier.clone(), "limit", &[]).as_i64();
+            let mut tier: Option<crate::value::Dict> = self.safe_dict(&riskLimits, Value::Int(i), &[]).into_opt_dict();
+            let mut maxNotional: Option<i64> = self.safe_integer_k(&tier, "limit", &[]).as_i64();
             let mut minNotionalResponse: Option<i64> = minNotional; // java req
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -6247,9 +6247,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
                     m.insert("minNotional".to_string(), Value::from(minNotionalResponse));
                     m.insert("maxNotional".to_string(), Value::from(maxNotional));
-                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(tier.clone(), "maintenanceMargin", &[]));
+                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(&tier, "maintenanceMargin", &[]));
                     m.insert("maxLeverage".to_string(), Value::Null);
-                    m.insert("info".to_string(), tier);
+                    m.insert("info".to_string(), tier.clone().map_or(Value::Null, Value::Dict));
                 m
             }));
             minNotional = maxNotional;
@@ -6290,7 +6290,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut timestamp: i64 = self.seconds().as_i64().unwrap_or_default();
             let mut xPhemexRequestExpiry: i64 = self.safe_integer_k(self.options.clone(), "x-phemex-request-expiry", &[Value::Int(60)]).as_i64().unwrap_or(60);
             let mut expiry: i64 = (timestamp + xPhemexRequestExpiry);
-            let mut expiryString: Value = Value::str(expiry.to_string());
+            let mut expiryString: Value = Value::Str(format!("{}", expiry).into());
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("x-phemex-access-token".into(), self.apiKey.clone()); }
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("x-phemex-request-expiry".into(), expiryString.clone()); }
             let mut payload: Option<String> = Some("".to_string());
@@ -6766,13 +6766,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1082: bool = true;
             while { if !__for_first_1082 { i += 1; } __for_first_1082 = false; i < (rates.len() as i64) } {
-            let mut item: Value = rates.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "fundingTime", &[]).as_i64();
+            let mut item: crate::value::Dict = rates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut timestamp: Option<i64> = self.safe_integer_k(&item, "fundingTime", &[]).as_i64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), item.clone());
+                    m.insert("info".to_string(), Value::from(&item));
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number_k(item, "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(&item, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                 m
@@ -6780,7 +6780,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_symbol_since_limit(Value::Arr(sorted), symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        return self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

@@ -1431,8 +1431,8 @@ impl Bigone {
             return self.parse_ticker(&ticker, Some(&market));
         }  else {
             let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), paramsMarketType).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut spotTicker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol, &[]);
-            return spotTicker;
+            let mut spotTicker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol, &[]).into_opt_dict();
+            return spotTicker.map_or(Value::Null, Value::Dict);
         }
         Value::Null
         }).await?))
@@ -2862,9 +2862,9 @@ impl Bigone {
         if dataLength < 1 {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned empty address response".into()))));
         }
-        let mut chainsIndexedById: Value = self.index_by(Value::Arr(data), Value::Str("chain".into()));
-        let mut selectedNetworkId: Option<String> = self.select_network_key_from_networks(code.clone(), networkCode.map(Value::from).unwrap_or(Value::Null), chainsIndexedById.clone(), &[Value::Bool(false)]).as_str().map(str::to_owned);
-        let mut addressObject: crate::value::Dict = self.safe_dict(chainsIndexedById, Value::from(selectedNetworkId.as_deref()), &[Value::Map({
+        let mut chainsIndexedById: crate::value::Dict = self.index_by(Value::Arr(data), Value::Str("chain".into())).into_dict();
+        let mut selectedNetworkId: Option<String> = self.select_network_key_from_networks(code.clone(), networkCode.map(Value::from).unwrap_or(Value::Null), Value::from(&chainsIndexedById), &[Value::Bool(false)]).as_str().map(str::to_owned);
+        let mut addressObject: crate::value::Dict = self.safe_dict(&chainsIndexedById, Value::from(selectedNetworkId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
