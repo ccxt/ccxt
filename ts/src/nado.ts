@@ -1370,7 +1370,7 @@ export default class nado extends Exchange {
         //     }
         //
         const matches: Dict[] = this.safeList (response, 'matches', []);
-        const txs = this.safeList (response, 'txs', []);
+        const txs: Dict[] = this.safeList (response, 'txs', []);
         const txsBySubmission = this.indexBy (txs, 'submission_idx');
         const trades: Trade[] = [];
         for (let i = 0; i < matches.length; i++) {
@@ -1845,7 +1845,7 @@ export default class nado extends Exchange {
     override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         const response = await this.gatewayV2PublicGetAssets (params);
         const result: Dict = {};
-        const assets = this.toArray (response);
+        const assets: Dict[] = this.toArray (response);
         for (let i = 0; i < assets.length; i++) {
             const currency = this.safeValue (assets, i);
             const parsed = this.parseCurrency (currency);
@@ -1896,7 +1896,7 @@ export default class nado extends Exchange {
         //         }
         //     }
         //
-        const tickers = this.toArray (response);
+        const tickers: Dict[] = this.toArray (response);
         return this.parseTickers (tickers, symbolsNormalized);
     }
 

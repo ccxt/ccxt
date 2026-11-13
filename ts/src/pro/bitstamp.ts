@@ -863,7 +863,7 @@ export default class bitstamp extends bitstampRest {
      * @returns {object} the new cache holding the remaining entries
      */
     pruneCachedBySymbols (newCache: ArrayCacheBySymbolById, cache: ArrayCache, symbols: string[]): ArrayCache {
-        const entries = this.toArray (cache);
+        const entries: Dict[] = this.toArray (cache);
         for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];
             const entrySymbol = this.safeString (entry, 'symbol');

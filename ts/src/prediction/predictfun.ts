@@ -550,7 +550,7 @@ export default class predictfun extends Exchange {
         for (let i = 0; i < rawTopicsLength; i++) {
             const parsedEvent = this.parseEvent (rawTopics[i]);
             result.push (parsedEvent);
-            const parsedMarkets = this.safeList (parsedEvent, 'markets', []) as any[];
+            const parsedMarkets: Dict[] = this.safeList (parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
@@ -682,7 +682,7 @@ export default class predictfun extends Exchange {
             // a term can match a market whose category row is not in the response - those rows are
             // the other half of the payload and would otherwise be dropped, so bucket them by the
             // categorySlug they carry
-            const rawMarkets = this.safeList (data, 'markets', []) as any[];
+            const rawMarkets: Dict[] = this.safeList (data, 'markets', []);
             const rawMarketsLength = rawMarkets.length;
             for (let mi = 0; mi < rawMarketsLength; mi++) {
                 const rawMarket = rawMarkets[mi];

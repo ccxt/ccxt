@@ -1483,7 +1483,7 @@ export default class whitebit extends Exchange {
             try {
                 const response = await this.v4PrivatePostOrders (this.extend (request, paramsOmitted));
                 // Search for order in active orders response (array format)
-                const orders = this.toArray (response);
+                const orders: Dict[] = this.toArray (response);
                 for (let i = 0; i < orders.length; i++) {
                     const order = orders[i];
                     const orderId = this.safeString (order, 'orderId', '');
@@ -3405,7 +3405,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeList (response, 'records', []);
+        const records: Dict[] = this.safeList (response, 'records', []);
         let recordsList: Dict[] = [];
         if (records !== undefined) {
             recordsList = records;
@@ -3688,7 +3688,7 @@ export default class whitebit extends Exchange {
         //         "offset": 0
         //     }
         //
-        const data = this.safeList (response, 'records', []);
+        const data: Dict[] = this.safeList (response, 'records', []);
         return this.parseFundingHistories (data, market, since, limit);
     }
 

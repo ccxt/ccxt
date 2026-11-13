@@ -618,7 +618,7 @@ export default class latoken extends Exchange {
         const code = this.safeCurrencyCode (tag);
         const currencyType = this.safeString (currency, 'type');
         const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
-        const bindings = this.safeList (currency, 'bindings', []);
+        const bindings: Dict[] = this.safeList (currency, 'bindings', []);
         const networks: Dict = {};
         for (let i = 0; i < bindings.length; i++) {
             const binding = bindings[i];

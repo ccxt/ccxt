@@ -1510,7 +1510,7 @@ export default class hyperliquid extends Exchange {
         const request = { 'type': method, 'user': userAddress };
         const response = await this.publicPostInfo (this.extend (request, paramsMethod));
         const ordersWithStatus: Dict[] = [];
-        let rawOrders: List = [];
+        let rawOrders: Dict[] = [];
         if (Array.isArray (response)) {
             rawOrders = response;
         }
@@ -1546,7 +1546,7 @@ export default class hyperliquid extends Exchange {
         const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
         // Deduplicate by oid keeping most recent statusTimestamp
         const deduped: Dict = {};
-        let historicalOrders: List = [];
+        let historicalOrders: Dict[] = [];
         if (Array.isArray (response)) {
             historicalOrders = response;
         }
@@ -1923,7 +1923,7 @@ export default class hyperliquid extends Exchange {
         // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
         // disagree with a previously warmed cache within the same session)
         const marketsDict = await this.loadMarkets ();
-        const marketValues = this.toArray (marketsDict);
+        const marketValues: Dict[] = this.toArray (marketsDict);
         // Group markets by parentSymbol
         const groupMap: Dict = {};
         if (queries === undefined) {
@@ -1983,7 +1983,7 @@ export default class hyperliquid extends Exchange {
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            const parentMarkets = this.safeList (groupMap, parentSymbol, []);
+            const parentMarkets: Dict[] = this.safeList (groupMap, parentSymbol, []);
             parentMarkets.push (mkt);
             if (parentSymbol !== undefined) {
                 groupMap[parentSymbol] = parentMarkets;

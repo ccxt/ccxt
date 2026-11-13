@@ -3571,7 +3571,7 @@ export default class krakenfutures extends Exchange {
         //        "tags": [],
         //    }
         //
-        const marginLevels = this.safeList (info, 'marginLevels');
+        const marginLevels: Dict[] | undefined = this.safeList (info, 'marginLevels');
         const marketId = this.safeString (info, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const tiers: LeverageTier[] = [];

@@ -1890,7 +1890,7 @@ export default class coinsph extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        const fees = this.toArray (response);
+        const fees: Dict[] = this.toArray (response);
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
             const symbol = fee['symbol'];

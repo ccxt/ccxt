@@ -1480,7 +1480,7 @@ export default class bybit extends Exchange {
 
     addPaginationCursorToResult (response: Dict): any[] {
         const result = this.safeDict (response, 'result', {});
-        const data = this.safeListN (result, [ 'list', 'rows', 'data', 'dataList' ], []);
+        const data: Dict[] = this.safeListN (result, [ 'list', 'rows', 'data', 'dataList' ], []);
         const paginationCursor = this.safeString2 (result, 'nextPageCursor', 'cursor');
         const dataLength = data.length;
         if ((paginationCursor !== undefined) && (dataLength > 0)) {
@@ -2136,7 +2136,7 @@ export default class bybit extends Exchange {
             preLaunchMarkets = this.safeDict (promises, 1, {});
         }
         const data = this.safeDict (response, 'result', {});
-        let markets = this.safeList (data, 'list', []);
+        let markets: Dict[] = this.safeList (data, 'list', []);
         let paginationCursor = this.safeString (data, 'nextPageCursor');
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {

@@ -6208,7 +6208,7 @@ export default class htx extends Exchange {
         } else {
             success = this.safeList (orders, 'success', []);
         }
-        const failed = this.safeList2 (orders, 'errors', 'failed', []);
+        const failed: Dict[] = this.safeList2 (orders, 'errors', 'failed', []);
         const data: Dict[] = this.safeList (orders, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {

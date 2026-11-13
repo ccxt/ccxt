@@ -830,7 +830,7 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < events.length; i++) {
             const currentEvent = this.safeDict (events, i);
-            const currentTrades = this.safeList (currentEvent, 'trades');
+            const currentTrades: Dict[] | undefined = this.safeList (currentEvent, 'trades');
             if (currentTrades === undefined) {
                 continue;
             }
@@ -885,7 +885,7 @@ export default class coinbase extends coinbaseRest {
         }
         for (let i = 0; i < events.length; i++) {
             const event = this.safeDict (events, i);
-            const responseOrders = this.safeList (event, 'orders');
+            const responseOrders: Dict[] | undefined = this.safeList (event, 'orders');
             if (responseOrders === undefined) {
                 continue;
             }

@@ -1772,7 +1772,7 @@ export default class htx extends htxRest {
         if (topic === 'positions_cross') {
             defaultMarginMode = 'cross';
         }
-        const rawPositions = this.safeList (message, 'data', []);
+        const rawPositions: Dict[] = this.safeList (message, 'data', []);
         if (this.isEmpty (rawPositions)) {
             const prefixes = [ 'cross:positions', 'isolated:positions' ];
             for (let i = 0; i < prefixes.length; i++) {

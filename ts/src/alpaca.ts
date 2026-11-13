@@ -1846,8 +1846,8 @@ export default class alpaca extends Exchange {
             //         }
             //     ]
             //
-            const filtered: Transaction[] = [];
-            let ledger: List = [];
+            const filtered: Dict[] = [];
+            let ledger: Dict[] = [];
             if (Array.isArray (activities)) {
                 ledger = activities;
             }
@@ -1884,8 +1884,8 @@ export default class alpaca extends Exchange {
         //         "fees": "0.1"
         //     }
         //
-        const results: Transaction[] = [];
-        let transfers: List = [];
+        const results: Dict[] = [];
+        let transfers: Dict[] = [];
         if (Array.isArray (response)) {
             transfers = response;
         }

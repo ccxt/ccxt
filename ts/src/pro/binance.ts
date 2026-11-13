@@ -5662,7 +5662,7 @@ export default class binance extends binanceRest {
                     const order = this.safeDict (orders, orderId);
                     if (order !== undefined) {
                         // accumulate order fees
-                        const fees = this.safeList (order, 'fees');
+                        const fees: Dict[] | undefined = this.safeList (order, 'fees');
                         const fee = this.safeDict (order, 'fee');
                         if ((fees !== undefined) && !this.isEmpty (fees)) {
                             let insertNewFeeCurrency = true;

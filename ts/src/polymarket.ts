@@ -410,7 +410,7 @@ export default class polymarket extends Exchange {
             this.publicGetInfoAssets (params),
         ];
         const responses = await Promise.all (promises);
-        const instruments = this.safeList (responses, 0, []);
+        const instruments: Dict[] = this.safeList (responses, 0, []);
         const assets: Dict[] = this.safeList (responses, 1, []);
         const result: Dict = {};
         for (let i = 0; i < instruments.length; i++) {

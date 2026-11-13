@@ -946,7 +946,7 @@ export default class modetrade extends modetradeRest {
         const dataIsArray = Array.isArray (data);
         if (dataIsArray) {
             // algoexecutionreport
-            const dataList = this.safeList (message, 'data', []);
+            const dataList: Dict[] = this.safeList (message, 'data', []);
             const dataListLength = dataList.length;
             for (let i = 0; i < dataListLength; i++) {
                 const order = dataList[i];
