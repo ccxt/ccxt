@@ -104,6 +104,62 @@ abstract class Exchange extends _Exchange {
     privatePostCreateVoucher (params = {}): Promise<Dict> {
         return this.request ('createVoucher', [ 'private' ], 'POST', params, { 'cost': 4 });
     }
+
+    deadmanPostCountdownCancelAll (params = {}): Promise<Dict> {
+        return this.request ('countdownCancelAll', [ 'deadman' ], 'POST', params, { 'cost': 20 });
+    }
+
+    v2GetOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'v2' ], 'GET', params, { 'cost': 4 });
+    }
+
+    v2GetOpenOrders (params = {}): Promise<List> {
+        return this.request ('openOrders', [ 'v2' ], 'GET', params, { 'cost': 4 });
+    }
+
+    v2GetOrderHistories (params = {}): Promise<Dict> {
+        return this.request ('order/histories', [ 'v2' ], 'GET', params, { 'cost': 4 });
+    }
+
+    v2GetMyTrades (params = {}): Promise<Dict> {
+        return this.request ('myTrades', [ 'v2' ], 'GET', params, { 'cost': 4 });
+    }
+
+    v2GetAccount (params = {}): Promise<Dict> {
+        return this.request ('account', [ 'v2' ], 'GET', params, { 'cost': 4 });
+    }
+
+    v2GetCapitalWithdrawHistory (params = {}): Promise<List> {
+        return this.request ('capital/withdraw/history', [ 'v2' ], 'GET', params, { 'cost': 24 });
+    }
+
+    v2GetCapitalDepositHisrec (params = {}): Promise<List> {
+        return this.request ('capital/deposit/hisrec', [ 'v2' ], 'GET', params, { 'cost': 24 });
+    }
+
+    v2GetCapitalDepositAddressList (params = {}): Promise<List> {
+        return this.request ('capital/deposit/address/list', [ 'v2' ], 'GET', params, { 'cost': 24 });
+    }
+
+    v2GetFiatOrders (params = {}): Promise<Dict> {
+        return this.request ('fiat/orders', [ 'v2' ], 'GET', params, { 'cost': 24 });
+    }
+
+    v2PostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'v2' ], 'POST', params, { 'cost': 4 });
+    }
+
+    v2PostCapitalWithdrawApply (params = {}): Promise<Dict> {
+        return this.request ('capital/withdraw/apply', [ 'v2' ], 'POST', params, { 'cost': 24 });
+    }
+
+    v2PostFiatWithdraw (params = {}): Promise<Dict> {
+        return this.request ('fiat/withdraw', [ 'v2' ], 'POST', params, { 'cost': 24 });
+    }
+
+    v2DeleteOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'v2' ], 'DELETE', params, { 'cost': 4 });
+    }
 }
 
 export default Exchange;
