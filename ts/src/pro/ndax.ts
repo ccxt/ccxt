@@ -204,8 +204,8 @@ export default class ndax extends ndaxRest {
             const market = this.market (symbol);
             const marketId = this.safeString (market, 'id', '');
             const messageHash = name + ':' + marketId;
-            const tradesArray = this.safeValue (this.trades, symbol);
-            client.resolve (tradesArray, messageHash);
+            const symbolTrades = this.safeValue (this.trades, symbol);
+            client.resolve (symbolTrades, messageHash);
         }
     }
 

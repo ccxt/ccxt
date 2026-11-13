@@ -701,7 +701,7 @@ pub fn concat_arrays(a: &Value, b: &Value) -> Value {
 pub use crate::exchange_errors::*;
 pub use crate::precise::Precise;
 pub use crate::value::KeyRead;
-pub use crate::pro::cache::CacheSlot;
+pub use crate::pro::cache::{CacheSlot, CacheStore};
 
 // ── Math (TS Math.min/max/abs/pow) ──────────────────────────────────────────
 

@@ -406,7 +406,7 @@ pub struct Exchange {
     // runtime state
     pub orderbooks:        Value,
     pub orders:            Option<crate::pro::cache::Cache>,
-    pub trades:            Value,
+    pub trades:            crate::pro::cache::CacheMap,
     pub myTrades:          Option<crate::pro::cache::Cache>,
     pub positions:         Value,
     // WS state — mirrors `ts/src/base/Exchange.ts` `newUpdates: boolean = true`.
@@ -771,7 +771,7 @@ impl Exchange {
 
             orderbooks:    Value::Map(HashMap::new()),
             orders:        None,
-            trades:        Value::Map(HashMap::new()),
+            trades:        crate::pro::cache::CacheMap::new(),
             myTrades:      None,
             positions:     Value::Null,
             newUpdates:    Value::Bool(true),
