@@ -1,0 +1,102 @@
+{
+    "SOMI/USDso": {
+        "id": "SOMI:USDso",
+        "symbol": "SOMI/USDso",
+        "base": "SOMI",
+        "quote": "USDso",
+        "baseId": "SOMI",
+        "quoteId": "USDso",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "info": {
+            "symbol": "SOMI:USDso",
+            "base": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
+            "quote": "0x00000022dA000002656c64D9eA6011ea952D008A",
+            "baseDecimals": 18,
+            "quoteDecimals": 18,
+            "contract": "0x035De7403eac6872787779CCA7CCF1b4CDb61379",
+            "stopRegistry": "0x68c8f6fb1EA19A28F25358Ff00b8Ed8E1216df30",
+            "tickSize": "0.0001",
+            "lotSize": "0.01",
+            "minQuantity": "1"
+        }
+    },
+    "WETH/USDso": {
+        "id": "WETH:USDso",
+        "symbol": "WETH/USDso",
+        "base": "WETH",
+        "quote": "USDso",
+        "baseId": "WETH",
+        "quoteId": "USDso",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "info": {
+            "symbol": "WETH:USDso",
+            "base": "0x936Ab8C674bcb567CD5dEB85D8A216494704E9D8",
+            "quote": "0x00000022dA000002656c64D9eA6011ea952D008A",
+            "baseDecimals": 18,
+            "quoteDecimals": 18,
+            "contract": "0xa936da11B57b50A344e1293AAaE5232885ea2bDE",
+            "stopRegistry": "0x9653a7355849B7691802A6AA49fDe18eF5ba633d",
+            "tickSize": "0.01",
+            "lotSize": "0.0001",
+            "minQuantity": "0.001"
+        }
+    }
+}
