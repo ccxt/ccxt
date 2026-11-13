@@ -1,0 +1,592 @@
+{
+    "TSLA/USD:USD": {
+        "id": "TSLA-PERP",
+        "symbol": "TSLA/USD:USD",
+        "base": "TSLA",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "TSLA",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.01,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "TSLA-PERP",
+            "multiplier": "1",
+            "price_scale": 2,
+            "tick_size": "0.01",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.1",
+            "maintenance_margin_pct": "0.05",
+            "category": "equity"
+        }
+    },
+    "XAG/USD:USD": {
+        "id": "XAG-PERP",
+        "symbol": "XAG/USD:USD",
+        "base": "XAG",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "XAG",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.01,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "XAG-PERP",
+            "multiplier": "1",
+            "price_scale": 2,
+            "tick_size": "0.01",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.1",
+            "maintenance_margin_pct": "0.05",
+            "category": "commodity"
+        }
+    },
+    "TEST/USD:USD": {
+        "id": "TEST-PERP",
+        "symbol": "TEST/USD:USD",
+        "base": "TEST",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "TEST",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.0001,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "TEST-PERP",
+            "multiplier": "1",
+            "price_scale": 4,
+            "tick_size": "0.0001",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.1",
+            "maintenance_margin_pct": "0.05",
+            "category": "test"
+        }
+    },
+    "NVDA/USD:USD": {
+        "id": "NVDA-PERP",
+        "symbol": "NVDA/USD:USD",
+        "base": "NVDA",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "NVDA",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.01,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "NVDA-PERP",
+            "multiplier": "1",
+            "price_scale": 2,
+            "tick_size": "0.01",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.1",
+            "maintenance_margin_pct": "0.05",
+            "category": "equity"
+        }
+    },
+    "EUR/USD:USD": {
+        "id": "EURUSD-PERP",
+        "symbol": "EUR/USD:USD",
+        "base": "EUR",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "EUR",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 10000,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.0001,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "EURUSD-PERP",
+            "multiplier": "10000",
+            "price_scale": 4,
+            "tick_size": "0.0001",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.02",
+            "maintenance_margin_pct": "0.01",
+            "category": "fx"
+        }
+    },
+    "GBP/USD:USD": {
+        "id": "GBPUSD-PERP",
+        "symbol": "GBP/USD:USD",
+        "base": "GBP",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "GBP",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 10000,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.0001,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "GBPUSD-PERP",
+            "multiplier": "10000",
+            "price_scale": 4,
+            "tick_size": "0.0001",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.02",
+            "maintenance_margin_pct": "0.01",
+            "category": "fx"
+        }
+    },
+    "JPY/USD:USD": {
+        "id": "JPYUSD-PERP",
+        "symbol": "JPY/USD:USD",
+        "base": "JPY",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "JPY",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 10000,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.000001,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "JPYUSD-PERP",
+            "multiplier": "10000",
+            "price_scale": 6,
+            "tick_size": "0.000001",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.02",
+            "maintenance_margin_pct": "0.01",
+            "category": "fx"
+        }
+    },
+    "BRL/USD:USD": {
+        "id": "BRLUSD-PERP",
+        "symbol": "BRL/USD:USD",
+        "base": "BRL",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BRL",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 10000,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.0001,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "BRLUSD-PERP",
+            "multiplier": "10000",
+            "price_scale": 4,
+            "tick_size": "0.0001",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.02",
+            "maintenance_margin_pct": "0.01",
+            "category": "fx"
+        }
+    },
+    "MXN/USD:USD": {
+        "id": "MXNUSD-PERP",
+        "symbol": "MXN/USD:USD",
+        "base": "MXN",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "MXN",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 10000,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.00001,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "MXNUSD-PERP",
+            "multiplier": "10000",
+            "price_scale": 5,
+            "tick_size": "0.00001",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.02",
+            "maintenance_margin_pct": "0.01",
+            "category": "fx"
+        }
+    },
+    "XAU/USD:USD": {
+        "id": "XAU-PERP",
+        "symbol": "XAU/USD:USD",
+        "base": "XAU",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "XAU",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.1,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "symbol": "XAU-PERP",
+            "multiplier": "1",
+            "price_scale": 1,
+            "tick_size": "0.1",
+            "minimum_order_size": "1",
+            "quote_currency": "USD",
+            "initial_margin_pct": "0.1",
+            "maintenance_margin_pct": "0.05",
+            "category": "commodity"
+        }
+    }
+}
