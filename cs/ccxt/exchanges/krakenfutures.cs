@@ -3954,7 +3954,7 @@ public partial class krakenfutures : Exchange
         }
         for (int i = 0; i < marginLevels.Count; i++)
         {
-            object tier = (marginLevels != null && i < marginLevels.Count ? marginLevels[i] : null);
+            IDictionary<string, object> tier = ((IDictionary<string, object>)(marginLevels != null && i < marginLevels.Count ? marginLevels[i] : null));
             string? initialMargin = this.safeString(tier, "initialMargin");
             double? minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             tiers.Add(new Dictionary<string, object>() {

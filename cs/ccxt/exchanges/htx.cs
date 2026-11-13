@@ -7557,7 +7557,7 @@ public partial class htx : Exchange
         }
         for (int i = 0; i < failed.Count; i++)
         {
-            object order = failed[i];
+            IDictionary<string, object> order = ((IDictionary<string, object>)failed[i]);
             result.Add(ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString2(order, "order-id", "order_id") },

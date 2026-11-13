@@ -1023,7 +1023,7 @@ public partial class modetrade : ccxt.modetrade
             int dataListLength = dataList.Count;
             for (int i = 0; i < dataListLength; i++)
             {
-                object order = (dataList != null && i < dataList.Count ? dataList[i] : null);
+                IDictionary<string, object> order = ((IDictionary<string, object>)(dataList != null && i < dataList.Count ? dataList[i] : null));
                 string? tradeIdStr = this.safeString(data, "tradeId");
                 string? tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
                 if ((tradeId != null))

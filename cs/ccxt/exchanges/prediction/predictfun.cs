@@ -589,8 +589,8 @@ public partial class predictfun : PredictionExchange
         {
             Dictionary<string, object> parsedEvent = this.parseEvent(getValue(rawTopics, i));
             result.Add(parsedEvent);
-            IList<object> parsedMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
-            int parsedMarketsLength = (parsedMarkets?.Count ?? 0);
+            List<object> parsedMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
+            int parsedMarketsLength = parsedMarkets.Count;
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
                 object m = (parsedMarkets != null && mi < parsedMarkets.Count ? parsedMarkets[mi] : null);
@@ -736,8 +736,8 @@ public partial class predictfun : PredictionExchange
             // a term can match a market whose category row is not in the response - those rows are
             // the other half of the payload and would otherwise be dropped, so bucket them by the
             // categorySlug they carry
-            IList<object> rawMarkets = (IList<object>)(this.safeList(data, "markets", new List<object>() {}));
-            int rawMarketsLength = (rawMarkets?.Count ?? 0);
+            List<object> rawMarkets = this.safeList(data, "markets", new List<object>() {});
+            int rawMarketsLength = rawMarkets.Count;
             for (int mi = 0; mi < rawMarketsLength; mi++)
             {
                 object rawMarket = (rawMarkets != null && mi < rawMarkets.Count ? rawMarkets[mi] : null);

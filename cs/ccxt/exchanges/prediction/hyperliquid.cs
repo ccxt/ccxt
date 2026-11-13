@@ -1692,7 +1692,7 @@ public partial class hyperliquid : PredictionExchange
         }
         for (int i = 0; i < getArrayLength(rawOrders); i++)
         {
-            object order = getValue(rawOrders, i);
+            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(rawOrders, i));
             ordersWithStatus.Add(this.extend(order, new Dictionary<string, object>() {
                 { "ccxtStatus", "open" },
             }));

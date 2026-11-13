@@ -1812,7 +1812,7 @@ public partial class whitebit : Exchange
                 IList<object> orders = this.toArray(response);
                 for (int i = 0; i < (orders?.Count ?? 0); i++)
                 {
-                    object order = orders[i];
+                    IDictionary<string, object> order = ((IDictionary<string, object>)orders[i]);
                     string? orderId = this.safeString(order, "orderId", "");
                     if ((orderId == id))
                     {
