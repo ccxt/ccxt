@@ -1,4 +1,19 @@
 {
+    "reya": {
+        "skipMethods": {
+            "fetchDeposits": {
+                "allowNull": [ "network", "updated", "fee" ],
+                "currencyIdAndCode": "Collateral assets can be absent from currencies derived from perpetual markets"
+            },
+            "fetchWithdrawals": {
+                "allowNull": [ "network", "status", "updated", "fee" ],
+                "currencyIdAndCode": "Collateral assets can be absent from currencies derived from perpetual markets"
+            },
+            "fetchTransfers": {
+                "currencyIdAndCode": "Collateral assets can be absent from currencies derived from perpetual markets"
+            }
+        }
+    },
     "mudrex": {
         "skip": "load markets is private",
         "skipWs": "load markets is private",
