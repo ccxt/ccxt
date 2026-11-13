@@ -3075,7 +3075,7 @@ public partial class polymarket : PredictionExchange
                 }
                 if ((detailedEvent != null))
                 {
-                    eventForParsing = this.safeValue(detailedEvent, "event", detailedEvent);
+                    eventForParsing = this.safeDict(detailedEvent, "event", detailedEvent);
                     ccxtMarkets = this.parseEventToMarkets(eventForParsing);
                 }
             }

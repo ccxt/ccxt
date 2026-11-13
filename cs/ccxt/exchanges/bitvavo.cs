@@ -3038,6 +3038,6 @@ public partial class bitvavo : Exchange
         {
             return ((IDictionary<string,object>)config)["noMarket"];
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeInteger(config, "cost", 1);
     }
 }

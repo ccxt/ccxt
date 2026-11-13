@@ -911,7 +911,7 @@ public partial class ndax : Exchange
         List<object> asks = new List<object>() {};
         for (int i = 0; i < getArrayLength(orderbook); i++)
         {
-            object level = this.safeValue(orderbook, i);
+            List<object> level = this.safeList(orderbook, i);
             Int64? newTimestamp = this.safeInteger(level, 2);
             if (((newTimestamp != null)) && (((latestTimestamp == null)) || ((newTimestamp != null && (latestTimestamp == null || newTimestamp > latestTimestamp)))))
             {

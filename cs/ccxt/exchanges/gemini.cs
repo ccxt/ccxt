@@ -1296,7 +1296,7 @@ public partial class gemini : Exchange
         var tickerAtickerBVariable = await promiseAll(new List<object>() {tickerPromiseA, tickerPromiseB});
         var tickerA = ((IList<object>) tickerAtickerBVariable)[0];
         var tickerB = ((IList<object>) tickerAtickerBVariable)[1];
-        return ccxt.BaseExchange.ToTicker(this.deepExtend(tickerA, new Dictionary<string, object>() {             { "open", this.safeString(tickerB, "open") },             { "high", this.safeString(tickerB, "high") },             { "low", this.safeString(tickerB, "low") },             { "change", this.safeString(tickerB, "change") },             { "percentage", this.safeString(tickerB, "percentage") },             { "average", this.safeString(tickerB, "average") },             { "info", this.safeValue(tickerB, "info") },         }));
+        return ccxt.BaseExchange.ToTicker(this.deepExtend(tickerA, new Dictionary<string, object>() {             { "open", this.safeString(tickerB, "open") },             { "high", this.safeString(tickerB, "high") },             { "low", this.safeString(tickerB, "low") },             { "change", this.safeString(tickerB, "change") },             { "percentage", this.safeString(tickerB, "percentage") },             { "average", this.safeString(tickerB, "average") },             { "info", this.safeDict(tickerB, "info") },         }));
     }
 
     /**

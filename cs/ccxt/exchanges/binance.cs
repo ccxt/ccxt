@@ -4711,7 +4711,7 @@ public partial class binance : Exchange
         Dictionary<string, object> marginablesById = null;
         if ((fetchMargins == true))
         {
-            object responseMarginables = this.safeValue(results, 1);
+            List<object> responseMarginables = this.safeList(results, 1);
             marginablesById = this.indexBy(responseMarginables, "assetName");
         }
         return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(responseCurrencies, marginablesById))));

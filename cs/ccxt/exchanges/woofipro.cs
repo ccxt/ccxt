@@ -2241,7 +2241,7 @@ public partial class woofipro : Exchange
         bool hasStopLoss = ((stopLoss != null));
         bool hasTakeProfit = ((takeProfit != null));
         string? algoType = this.safeString(parameters, "algoType");
-        List<object> paramsChildOrders = ((List<object>)this.safeValue(parameters, "childOrders"));
+        List<object> paramsChildOrders = this.safeList(parameters, "childOrders");
         bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || ((paramsChildOrders != null));
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
@@ -2477,7 +2477,7 @@ public partial class woofipro : Exchange
         {
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        List<object> paramsChildOrders = ((List<object>)this.safeValue(parameters, "childOrders"));
+        List<object> paramsChildOrders = this.safeList(parameters, "childOrders");
         bool isConditional = ((triggerPrice != null)) || ((paramsChildOrders != null));
         string orderQtyKey = isConditional ? "quantity" : "order_quantity";
         string priceKey = isConditional ? "price" : "order_price";

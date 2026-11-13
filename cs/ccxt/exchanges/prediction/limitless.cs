@@ -400,7 +400,7 @@ public partial class limitless : PredictionExchange
                     }
                     for (int i = 0; i < pageMarketsLength; i++)
                     {
-                        object raw = this.safeValue(page_markets, i);
+                        IDictionary<string, object> raw = this.safeDict(page_markets, i);
                         allRaw.Add(raw);
                     }
                     int allRawCount = (allRaw?.Count ?? 0);

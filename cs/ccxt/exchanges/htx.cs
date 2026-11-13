@@ -6153,7 +6153,7 @@ public partial class htx : Exchange
             };
         }
         string? average = this.safeString(order, "trade_avg_price");
-        object trades = this.safeValue(order, "trades");
+        List<object> trades = this.safeList(order, "trades");
         bool? reduceOnly = null;
         if (isLinearOrder)
         {

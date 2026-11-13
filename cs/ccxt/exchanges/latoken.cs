@@ -565,7 +565,7 @@ public partial class latoken : Exchange
         IList<object> rawMarkets = this.toArray(response);
         for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
-            object market = this.safeValue(rawMarkets, i);
+            IDictionary<string, object> market = this.safeDict(rawMarkets, i);
             string? id = this.safeString(market, "id");
             // the exchange shows them inverted
             string? baseId = this.safeString(market, "baseCurrency");

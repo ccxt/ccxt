@@ -402,7 +402,7 @@ public partial class PredictionExchange : BaseExchange
         }
         for (int i = 0; i < (events?.Count ?? 0); i++)
         {
-            object eventVar = this.safeValue(events, i);
+            IDictionary<string, object> eventVar = this.safeDict(events, i);
             string? id = this.safeString(eventVar, "id");
             string? slug = this.safeString(eventVar, "slug");
             string? handle = this.safeString(eventVar, "event");
@@ -477,11 +477,11 @@ public partial class PredictionExchange : BaseExchange
         // through fetchEvents; this never fetches
         if (((this.events != null)) && (inOp(this.events, eventIdOrSlug)))
         {
-            return this.safeValue(this.events, eventIdOrSlug);
+            return this.safeDict(this.events, eventIdOrSlug);
         }
         if (((this.events_by_slug != null)) && (inOp(this.events_by_slug, eventIdOrSlug)))
         {
-            return this.safeValue(this.events_by_slug, eventIdOrSlug);
+            return this.safeDict(this.events_by_slug, eventIdOrSlug);
         }
         throw new BadSymbol ((((this.id + " has no cached event ") + eventIdOrSlug) + " - call fetchEvents ({ 'query': ... }) first")) ;
     }
@@ -752,7 +752,7 @@ public partial class PredictionExchange : BaseExchange
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                object existing = this.safeValue(this.outcomes, ocSymbol);
+                IDictionary<string, object> existing = this.safeDict(this.outcomes, ocSymbol);
                 if ((existing != null))
                 {
                     string? existingId = this.safeString(existing, "outcomeId");

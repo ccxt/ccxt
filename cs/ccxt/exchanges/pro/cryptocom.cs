@@ -131,7 +131,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             limitResolved = limit;
         }
-        object topicParams = this.safeValue(parameters, "params");
+        IDictionary<string, object> topicParams = this.safeDict(parameters, "params");
         if ((topicParams == null))
         {
             ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
@@ -189,7 +189,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Int64? limit = this.safeInteger(parameters, "limit", 50);
-        object topicParams = this.safeValue(parameters, "params");
+        IDictionary<string, object> topicParams = this.safeDict(parameters, "params");
         if ((topicParams == null))
         {
             ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};

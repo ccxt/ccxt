@@ -3962,7 +3962,7 @@ public partial class krakenfutures : Exchange
                 { "symbol", this.safeSymbol(marketId, marketResolved) },
                 { "currency", (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null) },
                 { "minNotional", minNotional },
-                { "maxNotional", this.safeNumber2(this.safeValue(marginLevels, this.sum(i, 1)), "numNonContractUnits", "contracts") },
+                { "maxNotional", this.safeNumber2(this.safeDict(marginLevels, this.sum(i, 1)), "numNonContractUnits", "contracts") },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },
                 { "maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMargin)) },
                 { "info", tier },

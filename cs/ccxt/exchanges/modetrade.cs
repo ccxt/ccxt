@@ -2151,7 +2151,7 @@ public partial class modetrade : Exchange
         bool hasStopLoss = (stopLoss != null);
         bool hasTakeProfit = (takeProfit != null);
         string? algoType = this.safeString(parameters, "algoType");
-        object paramsChildOrders = this.safeValue(parameters, "childOrders");
+        List<object> paramsChildOrders = this.safeList(parameters, "childOrders");
         bool isConditional = (triggerPrice != null) || hasStopLoss || hasTakeProfit || ((paramsChildOrders != null));
         bool isMarket = orderType == "MARKET";
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
@@ -2292,7 +2292,7 @@ public partial class modetrade : Exchange
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object childOrders = this.safeValue(parameters, "childOrders");
+        List<object> childOrders = this.safeList(parameters, "childOrders");
         bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((childOrders != null));
         Dictionary<string, object> response = null;
         if (isConditional)
@@ -2342,7 +2342,7 @@ public partial class modetrade : Exchange
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
             IDictionary<string, object> takeProfit = this.safeDict(orderParams, "takeProfit");
-            object childOrders = this.safeValue(orderParams, "childOrders");
+            List<object> childOrders = this.safeList(orderParams, "childOrders");
             bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || ((childOrders != null));
             if (isConditional)
             {
@@ -2411,7 +2411,7 @@ public partial class modetrade : Exchange
         {
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        object childOrders = this.safeValue(parameters, "childOrders");
+        List<object> childOrders = this.safeList(parameters, "childOrders");
         bool isConditional = ((triggerPrice != null)) || ((childOrders != null));
         string orderQtyKey = "order_quantity";
         if (isConditional)

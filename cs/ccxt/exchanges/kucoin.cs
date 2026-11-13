@@ -13448,10 +13448,10 @@ public partial class kucoin : Exchange
             string payload = (((timestamp + method) + endpoint) + endpart);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             headersSigned["KC-API-SIGN"] = signature;
-            object partner = this.safeDict(this.options, "partner", new Dictionary<string, object>() {});
+            IDictionary<string, object> partner = this.safeDict(this.options, "partner", new Dictionary<string, object>() {});
             bool isUtaFuturePrivate = isUtaPrivate && (tradeType == "FUTURES");
             bool isFuturePartner = isFuturePrivate || isUtaFuturePrivate;
-            partner = isFuturePartner ? this.safeValue(partner, "future", partner) : this.safeValue(partner, "spot", partner);
+            partner = isFuturePartner ? this.safeDict(partner, "future", partner) : this.safeDict(partner, "spot", partner);
             string? partnerId = this.safeString(partner, "id");
             string? partnerSecret = this.safeString2(partner, "secret", "key");
             if (((partnerId != null)) && ((partnerSecret != null)))

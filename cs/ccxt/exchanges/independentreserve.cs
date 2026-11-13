@@ -420,7 +420,7 @@ public partial class independentreserve : Exchange
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         object limitsPromise = this.publicGetGetOrderMinimumVolumes(parameters);
         List<object> responses = await promiseAll(new List<object>() {baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise});
-        object limits = this.safeValue(responses, 2);
+        IDictionary<string, object> limits = this.safeDict(responses, 2);
         //
         //     {
         //         "Xbt": 0.0001,

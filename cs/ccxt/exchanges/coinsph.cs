@@ -1622,7 +1622,7 @@ public partial class coinsph : Exchange
             { "side", orderSide },
         };
         IDictionary<string, object> options = this.safeDict(this.options, "createOrder", new Dictionary<string, object>() {});
-        object newOrderRespTypes = this.safeValue(options, "newOrderRespType", new Dictionary<string, object>() {});
+        IDictionary<string, object> newOrderRespTypes = this.safeDict(options, "newOrderRespType", new Dictionary<string, object>() {});
         string? newOrderRespType = "FULL";
         // if limit order
         if (orderType == "LIMIT" || orderType == "STOP_LOSS_LIMIT" || orderType == "TAKE_PROFIT_LIMIT" || orderType == "LIMIT_MAKER")

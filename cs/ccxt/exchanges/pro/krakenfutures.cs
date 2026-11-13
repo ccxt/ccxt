@@ -845,13 +845,12 @@ public partial class krakenfutures : ccxt.krakenfutures
         //         "reason": 'edited_by_user'
         //     }
         //
-        ccxt.pro.ArrayCache orders = this.orders;
-        if ((orders == null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit");
-            orders = new ArrayCacheBySymbolById(limit);
-            this.orders = orders;
+            this.orders = new ArrayCacheBySymbolById(limit);
         }
+        ccxt.pro.ArrayCache orders = this.orders;
         IDictionary<string, object> order = this.safeDict(message, "order");
         if ((order != null))
         {

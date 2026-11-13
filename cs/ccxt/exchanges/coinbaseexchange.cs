@@ -2475,7 +2475,7 @@ public partial class coinbaseexchange : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        object accounts = this.safeValue(this.options, "coinbaseAccounts");
+        List<object> accounts = this.safeList(this.options, "coinbaseAccounts");
         if ((accounts == null))
         {
             accounts = await this.privateGetCoinbaseAccounts();
