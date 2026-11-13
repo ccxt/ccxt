@@ -2269,8 +2269,17 @@ impl Exchange {
         }
         Value::Bool(parsed == Some(true))
     }
-    pub fn check_option_integer(&self, _method_name: Value, _option_name: Value, value: Value) -> Value {
-        value
+    // Int and null pass; an integral finite Float reads as Int; any other present value panics BadRequest (as the Go/C#/Java ports)
+    pub fn check_option_integer(&self, method_name: Value, option_name: Value, value: Value) -> Value {
+        match value {
+            Value::Null | Value::Int(_) => value,
+            Value::Float(f) if f.is_finite() && f == f.trunc() => Value::Int(f as i64),
+            _ => {
+                let label = if method_name.is_null() { "exchange-wide".to_string() } else { format!("{}()", stringify_param(&method_name)) };
+                let message = format!("{} {} option {} must be an integer", stringify_param(&self.id), label, stringify_param(&option_name));
+                panic!("{}", crate::exchange_errors::create_error("BadRequest", message));
+            }
+        }
     }
 
     /// `clone(value)` — CCXT's deep clone, distinct from Rust's `Clone` trait.
