@@ -1,0 +1,63 @@
+{
+    "exchange": "jupiter",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "createOrder": [
+            {
+                "description": "buy exactOut",
+                "method": "createOrder",
+                "url": "https://lite-api.jup.ag/swap/v1/quote?inputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&outputMint=So11111111111111111111111111111111111111112&amount=100000000&swapMode=ExactOut&slippageBps=50",
+                "input": [
+                    "SOL/USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "userPublicKey": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "sell exactIn with forwarded quote param",
+                "method": "createOrder",
+                "url": "https://lite-api.jup.ag/swap/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=100000000&swapMode=ExactIn&slippageBps=50&onlyDirectRoutes=true",
+                "input": [
+                    "SOL/USDC",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "userPublicKey": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+                        "onlyDirectRoutes": true
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "verified tokens",
+                "method": "fetchMarkets",
+                "url": "https://lite-api.jup.ag/tokens/v2/tag?query=verified",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "sol ticker",
+                "method": "fetchTicker",
+                "url": "https://lite-api.jup.ag/price/v3?ids=So11111111111111111111111111111111111111112",
+                "input": [
+                    "SOL/USDC"
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
