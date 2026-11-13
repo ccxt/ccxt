@@ -95,6 +95,37 @@
         ],
         "createOrder": [
             {
+                "description": "Spot limit order with expTime sent as a header",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    25000,
+                    {
+                        "expTime": "1700000000000"
+                    }
+                ],
+                "output": [
+                    {
+                        "instId": "BTC-USDT",
+                        "side": "buy",
+                        "ordType": "limit",
+                        "sz": "0.0001",
+                        "tdMode": "cash",
+                        "tgtCcy": "base_ccy",
+                        "px": "25000",
+                        "clOrdId": "6b9ad766b55dBCDE1bfb3daac4a18656",
+                        "tag": "6b9ad766b55dBCDE"
+                    }
+                ],
+                "headers": {
+                    "expTime": "1700000000000"
+                }
+            },
+            {
                 "description": "rpi maker order",
                 "method": "createOrder",
                 "url": "https://www.okx.com/api/v5/trade/batch-orders",
@@ -592,6 +623,59 @@
         ],
         "createOrders": [
             {
+                "description": "Create multiple orders with a common expTime sent as a header",
+                "method": "createOrders",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 25000
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 27000
+                        }
+                    ],
+                    {
+                        "expTime": "1700000000000"
+                    }
+                ],
+                "output": [
+                    {
+                        "instId": "BTC-USDT",
+                        "side": "buy",
+                        "ordType": "limit",
+                        "sz": "0.0001",
+                        "tdMode": "cash",
+                        "tgtCcy": "base_ccy",
+                        "px": "25000",
+                        "clOrdId": "6b9ad766b55dBCDE1bfb3daac4a18656",
+                        "tag": "6b9ad766b55dBCDE"
+                    },
+                    {
+                        "instId": "BTC-USDT",
+                        "side": "buy",
+                        "ordType": "limit",
+                        "sz": "0.0001",
+                        "tdMode": "cash",
+                        "tgtCcy": "base_ccy",
+                        "px": "27000",
+                        "clOrdId": "6b9ad766b55dBCDE1bfb3daac4a18656",
+                        "tag": "6b9ad766b55dBCDE"
+                    }
+                ],
+                "headers": {
+                    "expTime": "1700000000000"
+                }
+            },
+            {
                 "description": "Create multiple spot orders at the same time",
                 "method": "createOrders",
                 "url": "https://www.okx.com/api/v5/trade/batch-orders",
@@ -644,6 +728,31 @@
             }
         ],
         "editOrder": [
+            {
+                "description": "Spot edit order with expTime sent as a header",
+                "method": "editOrder",
+                "url": "https://www.okx.com/api/v5/trade/amend-order",
+                "input": [
+                    "617122719557050368",
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.05,
+                    55,
+                    {
+                        "expTime": "1700000000000"
+                    }
+                ],
+                "output": {
+                    "instId": "BTC-USDT",
+                    "ordId": "617122719557050368",
+                    "newSz": "0.05",
+                    "newPx": "55"
+                },
+                "headers": {
+                    "expTime": "1700000000000"
+                }
+            },
             {
                 "description": "Spot edit an orders price and amount",
                 "method": "editOrder",
