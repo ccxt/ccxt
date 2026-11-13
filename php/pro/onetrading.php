@@ -1253,16 +1253,15 @@ class onetrading extends \ccxt\async\onetrading {
             $this->safe_number($message, 'close'),
             $this->safe_number($message, 'volume'),
         );
-        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $this->ohlcvs[$symbol] = $symbolOhlcvs;
-        $stored = $this->safe_value($symbolOhlcvs, $timeframe);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
         }
         $stored->append($parsed);
         if ($symbol !== null && $timeframe !== null) {
-            $symbolOhlcvs[$timeframe] = $stored;
+            $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         $client->resolve($stored, $channel);
     }

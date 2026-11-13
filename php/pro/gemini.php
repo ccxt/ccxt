@@ -372,8 +372,7 @@ class gemini extends \ccxt\async\gemini {
         $symbol = $this->safe_symbol($marketId, $market);
         $changes = $this->safe_list($message, 'changes', array());
         $timeframe = $this->find_timeframe($timeframeId);
-        $ohlcvsBySymbol = $this->safe_dict($this->ohlcvs, $symbol);
-        if ($ohlcvsBySymbol === null) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);

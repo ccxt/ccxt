@@ -1328,8 +1328,8 @@ class gate extends \ccxt\async\gate {
             $timeframe = $marketIds[$symbol];
             $interval = $this->find_timeframe($timeframe);
             $hash = 'candles' . ':' . $interval . ':' . $symbol;
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $interval);
-            $client->resolve($stored, $hash);
+            $symbolOhlcv = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $interval);
+            $client->resolve($symbolOhlcv, $hash);
         }
     }
 

@@ -213,11 +213,12 @@ class alpaca extends \ccxt\async\alpaca {
         //
         $marketId = $this->safe_string($message, 'S');
         $symbol = $this->safe_symbol($marketId);
-        $stored = $this->safe_value($this->ohlcvs, $symbol);
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), '1m');
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol] = $stored;
+            $this->ohlcvs[$symbol]['1m'] = $stored;
         }
         $parsed = $this->parse_ohlcv($message);
         $stored->append($parsed);

@@ -1363,11 +1363,10 @@ class aster extends \ccxt\async\aster {
         if ($timeframe === null) {
             return;
         }
-        $ohlcvsByTimeframe = $this->safe_dict($this->ohlcvs, $symbol);
-        if ($ohlcvsByTimeframe === null) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if ($this->safe_value($ohlcvsByTimeframe, $timeframe) === null) {
+        if ($this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe) === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }

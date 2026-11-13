@@ -1251,12 +1251,11 @@ class pacifica extends \ccxt\async\pacifica {
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        $symbolOhlcvs = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $ohlcv = $this->safe_value($symbolOhlcvs, $timeframe);
+        $ohlcv = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($ohlcv === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $ohlcv = new ArrayCacheByTimestamp($limit);
-            $symbolOhlcvs[$timeframe] = $ohlcv;
+            $this->ohlcvs[$symbol][$timeframe] = $ohlcv;
         }
         $parsed = $this->parse_ohlcv($data);
         $ohlcv->append($parsed);

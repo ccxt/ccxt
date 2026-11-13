@@ -3635,7 +3635,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         );
     }
 
-    public function parse_ohlcvs(?array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
+    public function parse_ohlcvs(?array $ohlcvs, ?array $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
         if ($ohlcvs === null) {
             return array();
         }
@@ -5654,7 +5654,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_borrow_interests(array $response, ?array $market = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
-            $row = $this->safe_value($response, $i);
+            $row = $this->safe_dict($response, $i, array());
             $interests[] = $this->parse_borrow_interest($row, $market);
         }
         return $interests;
@@ -5667,7 +5667,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_borrow_rate_history(mixed $response, ?string $code, ?int $since, ?int $limit) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $item = $this->safe_value($response, $i);
+            $item = $this->safe_dict($response, $i);
             $borrowRate = $this->parse_borrow_rate($item);
             $result[] = $borrowRate;
         }
@@ -5678,7 +5678,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_isolated_borrow_rates(array $info) {
         $result = array();
         for ($i = 0; $i < count($info); $i++) {
-            $item = $this->safe_value($info, $i);
+            $item = $this->safe_dict($info, $i, array());
             $borrowRate = $this->parse_isolated_borrow_rate($item);
             $symbol = $this->safe_string($borrowRate, 'symbol');
             $result[$symbol] = $borrowRate;
