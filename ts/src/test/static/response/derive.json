@@ -25,6 +25,341 @@
                 "parsedResponse": 1790877292671
             }
         ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets one perp instrument (the spot, perp and option requests all get this page)",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "id": "dd959aa7-d878-45b8-926d-3a247376de90",
+                    "result": {
+                        "instruments": [
+                            {
+                                "instrument_type": "perp",
+                                "instrument_name": "ZEC-PERP",
+                                "scheduled_activation": 1780572941,
+                                "scheduled_deactivation": 1811950941,
+                                "is_active": true,
+                                "tick_size": "0.01",
+                                "minimum_amount": "1",
+                                "maximum_amount": "100000",
+                                "amount_step": "0.01",
+                                "mark_price_fee_rate_cap": "0",
+                                "maker_fee_rate": "0.0001",
+                                "taker_fee_rate": "0.0003",
+                                "base_fee": "0.01",
+                                "base_currency": "ZEC",
+                                "quote_currency": "USDC",
+                                "option_details": null,
+                                "perp_details": {
+                                    "index": "ZEC-USD",
+                                    "max_rate_per_hour": "0.000456621005",
+                                    "min_rate_per_hour": "-0.000456621005",
+                                    "aggregate_funding": "26.08805211207",
+                                    "funding_rate": "0",
+                                    "srm_perp_margin_requirements": {
+                                        "im_perp_req": "0.15",
+                                        "mm_perp_req": "0.1",
+                                        "max_leverage": "6.67"
+                                    }
+                                },
+                                "erc20_details": null,
+                                "base_asset_address": "0x7bF0D72275246A434151693c0EBBD38937dFE23b",
+                                "base_asset_sub_id": "0",
+                                "pro_rata_fraction": "0",
+                                "fifo_min_allocation": "0",
+                                "pro_rata_amount_step": "1"
+                            }
+                        ],
+                        "pagination": {
+                            "num_pages": 1,
+                            "count": 1
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "ZEC-PERP",
+                        "lowercaseId": null,
+                        "symbol": "ZEC/USDC:USDC",
+                        "base": "ZEC",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "ZEC",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0003,
+                        "maker": 0.0001,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1,
+                                "max": 100000
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "instrument_type": "perp",
+                            "instrument_name": "ZEC-PERP",
+                            "scheduled_activation": 1780572941,
+                            "scheduled_deactivation": 1811950941,
+                            "is_active": true,
+                            "tick_size": "0.01",
+                            "minimum_amount": "1",
+                            "maximum_amount": "100000",
+                            "amount_step": "0.01",
+                            "mark_price_fee_rate_cap": "0",
+                            "maker_fee_rate": "0.0001",
+                            "taker_fee_rate": "0.0003",
+                            "base_fee": "0.01",
+                            "base_currency": "ZEC",
+                            "quote_currency": "USDC",
+                            "option_details": null,
+                            "perp_details": {
+                                "index": "ZEC-USD",
+                                "max_rate_per_hour": "0.000456621005",
+                                "min_rate_per_hour": "-0.000456621005",
+                                "aggregate_funding": "26.08805211207",
+                                "funding_rate": "0",
+                                "srm_perp_margin_requirements": {
+                                    "im_perp_req": "0.15",
+                                    "mm_perp_req": "0.1",
+                                    "max_leverage": "6.67"
+                                }
+                            },
+                            "erc20_details": null,
+                            "base_asset_address": "0x7bF0D72275246A434151693c0EBBD38937dFE23b",
+                            "base_asset_sub_id": "0",
+                            "pro_rata_fraction": "0",
+                            "fifo_min_allocation": "0",
+                            "pro_rata_amount_step": "1"
+                        }
+                    },
+                    {
+                        "id": "ZEC-PERP",
+                        "lowercaseId": null,
+                        "symbol": "ZEC/USDC:USDC",
+                        "base": "ZEC",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "ZEC",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0003,
+                        "maker": 0.0001,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1,
+                                "max": 100000
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "instrument_type": "perp",
+                            "instrument_name": "ZEC-PERP",
+                            "scheduled_activation": 1780572941,
+                            "scheduled_deactivation": 1811950941,
+                            "is_active": true,
+                            "tick_size": "0.01",
+                            "minimum_amount": "1",
+                            "maximum_amount": "100000",
+                            "amount_step": "0.01",
+                            "mark_price_fee_rate_cap": "0",
+                            "maker_fee_rate": "0.0001",
+                            "taker_fee_rate": "0.0003",
+                            "base_fee": "0.01",
+                            "base_currency": "ZEC",
+                            "quote_currency": "USDC",
+                            "option_details": null,
+                            "perp_details": {
+                                "index": "ZEC-USD",
+                                "max_rate_per_hour": "0.000456621005",
+                                "min_rate_per_hour": "-0.000456621005",
+                                "aggregate_funding": "26.08805211207",
+                                "funding_rate": "0",
+                                "srm_perp_margin_requirements": {
+                                    "im_perp_req": "0.15",
+                                    "mm_perp_req": "0.1",
+                                    "max_leverage": "6.67"
+                                }
+                            },
+                            "erc20_details": null,
+                            "base_asset_address": "0x7bF0D72275246A434151693c0EBBD38937dFE23b",
+                            "base_asset_sub_id": "0",
+                            "pro_rata_fraction": "0",
+                            "fifo_min_allocation": "0",
+                            "pro_rata_amount_step": "1"
+                        }
+                    },
+                    {
+                        "id": "ZEC-PERP",
+                        "lowercaseId": null,
+                        "symbol": "ZEC/USDC:USDC",
+                        "base": "ZEC",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "ZEC",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0003,
+                        "maker": 0.0001,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1,
+                                "max": 100000
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "instrument_type": "perp",
+                            "instrument_name": "ZEC-PERP",
+                            "scheduled_activation": 1780572941,
+                            "scheduled_deactivation": 1811950941,
+                            "is_active": true,
+                            "tick_size": "0.01",
+                            "minimum_amount": "1",
+                            "maximum_amount": "100000",
+                            "amount_step": "0.01",
+                            "mark_price_fee_rate_cap": "0",
+                            "maker_fee_rate": "0.0001",
+                            "taker_fee_rate": "0.0003",
+                            "base_fee": "0.01",
+                            "base_currency": "ZEC",
+                            "quote_currency": "USDC",
+                            "option_details": null,
+                            "perp_details": {
+                                "index": "ZEC-USD",
+                                "max_rate_per_hour": "0.000456621005",
+                                "min_rate_per_hour": "-0.000456621005",
+                                "aggregate_funding": "26.08805211207",
+                                "funding_rate": "0",
+                                "srm_perp_margin_requirements": {
+                                    "im_perp_req": "0.15",
+                                    "mm_perp_req": "0.1",
+                                    "max_leverage": "6.67"
+                                }
+                            },
+                            "erc20_details": null,
+                            "base_asset_address": "0x7bF0D72275246A434151693c0EBBD38937dFE23b",
+                            "base_asset_sub_id": "0",
+                            "pro_rata_fraction": "0",
+                            "fifo_min_allocation": "0",
+                            "pro_rata_amount_step": "1"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies mainnet",
