@@ -1,0 +1,289 @@
+cmake_minimum_required (VERSION 3.16)
+project (ccxt-cpp CXX)
+
+# C++17, not 20: every transpiled async body is a `[=]` lambda, and an implicit `this`
+# capture through `[=]` is deprecated in C++20 -- it would warn on every async method.
+set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
+set (CMAKE_CXX_EXTENSIONS OFF)
+
+if (NOT CMAKE_BUILD_TYPE)
+    set (CMAKE_BUILD_TYPE Debug)
+endif ()
+
+# The generated exchange headers are single translation units of several thousand lines
+# of std::any expressions. -O0 keeps them compiling in seconds rather than minutes; the
+# base-test binary is a correctness gate, not a benchmark. Debug info is skipped (-g0):
+# it dominates compile time on these half-megabyte TUs and the port is debugged through
+# error messages, not gdb.
+# Performance builds opt in to a higher level via -DCCXT_OPT_FLAGS=-O1 (or -O2):
+# measured ~0.3-0.5s (O1) / ~0.7-1.0s (O2) off the binance load path, but the
+# compile cost grows ~1.4x / ~3x — CI (2 cores, 150-min cap) must stay -O0.
+if (DEFINED CCXT_OPT_FLAGS)
+    set (CMAKE_CXX_FLAGS_DEBUG "${CCXT_OPT_FLAGS} -g0")
+else ()
+    set (CMAKE_CXX_FLAGS_DEBUG "-O0 -g0")
+endif ()
+
+# Optional: link jemalloc for a lower-memory build. Measured -45MB peak RSS
+# (-15%) on the binance markets load vs glibc malloc, no source changes.
+# Opt-in via -DCCXT_USE_JEMALLOC=ON (apt: libjemalloc-dev).
+option (CCXT_USE_JEMALLOC "Link jemalloc (lower peak RSS)" OFF)
+if (CCXT_USE_JEMALLOC)
+    find_library (JEMALLOC_LIB jemalloc)
+    if (JEMALLOC_LIB)
+        message (STATUS "ccxt: linking jemalloc (${JEMALLOC_LIB})")
+        add_link_options (${JEMALLOC_LIB})
+    else ()
+        message (WARNING "ccxt: CCXT_USE_JEMALLOC=ON but jemalloc not found")
+    endif ()
+endif ()
+
+# Library consumers building a single exchange don't need the test binaries or
+# the live-test CLI: turn both off and a scoped build compiles only the engine
+# + tier TUs (no test-harness TU, no -O2 CLI TU). CI/dev keep the defaults ON.
+option (CCXT_BUILD_TESTS "Build the test binaries (value/base/typed smokes, ccxt-tests, probes)" ON)
+option (CCXT_BUILD_CLI "Build the ccxt-cli live-test binary" ON)
+# REST-only consumers can drop the websocket and prediction tiers entirely:
+# their TUs, registries and archives disappear from the build and the links.
+# (CCXT_BUILD_PRO=OFF pairs with CCXT_BUILD_TESTS=OFF: the typed smoke
+# exercises a pro venue and needs the tier.)
+option (CCXT_BUILD_PRO "Build the pro (websocket) tier" ON)
+option (CCXT_BUILD_PREDICTION "Build the prediction tier" ON)
+# Build-speed switch: the runtime's per-TU -O2 (ExchangeBase/helpers/JsonView/
+# Crypto + SetMarkets) trades compile time for runtime speed. ON drops them
+# to the global -O0 for a much lighter single-exchange build.
+option (CCXT_FAST_BUILD "Compile the runtime at -O0 (faster build, slower runtime)" OFF)
+
+find_package (Threads REQUIRED)
+
+# libcurl is located and linked but not yet called: fetch() throws NotSupported this
+# iteration. Resolving it here proves the dependency is satisfiable before the HTTP
+# layer lands, rather than discovering it later.
+find_package (CURL REQUIRED)
+find_package (OpenSSL REQUIRED)
+# optional: SIMD fast path for large JSON payloads (market data ~22MB)
+find_package (simdjson QUIET)
+
+# thin static archive: the 138 TU monolith is ~7.7GB, and GNU ar's append
+# update copies the whole archive to a temp file before renaming -- the
+# 'unable to copy file ... reason: Success' failure is that 7.7GB copy.
+# crT stores member REFERENCES instead, so archive updates are O(members)
+# and the giant copy (and its rename race) disappears entirely.
+# HOWEVER: thin archives only work next to the build tree, so an installed
+# or packaged archive breaks. Dev/CI builds opt in with
+# -DCCXT_THIN_ARCHIVES=ON; the default is a normal archive that installs and
+# packages correctly for end users.
+option (CCXT_THIN_ARCHIVES "Use thin static archives (smaller build dir; dev/CI only)" OFF)
+if (CCXT_THIN_ARCHIVES)
+set (CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> crT <TARGET> <LINK_FLAGS> <OBJECTS>")
+endif ()
+
+# ccxt-base: the hand-written engine runtime (see cpp/ccxt-base/CMakeLists.txt).
+# Separate package so runtime edits rebuild only its ~7 TUs, not the venue TUs.
+add_subdirectory (ccxt-base)
+
+# The venue monolith is split by tier, mirroring the rust crate split
+# (ccxt / ccxt-pro / ccxt-prediction over ccxt-base): pro and prediction
+# TUs derive from the REST classes, so they link ccxt and rebuild on their
+# own when only their tier changes.
+add_library (ccxt STATIC
+    ccxt/base/Exchange.SetMarkets.cpp
+    ccxt/exchanges/ExchangeFactory.cpp
+)
+
+if (CCXT_BUILD_PRO)
+add_library (ccxt_pro STATIC
+    ccxt/pro/ProExchangeFactory.cpp
+)
+endif () # CCXT_BUILD_PRO
+
+if (CCXT_BUILD_PREDICTION)
+add_library (ccxt_prediction STATIC
+    ccxt/prediction/PredictionFactory.cpp
+)
+endif () # CCXT_BUILD_PREDICTION
+
+# One tiny TU per transpiled exchange (generated by build/cppTranspiler.ts). GLOB
+# requires re-running cmake configure after new exchanges are transpiled; the CI
+# workflow does exactly that.
+file (GLOB EXCHANGE_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/exchanges/tu_*.cpp)
+file (GLOB PRO_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/pro/tu_*.cpp)
+file (GLOB PREDICTION_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/prediction/tu_*.cpp)
+target_sources (ccxt PRIVATE ${EXCHANGE_TUS})
+if (CCXT_BUILD_PRO)
+target_sources (ccxt_pro PRIVATE ${PRO_TUS})
+endif ()
+if (CCXT_BUILD_PREDICTION)
+target_sources (ccxt_prediction PRIVATE ${PREDICTION_TUS})
+endif ()
+# the out-of-line setMarkets definition (see Exchange.SetMarkets.cpp) stays in
+# this package: it includes the generated Exchange.h + Exchange.SetMarkets.inc.
+if (NOT CCXT_FAST_BUILD)
+    set_source_files_properties (ccxt/base/Exchange.SetMarkets.cpp PROPERTIES COMPILE_OPTIONS "-O2")
+endif ()
+target_include_directories (ccxt PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+# the engine runtime (value model, exchange core, helpers, ws) + its deps
+# (threads/curl/ssl/simdjson) come transitively from the ccxt-base package.
+target_link_libraries (ccxt PUBLIC ccxt_base)
+# tier libs are header-only consumers of the REST classes (the pro/prediction
+# TUs derive from them); the executables own the whole-archive link of all
+# three libs, so no tier links another tier (avoids duplicate link items):
+#   ccxt-pro -> ccxt headers, ccxt-prediction -> ccxt headers  (rust-parity graph)
+add_library (ccxt_headers INTERFACE)
+target_include_directories (ccxt_headers INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+if (CCXT_BUILD_PRO)
+target_link_libraries (ccxt_pro PUBLIC ccxt_headers ccxt_base)
+endif ()
+if (CCXT_BUILD_PREDICTION)
+target_link_libraries (ccxt_prediction PUBLIC ccxt_headers ccxt_base)
+endif ()
+
+# whole-archive link items for the enabled tiers; the executables pull the
+# tier archives through this so static-registrar factories survive the link
+set (_tier_archives "")
+if (CCXT_BUILD_PRO)
+    list (APPEND _tier_archives "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_pro>")
+endif ()
+if (CCXT_BUILD_PREDICTION)
+    list (APPEND _tier_archives "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt_prediction>")
+endif ()
+
+if (CCXT_BUILD_TESTS)
+
+# The value model underpins everything else (ordered dicts, reference semantics), so it
+# is its own binary and runs first.
+add_executable (ccxt-value-tests tests/test_value_model.cpp)
+target_link_libraries (ccxt-value-tests PRIVATE ccxt)
+
+add_executable (ccxt-tests tests/main.cpp)
+# WHOLE_ARCHIVE: the per-exchange tu_*.cpp units register their factories via
+# static initialisers and are referenced nowhere else, so the linker would
+# dead-strip every one of them without this.
+target_link_libraries (ccxt-tests PRIVATE
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>"
+    ${_tier_archives})
+# The testMainClass TU is enormous; debug info generation dominates its compile
+# time, and the test binary is never meaningfully debugged with gdb.
+target_compile_options (ccxt-tests PRIVATE -g0)
+
+# The generated binance is an 18k-line single translation unit on top of a 4k-line
+# implicit-API header, so it gets its own target: it is by far the slowest thing to
+# compile and keeping it separate means a base-test edit does not pay for it.
+add_executable (ccxt-smoke-binance tests/smoke_binance.cpp)
+target_link_libraries (ccxt-smoke-binance PRIVATE ccxt)
+
+# typed-layer gate: Types.h structs + the PascalCase typed API over the dynamic core
+add_executable (ccxt-typed-smoke tests/typed_smoke.cpp)
+if (CCXT_BUILD_PRO)
+    target_link_libraries (ccxt-typed-smoke PRIVATE ccxt ccxt_pro)
+else ()
+    target_link_libraries (ccxt-typed-smoke PRIVATE ccxt)
+endif ()
+target_compile_options (ccxt-typed-smoke PRIVATE -g0)
+
+endif () # CCXT_BUILD_TESTS
+
+if (CCXT_BUILD_CLI)
+
+# live-test CLI: ccxt-cli <exchangeId> <method> [args...] -- runs real HTTP calls
+add_executable (ccxt-cli cli/main.cpp)
+target_link_libraries (ccxt-cli PRIVATE
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>"
+    ${_tier_archives})
+# -O2 so the inline header machinery (Value.h OrderedMap methods, inline
+# helpers) compiles optimized IN THIS TU: inline definitions are ODR-merged
+# per binary and the first TU's copies win the link — the probe experiment
+# proved a -O0 TU here makes the identical setMarkets 2.4x slower (5.0s vs
+# 1.7s). The real fix is moving those members out-of-line; this holds the
+# fort for the CLI binary specifically.
+target_compile_options (ccxt-cli PRIVATE -g0 -O2)
+
+endif () # CCXT_BUILD_CLI
+
+
+if (CCXT_BUILD_TESTS)
+
+enable_testing ()
+# ccxt-tests reads fixtures and keys.json relative to the repo root
+set (CCXT_TEST_WORKDIR ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+add_test (NAME value-model COMMAND ccxt-value-tests)
+add_test (NAME base-tests COMMAND ccxt-tests --baseTests)
+add_test (NAME smoke-binance COMMAND ccxt-smoke-binance)
+add_test (NAME typed-smoke COMMAND ccxt-typed-smoke)
+# the static request/response tests run through the transpiled tests.ts
+add_test (NAME static-request-binance COMMAND ccxt-tests binance --requestTests)
+set_tests_properties (static-request-binance PROPERTIES WORKING_DIRECTORY ${CCXT_TEST_WORKDIR})
+add_test (NAME static-response-binance COMMAND ccxt-tests binance --responseTests)
+set_tests_properties (static-response-binance PROPERTIES WORKING_DIRECTORY ${CCXT_TEST_WORKDIR})
+
+# setMarkets profile probe (perf/gdb hot-path analysis; not a shipped binary)
+add_executable (setmarkets-probe tests/setmarkets_probe.cpp)
+target_link_libraries (setmarkets-probe PRIVATE
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>"
+    ${_tier_archives})
+target_compile_options (setmarkets-probe PRIVATE -g0 -O2)
+
+endif () # CCXT_BUILD_TESTS
+
+# ---------------------------------------------------------------------------
+# Install/export: library consumers can `cmake --install` and link the
+# prebuilt archives via find_package(ccxt) (exported namespace ccxt::).
+# The generated api/<id>.h headers are part of the install because the
+# exchange headers include them.
+include (GNUInstallDirs)
+install (TARGETS ccxt_base ccxt ccxt_headers
+         EXPORT ccxtTargets
+         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if (CCXT_BUILD_PRO)
+    install (TARGETS ccxt_pro EXPORT ccxtTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif ()
+if (CCXT_BUILD_PREDICTION)
+    install (TARGETS ccxt_prediction EXPORT ccxtTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif ()
+install (DIRECTORY ccxt-base/ccxt/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ccxt)
+install (DIRECTORY ccxt/base/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ccxt/base)
+install (DIRECTORY ccxt/exchanges/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ccxt/exchanges
+         FILES_MATCHING PATTERN "*.h")
+install (DIRECTORY ccxt/api/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ccxt/api OPTIONAL
+         FILES_MATCHING PATTERN "*.h")
+if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/ccxt/exchanges/BuiltExchanges.h)
+    install (FILES ${CMAKE_CURRENT_BINARY_DIR}/ccxt/exchanges/BuiltExchanges.h
+             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ccxt/exchanges)
+endif ()
+if (CCXT_BUILD_PRO)
+    install (DIRECTORY ccxt/pro/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ccxt/pro
+             FILES_MATCHING PATTERN "*.h")
+endif ()
+if (CCXT_BUILD_PREDICTION)
+    install (DIRECTORY ccxt/prediction/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ccxt/prediction
+             FILES_MATCHING PATTERN "*.h")
+endif ()
+install (EXPORT ccxtTargets NAMESPACE ccxt:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ccxt)
+
+# find_package(ccxt) glue: a proper <pkg>Config.cmake so consumers just
+# link ccxt::ccxt / ccxt::ccxt_base and the deps come transitively.
+include (CMakePackageConfigHelpers)
+if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../package.json)
+    file (READ ${CMAKE_CURRENT_SOURCE_DIR}/../package.json _pkg_json)
+    string (JSON _ccxt_ver GET "${_pkg_json}" "version")
+else ()
+    # packaged tarballs carry no package.json; version is cosmetic anyway
+    set (_ccxt_ver "0.0.0")
+endif ()
+write_basic_package_version_file (
+    ${CMAKE_CURRENT_BINARY_DIR}/ccxtConfigVersion.cmake
+    VERSION ${_ccxt_ver}
+    COMPATIBILITY SameMajorVersion)
+configure_package_config_file (
+    ${CMAKE_CURRENT_SOURCE_DIR}/ccxtConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ccxtConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ccxt)
+install (FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/ccxtConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/ccxtConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ccxt)
