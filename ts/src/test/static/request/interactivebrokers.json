@@ -305,6 +305,21 @@
                     "ETH.PAXOS/USD"
                 ],
                 "output": null
+            },
+            {
+                "description": "without the cache refresh, the user filters reach the order list request",
+                "method": "fetchClosedOrders",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled",
+                "input": [
+                    "ETH.PAXOS/USD",
+                    null,
+                    null,
+                    {
+                        "force": false,
+                        "filters": "filled"
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchCanceledOrders": [

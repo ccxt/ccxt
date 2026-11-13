@@ -451,7 +451,15 @@ export default class interactivebrokers extends Exchange {
                         'SUP': 'SUI', // SUI Perp Style Futures, 500 SUI
                         'XLP': 'XLM', // Stellar Perp Style Futures, 5000 XLM
                         'ZEC': 'ZEC', // Zcash Perp Style Futures, 1 ZEC
-                        // the coinbase derivatives dated (monthly) futures (BIT, ET, BTI, ...) are in cryptoFutureSymbols
+                        // the coinbase derivatives dated (monthly) futures (BIT, ET, BTI, ...) are in cryptoCmeFutureSymbols
+                    },
+                    // dated crypto futures (CME and coinbase derivatives), IBKR symbol -> unified base, resolved via trsrv/futures
+                    // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
+                    'cryptoFutureExchanges': [ 'CME', 'COINDERIV', 'CFE' ],
+                    'cryptoCmeFutureSymbols': {
+                        // the order matters, on symbol collisions (same base and expiry) the earlier contract keeps the plain symbol
+                        // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro Bitcoin"), the multiplier is the contract size
+                        // coinbase derivatives dated (monthly) futures
                         'BIT': 'BTC',
                         'ET': 'ETH',
                         'AVA': 'AVAX',
@@ -463,13 +471,6 @@ export default class interactivebrokers extends Exchange {
                         'SUI': 'SUI',
                         'XRL': 'XRP',
                         'BCH': 'BCH',
-                    },
-                    // dated crypto futures (CME and coinbase derivatives), IBKR symbol -> unified base, resolved via trsrv/futures
-                    // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
-                    'cryptoFutureExchanges': [ 'CME', 'COINDERIV', 'CFE' ],
-                    'cryptoCmeFutureSymbols': {
-                        // the order matters, on symbol collisions (same base and expiry) the earlier contract keeps the plain symbol
-                        // the -NANO / -MICRO suffix follows the IBKR contract name ("nano Bitcoin ...", "Micro Bitcoin"), the multiplier is the contract size
                         // CME standard futures
                         'BRR': 'BTC', // CME CF Bitcoin Reference Rate, 5 BTC
                         'ETHUSDRR': 'ETH', // CME CF Ether-Dollar Reference Rate, 50 ETH
@@ -641,12 +642,12 @@ export default class interactivebrokers extends Exchange {
         if (this.safeBool (this.options, 'useGateway', false)) {
             return await this.ibkrGatewaySignIn (params);
         }
-        this.checkRequiredCredentials ();
         const encryptionPemPath = this.safeString (this.options, 'encryptionPemPath');
         const dhParamPemPath = this.safeString (this.options, 'dhParamPemPath');
         if (!encryptionPemPath || !dhParamPemPath) {
             throw new ArgumentsRequired (this.id + ' supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details');
         }
+        this.ibkrCheckOauthCredentials ();
         await this.initFileSystem ();
         const encryptionKey = this.readFile (encryptionPemPath) as string;
         const dhPrime = this.convertToBigInt ('0x' + this.readDhParam (dhParamPemPath));
@@ -1688,15 +1689,17 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} a list of bond contracts
      */
     async fetchBondContracts (request: Dict): Promise<List> {
+        let response = undefined;
         try {
-            const response = await this.webapiGetV1ApiIserverSecdefInfo (request);
-            return this.toArray (response);
+            response = await this.webapiGetV1ApiIserverSecdefInfo (request);
         } catch (e) {
             if (e instanceof NullResponse) {
-                return []; // {"error":"No Contracts retrieved "}
+                response = []; // {"error":"No Contracts retrieved "}
+            } else {
+                throw e;
             }
-            throw e;
         }
+        return this.toArray (response);
     }
 
     /**
@@ -1745,6 +1748,7 @@ export default class interactivebrokers extends Exchange {
             const filterId = filterIds[i];
             filterParts.push (filterId + ':' + this.safeString (bondFilters, filterId));
         }
+        const filterPartsLength = filterParts.length;
         const contractPromises = [];
         for (let i = 0; i < searchResults.length; i++) {
             const searchResult = searchResults[i];
@@ -1755,7 +1759,7 @@ export default class interactivebrokers extends Exchange {
                         'sectype': 'BOND',
                         'issuerId': this.safeString (issuers[k], 'id'),
                     };
-                    if (filterParts.length > 0) {
+                    if (filterPartsLength > 0) {
                         contractsRequest['filters'] = filterParts.join (',');
                     }
                     contractPromises.push (this.fetchBondContracts (contractsRequest));
@@ -1974,11 +1978,7 @@ export default class interactivebrokers extends Exchange {
             } else if (name.indexOf ('New York Variant') !== -1) {
                 microNanoPrefix = 'NEWYORK.';
             }
-            if (isCoinbaseDerivatives) {
-                base = this.safeString (cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId);
-            } else {
-                base = this.safeString (cryptoCmeFutureSymbols, baseTickerId, baseTickerId);
-            }
+            base = this.safeString (cryptoCmeFutureSymbols, baseTickerId, baseTickerId);
             contractSize = this.safeString (market, 'multiplier'); // 0.1 BTC for MBT, 5 BTC for BRR
             if (expirationDate !== undefined) {
                 const expiryDatetime = expirationDate.slice (0, 4) + '-' + expirationDate.slice (4, 6) + '-' + expirationDate.slice (6, 8) + 'T00:00:00Z';
@@ -3878,6 +3878,23 @@ export default class interactivebrokers extends Exchange {
 
     /**
      * @method
+     * @name interactivebrokers#ibkrCheckOauthCredentials
+     * @description throws an AuthenticationError when the oauth 1.0a credentials are missing, requiredCredentials can not be used for this, because the client portal gateway mode needs no credentials
+     * @ignore
+     * @returns {boolean} true if the oauth credentials are set
+     */
+    ibkrCheckOauthCredentials (): boolean {
+        if ((this.apiKey === undefined) || (this.apiKey === '')) {
+            throw new AuthenticationError (this.id + ' requires "apiKey" credential (the oauth access token), or set options["useGateway"] to use the client portal gateway');
+        }
+        if ((this.secret === undefined) || (this.secret === '')) {
+            throw new AuthenticationError (this.id + ' requires "secret" credential (the encrypted oauth access token secret), or set options["useGateway"] to use the client portal gateway');
+        }
+        return true;
+    }
+
+    /**
+     * @method
      * @name interactivebrokers#ibkrIsGatewayRequest
      * @description tells whether a request is routed to the client portal gateway instead of the oauth api
      * @ignore
@@ -3924,7 +3941,7 @@ export default class interactivebrokers extends Exchange {
             };
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
         }
-        this.checkRequiredCredentials ();
+        this.ibkrCheckOauthCredentials ();
         const oauthParams = this.ibkrOauthBase (this.options['consumer_key'], this.apiKey);
         if (isLiveSessionTokenRequest) {
             // the live session token request is signed with RSA-SHA256,
