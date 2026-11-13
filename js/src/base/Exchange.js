@@ -173,6 +173,8 @@ export class BaseExchange {
         this.orders = undefined;
         this.transactions = {};
         this.myLiquidations = undefined;
+        this.positions = undefined;
+        this.positionsByType = {};
         this.requiresWeb3 = false;
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
@@ -365,6 +367,7 @@ export class BaseExchange {
         this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         // response handling flags and properties
@@ -2671,6 +2674,7 @@ export class BaseExchange {
         this.ohlcvs = this.createSafeDictionary(true);
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
     }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
         /**

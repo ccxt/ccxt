@@ -1657,12 +1657,13 @@ export default class htx extends htxRest {
         const swap = (type === 'swap');
         const future = (type === 'future');
         const isV5Linear = (linear && (swap || future));
-        const isLinear = (subType === 'linear');
-        const url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
         messageHash = marginMode + ':positions' + messageHash;
         let channel = 'positions.*';
+        // one positions cache per margin mode: linear, inverse and futures symbols never collide
+        let cacheKey = 'isolated';
         if (marginMode === 'cross') {
             channel = 'positions_cross.*';
+            cacheKey = 'cross';
         }
         if (isV5Linear) {
             let v5Market = undefined;
@@ -1681,7 +1682,7 @@ export default class htx extends htxRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.safeValue(this.safeValue(this.positions, url), marginMode), symbolsNormalized, since, limit, false);
+        return this.filterBySymbolsSinceLimit(this.safeValue(this.positionsByType, cacheKey), symbolsNormalized, since, limit, false);
     }
     handlePositions(client, message) {
         //
@@ -1763,18 +1764,10 @@ export default class htx extends htxRest {
         //         ]
         //     }
         //
-        const url = client.url;
         const topic = this.safeString(message, 'topic', '');
         let defaultMarginMode = 'isolated';
         if (topic === 'positions_cross') {
             defaultMarginMode = 'cross';
-        }
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
-        const clientPositions = this.safeDict(this.positions, url);
-        if (clientPositions === undefined) {
-            this.positions[url] = {};
         }
         const rawPositions = this.safeList(message, 'data', []);
         if (this.isEmpty(rawPositions)) {
@@ -1799,10 +1792,10 @@ export default class htx extends htxRest {
             if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
                 marginMode = defaultMarginMode;
             }
-            let cache = this.safeValue(this.positions[url], marginMode);
+            let cache = this.safeValue(this.positionsByType, marginMode);
             if (cache === undefined) {
                 cache = new ArrayCacheBySymbolBySide();
-                this.positions[url][marginMode] = cache;
+                this.positionsByType[marginMode] = cache;
             }
             newPositions.push(position);
             positionsByMarginMode[marginMode] = this.safeList(positionsByMarginMode, marginMode, []);

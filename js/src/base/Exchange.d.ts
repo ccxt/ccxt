@@ -98,7 +98,8 @@ export declare class BaseExchange {
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: ArrayCache | undefined;
     myTrades: ArrayCache | undefined;
-    positions: any;
+    positions: ArrayCache | undefined;
+    positionsByType: Dictionary<ArrayCache>;
     urls: {
         logo?: string;
         api: Dict;
@@ -591,7 +592,7 @@ export declare class BaseExchange {
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: any[], limit?: Int, key?: IndexType, fromStart?: boolean): any[];
     filterBySinceLimit(array: object[] | undefined, since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any[];
-    filterByValueSinceLimit(array: object[], field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any[];
+    filterByValueSinceLimit(array: object[] | undefined, field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any[];
     /**
      * @method
      * @name Exchange#setSandboxMode
@@ -825,7 +826,7 @@ export declare class BaseExchange {
     resolvePath(path: any, params: any): any[];
     getListFromObjectValues(objects: any, key: IndexType): string[];
     getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): string[];
-    filterByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
+    filterByArray(objects: Dictionary<any> | object[] | undefined, key: IndexType, values?: any, indexed?: boolean): any;
     filterOutByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
     fetch2(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
     request(path: string, api?: string[], method?: string, params?: Dict, config?: Dict): Promise<any>;
@@ -956,9 +957,9 @@ export declare class BaseExchange {
     fetchMarketLeverageTiers(symbol: string, params?: Dict): Promise<LeverageTier[]>;
     createSubAccount(name: string, params?: Dict): Promise<{}>;
     safeCurrencyCode(currencyId: Str, currency?: Currency): Str;
-    filterBySymbolSinceLimit(array: any, symbol?: Str, since?: Int, limit?: Int, tail?: boolean): any[];
-    filterByCurrencySinceLimit(array: any, code?: Str, since?: Int, limit?: Int, tail?: boolean): any[];
-    filterBySymbolsSinceLimit(array: any, symbols?: Strings, since?: Int, limit?: Int, tail?: boolean): any[];
+    filterBySymbolSinceLimit(array: object[] | undefined, symbol?: Str, since?: Int, limit?: Int, tail?: boolean): any[];
+    filterByCurrencySinceLimit(array: object[] | undefined, code?: Str, since?: Int, limit?: Int, tail?: boolean): any[];
+    filterBySymbolsSinceLimit(array: object[] | undefined, symbols?: Strings, since?: Int, limit?: Int, tail?: boolean): any[];
     parseLastPrices(pricesData: any, symbols?: Strings, params?: Dict): LastPrices;
     parseTickers(tickers: any, symbols?: Strings, params?: Dict): Tickers;
     parseDepositAddresses(addresses: List, codes?: Strings, indexed?: boolean, params?: Dict): DepositAddress[];
@@ -1004,9 +1005,9 @@ export declare class BaseExchange {
     getMarketFromSymbols(symbols?: Strings): Market;
     parseWsOHLCVs(ohlcvs: object[], market?: Market, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     fetchTransactions(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    filterByArrayPositions(objects: any, key: IndexType, values?: any): Position[];
-    filterByArrayTickers(objects: any, key: IndexType, values?: any): Dictionary<Ticker>;
-    filterByArrayADLRanks(objects: any, key: IndexType, values?: any, indexed?: boolean): ADL[];
+    filterByArrayPositions(objects: Dictionary<any> | object[] | undefined, key: IndexType, values?: any): Position[];
+    filterByArrayTickers(objects: Dictionary<any> | object[] | undefined, key: IndexType, values?: any): Dictionary<Ticker>;
+    filterByArrayADLRanks(objects: Dictionary<any> | object[] | undefined, key: IndexType, values?: any, indexed?: boolean): ADL[];
     createOHLCVObject(symbol: string, timeframe: string, data: OHLCV[]): Dictionary<Dictionary<OHLCV[]>>;
     handleMaxEntriesPerRequestAndParams(method: string, maxEntriesPerRequest?: Int, params?: Dict): [Int, any];
     fetchPaginatedCallDynamic(method: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict, maxEntriesPerRequest?: Int, removeRepeated?: boolean): Promise<any[]>;

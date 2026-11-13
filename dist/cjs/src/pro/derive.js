@@ -897,16 +897,14 @@ class derive extends derive$1["default"] {
         const symbolsResolved = this.marketSymbols(symbols, undefined, true);
         const [fetchSnapshot, paramsSnapshot] = this.handleOptionBoolAndParams(params, 'watchPositions', 'fetchPositionsSnapshot', true);
         const [subaccountId, paramsDeriveSubaccountId] = this.handleDeriveSubaccountId('watchPositions', paramsSnapshot);
-        if (this.positions === undefined) {
-            const emptyCaches = {};
-            this.positions = emptyCaches;
+        if (this.isEmpty(this.positionsByType)) {
             const emptySnapshots = {};
             this.options['loadedPositionsSnapshots'] = emptySnapshots;
         }
         // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
         const subaccountIdKey = this.numberToString(subaccountId);
-        if (!(subaccountIdKey in this.positions)) {
-            this.positions[subaccountIdKey] = new Cache.ArrayCacheBySymbolBySide();
+        if (!(subaccountIdKey in this.positionsByType)) {
+            this.positionsByType[subaccountIdKey] = new Cache.ArrayCacheBySymbolBySide();
         }
         const loadedSnapshots = this.safeDict(this.options, 'loadedPositionsSnapshots', {});
         if (fetchSnapshot && !(subaccountIdKey in loadedSnapshots)) {
@@ -915,7 +913,7 @@ class derive extends derive$1["default"] {
             };
             const snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
             const positionsSnapshot = await this.fetchPositions(undefined, snapshotParams);
-            const cache = this.safeValue(this.positions, subaccountIdKey);
+            const cache = this.safeValue(this.positionsByType, subaccountIdKey);
             for (let i = 0; i < positionsSnapshot.length; i++) {
                 const snapshotPosition = this.safeDict(positionsSnapshot, i);
                 cache.append(snapshotPosition);
@@ -943,7 +941,7 @@ class derive extends derive$1["default"] {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.safeValue(this.positions, subaccountIdKey), symbolsResolved, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.safeValue(this.positionsByType, subaccountIdKey), symbolsResolved, since, limit, true);
     }
     handlePositionDelta(subaccountIdKey, entry) {
         const marketId = this.safeString(entry, 'name');
@@ -953,7 +951,7 @@ class derive extends derive$1["default"] {
         const isShort = Precise["default"].stringLt(newSize, '0');
         const side = isShort ? 'short' : 'long';
         const contracts = Precise["default"].stringAbs(newSize);
-        const cache = this.safeValue(this.positions, subaccountIdKey);
+        const cache = this.safeValue(this.positionsByType, subaccountIdKey);
         const symbolPositions = this.safeDict(cache.hashmap, symbol, {});
         // a fill through zero flattens the opposite side first
         const oppositeSide = isShort ? 'long' : 'short';
@@ -1018,7 +1016,7 @@ class derive extends derive$1["default"] {
             const name = this.safeString(entry, 'name', '');
             if (name.indexOf('-') >= 0) {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if ((this.positions !== undefined) && (subaccountIdKey in this.positions)) {
+                if (subaccountIdKey in this.positionsByType) {
                     const position = this.handlePositionDelta(subaccountIdKey, entry);
                     positionUpdates.push(position);
                 }

@@ -364,7 +364,7 @@ export default class nado extends nadoRest {
      */
     cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
     watchExecuteRequest(requestIdString: string, request: Dict): Promise<any>;
-    watchPublic(streamType: Str, market: any, messageHash: string, params?: Dict): Promise<any>;
+    watchPublic(streamType: Str, market: Market | undefined, messageHash: string, params?: Dict): Promise<any>;
     watchPrivate(streamType: Str, stream: Dict, messageHash: string, params?: Dict): Promise<any>;
     unWatchPrivate(stream: Dict, messageHash: string, params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<any>;

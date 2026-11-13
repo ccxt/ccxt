@@ -1509,7 +1509,7 @@ export default class gate extends gateRest {
         this.setPositionsCache(client, type, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.safeValue(this.positions, type);
+        const cache = this.safeValue(this.positionsByType, type);
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             return await client.future(type + ':fetchPositionsSnapshot');
         }
@@ -1517,13 +1517,10 @@ export default class gate extends gateRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.safeValue(this.positions, type), symbolsNormalized, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.safeValue(this.positionsByType, type), symbolsNormalized, since, limit, true);
     }
     setPositionsCache(client, type, symbols = undefined) {
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
-        if (type in this.positions) {
+        if (type in this.positionsByType) {
             return;
         }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
@@ -1535,13 +1532,13 @@ export default class gate extends gateRest {
             }
         }
         else {
-            this.positions[type] = new ArrayCacheBySymbolBySide();
+            this.positionsByType[type] = new ArrayCacheBySymbolBySide();
         }
     }
     async loadPositionsSnapshot(client, messageHash, type) {
         const positions = await this.fetchPositions(undefined, { 'type': type });
-        this.positions[type] = new ArrayCacheBySymbolBySide();
-        const cache = this.positions[type];
+        this.positionsByType[type] = new ArrayCacheBySymbolBySide();
+        const cache = this.positionsByType[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
@@ -1589,7 +1586,7 @@ export default class gate extends gateRest {
         //
         const type = this.getMarketTypeByUrl(client.url);
         const data = this.safeList(message, 'result', []);
-        const cache = this.positions[type];
+        const cache = this.positionsByType[type];
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
