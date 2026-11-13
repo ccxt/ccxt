@@ -1,5 +1,6 @@
 import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installFmGo5GP08, installFmGo5OG02 } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
+import { installCacheRemoveCall } from './cache-remove-call.js';
 import log from 'ololog'
 
 // task payload posted by goTranspiler.ts#webworkerTranspile (structured clone)
@@ -100,6 +101,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: GoWor
         cachedTranspiler.setVerboseMode (false);
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
         installCcxtGoLocalTypes(cachedTranspiler.goTranspiler, transpilerConfig?.go?.unifiedInt64Params);
+        installCacheRemoveCall(cachedTranspiler, 'go');
         installCcxtGoIndexableTypes(cachedTranspiler.goTranspiler);
         installCcxtGoParamTypes(cachedTranspiler.goTranspiler);
         installCcxtGoDictParams(cachedTranspiler.goTranspiler);

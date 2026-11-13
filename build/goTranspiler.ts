@@ -23,6 +23,7 @@ import { isMainEntry } from "./transpile.js";
 import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { goNativeArithmetic, goTypedArithSelfTest, goIntegralArithmeticSelfTest, goNativeCompare, goNativeCompareSelfTest, goTupleTruthyComparisons, goTupleTruthySelfTest, goPointerNonNilArithSelfTest, goFloatFieldComparisons, goFloatComparisonsSelfTest, goInt64RetypeArith, goInt64RetypeArithSelfTest, goGuardedDivide, goNativeDivideCheck, goIntegralBoxComparisons, goBoxedIntComparisonsSelfTest, goInlineMulSub, goInlineMulSubCheck, goInlineArithHelpers, goInlineMathCheck, goAddImport, goInlineComparisons, goInlineComparisonsCheck, goInlineIsEqual, goInlineIsEqualCheck, goIsEqualBoolMethod, goIsEqualBoolMethodCheck, goCaseAffix, goCaseAffixCheck, goParseNative, goParseNativeCheck } from './go-native-arith.js';
+import { installCacheRemoveCall } from './cache-remove-call.js';
 
 type dict = { [key: string]: string };
 
@@ -5705,6 +5706,7 @@ class NewTranspiler {
         // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
         // build/go-worker.ts installs the same hooks for the Piscina path
         installCcxtGoLocalTypes (this.transpiler.goTranspiler, GO_UNIFIED_INT64_PARAMS);
+        installCacheRemoveCall (this.transpiler, 'go');
         installCcxtGoIndexableTypes (this.transpiler.goTranspiler);
         installCcxtGoParamTypes (this.transpiler.goTranspiler);
         installCcxtGoDictParams (this.transpiler.goTranspiler);
