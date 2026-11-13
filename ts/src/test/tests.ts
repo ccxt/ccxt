@@ -2168,12 +2168,32 @@ class testMainClass {
         // successive states (e.g. an order going from open to closed)
         try {
             for (let i = 0; i < expectedResults.length; i++) {
-                const result = await callExchangeMethodDynamically (exchange, method, input);
-                // ws structures can be live typed objects (e.g. orderbooks) in some
-                // runtimes — roundtrip through json so the deep-compare sees plain
-                // dicts in every language
-                const unifiedResult = jsonParse (jsonStringify (result));
-                this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResults[i]);
+                // a { "rejectsWith": "<ErrorClass>" } step expects this watch call to be
+                // rejected, with that error class named in the exception message (a substring
+                // match, since every language formats exceptionMessage differently)
+                const expectedError = exchange.safeString (expectedResults[i], 'rejectsWith');
+                if (expectedError !== undefined) {
+                    let rejectionMessage: Str = undefined;
+                    try {
+                        await callExchangeMethodDynamically (exchange, method, input);
+                    } catch (e) {
+                        rejectionMessage = exceptionMessage (e);
+                    }
+                    assert (rejectionMessage !== undefined, method + ' resolved, expected a rejection with ' + expectedError);
+                    const rejectionText = rejectionMessage as string;
+                    assert (rejectionText.indexOf (expectedError) >= 0, method + ' rejected without ' + expectedError + ': ' + rejectionText);
+                    // the injector rejects the futures its frames left pending with an ExchangeError of
+                    // its own, which must not pass for the rejection the fixture expects
+                    const rejectedByInjector = rejectionText.indexOf ('the injected messages did not resolve') >= 0;
+                    assert (!rejectedByInjector, method + ' was not rejected by the exchange, the injected messages left it pending');
+                } else {
+                    const result = await callExchangeMethodDynamically (exchange, method, input);
+                    // ws structures can be live typed objects (e.g. orderbooks) in some
+                    // runtimes — roundtrip through json so the deep-compare sees plain
+                    // dicts in every language
+                    const unifiedResult = jsonParse (jsonStringify (result));
+                    this.assertStaticResponseOutput (exchange, skipKeys, unifiedResult, expectedResults[i]);
+                }
             }
         } catch (e) {
             // let the injector's rejection loop exit before the caller reports
