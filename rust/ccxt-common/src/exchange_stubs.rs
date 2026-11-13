@@ -2484,8 +2484,8 @@ impl Exchange {
     /// `isBinaryMessage` — in this port a binary buffer is a
     /// `Value::Array` of byte-valued ints (see `base16_to_binary`,
     /// `string_to_binary`). `instanceof Uint8Array` can't transpile.
-    pub fn is_binary_message(&self, v: Value, _optional_args: &[Value]) -> Value {
-        Value::Bool(is_byte_array(&v))
+    pub fn is_binary_message(&self, v: impl Into<Value>, _optional_args: &[Value]) -> Value {
+        Value::Bool(is_byte_array(&v.into()))
     }
     /// `numberToBE(n, padding)` — big-endian byte array of width `padding`.
     pub fn number_to_be(&self, n: Value, optional_args: &[Value]) -> crate::value::Bytes {
@@ -2932,8 +2932,8 @@ impl Exchange {
     }
 
     /// `decode(bytes)` — decode bytes to a UTF-8 string.
-    pub fn decode(&self, b: Value) -> Value {
-        match b {
+    pub fn decode(&self, b: impl Into<Value>) -> Value {
+        match b.into() {
             Value::Str(s) => Value::Str(s),
             Value::Arr(a) => {
                 let bytes: Vec<u8> = a

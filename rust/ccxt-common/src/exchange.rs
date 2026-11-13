@@ -1235,21 +1235,21 @@ impl Exchange {
         })
     }
 
-    pub fn hash(&self, data: impl Into<Value>, algo: Value, optional_args: &[Value]) -> Value {
-        // `data` may be a string OR the byte-array produced by `encode()`.
+    /// `hash` with a `'hex'` / `'base64'` digest (the default is hex); the `'binary'` digest is `hash_binary`.
+    pub fn hash(&self, data: impl Into<Value>, algo: Value, optional_args: &[Value]) -> String {
         let dbytes = value_to_bytes(&data.into());
         let a = match &algo { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        let raw = hash_raw(&dbytes, &a);
-        match digest.as_ref() {
-            // `binary` → a byte-array Value (consumed by another crypto step).
-            "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-            "base64" => Value::Str(B64.encode(&raw).into()),
-            _        => Value::Str(hex::encode(&raw).into()),
-        }
+        self.hash_typed(&dbytes, &a, &digest)
+    }
+
+    /// `hash(data, algo, 'binary')`: the raw digest bytes.
+    pub fn hash_binary(&self, data: impl Into<Value>, algo: Value) -> crate::value::Bytes {
+        let a = match &algo { Value::Str(s) => s.as_ref(), _ => "sha256" };
+        crate::value::Bytes::of(&hash_raw(&value_to_bytes(&data.into()), a))
     }
 
     pub fn hash_typed(&self, data: &[u8], algo: &str, digest: &str) -> String {
