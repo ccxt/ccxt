@@ -1019,7 +1019,7 @@ export default class nado extends nadoRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchPublic (streamType: Str, market: any, messageHash: string, params: Dict = {}) {
+    async watchPublic (streamType: Str, market: Market | undefined, messageHash: string, params: Dict = {}) {
         const url = this.safeString (this.urls['api']['ws'], 'subscriptions');
         const stream: Dict = {
             'type': streamType,
