@@ -458,7 +458,7 @@ export default class latoken extends Exchange {
         const result: List = [];
         const rawMarkets = this.toArray (response);
         for (let i = 0; i < rawMarkets.length; i++) {
-            const market = this.safeValue (rawMarkets, i);
+            const market = this.safeDict (rawMarkets, i);
             const id = this.safeString (market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString (market, 'baseCurrency');

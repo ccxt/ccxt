@@ -12031,7 +12031,7 @@ ${arms.join('\n')}
             // trait default.
             if (!inherent.has(name) || !inh || inh.isAsync) {
                 if (parentCore) {
-                    const traitParams = args.map(a => `${a}: crate::Value`).join(', ');
+                    const traitParams = rustDispatch.slotParams(args);
                     const fwd = args.join(', ');
                     out.push(`    fn ${name}(&self, ${traitParams}) -> crate::Value {`);
                     out.push(`        crate::exchange::DerivedExchange::${name}(&self.parent${fwd ? ', ' + fwd : ''})`);
@@ -12039,8 +12039,7 @@ ${arms.join('\n')}
                 }
                 continue;
             }
-            // Trait declares (self, ...args : Value).
-            const traitParams = args.map(a => `${a}: crate::Value`).join(', ');
+            const traitParams = rustDispatch.slotParams(args);
             // Forwarding call: align inherent param shape (some methods
             // have `(value: Value, optional_args: &[Value])` for variadic
             // TS defaults). Map trait args 0..N onto inherent params:
@@ -12056,8 +12055,7 @@ ${arms.join('\n')}
                     callArgs.push(rustDispatch.fromValue(kind, args[traitIdx] ?? 'crate::Value::Null'));
                     traitIdx++;
                 } else if (kind === 'slice') {
-                    const rest = args.slice(traitIdx)
-                        .map(a => `${a}.clone()`).join(', ');
+                    const rest = args.slice(traitIdx).map((a, i) => rustDispatch.slotValue(a, traitIdx + i)).join(', ');
                     callArgs.push(`&[${rest}]`);
                     traitIdx = args.length;
                     break;

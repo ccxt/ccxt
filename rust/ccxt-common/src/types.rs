@@ -66,6 +66,18 @@ pub struct Market {
     pub contract: bool,
     pub linear:   Option<bool>,
     pub inverse:  Option<bool>,
+    pub settle_id: Option<String>,
+    pub sub_type: Option<String>,
+    pub index:    Option<bool>,
+    pub stock:    Option<bool>,
+    pub prediction: Option<bool>,
+    pub quanto:   Option<bool>,
+    pub contract_size: Option<f64>,
+    pub expiry:   Option<i64>,
+    pub expiry_datetime: Option<String>,
+    pub strike:   Option<f64>,
+    pub option_type: Option<String>,
+    pub created:  Option<i64>,
     pub taker:    Option<f64>,
     pub maker:    Option<f64>,
     /// Declared order bounds — amount / price / cost / leverage.
@@ -96,6 +108,18 @@ impl Market {
         m.linear  = safe_bool(&v, "linear",  None);
         m.inverse = safe_bool(&v, "inverse", None);
         m.active  = safe_bool(&v, "active", None);
+        m.settle_id = safe_string(&v, "settleId", None);
+        m.sub_type = safe_string(&v, "subType", None);
+        m.index   = safe_bool(&v, "index", None);
+        m.stock   = safe_bool(&v, "stock", None);
+        m.prediction = safe_bool(&v, "prediction", None);
+        m.quanto  = safe_bool(&v, "quanto", None);
+        m.contract_size = safe_number(&v, "contractSize", None);
+        m.expiry  = crate::value::safe_integer(&v, "expiry", None);
+        m.expiry_datetime = safe_string(&v, "expiryDatetime", None);
+        m.strike  = safe_number(&v, "strike", None);
+        m.option_type = safe_string(&v, "optionType", None);
+        m.created = crate::value::safe_integer(&v, "created", None);
         m.taker   = safe_number(&v, "taker", None);
         m.maker   = safe_number(&v, "maker", None);
         let sub = |parent: &Value, key: &str| crate::value::get_value(parent, &Value::Str(key.to_string().into()));
@@ -2037,6 +2061,9 @@ impl FromRaw for Option<i64> { fn from_raw(v: Value) -> Self { v.as_i64() } }
 impl IntoRaw for Option<i64> { fn into_raw(self) -> Value { Value::from(self) } }
 /// A string scalar return (`fetchOrderStatus`); any other shape reads `None`.
 impl FromRaw for Option<String> { fn from_raw(v: Value) -> Self { v.as_str().map(String::from) } }
+/// An optional market argument: `Null` is `None`, any other value decodes the record once.
+impl IntoRaw for Option<Market> { fn into_raw(self) -> Value { if let Some(m) = self { m.raw } else { Value::Null } } }
+impl FromRaw for Option<Market> { fn from_raw(v: Value) -> Self { if matches!(v, Value::Null) { None } else { Some(Market::from_value(v)) } } }
 impl IntoRaw for Option<String> { fn into_raw(self) -> Value { self.map(Value::from).unwrap_or_default() } }
 
 /// One entry of a `cancel_orders_for_symbols` batch (TS `CancellationRequest`); `raw` keeps any other key.

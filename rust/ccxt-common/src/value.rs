@@ -731,10 +731,30 @@ impl KeyRead for &Option<List> {
     fn key_read(&self, _key: &str) -> Value { Value::Null }
     fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |a| get_list_value(a, key)) }
 }
+/// A market reads its own map, as the boxed record did.
+impl KeyRead for &crate::types::Market {
+    fn key_read(&self, key: &str) -> Value { get_value_k(&self.raw, key) }
+    fn read(&self, key: &Value) -> Value { get_value(&self.raw, key) }
+}
+/// An optional market argument reads its own map (Null when absent).
+impl KeyRead for Option<&crate::types::Market> {
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
+}
+/// A lent optional market reads its own map (Null when absent).
+impl KeyRead for &Option<&crate::types::Market> {
+    fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
+    fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
+}
 /// An optional market reads its own map, as the boxed local did (Null when empty).
 impl KeyRead for &Option<crate::types::Market> {
     fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }
     fn read(&self, key: &Value) -> Value { if let Some(m) = self { get_value(&m.raw, key) } else { Value::Null } }
+}
+
+/// A lent optional market handed to a `Value` slot: its stored record (a shared handle, no copy).
+impl From<Option<&crate::types::Market>> for Value {
+    fn from(m: Option<&crate::types::Market>) -> Self { if let Some(m) = m { m.raw.clone() } else { Value::Null } }
 }
 
 /// Extra operands of `extend` / `deep_extend`: a `Value` slice, or a dict local lent by reference.

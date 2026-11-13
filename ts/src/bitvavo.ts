@@ -2745,6 +2745,6 @@ export default class bitvavo extends Exchange {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }
-        return this.safeValue (config, 'cost', 1);
+        return this.safeInteger (config, 'cost', 1);
     }
 }

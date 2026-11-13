@@ -1856,7 +1856,7 @@ export default class woofipro extends Exchange {
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString (params, 'algoType');
-        const paramsChildOrders = this.safeValue (params, 'childOrders');
+        const paramsChildOrders = this.safeList (params, 'childOrders');
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
@@ -2092,7 +2092,7 @@ export default class woofipro extends Exchange {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        const paramsChildOrders = this.safeValue (params, 'childOrders');
+        const paramsChildOrders = this.safeList (params, 'childOrders');
         const isConditional = (triggerPrice !== undefined) || (paramsChildOrders !== undefined);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';

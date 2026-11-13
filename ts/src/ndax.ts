@@ -700,7 +700,7 @@ export default class ndax extends Exchange {
         const bids = [];
         const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
-            const level = this.safeValue (orderbook, i);
+            const level = this.safeList (orderbook, i);
             const newTimestamp = this.safeInteger (level, 2);
             if ((newTimestamp !== undefined) && ((latestTimestamp === undefined) || (newTimestamp > latestTimestamp))) {
                 latestTimestamp = newTimestamp;

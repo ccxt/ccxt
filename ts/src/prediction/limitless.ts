@@ -294,7 +294,7 @@ export default class limitless extends Exchange {
                         break;
                     }
                     for (let i = 0; i < pageMarketsLength; i++) {
-                        const raw = this.safeValue (page_markets, i);
+                        const raw = this.safeDict (page_markets, i);
                         allRaw.push (raw);
                     }
                     const allRawCount = allRaw.length;

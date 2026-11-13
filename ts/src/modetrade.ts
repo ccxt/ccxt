@@ -1779,7 +1779,7 @@ export default class modetrade extends Exchange {
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         const algoType = this.safeString (params, 'algoType');
-        const paramsChildOrders = this.safeValue (params, 'childOrders');
+        const paramsChildOrders = this.safeList (params, 'childOrders');
         const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
@@ -1900,7 +1900,7 @@ export default class modetrade extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
-        const childOrders = this.safeValue (params, 'childOrders');
+        const childOrders = this.safeList (params, 'childOrders');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
         let response: Dict;
         if (isConditional) {
@@ -1970,7 +1970,7 @@ export default class modetrade extends Exchange {
             const triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict (orderParams, 'stopLoss');
             const takeProfit = this.safeDict (orderParams, 'takeProfit');
-            const childOrders = this.safeValue (orderParams, 'childOrders');
+            const childOrders = this.safeList (orderParams, 'childOrders');
             const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
             if (isConditional) {
                 throw new NotSupported (this.id + ' createOrders() only support non-stop order');
@@ -2034,7 +2034,7 @@ export default class modetrade extends Exchange {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
-        const childOrders = this.safeValue (params, 'childOrders');
+        const childOrders = this.safeList (params, 'childOrders');
         const isConditional = (triggerPrice !== undefined) || (childOrders !== undefined);
         let orderQtyKey: Str = 'order_quantity';
         if (isConditional) {

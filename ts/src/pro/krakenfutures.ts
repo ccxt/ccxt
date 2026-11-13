@@ -771,12 +771,11 @@ export default class krakenfutures extends krakenfuturesRest {
         //         "reason": 'edited_by_user'
         //     }
         //
-        let orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
-            orders = new ArrayCacheBySymbolById (limit);
-            this.orders = orders;
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const orders = this.orders;
         const order = this.safeDict (message, 'order');
         if (order !== undefined) {
             const marketId = this.safeString (order, 'instrument');

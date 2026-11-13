@@ -57,35 +57,72 @@ fn new_marker(kind: &str, max_size: Value) -> Value {
     Value::Map(m)
 }
 
+// ─── typed handle ─────────────────────────────────────────────────────────
+
+/// A ws cache built by one of the factories below. It always holds a marker dict
+/// (`__cacheKind` + `__cache_id`); clones share the rolling buffer through the id.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Cache(Value);
+
+impl Cache {
+    pub fn append(&mut self, item: Value) { self.0.append(item) }
+    pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> { self.0.get_limit(symbol, limit) }
+    pub fn clear(&mut self) { self.0.clear() }
+    pub fn hashmap(&self) -> Value { self.0.hashmap() }
+}
+
+impl From<Cache> for Value { fn from(c: Cache) -> Value { c.0 } }
+/// The shared marker (an Arc bump, as `From<&List>` lends a list); a `Cache` always holds a `Dict`.
+impl From<&Cache> for Value { fn from(c: &Cache) -> Value { if let Value::Dict(d) = &c.0 { Value::Dict(std::sync::Arc::clone(d)) } else { Value::Null } } }
+impl From<Option<Cache>> for Value { fn from(c: Option<Cache>) -> Value { c.map_or(Value::Null, |c| c.0) } }
+impl From<&Option<Cache>> for Value { fn from(c: &Option<Cache>) -> Value { c.as_ref().map_or(Value::Null, Value::from) } }
+
+/// The cache operations on an optional cache slot; an absent cache ignores them, as a `Value::Null` receiver did.
+pub trait CacheSlot {
+    fn append(&mut self, item: Value);
+    fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64>;
+    fn clear(&mut self);
+    fn hashmap(&self) -> Value;
+}
+
+impl CacheSlot for Option<Cache> {
+    fn append(&mut self, item: Value) { if let Some(c) = self { c.append(item) } }
+    fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
+        match self { Some(c) => c.get_limit(symbol, limit), None => limit }
+    }
+    fn clear(&mut self) { if let Some(c) = self { c.clear() } }
+    fn hashmap(&self) -> Value { self.as_ref().map_or(Value::Null, Cache::hashmap) }
+}
+
 // ─── public factories ─────────────────────────────────────────────────────
 
 pub struct ArrayCache;
 impl ArrayCache {
     /// `new ArrayCache(maxSize?)` → marker map. `maxSize` is held as a
     /// `Value::Int` or `Value::Null` (matches the JS `undefined` semantics).
-    pub fn new(max_size: impl Into<Value>) -> Value {
-        new_marker(KIND_ARRAY_CACHE, max_size.into())
+    pub fn new(max_size: impl Into<Value>) -> Cache {
+        Cache(new_marker(KIND_ARRAY_CACHE, max_size.into()))
     }
 }
 
 pub struct ArrayCacheByTimestamp;
 impl ArrayCacheByTimestamp {
-    pub fn new(max_size: impl Into<Value>) -> Value {
-        new_marker(KIND_ARRAY_CACHE_BY_TIMESTAMP, max_size.into())
+    pub fn new(max_size: impl Into<Value>) -> Cache {
+        Cache(new_marker(KIND_ARRAY_CACHE_BY_TIMESTAMP, max_size.into()))
     }
 }
 
 pub struct ArrayCacheBySymbolById;
 impl ArrayCacheBySymbolById {
-    pub fn new(max_size: impl Into<Value>) -> Value {
-        new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_ID, max_size.into())
+    pub fn new(max_size: impl Into<Value>) -> Cache {
+        Cache(new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_ID, max_size.into()))
     }
 }
 
 pub struct ArrayCacheBySymbolBySide;
 impl ArrayCacheBySymbolBySide {
-    pub fn new(max_size: impl Into<Value>) -> Value {
-        new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_SIDE, max_size.into())
+    pub fn new(max_size: impl Into<Value>) -> Cache {
+        Cache(new_marker(KIND_ARRAY_CACHE_BY_SYMBOL_SIDE, max_size.into()))
     }
 }
 
@@ -94,7 +131,7 @@ impl ArrayCacheBySymbolBySide {
 /// reuses the same kind.
 pub struct ArrayCacheByOutcomeById;
 impl ArrayCacheByOutcomeById {
-    pub fn new(max_size: impl Into<Value>) -> Value {
-        new_marker(KIND_ARRAY_CACHE_BY_OUTCOME_ID, max_size.into())
+    pub fn new(max_size: impl Into<Value>) -> Cache {
+        Cache(new_marker(KIND_ARRAY_CACHE_BY_OUTCOME_ID, max_size.into()))
     }
 }

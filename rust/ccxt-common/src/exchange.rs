@@ -222,46 +222,46 @@ impl<T> TypedById<T> {
 /// compiles and runs (it just gives back empty results).
 pub trait DerivedExchange {
     // ── parsers (the dominant override surface) ──────────────────────────
-    fn parse_ticker(&self, _ticker: Value, _market: Value) -> Value { Value::Null }
-    fn parse_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
-    fn parse_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
+    fn parse_ticker(&self, _ticker: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_trade(&self, _trade: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_order(&self, _order: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_market(&self, _market: Value) -> Value { Value::Null }
-    fn parse_ohlcv(&self, _ohlcv: Value, _market: Value) -> Value { Value::Null }
+    fn parse_ohlcv(&self, _ohlcv: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_order_book(&self, _ob: Value, _symbol: Value, _ts: Value, _bk: Value, _ak: Value, _pk: Value, _ak2: Value, _ck: Value) -> Value { Value::Null }
     fn parse_balance(&self, _response: Value) -> Value { Value::Null }
-    fn parse_position(&self, _position: Value, _market: Value) -> Value { Value::Null }
-    fn parse_funding_rate(&self, _rate: Value, _market: Value) -> Value { Value::Null }
+    fn parse_position(&self, _position: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_funding_rate(&self, _rate: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_deposit(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
     fn parse_deposit_address(&self, _addr: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_last_price(&self, _entry: Value, _market: Value) -> Value { Value::Null }
+    fn parse_last_price(&self, _entry: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_withdrawal(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
     fn parse_ledger_entry(&self, _entry: Value, _currency: Value) -> Value { Value::Null }
     fn parse_transfer(&self, _transfer: Value, _currency: Value) -> Value { Value::Null }
     fn parse_currency(&self, _currency: Value) -> Value { Value::Null }
-    fn parse_bid_ask(&self, _bidask: Value, _price_key: Value, _amount_key: Value, _market: Value) -> Value { Value::Null }
-    fn parse_open_interest(&self, _interest: Value, _market: Value) -> Value { Value::Null }
-    fn parse_liquidation(&self, _liquidation: Value, _market: Value) -> Value { Value::Null }
-    fn parse_funding_rate_history(&self, _entry: Value, _market: Value) -> Value { Value::Null }
-    fn parse_margin_modification(&self, _data: Value, _market: Value) -> Value { Value::Null }
+    fn parse_bid_ask(&self, _bidask: Value, _price_key: Value, _amount_key: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_open_interest(&self, _interest: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_liquidation(&self, _liquidation: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_funding_rate_history(&self, _entry: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_margin_modification(&self, _data: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_account(&self, _account: Value) -> Value { Value::Null }
-    fn parse_my_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
+    fn parse_my_trade(&self, _trade: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_transaction(&self, _transaction: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_borrow_interest(&self, _info: Value, _market: Value) -> Value { Value::Null }
-    fn parse_adl_rank(&self, _info: Value, _market: Value) -> Value { Value::Null }
-    fn parse_income(&self, _info: Value, _market: Value) -> Value { Value::Null }
-    fn parse_greeks(&self, _greeks: Value, _market: Value) -> Value { Value::Null }
-    fn parse_margin_mode(&self, _margin_mode: Value, _market: Value) -> Value { Value::Null }
+    fn parse_borrow_interest(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_adl_rank(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_income(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_greeks(&self, _greeks: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_margin_mode(&self, _margin_mode: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_conversion(&self, _conversion: Value, _from_currency: Value, _to_currency: Value) -> Value { Value::Null }
     fn parse_borrow_rate(&self, _info: Value, _currency: Value) -> Value { Value::Null }
-    fn parse_leverage(&self, _leverage: Value, _market: Value) -> Value { Value::Null }
-    fn parse_market_leverage_tiers(&self, _info: Value, _market: Value) -> Value { Value::Null }
+    fn parse_leverage(&self, _leverage: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_market_leverage_tiers(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Value) -> Value { Value::Null }
     fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
     fn market(&self, _symbol: Value) -> Value { Value::Null }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
-    fn parse_prediction_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
-    fn parse_prediction_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
-    fn parse_prediction_position(&self, _position: Value, _market: Value) -> Value { Value::Null }
+    fn parse_prediction_trade(&self, _trade: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_prediction_order(&self, _order: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_prediction_position(&self, _position: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
     // ── signers / error handlers ─────────────────────────────────────────
     /// `nonce()` — the request timestamp. The base default is `seconds()`, but
     /// 47 venues override it (binance: `milliseconds() - timeDifference`), and
@@ -404,9 +404,9 @@ pub struct Exchange {
 
     // runtime state
     pub orderbooks:        Value,
-    pub orders:            Value,
+    pub orders:            Option<crate::pro::cache::Cache>,
     pub trades:            Value,
-    pub myTrades:          Value,
+    pub myTrades:          Option<crate::pro::cache::Cache>,
     pub positions:         Value,
     // WS state — mirrors `ts/src/base/Exchange.ts` `newUpdates: boolean = true`.
     // Per-exchange WS code reads `self.newUpdates` to decide whether to call
@@ -419,8 +419,8 @@ pub struct Exchange {
     pub clients:           Value,
     /// Plain dict-or-null container -- see `PLAIN_DICT_FIELDS`.
     pub balance:           Value,
-    pub liquidations:      Value,
-    pub myLiquidations:    Value,
+    pub liquidations:      Option<crate::pro::cache::Cache>,
+    pub myLiquidations:    Option<crate::pro::cache::Cache>,
     pub fundingRates:      Value,
     pub triggerOrders:     Value,
     pub transactions:      Value,
@@ -769,9 +769,9 @@ impl Exchange {
             accountsById:      Value::Null,
 
             orderbooks:    Value::Map(HashMap::new()),
-            orders:        Value::Null,
+            orders:        None,
             trades:        Value::Map(HashMap::new()),
-            myTrades:      Value::Null,
+            myTrades:      None,
             positions:     Value::Null,
             newUpdates:    Value::Bool(true),
             tickers:       Value::Map(HashMap::new()),
@@ -779,8 +779,8 @@ impl Exchange {
             ohlcvs:        Value::Map(HashMap::new()),
             clients:       Value::Map(HashMap::new()),
             balance:       Value::Map(HashMap::new()),
-            liquidations:  Value::Null,
-            myLiquidations: Value::Null,
+            liquidations:  None,
+            myLiquidations: None,
             fundingRates:  Value::Null,
             triggerOrders: Value::Null,
             transactions:  Value::Map(HashMap::new()),
@@ -1195,7 +1195,7 @@ impl Exchange {
 
     // ── crypto ──────────────────────────────────────────────────────────────
 
-    pub fn hmac(&self, data: Value, secret: Value, hash: Value, optional_args: &[Value]) -> Value {
+    pub fn hmac(&self, data: Value, secret: Value, hash: Value, optional_args: &[Value]) -> String {
         // `data`/`secret` may be a string OR the byte-array produced by
         // `encode()` (CCXT's `hmac` takes the encoded request/secret).
         let dbytes = value_to_bytes(&data);
@@ -1205,10 +1205,7 @@ impl Exchange {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        match self.hmac_typed(&dbytes, &sbytes, &h, &digest) {
-            Ok(v) => Value::Str(v.into()),
-            Err(_) => Value::Null,
-        }
+        self.hmac_typed(&dbytes, &sbytes, &h, &digest).unwrap_or_default()
     }
 
     pub fn hmac_typed(&self, data: &[u8], secret: &[u8], hash: &str, digest: &str) -> Result<String> {
@@ -1217,6 +1214,7 @@ impl Exchange {
         let raw: Vec<u8> = match hash.to_ascii_lowercase().as_str() {
             "sha256" => { let mut m = HmacSha256::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
             "sha512" => { let mut m = HmacSha512::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
+            "sha384" => { let mut m = Hmac::<sha2::Sha384>::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
             "sha1"   => { let mut m = HmacSha1::new_from_slice(sbytes).unwrap();   m.update(dbytes); m.finalize().into_bytes().to_vec() }
             "md5"    => { let mut m = HmacMd5::new_from_slice(sbytes).unwrap();    m.update(dbytes); m.finalize().into_bytes().to_vec() }
             other    => return Err(ExchangeError::new("BadRequest", format!("unknown hmac: {other}"))),
@@ -2031,11 +2029,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_set_sandbox_mode(&mut self, enabled: Value) {
         crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled.is_truthy()));
     }
-    fn super_safe_market(&self, id: Value, market: Value, delim: Value, market_type: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, &[id, market, delim, market_type])
+    fn super_safe_market(&self, id: Value, market: Option<&crate::types::Market>, delim: Value, market_type: Value) -> crate::types::Market {
+        <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, id, market, &[delim, market_type])
     }
-    fn super_handle_market_type_and_params(&self, method_name: Value, market: Value, params: Value, default_value: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, &[market, params, default_value])
+    fn super_handle_market_type_and_params(&self, method_name: Value, market: Option<&crate::types::Market>, params: Value, default_value: Value) -> Value {
+        <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, market, &[params, default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {
         crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol.as_str().unwrap_or_default()))
@@ -2046,7 +2044,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::handle_margin_mode_and_params(self, method_name, &[params, default_value])
     }
-    fn super_safe_currency_code(&self, currency_id: Value, currency: Value) -> Value {
+    fn super_safe_currency_code(&self, currency_id: Value, currency: Value) -> Option<String> {
         <Self as crate::exchange_generated::ExchangeBase>::safe_currency_code(self, currency_id, &[currency])
     }
     fn super_set_markets(&mut self, markets: Value, currencies: Value) -> Value {

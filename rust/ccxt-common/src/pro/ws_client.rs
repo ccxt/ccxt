@@ -1530,11 +1530,9 @@ mod tests {
             &mut core,
             url.as_str(),
             "ticker",
-            &[
-                Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".into()),
-                Value::Str("ticker".into()),
-                Value::Null,
-            ],
+            Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".into()),
+            "ticker",
+            Value::Null,
         )
         .await;
         // First streamed ticker.
