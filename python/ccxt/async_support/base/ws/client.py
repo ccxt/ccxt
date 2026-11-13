@@ -215,8 +215,10 @@ class Client(object):
                     return
                 exception = resolved.exception()
                 if exception is None:
-                    self.handle_message(resolved.result())
-                    self.asyncio_loop.call_soon(self.receive_loop)
+                    message = resolved.result()
+                    self.handle_message(message)
+                    if message.type != WSMsgType.CLOSE:
+                        self.asyncio_loop.call_soon(self.receive_loop)
                 else:
                     error = NetworkError(str(exception))
                     if self.verbose:
@@ -304,6 +306,9 @@ class Client(object):
             ensure_future(self.close(1006), loop=self.asyncio_loop)
 
     def on_close(self, code):
+        if getattr(self, '_on_close_called', False):
+            return
+        self._on_close_called = True
         if self.verbose:
             self.log(Exchange.iso8601(Exchange.milliseconds()), 'on_close', code)
         if not self.error:
