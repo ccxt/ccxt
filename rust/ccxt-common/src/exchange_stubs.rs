@@ -1170,20 +1170,20 @@ impl Exchange {
         }
         Value::Null
     }
-    pub fn order_book(&self, args: &[Value]) -> Value {
-        crate::pro::OrderBook::new(
+    pub fn order_book(&self, args: &[Value]) -> crate::pro::order_book::Book {
+        crate::pro::order_book::new_book(crate::pro::order_book::BOOK_PLAIN, 
             crate::runtime::get_arg(args, 0, Value::Null),
             crate::runtime::get_arg(args, 1, Value::Null),
         )
     }
-    pub fn indexed_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::IndexedOrderBook::new(
+    pub fn indexed_order_book(&self, args: &[Value]) -> crate::pro::order_book::Book {
+        crate::pro::order_book::new_book(crate::pro::order_book::BOOK_INDEXED, 
             crate::runtime::get_arg(args, 0, Value::Null),
             crate::runtime::get_arg(args, 1, Value::Null),
         )
     }
-    pub fn counted_order_book(&self, args: &[Value]) -> Value {
-        crate::pro::CountedOrderBook::new(
+    pub fn counted_order_book(&self, args: &[Value]) -> crate::pro::order_book::Book {
+        crate::pro::order_book::new_book(crate::pro::order_book::BOOK_COUNTED, 
             crate::runtime::get_arg(args, 0, Value::Null),
             crate::runtime::get_arg(args, 1, Value::Null),
         )
@@ -2422,11 +2422,12 @@ impl Exchange {
         put("headers", &self.headers);
         put("accounts", &self.accounts);
         put("accountsById", &self.accountsById);
-        put("orderbooks", &self.orderbooks);
+        put("orderbooks", &Value::from(&self.orderbooks));
         put("orders", &Value::from(&self.orders));
         put("trades", &Value::from(&self.trades));
         put("myTrades", &Value::from(&self.myTrades));
-        put("positions", &self.positions);
+        put("positions", &Value::from(&self.positions));
+        put("positionsByType", &Value::from(&self.positionsByType));
         put("tickers", &self.tickers);
         put("bidsasks", &self.bidsasks);
         put("ohlcvs", &Value::from(&self.ohlcvs));

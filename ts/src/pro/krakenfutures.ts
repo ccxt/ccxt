@@ -346,7 +346,7 @@ export default class krakenfutures extends krakenfuturesRest {
             // https://github.com/ccxt/ccxt/issues/29709
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const rawPositions = this.safeList (message, 'positions');
         if (rawPositions === undefined) {
             // an open_positions frame without the positions key is malformed;

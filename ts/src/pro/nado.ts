@@ -1553,7 +1553,7 @@ export default class nado extends nadoRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const positions: ArrayCacheBySymbolBySide = this.positions;
+        const positions = this.positions;
         const side = this.safeString (position, 'side');
         if (side === undefined) {
             const longPosition = this.extend ({}, position);

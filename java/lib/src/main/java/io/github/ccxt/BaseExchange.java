@@ -528,6 +528,7 @@ public class BaseExchange {
     public Object triggerOrders;
     public boolean newUpdates;
     public Object positions;
+    public Map<String, Object> positionsByType = new ConcurrentHashMap<>();
 
     // properties that had { get; set; } in C#
     // public Object wssProxy = null;

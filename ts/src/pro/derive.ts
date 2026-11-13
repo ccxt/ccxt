@@ -923,16 +923,14 @@ export default class derive extends deriveRest {
         const symbolsResolved = this.marketSymbols (symbols, undefined, true);
         const [ fetchSnapshot, paramsSnapshot ] = this.handleOptionBoolAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
         const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchPositions', paramsSnapshot);
-        if (this.positions === undefined) {
-            const emptyCaches: Dict = {};
-            this.positions = emptyCaches;
+        if (this.isEmpty (this.positionsByType)) {
             const emptySnapshots: Dict = {};
             this.options['loadedPositionsSnapshots'] = emptySnapshots;
         }
         // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
         const subaccountIdKey = this.numberToString (subaccountId) as string;
-        if (!(subaccountIdKey in this.positions)) {
-            this.positions[subaccountIdKey] = new ArrayCacheBySymbolBySide ();
+        if (!(subaccountIdKey in this.positionsByType)) {
+            this.positionsByType[subaccountIdKey] = new ArrayCacheBySymbolBySide ();
         }
         const loadedSnapshots = this.safeDict (this.options, 'loadedPositionsSnapshots', {});
         if (fetchSnapshot && !(subaccountIdKey in loadedSnapshots)) {
@@ -941,7 +939,7 @@ export default class derive extends deriveRest {
             };
             const snapshotParams = this.extend (snapshotRequest, paramsDeriveSubaccountId);
             const positionsSnapshot = await this.fetchPositions (undefined, snapshotParams);
-            const cache = this.safeValue (this.positions, subaccountIdKey);
+            const cache = this.safeValue (this.positionsByType, subaccountIdKey);
             for (let i = 0; i < positionsSnapshot.length; i++) {
                 const snapshotPosition = this.safeDict (positionsSnapshot, i);
                 cache.append (snapshotPosition);
@@ -969,7 +967,7 @@ export default class derive extends deriveRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.safeValue (this.positions, subaccountIdKey), symbolsResolved, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.safeValue (this.positionsByType, subaccountIdKey), symbolsResolved, since, limit, true);
     }
 
     handlePositionDelta (subaccountIdKey: string, entry: Dict): Position {
@@ -980,7 +978,7 @@ export default class derive extends deriveRest {
         const isShort = Precise.stringLt (newSize, '0');
         const side = isShort ? 'short' : 'long';
         const contracts = Precise.stringAbs (newSize);
-        const cache = this.safeValue (this.positions, subaccountIdKey);
+        const cache = this.safeValue (this.positionsByType, subaccountIdKey);
         const symbolPositions = this.safeDict (cache.hashmap, symbol, {});
         // a fill through zero flattens the opposite side first
         const oppositeSide = isShort ? 'long' : 'short';
@@ -1046,7 +1044,7 @@ export default class derive extends deriveRest {
             const name = this.safeString (entry, 'name', '');
             if (name.indexOf ('-') >= 0) {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if ((this.positions !== undefined) && (subaccountIdKey in this.positions)) {
+                if (subaccountIdKey in this.positionsByType) {
                     const position = this.handlePositionDelta (subaccountIdKey, entry);
                     positionUpdates.push (position);
                 }

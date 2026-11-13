@@ -1384,7 +1384,7 @@ export default class hyperliquid extends hyperliquidRest {
         await this.waitForPendingUnsubscribe (url, topic);
         const client = this.client (url);
         this.setPositionsCache (client, symbolsNormalized);
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const newPositions = await this.watch (url, messageHash, message, topic);
         if (this.newUpdates) {
             return newPositions;
@@ -1403,7 +1403,7 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const data = this.safeDict (message, 'data', {});
         const clearinghouseState = this.safeDict (data, 'clearinghouseState', {});
         const newPositions: Position[] = [];

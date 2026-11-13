@@ -1546,14 +1546,11 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict (message, 'arg', {});
         const instType = this.safeString (arg, 'instType', '');
-        if (this.positions === undefined) {
-            this.positions = {};
-        }
         const action = this.safeString (message, 'action');
-        if (!(instType in this.positions) || (action === 'snapshot')) {
-            this.positions[instType] = new ArrayCacheBySymbolBySide ();
+        if (!(instType in this.positionsByType) || (action === 'snapshot')) {
+            this.positionsByType[instType] = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions[instType];
+        const cache = this.positionsByType[instType];
         const rawPositions: Dict[] = this.safeList (message, 'data', []);
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {

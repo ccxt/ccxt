@@ -1843,7 +1843,7 @@ export default class weex extends weexRest {
     async loadPositionsSnapshot (client: Client, messageHash: string, params: Dict) {
         const positions = await this.fetchPositions (undefined, params);
         this.positions = new ArrayCacheBySymbolById ();
-        const cache: ArrayCacheBySymbolById = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             cache.append (position);
@@ -1922,7 +1922,7 @@ export default class weex extends weexRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolById ();
         }
-        const cache: ArrayCacheBySymbolById = this.positions;
+        const cache = this.positions;
         const newPositions: Position[] = [];
         const data = this.safeList (message, 'd', []);
         for (let i = 0; i < data.length; i++) {

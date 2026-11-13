@@ -247,8 +247,8 @@ public partial class BaseExchange
 
     public object transactions = new dict();
     // ws caches: always an ArrayCache subclass or null (every writer in cs/**, bitstamp's
-    // pruneCachedBySymbols included). positions stays `object` — five venues store the
-    // account-type-keyed Dictionary there.
+    // pruneCachedBySymbols included). positions is one cache; venues that keep one cache per
+    // account type store them in positionsByType.
     public ccxt.pro.ArrayCache myTrades;
     public ccxt.pro.ArrayCache orders;
     public object triggerOrders;
@@ -258,9 +258,10 @@ public partial class BaseExchange
 
     public bool newUpdates;
 
-    public object positions;
+    public ccxt.pro.ArrayCache positions;
+    public IDictionary<string, object> positionsByType = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     public ccxt.pro.ArrayCache liquidations;
-    public object myLiquidations;
+    public ccxt.pro.ArrayCache myLiquidations;
     private IDictionary<string, object> tradesState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     private IDictionary<string, object> orderbooksState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
 

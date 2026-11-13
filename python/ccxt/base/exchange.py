@@ -299,6 +299,7 @@ class BaseExchange(object):
     isSandboxModeEnabled = False
     accounts = None
     positions = None
+    positionsByType = None
 
     status = None
 
@@ -373,6 +374,7 @@ class BaseExchange(object):
         self.tickers = dict() if self.tickers is None else self.tickers
         self.bidsasks = dict() if self.bidsasks is None else self.bidsasks
         self.trades = dict() if self.trades is None else self.trades
+        self.positionsByType = dict() if self.positionsByType is None else self.positionsByType
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.liquidations = None if self.liquidations is None else self.liquidations

@@ -1571,7 +1571,7 @@ export default class aster extends asterRest {
         }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
@@ -1602,7 +1602,7 @@ export default class aster extends asterRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -1654,7 +1654,7 @@ export default class aster extends asterRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
         const rawPositions: Dict[] = this.safeList (data, 'P', []);
         const newPositions: Dict[] = [];

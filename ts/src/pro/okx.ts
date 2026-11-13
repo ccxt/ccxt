@@ -2022,7 +2022,7 @@ export default class okx extends okxRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];

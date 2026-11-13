@@ -212,6 +212,7 @@ class BaseExchange {
     public $trades = array();
     public $transactions = array();
     public $positions = null;
+    public $positionsByType = array();
     public $ohlcvs = array();
     public $exceptions = array();
     public $accounts = null;

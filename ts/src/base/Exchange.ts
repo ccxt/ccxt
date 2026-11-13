@@ -352,7 +352,8 @@ export class BaseExchange {
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: ArrayCache | undefined = undefined;
     myTrades: ArrayCache | undefined;
-    positions: any;
+    positions: ArrayCache | undefined = undefined;
+    positionsByType: Dictionary<ArrayCache> = {};
     urls!: {
         logo?: string;
         api: Dict;
@@ -641,6 +642,7 @@ export class BaseExchange {
         this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         // response handling flags and properties
@@ -3189,6 +3191,7 @@ export class BaseExchange {
         this.ohlcvs = this.createSafeDictionary (true);
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
     }
 
     safeBoolN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;
@@ -3649,7 +3652,7 @@ export class BaseExchange {
         return this.filterByLimit (result, limit, key, shouldFilterFromStart);
     }
 
-    filterByValueSinceLimit (array: object[], field: IndexType, value: any = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any[] {
+    filterByValueSinceLimit (array: object[] | undefined, field: IndexType, value: any = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any[] {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = since !== undefined && since !== null;
         const parsedArray: any[] = this.toArray (array);
@@ -6699,7 +6702,7 @@ export class BaseExchange {
         return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
-    filterByArray (objects: any, key: IndexType, values: any = undefined, indexed = true) {
+    filterByArray (objects: Dictionary<any> | object[] | undefined, key: IndexType, values: any = undefined, indexed = true) {
         const objectsValue: any = this.toArray (objects);
         // return all of them if no values were passed
         if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
@@ -7943,15 +7946,15 @@ export class BaseExchange {
         return currencyResolved['code'];
     }
 
-    filterBySymbolSinceLimit (array: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
+    filterBySymbolSinceLimit (array: object[] | undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
         return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
 
-    filterByCurrencySinceLimit (array: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
+    filterByCurrencySinceLimit (array: object[] | undefined, code: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
-    filterBySymbolsSinceLimit (array: any, symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
+    filterBySymbolsSinceLimit (array: object[] | undefined, symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false): any[] {
         const result = this.filterByArray (array, 'symbol', symbols, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
@@ -8636,7 +8639,7 @@ export class BaseExchange {
         }
     }
 
-    filterByArrayPositions (objects: any, key: IndexType, values: any = undefined): Position[] {
+    filterByArrayPositions (objects: Dictionary<any> | object[] | undefined, key: IndexType, values: any = undefined): Position[] {
         /**
          * @ignore
          * @method
@@ -8645,7 +8648,7 @@ export class BaseExchange {
         return this.toArray (this.filterByArray (objects, key, values, false)) as Position[];
     }
 
-    filterByArrayTickers (objects: any, key: IndexType, values: any = undefined): Dictionary<Ticker> {
+    filterByArrayTickers (objects: Dictionary<any> | object[] | undefined, key: IndexType, values: any = undefined): Dictionary<Ticker> {
         /**
          * @ignore
          * @method
@@ -8654,7 +8657,7 @@ export class BaseExchange {
         return this.indexBy (this.filterByArray (objects, key, values, false), key) as Dictionary<Ticker>;
     }
 
-    filterByArrayADLRanks (objects: any, key: IndexType, values: any = undefined, indexed = true): ADL[] {
+    filterByArrayADLRanks (objects: Dictionary<any> | object[] | undefined, key: IndexType, values: any = undefined, indexed = true): ADL[] {
         /**
          * @ignore
          * @method

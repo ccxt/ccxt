@@ -1622,11 +1622,11 @@ export default class PredictionExchange extends BaseExchange {
         return results as PredictionPosition[];
     }
 
-    filterByOutcomeSinceLimit (array: any, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomeSinceLimit (array: object[] | undefined, outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         return this.filterByValueSinceLimit (array, 'outcome', outcome, since, limit, 'timestamp', tail);
     }
 
-    filterByOutcomesSinceLimit (array: any, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByOutcomesSinceLimit (array: object[] | undefined, outcomes: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'outcome', outcomes, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }

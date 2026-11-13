@@ -79,6 +79,15 @@ impl From<&Cache> for Value { fn from(c: &Cache) -> Value { if let Value::Dict(d
 impl From<Option<Cache>> for Value { fn from(c: Option<Cache>) -> Value { c.map_or(Value::Null, |c| c.0) } }
 impl From<&Option<Cache>> for Value { fn from(c: &Option<Cache>) -> Value { c.as_ref().map_or(Value::Null, Value::from) } }
 
+impl crate::value::Rows for &Cache {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { false }
+}
+impl crate::value::Rows for &Option<Cache> {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { self.is_none() }
+}
+
 /// The cache operations on an optional cache slot; an absent cache ignores them, as a `Value::Null` receiver did.
 pub trait CacheSlot {
     fn append(&mut self, item: Value);
@@ -125,17 +134,21 @@ impl CacheKey for Option<String> {
     fn text(&self) -> std::borrow::Cow<'_, str> { std::borrow::Cow::Borrowed(self.as_deref().unwrap_or("null")) }
 }
 
-/// Keyed access to a `CacheMap`, with the semantics the untyped dict had for the same
-/// key: `has` / `at` / `forget` match string keys only, `lookup` / `put` stringify.
+/// Keyed access to a map of ws handles (`CacheMap`, `BookMap`), with the semantics the untyped
+/// dict had for the same key: `has` / `at` / `forget` match string keys only, `lookup` / `put` stringify.
 pub trait CacheStore {
+    type Entry;
     fn has<K: CacheKey + ?Sized>(&self, key: &K) -> bool;
-    fn at<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache>;
-    fn lookup<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache>;
-    fn put<K: CacheKey + ?Sized>(&mut self, key: &K, cache: impl Into<Option<Cache>>);
+    fn at<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Self::Entry>;
+    fn lookup<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Self::Entry>;
+    fn put<K: CacheKey + ?Sized>(&mut self, key: &K, entry: impl Into<Option<Self::Entry>>);
     fn forget<K: CacheKey + ?Sized>(&mut self, key: &K);
+    /// `safeValue (m, k, dflt)`: the stringified-key entry, else the (already built) default.
+    fn lookup_or<K: CacheKey + ?Sized>(&self, key: &K, dflt: Self::Entry) -> Self::Entry { self.lookup(key).unwrap_or(dflt) }
 }
 
 impl CacheStore for CacheMap {
+    type Entry = Cache;
     fn has<K: CacheKey + ?Sized>(&self, key: &K) -> bool { key.strict().is_some_and(|k| self.contains_key(k)) }
     fn at<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache> { key.strict().and_then(|k| self.get(k)).cloned() }
     fn lookup<K: CacheKey + ?Sized>(&self, key: &K) -> Option<Cache> { self.get(key.text().as_ref()).cloned() }

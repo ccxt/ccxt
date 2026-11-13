@@ -206,7 +206,8 @@ type BaseExchange struct {
 	ownersStarted bool
 	// a plain map; entries stay boxed because TS `balance` is a Dict of Dicts
 	Balance   map[string]any
-	Positions any
+	Positions       WsArrayCache            // one cache object, nil until a handler creates it
+	PositionsByType map[string]WsArrayCache // one cache per account type / subaccount
 	// the ws client registry, a plain map keyed by url
 	Clients    map[string]any
 	newUpdates bool
@@ -266,6 +267,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	limit := 10000
 	// Initialize WebSocket data structures: plain maps, mutated by the exchange's own ws loop
 	this.Trades = map[string]WsArrayCache{}
+	this.PositionsByType = map[string]WsArrayCache{}
 	this.Tickers = map[string]Ticker{}
 	this.Orderbooks = map[string]OrderBookInterface{}
 	this.Ohlcvs = map[string]map[string]any{}

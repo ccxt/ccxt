@@ -725,7 +725,7 @@ export default class blofin extends blofinRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data') as List;

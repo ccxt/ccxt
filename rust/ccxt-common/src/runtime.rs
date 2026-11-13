@@ -700,8 +700,9 @@ pub fn concat_arrays(a: &Value, b: &Value) -> Value {
 
 pub use crate::exchange_errors::*;
 pub use crate::precise::Precise;
-pub use crate::value::KeyRead;
+pub use crate::value::{KeyRead, Rows};
 pub use crate::pro::cache::{CacheShelves, CacheSlot, CacheStore};
+pub use crate::pro::order_book::BookSlot;
 
 // ── Math (TS Math.min/max/abs/pow) ──────────────────────────────────────────
 

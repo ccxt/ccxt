@@ -1318,7 +1318,7 @@ export default class bingx extends bingxRest {
     async loadPositionsSnapshot (client: Client, messageHash: string, type: Str) {
         const positions = await this.fetchPositions (undefined, { 'type': type, 'subType': 'linear' });
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -1415,7 +1415,7 @@ export default class bingx extends bingxRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
         if (!('P' in data)) {
             return;

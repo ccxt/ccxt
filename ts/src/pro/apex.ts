@@ -670,7 +670,7 @@ export default class apex extends apexRest {
         const client = this.client (url);
         await this.authenticate (url);
         this.setPositionsCache (client, symbolsNormalized2);
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         if (cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized2, since, limit, true);
@@ -827,7 +827,7 @@ export default class apex extends apexRest {
         ];
         const promises = await Promise.all (fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < promises.length; i++) {
             const positions = promises[i];
             for (let ii = 0; ii < positions.length; ii++) {
@@ -868,7 +868,7 @@ export default class apex extends apexRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < lists.length; i++) {
             const rawPosition = this.safeDict (lists, i, {});

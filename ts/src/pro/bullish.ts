@@ -758,7 +758,7 @@ export default class bullish extends bullishRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const positions: ArrayCacheBySymbolBySide = this.positions;
+        const positions = this.positions;
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const position = this.parsePosition (rawPositions[i]);

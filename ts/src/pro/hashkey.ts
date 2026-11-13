@@ -690,7 +690,7 @@ export default class hashkey extends hashkeyRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const positions: ArrayCacheBySymbolBySide = this.positions;
+        const positions = this.positions;
         const parsed = this.parseWsPosition (message);
         positions.append (parsed);
         const messageHash = 'positions';

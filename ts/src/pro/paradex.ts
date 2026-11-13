@@ -1652,7 +1652,7 @@ export default class paradex extends paradexRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const position = this.parsePosition (data);
         const symbol = position['symbol'];
         const newPositions = [];

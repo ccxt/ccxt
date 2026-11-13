@@ -704,6 +704,30 @@ impl Bytes {
 impl From<Bytes> for Value { fn from(b: Bytes) -> Self { Value::Arr(b.0) } }
 impl From<&Bytes> for Value { fn from(b: &Bytes) -> Self { Value::Arr(Arc::clone(&b.0)) } }
 
+/// The rows argument of the base `filter_by_*` helpers: any `Value` by value, or a shared list / ws cache
+/// handle by reference (an Arc bump of the same list or marker, read by `to_array` as before).
+/// `absent` is the `=== undefined` test of the argument (a `Null` value, a missing list or cache).
+pub trait Rows: Clone {
+    fn rows(self) -> Value;
+    fn absent(&self) -> bool;
+}
+impl Rows for Value {
+    fn rows(self) -> Value { self }
+    fn absent(&self) -> bool { self.is_null() }
+}
+impl Rows for &List {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { false }
+}
+impl Rows for &Dict {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { false }
+}
+impl Rows for &Option<List> {
+    fn rows(self) -> Value { Value::from(self) }
+    fn absent(&self) -> bool { self.is_none() }
+}
+
 /// A container the `safe_*` readers accept: a `Value` by value, a map or list by reference.
 /// `key_read` takes a literal key, `read` any key (a string key on a list reads nothing, as `get_value` does).
 pub trait KeyRead: Clone {
@@ -1804,6 +1828,9 @@ fn as_f64(v: &Value) -> f64 {
         _ => 0.0,
     }
 }
+
+/// Whether `v` is an order-book marker (carries `__bookKind`).
+pub(crate) fn book_kind_of(v: &Value) -> bool { book_kind(v).is_some() }
 
 fn book_kind(v: &Value) -> Option<String> {
     match v { Value::Dict(d) => match d.get("__bookKind") {
