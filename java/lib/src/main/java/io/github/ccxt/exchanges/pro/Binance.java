@@ -803,14 +803,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "swap");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation(message, market);
-        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.myLiquidations;
-        if (java.util.Objects.equals(cache, null))
+        if (java.util.Objects.equals(this.myLiquidations, null))
         {
             Long limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
-            cache = new ArrayCache(((Number)limit).intValue());
+            this.myLiquidations = new ArrayCache(((Number)limit).intValue());
         }
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.myLiquidations;
         cache.append(liquidation);
-        this.myLiquidations = cache;
         client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "myLiquidations");
         client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("myLiquidations::" + symbol));
     }
@@ -6112,7 +6111,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             this.setPositionsCache(client, type, symbolsNormalized, isPortfolioMargin);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (type == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(type));
             if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && (java.util.Objects.equals(cache, null)))
             {
                 Object snapshot = client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
@@ -6134,12 +6133,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             return;
         }
-        if (java.util.Objects.equals(this.positions, null))
-        {
-            this.positions = new HashMap<String, Object>() {{}};
-        }
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if ((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(type)) != null && j39v4.contains(type); case Map<?, ?> j39v3 -> ((Object)(type)) instanceof String && j39v3.containsKey(type); case null, default -> false; }))
+        if (((Map<?, ?>)this.positionsByType).containsKey(type))
         {
             // a fresh client has no snapshot future yet, which means the
             // connection was re-established after a disconnect: positions
@@ -6148,7 +6143,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String messageHash = (type + ":fetchPositionsSnapshot");
             if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (!(client.futures.containsKey(messageHash))))
             {
-                ((Map<String,Object>)this.positions).remove((String)type);
+                ((Map<String,Object>)this.positionsByType).remove((String)type);
             } else
             {
                 return;
@@ -6164,7 +6159,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
         } else
         {
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
+            this.positionsByType.put(type, new ArrayCache.ArrayCacheBySymbolBySide());
         }
     }
 
@@ -6188,15 +6183,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 return null;
             }
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
-            Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
+            this.positionsByType.put(type, new ArrayCache.ArrayCacheBySymbolBySide());
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (type == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(type));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && ((contracts != null && contracts > 0)))
                 {
-                    ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+                    cache.append(position);
                 }
             }
             // don't remove the future from the .futures cache
@@ -6245,15 +6240,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> subscriptions = client.subscriptions;
         List<String> subscriptionsKeys = new ArrayList<String>(subscriptions.keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        if (java.util.Objects.equals(this.positions, null))
+        if (!(((Map<?, ?>)this.positionsByType).containsKey(accountType)))
         {
-            this.positions = new HashMap<String, Object>() {{}};
+            Helpers.addElementToObject(this.positionsByType, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v6 -> ((Object)(accountType)) != null && j39v6.contains(accountType); case Map<?, ?> j39v5 -> ((Object)(accountType)) instanceof String && j39v5.containsKey(accountType); case null, default -> false; })))
-        {
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
-        }
-        Object cache = (accountType == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(accountType));
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (accountType == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(accountType));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
         List<Object> rawPositions = (List<Object>) this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
@@ -6265,7 +6256,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
             ((List<Object>)newPositions).add(position);
-            ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+            cache.append(position);
         }
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (accountType + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -6869,15 +6860,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         this.balance.put(accountType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType))));
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), (accountType + ":balance"));
         // --- positions ---
-        if (java.util.Objects.equals(this.positions, null))
+        if (!(((Map<?, ?>)this.positionsByType).containsKey(accountType)))
         {
-            this.positions = new HashMap<String, Object>() {{}};
+            this.positionsByType.put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v8 -> ((Object)(accountType)) != null && j39v8.contains(accountType); case Map<?, ?> j39v7 -> ((Object)(accountType)) instanceof String && j39v7.containsKey(accountType); case null, default -> false; })))
-        {
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
-        }
-        Object cache = (accountType == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(accountType));
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (accountType == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(accountType));
         List<Object> P = (List<Object>) this.safeList(message, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)P).size(); i++)
@@ -6887,7 +6874,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
             ((List<Object>)newPositions).add(position);
-            ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+            cache.append(position);
         }
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (accountType + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -7073,7 +7060,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             //         "A": "2.52500800"
             //     }
             //
-            if (java.util.Objects.equals(eventVar, null) && ((switch ((Object)(messageValue)) { case List<?> j39v12 -> j39v12.contains("a"); case Map<?, ?> j39v11 -> j39v11.containsKey("a"); case null, default -> false; })) && ((switch ((Object)(messageValue)) { case List<?> j39v10 -> j39v10.contains("b"); case Map<?, ?> j39v9 -> j39v9.containsKey("b"); case null, default -> false; })))
+            if (java.util.Objects.equals(eventVar, null) && ((switch ((Object)(messageValue)) { case List<?> j39v6 -> j39v6.contains("a"); case Map<?, ?> j39v5 -> j39v5.containsKey("a"); case null, default -> false; })) && ((switch ((Object)(messageValue)) { case List<?> j39v4 -> j39v4.contains("b"); case Map<?, ?> j39v3 -> j39v3.containsKey("b"); case null, default -> false; })))
             {
                 this.handleBidsAsks(client, messageValue);
             }

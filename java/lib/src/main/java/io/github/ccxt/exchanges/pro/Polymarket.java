@@ -1079,10 +1079,10 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
 
             List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                ((io.github.ccxt.ws.ArrayCache) cache).append((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)));
+                cache.append((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)));
             }
             // don't remove the future from the .futures cache
             if (client.futures.containsKey(messageHash))
@@ -1212,7 +1212,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> rows = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rows).size(); i++)
@@ -1223,7 +1223,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             }});
             Map<String, Object> position = (Map<String, Object>) this.parsePosition(extended, (Map<String, Object>) null);
             ((List<Object>)newPositions).add(position);
-            ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+            cache.append(position);
         }
         client.resolve(newPositions, "positions");
         Map<String, Object> margin = (Map<String, Object>) this.safeDict(data, "margin", new HashMap<String, Object>() {{}});

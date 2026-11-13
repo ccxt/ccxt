@@ -580,7 +580,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            Object ticker = (this.watchPublic(streamType, market, messageHash, parameters)).join();
+            Object ticker = (this.watchPublic(streamType, (Map<String, Object>) (market), messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 if (java.util.Objects.equals(messageHash, "ticker"))
@@ -665,7 +665,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     streamType = "best_bid_offer";
                 }
             }
-            Object ticker = (this.watchPublic(streamType, market, messageHash, parameters)).join();
+            Object ticker = (this.watchPublic(streamType, (Map<String, Object>) (market), messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 if (java.util.Objects.equals(messageHash, "bidask"))
@@ -1308,7 +1308,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public CompletableFuture<Object> watchPublic(String streamType, Object market, String messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublic(String streamType, Map<String, Object> market, String messageHash, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

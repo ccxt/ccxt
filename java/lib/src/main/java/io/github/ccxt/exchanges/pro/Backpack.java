@@ -426,10 +426,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     Object cache = this.orders;
                     if (!java.util.Objects.equals(this.orders, null))
                     {
-                        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)cache).keySet());
+                        List<String> keys = new ArrayList<String>(((Map<String, Object>)cache).keySet());
                         for (var j = 0; j < ((List<?>)keys).size(); j++)
                         {
-                            Object symbol = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
+                            String symbol = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                             ((Map<String,Object>)cache).remove((String)symbol);
                         }
                     }
@@ -444,21 +444,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 }
             } else if (((String)messageHash).indexOf("positions") >= 0)
             {
+                // the positions cache is one ArrayCacheBySymbolById: dropping it forgets every symbol
                 if (java.util.Objects.equals(messageHash, "unsubscribe:positions"))
                 {
-                    List<Object> keys = ((List<Object>) switch ((Object)(this.positions)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
-                    for (var j = 0; j < ((List<?>)keys).size(); j++)
-                    {
-                        Object symbol = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
-                        ((Map<String,Object>)this.positions).remove((String)symbol);
-                    }
-                } else
-                {
-                    String symbol = messageHash.replaceFirst("unsubscribe:positions:", "");
-                    if ((switch ((Object)(this.positions)) { case List<?> j39v2 -> ((Object)(symbol)) != null && j39v2.contains(symbol); case Map<?, ?> j39v1 -> ((Object)(symbol)) instanceof String && j39v1.containsKey(symbol); case null, default -> false; }))
-                    {
-                        ((Map<String,Object>)this.positions).remove(symbol);
-                    }
+                    this.positions = null;
                 }
             }
         }

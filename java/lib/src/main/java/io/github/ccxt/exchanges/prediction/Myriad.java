@@ -4583,8 +4583,8 @@ public class Myriad extends MyriadApi
         mapLiteral20.put("collateral", null);
         mapLiteral20.put("unrealizedPnl", null);
         Object parsed = this.safePredictionPosition(mapLiteral20);
-        Object stored = this.positions;
-        ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.positions;
+        stored.append(parsed);
         client.resolve(stored, "positions");
     }
 

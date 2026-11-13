@@ -4730,6 +4730,7 @@ public Map<String, Object> describe()
         this.ohlcvs = this.createSafeDictionary(true);
         this.myTrades = null;
         this.positions = null;
+        this.positionsByType = new HashMap<String, Object>() {{}};
     }
 
     public Object safeBoolN(Object dictionaryOrList, Object keys, Object defaultValue)

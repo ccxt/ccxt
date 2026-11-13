@@ -1103,18 +1103,16 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchPositions", (Map<String, Object>) (paramsSnapshot));
             var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
             var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-            if (java.util.Objects.equals(this.positions, null))
+            if (this.isEmpty(this.positionsByType))
             {
-                Map<String, Object> emptyCaches = new HashMap<String, Object>() {{}};
-                this.positions = emptyCaches;
                 Map<String, Object> emptySnapshots = new HashMap<String, Object>() {{}};
                 this.options.put("loadedPositionsSnapshots", emptySnapshots);
             }
             // the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
             String subaccountIdKey = this.numberToString(subaccountId);
-            if (!((switch ((Object)(this.positions)) { case List<?> j39v2 -> ((Object)(subaccountIdKey)) != null && j39v2.contains(subaccountIdKey); case Map<?, ?> j39v1 -> ((Object)(subaccountIdKey)) instanceof String && j39v1.containsKey(subaccountIdKey); case null, default -> false; })))
+            if (!(((Map<?, ?>)this.positionsByType).containsKey(subaccountIdKey)))
             {
-                ((Map<Object, Object>) (Map<?, ?>) this.positions).put(subaccountIdKey, new ArrayCache.ArrayCacheBySymbolBySide());
+                this.positionsByType.put(subaccountIdKey, new ArrayCache.ArrayCacheBySymbolBySide());
             }
             Map<String, Object> loadedSnapshots = (Map<String, Object>) this.safeDict(this.options, "loadedPositionsSnapshots", new HashMap<String, Object>() {{}});
             if (Boolean.TRUE.equals(fetchSnapshot) && !(loadedSnapshots.containsKey(subaccountIdKey)))
@@ -1124,7 +1122,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 }};
                 Map<String, Object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
                 List<Position> positionsSnapshot = (this.fetchPositions((List<String>) null, snapshotParams)).join();
-                Object cache = this.safeValue(this.positions, subaccountIdKey);
+                Object cache = this.safeValue(this.positionsByType, subaccountIdKey);
                 for (var i = 0; i < ((List<?>)positionsSnapshot).size(); i++)
                 {
                     Map<String, Object> snapshotPosition = (Map<String, Object>) this.safeDict(positionsSnapshot, i, (Object) null);
@@ -1152,7 +1150,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 return newPositions;
             }
-            return this.filterBySymbolsSinceLimit(this.safeValue(this.positions, subaccountIdKey), symbolsResolved, since, limit, true);
+            return this.filterBySymbolsSinceLimit(this.safeValue(this.positionsByType, subaccountIdKey), symbolsResolved, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -1166,7 +1164,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Object isShort = Precise.stringLt(newSize, "0");
         String side = ((Boolean.TRUE.equals(isShort))) ? "short" : "long";
         String contracts = Precise.stringAbs(newSize);
-        Object cache = this.safeValue(this.positions, subaccountIdKey);
+        Object cache = this.safeValue(this.positionsByType, subaccountIdKey);
         Map<String, Object> symbolPositions = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
         // a fill through zero flattens the opposite side first
         String oppositeSide = ((Boolean.TRUE.equals(isShort))) ? "long" : "short";
@@ -1239,7 +1237,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (((String)name).indexOf("-") >= 0)
             {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if ((!java.util.Objects.equals(this.positions, null)) && ((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(subaccountIdKey)) != null && j39v4.contains(subaccountIdKey); case Map<?, ?> j39v3 -> ((Object)(subaccountIdKey)) instanceof String && j39v3.containsKey(subaccountIdKey); case null, default -> false; })))
+                if (((Map<?, ?>)this.positionsByType).containsKey(subaccountIdKey))
                 {
                     Map<String, Object> position = this.handlePositionDelta(subaccountIdKey, entry);
                     ((List<Object>)positionUpdates).add(position);

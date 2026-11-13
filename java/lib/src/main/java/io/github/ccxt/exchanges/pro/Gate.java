@@ -1851,28 +1851,24 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             this.setPositionsCache(client, type, symbolsNormalized);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
             Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            Object cache = this.safeValue(this.positions, type);
+            Object cache = this.safeValue(this.positionsByType, type);
             if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && (java.util.Objects.equals(cache, null)))
             {
                 return client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
             }
-            Object positions = (this.subscribePrivate((String) (url), messageHash, payload, channel, query, true)).join();
+            List<Object> positions = (List<Object>) (this.subscribePrivate((String) (url), messageHash, payload, channel, query, true)).join();
             if (this.newUpdates)
             {
                 return positions;
             }
-            return this.filterBySymbolsSinceLimit(this.safeValue(this.positions, type), symbolsNormalized, since, limit, true);
+            return this.filterBySymbolsSinceLimit(this.safeValue(this.positionsByType, type), symbolsNormalized, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
     public void setPositionsCache(Client client, String type, List<String> symbols)
     {
-        if (java.util.Objects.equals(this.positions, null))
-        {
-            this.positions = new HashMap<String, Object>() {{}};
-        }
-        if ((switch ((Object)(this.positions)) { case List<?> j39v5 -> ((Object)(type)) != null && j39v5.contains(type); case Map<?, ?> j39v4 -> ((Object)(type)) instanceof String && j39v4.containsKey(type); case null, default -> false; }))
+        if (((Map<?, ?>)this.positionsByType).containsKey(type))
         {
             return;
         }
@@ -1887,7 +1883,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
         } else
         {
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
+            this.positionsByType.put(type, new ArrayCache.ArrayCacheBySymbolBySide());
         }
     }
 
@@ -1899,15 +1895,15 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("type", type);
             List<Position> positions = (this.fetchPositions((List<String>) null, mapLiteral1)).join();
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
-            Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
+            this.positionsByType.put(type, new ArrayCache.ArrayCacheBySymbolBySide());
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (type == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(type));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && ((contracts != null && contracts > 0)))
                 {
-                    ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+                    cache.append(position);
                 }
             }
             // don't remove the future from the .futures cache
@@ -1956,7 +1952,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //
         Object type = this.getMarketTypeByUrl((String) (client.url));
         List<Object> data = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
-        Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (type == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(type));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -1976,26 +1972,26 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 {
                     position.put("side", prevLongPosition.get("side"));
                     ((List<Object>)newPositions).add(position);
-                    ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+                    cache.append(position);
                 }
                 Map<String, Object> prevShortPosition = (Map<String, Object>) this.safeDict(cache, (symbol + "short"), (Object) null);
                 if (!java.util.Objects.equals(prevShortPosition, null))
                 {
                     position.put("side", prevShortPosition.get("side"));
                     ((List<Object>)newPositions).add(position);
-                    ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+                    cache.append(position);
                 }
                 // if no prev position is found, default to long
                 if (java.util.Objects.equals(prevLongPosition, null) && java.util.Objects.equals(prevShortPosition, null))
                 {
                     position.put("side", "long");
                     ((List<Object>)newPositions).add(position);
-                    ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+                    cache.append(position);
                 }
             } else
             {
                 ((List<Object>)newPositions).add(position);
-                ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+                cache.append(position);
             }
         }
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (type + ":positions::"));

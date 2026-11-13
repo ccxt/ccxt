@@ -1288,7 +1288,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String url = this.getUserStreamUrl();
             Client client = this.client(url);
             this.setPositionsCache(client, type, symbolsNormalized);
-            Object cache = this.safeValue(this.positions, type);
+            Object cache = this.safeValue(this.positionsByType, type);
             if (java.util.Objects.equals(cache, null))
             {
                 Object snapshot = client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
@@ -1306,11 +1306,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     public void setPositionsCache(Client client, String type, List<String> symbols)
     {
-        if (java.util.Objects.equals(this.positions, null))
-        {
-            this.positions = new HashMap<String, Object>() {{}};
-        }
-        if ((switch ((Object)(this.positions)) { case List<?> j39v2 -> ((Object)(type)) != null && j39v2.contains(type); case Map<?, ?> j39v1 -> ((Object)(type)) instanceof String && j39v1.containsKey(type); case null, default -> false; }))
+        if (((Map<?, ?>)this.positionsByType).containsKey(type))
         {
             return;
         }
@@ -1325,7 +1321,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
         } else
         {
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
+            this.positionsByType.put(type, new ArrayCache.ArrayCacheBySymbolBySide());
         }
     }
 
@@ -1337,12 +1333,12 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Map<String, Object> parameters = new HashMap<String, Object>();
             parameters.put("type", type);
             List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
-            Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
+            this.positionsByType.put(type, new ArrayCache.ArrayCacheBySymbolBySide());
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (type == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(type));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-                ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+                cache.append(position);
             }
             // don't remove the future from the .futures cache
             if (client.futures.containsKey(messageHash))
@@ -1383,19 +1379,15 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         // ]
         //
         String accountType = "swap";
-        if (java.util.Objects.equals(this.positions, null))
+        if (!(((Map<?, ?>)this.positionsByType).containsKey(accountType)))
         {
-            this.positions = new HashMap<String, Object>() {{}};
+            this.positionsByType.put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
-        if (!((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(accountType)) != null && j39v4.contains(accountType); case Map<?, ?> j39v3 -> ((Object)(accountType)) instanceof String && j39v3.containsKey(accountType); case null, default -> false; })))
-        {
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(accountType, new ArrayCache.ArrayCacheBySymbolBySide());
-        }
-        Object cache = (accountType == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(accountType));
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (accountType == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(accountType));
         // handleMessage's fallback dispatches one item at a time
         Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(message, (Map<String, Object>) null);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList(position));
-        ((io.github.ccxt.ws.ArrayCache) cache).append(position);
+        cache.append(position);
         // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals
         // included, so a local `positions` rewrites the hash prefix below to

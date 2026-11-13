@@ -1970,7 +1970,7 @@ public class Derive extends DeriveApi
         for (var i = 0; i < ((List<?>)tradesArray).size(); i++)
         {
             Object rawTrade = (tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i));
-            Boolean isFetchTrades = !((switch ((Object)(rawTrade)) { case List<?> j39v2 -> j39v2.contains("order_id"); case Map<?, ?> j39v1 -> j39v1.containsKey("order_id"); case null, default -> false; }));
+            Boolean isFetchTrades = !(((Map<?, ?>)rawTrade).containsKey("order_id"));
             String liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (Boolean.TRUE.equals(isFetchTrades) && (java.util.Objects.equals(liquidityRole, "maker")))
             {

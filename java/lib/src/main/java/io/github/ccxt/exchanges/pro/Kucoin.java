@@ -3462,8 +3462,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             return null;
         }
-        Object cache = ((io.github.ccxt.ws.ArrayCache)this.positions).hashmap;
-        Map<String, Object> symbolCache = (Map<String, Object>) this.safeDict(cache, symbol, new HashMap<String, Object>() {{}});
+        Map<String, Object> symbolCache = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)this.positions).hashmap, symbol, new HashMap<String, Object>() {{}});
         List<Object> values = new ArrayList<Object>(symbolCache.values());
         return this.safeDict(values, 0, (Object) null);
     }
@@ -3668,7 +3667,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }
         }
         Map<String, Object> position = this.extend(currentPosition, newPosition);
-        cache.append(position);
+        // the cache exists once watchPosition(s) set it up
+        if (!java.util.Objects.equals(cache, null))
+        {
+            cache.append(position);
+        }
         client.resolve(position, messageHash);
     }
 

@@ -1890,13 +1890,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean future = (java.util.Objects.equals(type, "future"));
             Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
-            Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
-            String url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
             messageHash = ((marginMode + ":positions") + messageHash);
             String channel = "positions.*";
+            // one positions cache per margin mode: linear, inverse and futures symbols never collide
+            String cacheKey = "isolated";
             if (java.util.Objects.equals(marginMode, "cross"))
             {
                 channel = "positions_cross.*";
+                cacheKey = "cross";
             }
             if (Boolean.TRUE.equals(isV5Linear))
             {
@@ -1917,7 +1918,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 return newPositions;
             }
-            return this.filterBySymbolsSinceLimit(this.safeValue(this.safeValue(this.positions, url), marginMode), symbolsNormalized, since, limit, false);
+            return this.filterBySymbolsSinceLimit(this.safeValue(this.positionsByType, cacheKey), symbolsNormalized, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -2003,21 +2004,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //         ]
         //     }
         //
-        Object url = client.url;
         String topic = this.safeString(message, "topic", "");
         String defaultMarginMode = "isolated";
         if (java.util.Objects.equals(topic, "positions_cross"))
         {
             defaultMarginMode = "cross";
-        }
-        if (java.util.Objects.equals(this.positions, null))
-        {
-            this.positions = new HashMap<String, Object>() {{}};
-        }
-        Map<String, Object> clientPositions = (Map<String, Object>) this.safeDict(this.positions, url, (Object) null);
-        if (java.util.Objects.equals(clientPositions, null))
-        {
-            ((Map<Object, Object>) (Map<?, ?>) this.positions).put(url, new HashMap<String, Object>() {{}});
         }
         List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (this.isEmpty(rawPositions))
@@ -2047,11 +2038,11 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 marginMode = defaultMarginMode;
             }
-            Object cache = this.safeValue((url == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(url)), marginMode);
+            Object cache = this.safeValue(this.positionsByType, marginMode);
             if (java.util.Objects.equals(cache, null))
             {
                 cache = new ArrayCache.ArrayCacheBySymbolBySide();
-                Helpers.addElementToObject((url == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(url)), marginMode, cache);
+                this.positionsByType.put(marginMode, cache);
             }
             ((List<Object>)newPositions).add(position);
             positionsByMarginMode.put(marginMode, this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList())));
