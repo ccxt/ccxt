@@ -263,8 +263,8 @@ export default class gemini extends Exchange {
             'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
-                    'taker': 0.004,
-                    'maker': 0.002,
+                    'taker': this.parseNumber ('0.012'),
+                    'maker': this.parseNumber ('0.006'),
                 },
             },
             'httpExceptions': {
@@ -331,7 +331,7 @@ export default class gemini extends Exchange {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'quoteCurrencies': [ 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC' ],
+                    'quoteCurrencies': [ 'RLUSD', 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC' ],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true, // fetches from WEB
@@ -569,6 +569,23 @@ export default class gemini extends Exchange {
         return await this.fetchMarketsFromAPI (params);
     }
 
+    spotMarketFees (base: string, quote: string): Dict {
+        // https://www.gemini.com/fees/activetrader-fee-schedule
+        const symbol = base + '/' + quote;
+        const zeroFeePairs = [ 'RLUSD/USD', 'USDC/GUSD', 'GUSD/USD' ];
+        if (this.inArray (symbol, zeroFeePairs)) {
+            return { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0') };
+        }
+        const stablecoins = [ 'DAI', 'GUSD', 'RLUSD', 'USAT', 'USD1', 'USDC', 'USDG', 'USDT' ];
+        const fiatCurrencies = [ 'AUD', 'CAD', 'EUR', 'GBP', 'HKD', 'SGD', 'USD' ];
+        const baseIsStablecoin = this.inArray (base, stablecoins);
+        const quoteIsStablecoin = this.inArray (quote, stablecoins);
+        if ((baseIsStablecoin && (quoteIsStablecoin || this.inArray (quote, fiatCurrencies))) || (quoteIsStablecoin && this.inArray (base, fiatCurrencies))) {
+            return { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0.0001') };
+        }
+        return this.fees['trading'];
+    }
+
     async fetchMarketsFromWeb (params: Dict = {}): Promise<Market[]> {
         const data = await this.fetchWebEndpoint ('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const error = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
@@ -622,6 +639,7 @@ export default class gemini extends Exchange {
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
+            const fees = this.spotMarketFees (base, quote);
             result.push ({
                 'id': marketId,
                 'symbol': base + '/' + quote,
@@ -641,6 +659,8 @@ export default class gemini extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
+                'maker': this.safeNumber (fees, 'maker'),
+                'taker': this.safeNumber (fees, 'taker'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -904,6 +924,7 @@ export default class gemini extends Exchange {
             type = 'swap';
         }
         const isSpot = !swap;
+        const fees = isSpot ? this.spotMarketFees (base, quote) : { 'maker': this.parseNumber ('0.0002'), 'taker': this.parseNumber ('0.0007') };
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
@@ -923,6 +944,8 @@ export default class gemini extends Exchange {
             'contract': swap,
             'linear': linear,
             'inverse': inverse,
+            'maker': this.safeNumber (fees, 'maker'),
+            'taker': this.safeNumber (fees, 'taker'),
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
