@@ -1739,25 +1739,30 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         instrumentName = self.safe_string(position, 'instrument_name')
         marketResolved = self.safe_market(instrumentName, market)
-        side = self.safe_string(position, 'direction')
-        if side == 'buy':
+        direction = self.safe_string(position, 'direction')
+        side = None
+        if direction == 'buy':
             side = 'long'
-        elif side == 'sell':
+        elif direction == 'sell':
             side = 'short'
-        notional = self.safe_string(position, 'size_currency')
         initialMargin = self.safe_string(position, 'initial_margin')
         maintenanceMargin = self.safe_string(position, 'maintenance_margin')
-        contracts = self.safe_number(position, 'size')
-        if self.is_native_deribit_credentials():
-            size = self.safe_string(position, 'size')
-            if not self.safe_bool(marketResolved, 'option', False):
-                notional = size
-                if self.safe_bool(marketResolved, 'linear', False):
-                    size = self.safe_string(position, 'size_currency')
-            else:
-                notional = Precise.string_mul(size, self.safe_string(position, 'mark_price'))
-            contractsString = self.safe_string(position, 'contracts', Precise.string_div(size, self.safe_string(marketResolved, 'contractSize')))
-            contracts = self.parse_number(Precise.string_abs(contractsString))
+        # size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+        # size_currency is in the base currency, futures only
+        # contractSize is in USD for inverse futures and in the base currency otherwise
+        size = self.safe_string(position, 'size')
+        amount = size  # `contract_size` converts between `amount` and `contracts`
+        notional = None
+        if self.safe_bool(marketResolved, 'option', False):
+            # For options, "size" is the base currency (e.g. BTC) instead of quote currency
+            notional = Precise.string_mul(size, self.safe_string(position, 'mark_price'))
+        elif self.safe_bool(marketResolved, 'linear', False):
+            amount = self.safe_string(position, 'size_currency')  # The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+            notional = size
+        else:
+            # Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+            notional = self.safe_string(position, 'size_currency')
+        contractsString = Precise.string_div(amount, self.safe_string(marketResolved, 'contractSize'))
         return self.safe_position({
             'info': position,
             'id': None,
@@ -1768,7 +1773,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'collateral': None,
             'unrealizedPnl': self.safe_number(position, 'floating_profit_loss'),
             'side': side,
-            'contracts': contracts,
+            'contracts': self.parse_number(Precise.string_abs(contractsString)),
             'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'timestamp': None,
             'datetime': None,

@@ -789,12 +789,17 @@ class dydx extends Exchange {
             $request['limit'] = min($limit, 1000);
         }
         if ($since !== null) {
-            $request['fromIso'] = $this->iso8601($since);
+            $request['fromISO'] = $this->iso8601($since);
         }
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
         if ($until !== null) {
-            $request['toIso'] = $this->iso8601($until);
+            $request['toISO'] = $this->iso8601($until);
+        } elseif ($since !== null) {
+            // the indexer returns the newest candles in the range, so the range ends where the limit does
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $count = ($limit !== null) ? min($limit, 1000) : 1000;
+            $request['toISO'] = $this->iso8601($this->sum($since, $duration * $count));
         }
         $response = Async\await($this->indexerGetCandlesPerpetualMarketsMarket($this->extend($request, $paramsOmitted)));
         //
