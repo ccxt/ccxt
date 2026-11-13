@@ -325,9 +325,9 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 	}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var stored any = storesForSymbols[symbol]
+		var symbolStore any = storesForSymbols[symbol]
 		var messageHash string = "trades:" + symbol
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.(ccxt.ClientInterface).Resolve(symbolStore, messageHash)
 	}
 }
 

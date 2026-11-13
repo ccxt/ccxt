@@ -257,8 +257,8 @@ func (this *Ndax) HandleTrades(client any, message map[string]any) {
 		var market map[string]any = this.Market(symbol)
 		var marketId string = *this.SafeString(market, "id", "")
 		var messageHash string = name + ":" + marketId
-		var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
-		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
+		var symbolTrades ccxt.WsArrayCache = this.Trades[symbol]
+		client.(ccxt.ClientInterface).Resolve(symbolTrades, messageHash)
 	}
 }
 

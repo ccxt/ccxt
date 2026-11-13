@@ -533,7 +533,7 @@ func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 		var cost *string = Precise.StringAbs(amount)
 		fee = map[string]any{
 			"cost":     cost,
-			"currency": currencyResolved,
+			"currency": code,
 		}
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "created_at"))

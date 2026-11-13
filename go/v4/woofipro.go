@@ -3832,7 +3832,7 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], option
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
 		request["balance_token"] = this.SafeString(currency, "id")
@@ -3880,8 +3880,9 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], option
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
-	ch <- AsyncResult[[]any]{Value: []any{currency, this.SafeList(data, "rows", []any{})}}
+	ch <- AsyncResult[[]any]{Value: rows}
 	return nil
 }
 func (this *Woofipro) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
@@ -3958,10 +3959,14 @@ func (this *Woofipro) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	currencyRowsRecv, _ := r.Value, r.Value != nil
-	var currencyRows []any = currencyRowsRecv
-	var currency any = this.SafeValue(currencyRows, 0)
-	var rows []any = SafeListTyped(currencyRows, 1)
+	var rows any = nil
+	if r.Value != nil {
+		rows = r.Value
+	}
+	var currency map[string]any = nil
+	if code != nil {
+		currency = this.Currency(code)
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit, params))}
 	return nil
@@ -4048,11 +4053,11 @@ func (this *Woofipro) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes287615 []any = TransactionsToList(r.Value)
-	if retRes287615 == nil {
+	var retRes287915 []any = TransactionsToList(r.Value)
+	if retRes287915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes287615)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes287915)}
 	}
 	return nil
 }
@@ -4092,11 +4097,11 @@ func (this *Woofipro) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes289415 []any = TransactionsToList(r.Value)
-	if retRes289415 == nil {
+	var retRes289715 []any = TransactionsToList(r.Value)
+	if retRes289715 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes289415)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes289715)}
 	}
 	return nil
 }
@@ -4134,10 +4139,15 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	currencyRowsRecv, _ := r.Value, r.Value != nil
-	var currencyRows []any = currencyRowsRecv
-	var currency any = this.SafeValue(currencyRows, 0)
-	var rows []any = SafeListTyped(currencyRows, 1)
+	var rows any = nil
+	if r.Value != nil {
+		rows = r.Value
+	}
+	var currency map[string]any = nil
+	if code != nil {
+		currency = this.Currency(code)
+	}
+
 	//
 	//     {
 	//         "rows":[],
@@ -4149,12 +4159,7 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	//         "success":true
 	//     }
 	//
-	var rowsList []any = []any{}
-	if rows != nil {
-		rowsList = ArrayTyped(rows)
-	}
-
-	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rowsList, currency, since, limit, params))}
+	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rows, currency, since, limit, params))}
 	return nil
 }
 func (this *Woofipro) GetWithdrawNonceAsync(optionalArgs ...any) <-chan AsyncResult[*float64] {

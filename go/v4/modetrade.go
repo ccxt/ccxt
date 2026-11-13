@@ -3734,7 +3734,7 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optio
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var currency any = nil
+	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
 		request["token"] = this.SafeString(currency, "id")
@@ -3782,8 +3782,9 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optio
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
+	var rows []any = SafeListTypedDefault(data, "rows", []any{})
 
-	ch <- AsyncResult[[]any]{Value: []any{currency, this.SafeList(data, "rows", []any{})}}
+	ch <- AsyncResult[[]any]{Value: rows}
 	return nil
 }
 func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
@@ -3886,10 +3887,14 @@ func (this *Modetrade) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	currencyRowsRecv, _ := r.Value, r.Value != nil
-	var currencyRows []any = currencyRowsRecv
-	var currency any = this.SafeValue(currencyRows, 0)
-	var rows []any = SafeListTyped(currencyRows, 1)
+	var rows any = nil
+	if r.Value != nil {
+		rows = r.Value
+	}
+	var currency map[string]any = nil
+	if code != nil {
+		currency = this.Currency(code)
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit, params))}
 	return nil
@@ -4001,11 +4006,11 @@ func (this *Modetrade) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes287115 []any = TransactionsToList(r.Value)
-	if retRes287115 == nil {
+	var retRes287415 []any = TransactionsToList(r.Value)
+	if retRes287415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes287115)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes287415)}
 	}
 	return nil
 }
@@ -4045,11 +4050,11 @@ func (this *Modetrade) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes288915 []any = TransactionsToList(r.Value)
-	if retRes288915 == nil {
+	var retRes289215 []any = TransactionsToList(r.Value)
+	if retRes289215 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes288915)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes289215)}
 	}
 	return nil
 }
@@ -4087,10 +4092,14 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	currencyRowsRecv, _ := r.Value, r.Value != nil
-	var currencyRows []any = currencyRowsRecv
-	var currency any = this.SafeValue(currencyRows, 0)
-	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
+	var rows any = nil
+	if r.Value != nil {
+		rows = r.Value
+	}
+	var currency map[string]any = nil
+	if code != nil {
+		currency = this.Currency(code)
+	}
 	//
 	//     {
 	//         "rows":[],

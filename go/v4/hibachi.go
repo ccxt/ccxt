@@ -2504,7 +2504,7 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry
 	}
 	return this.SafeLedgerEntry(map[string]any{
 		"id":               this.SafeString(item, "id"),
-		"currency":         this.Currency("USDT"),
+		"currency":         "USDT",
 		"account":          this.NumberToString(this.AccountId),
 		"referenceAccount": referenceAccount,
 		"referenceId":      referenceId,
