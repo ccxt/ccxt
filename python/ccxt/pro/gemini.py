@@ -333,8 +333,7 @@ class gemini(ccxt.async_support.gemini):
         symbol = self.safe_symbol(marketId, market)
         changes = self.safe_list(message, 'changes', [])
         timeframe = self.find_timeframe(timeframeId)
-        ohlcvsBySymbol = self.safe_dict(self.ohlcvs, symbol)
-        if ohlcvsBySymbol is None:
+        if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
         stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:

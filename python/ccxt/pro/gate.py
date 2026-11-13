@@ -1138,8 +1138,8 @@ class gate(ccxt.async_support.gate):
             timeframe = marketIds[symbol]
             interval = self.find_timeframe(timeframe)
             hash = 'candles' + ':' + interval + ':' + symbol
-            stored = self.safe_value(self.ohlcvs[symbol], interval)
-            client.resolve(stored, hash)
+            symbolOhlcv = self.safe_value(self.safe_dict(self.ohlcvs, symbol), interval)
+            client.resolve(symbolOhlcv, hash)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """

@@ -263,7 +263,25 @@ class lbank(ccxt.async_support.lbank):
         watchOHLCVOptions = self.safe_dict(self.options, 'watchOHLCV', {})
         timeframes = self.safe_dict(watchOHLCVOptions, 'timeframes', {})
         records = self.safe_list(message, 'records')
-        if records is not None:  # from request
+        timeframeId = ''
+        messageHash = ''
+        if records is not None:
+            timeframeId = self.safe_string(message, 'kbar', '')
+            messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId
+        else:  # from subscription
+            timeframeId = self.safe_string(self.safe_dict(message, 'kbar', {}), 'slot', '')
+            messageHash = 'ohlcv:' + symbol + ':' + timeframeId
+            if not (messageHash in client.subscriptions):
+                # a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
+                return
+        timeframe = self.find_timeframe(timeframeId, timeframes)
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            stored = ArrayCacheByTimestamp(limit)
+            self.ohlcvs[symbol][timeframe] = stored
+        if records is not None:
             rawOHLCV = self.safe_list(records, 0, [])
             parsed = [
                 self.safe_integer(rawOHLCV, 0),
@@ -273,21 +291,9 @@ class lbank(ccxt.async_support.lbank):
                 self.safe_number(rawOHLCV, 4),
                 self.safe_number(rawOHLCV, 5),
             ]
-            timeframeId = self.safe_string(message, 'kbar', '')
-            timeframe = self.find_timeframe(timeframeId, timeframes)
-            ohlcvsForSymbol = self.safe_dict(self.ohlcvs, symbol, {})
-            self.ohlcvs[symbol] = ohlcvsForSymbol
-            stored = self.safe_value(ohlcvsForSymbol, timeframe)
-            if stored is None:
-                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                stored = ArrayCacheByTimestamp(limit)
-                ohlcvsForSymbol[timeframe] = stored
             stored.append(parsed)
-            messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId
-            client.resolve(stored, messageHash)
-        else:  # from subscription
+        else:
             rawOHLCV = self.safe_dict(message, 'kbar', {})
-            timeframeId = self.safe_string(rawOHLCV, 'slot', '')
             datetime = self.safe_string(rawOHLCV, 't')
             parsed = [
                 self.parse8601(datetime),
@@ -297,20 +303,8 @@ class lbank(ccxt.async_support.lbank):
                 self.safe_number(rawOHLCV, 'c'),
                 self.safe_number(rawOHLCV, 'v'),
             ]
-            messageHash = 'ohlcv:' + symbol + ':' + timeframeId
-            if not (messageHash in client.subscriptions):
-                # a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
-                return
-            timeframe = self.find_timeframe(timeframeId, timeframes)
-            ohlcvsForSymbol = self.safe_dict(self.ohlcvs, symbol, {})
-            self.ohlcvs[symbol] = ohlcvsForSymbol
-            stored = self.safe_value(ohlcvsForSymbol, timeframe)
-            if stored is None:
-                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                stored = ArrayCacheByTimestamp(limit)
-                ohlcvsForSymbol[timeframe] = stored
             stored.append(parsed)
-            client.resolve(stored, messageHash)
+        client.resolve(stored, messageHash)
 
     async def fetch_ticker_ws(self, symbol: str, params: dict = {}) -> Ticker:
         """

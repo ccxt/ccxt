@@ -665,14 +665,14 @@ class mexc(ccxt.async_support.mexc):
         # }
         #
         parsed: dict
-        symbol = None
+        market = None
         timeframe = None
         if 'publicSpotKline' in message:
-            symbol = self.symbol(self.safe_string(message, 'symbol'))
+            market = self.safe_market(self.symbol(self.safe_string(message, 'symbol')))
             data = self.safe_dict(message, 'publicSpotKline', {})
             timeframeId = self.safe_string(data, 'interval')
             timeframe = self.find_timeframe(timeframeId, self.options['timeframes'])
-            parsed = self.parse_ws_ohlcv(data, self.safe_market(symbol))
+            parsed = self.parse_ws_ohlcv(data, market)
         else:
             d = self.safe_dict_2(message, 'd', 'data', {})
             rawOhlcv = self.safe_dict(d, 'k', d)
@@ -681,17 +681,16 @@ class mexc(ccxt.async_support.mexc):
             timeframe = self.find_timeframe(timeframeId, timeframes)
             marketId = self.safe_string_2(message, 's', 'symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
             parsed = self.parse_ws_ohlcv(rawOhlcv, market)
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'candles:' + symbol + ':' + timeframe
-        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
-        self.ohlcvs[symbol] = symbolOhlcvs
-        stored = self.safe_value(symbolOhlcvs, timeframe)
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
             if timeframe is not None:
-                symbolOhlcvs[timeframe] = stored
+                self.ohlcvs[symbol][timeframe] = stored
         stored.append(parsed)
         client.resolve(stored, messageHash)
 

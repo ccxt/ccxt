@@ -787,7 +787,7 @@ class btcturk(Exchange, ImplicitAPI):
             })
         return self.parse_ohlcvs(rows, market, timeframe, since, limitResolved)
 
-    def parse_ohlcvs(self, ohlcvs: list, market: object = None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
+    def parse_ohlcvs(self, ohlcvs: list, market: Market = None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
         rows = self.to_array(ohlcvs)
         results = []
         for i in range(0, len(rows)):

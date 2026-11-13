@@ -3559,7 +3559,7 @@ class btse(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def futures_request_id(self, market: dict):
+    def futures_request_id(self, market: Market):
         # the futures v3 trading api identifies contracts by the short trade-currency
         # form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         # from the raw market info so that cached markets resolve it as well

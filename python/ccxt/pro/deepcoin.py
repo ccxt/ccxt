@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade, MarketInterface
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -113,7 +113,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.unlock_id()
         return newValue
 
-    def create_public_request(self, market: dict, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False) -> dict:
+    def create_public_request(self, market: Market, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False) -> dict:
         marketId = self.safe_string(market, 'symbol', '')  # spot markets use symbol with slash
         if self.safe_string(market, 'type') == 'swap':
             marketId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')  # swap markets use symbol without slash
@@ -131,7 +131,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return request
 
-    async def watch_public(self, market: dict, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> object:
+    async def watch_public(self, market: Market, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> object:
         marketType = self.safe_string(market, 'type', '')
         url = self.safe_string(self.urls['api']['ws']['public'], marketType, '')
         requestId = self.request_id()
@@ -142,7 +142,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
 
-    async def un_watch_public(self, market: dict, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> object:
+    async def un_watch_public(self, market: MarketInterface, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> object:
         marketType = self.safe_string(market, 'type', '')
         url = self.safe_string(self.urls['api']['ws']['public'], marketType, '')
         requestId = self.request_id()

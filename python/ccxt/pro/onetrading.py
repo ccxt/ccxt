@@ -1158,15 +1158,14 @@ class onetrading(ccxt.async_support.onetrading):
             self.safe_number(message, 'close'),
             self.safe_number(message, 'volume'),
         ]
-        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
-        self.ohlcvs[symbol] = symbolOhlcvs
-        stored = self.safe_value(symbolOhlcvs, timeframe)
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
         stored.append(parsed)
         if symbol is not None and timeframe is not None:
-            symbolOhlcvs[timeframe] = stored
+            self.ohlcvs[symbol][timeframe] = stored
         client.resolve(stored, channel)
 
     def find_timeframe(self, timeframe: object, timeframes: dict = None) -> Str:

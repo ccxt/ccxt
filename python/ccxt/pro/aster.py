@@ -1159,10 +1159,9 @@ class aster(ccxt.async_support.aster):
         timeframe = self.find_timeframe(timeframeId)
         if timeframe is None:
             return
-        ohlcvsByTimeframe = self.safe_dict(self.ohlcvs, symbol)
-        if ohlcvsByTimeframe is None:
+        if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        if self.safe_value(ohlcvsByTimeframe, timeframe) is None:
+        if self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe) is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][timeframe]

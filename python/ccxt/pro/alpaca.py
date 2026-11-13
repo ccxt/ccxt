@@ -194,11 +194,12 @@ class alpaca(ccxt.async_support.alpaca):
         #
         marketId = self.safe_string(message, 'S')
         symbol = self.safe_symbol(marketId)
-        stored = self.safe_value(self.ohlcvs, symbol)
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), '1m')
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol] = stored
+            self.ohlcvs[symbol]['1m'] = stored
         parsed = self.parse_ohlcv(message)
         stored.append(parsed)
         messageHash = 'ohlcv:' + symbol

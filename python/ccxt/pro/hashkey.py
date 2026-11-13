@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade, MarketInterface
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -54,7 +54,7 @@ class hashkey(ccxt.async_support.hashkey):
             },
         })
 
-    async def wath_public(self, market: Market, topic: str, messageHash: str, params: dict = {}):
+    async def wath_public(self, market: MarketInterface, topic: str, messageHash: str, params: dict = {}):
         request = {
             'symbol': market['id'],
             'topic': topic,

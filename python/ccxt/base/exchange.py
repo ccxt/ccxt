@@ -5421,7 +5421,7 @@ class BaseExchange(object):
             'nonce': None,
         }
 
-    def parse_ohlcvs(self, ohlcvs: list, market: object = None, timeframe: str = '1m', since: Int = None, limit: Int = None, tail: Bool = False):
+    def parse_ohlcvs(self, ohlcvs: list, market: Market = None, timeframe: str = '1m', since: Int = None, limit: Int = None, tail: Bool = False):
         if ohlcvs is None:
             return []
         results = []
@@ -6971,7 +6971,7 @@ class BaseExchange(object):
     def parse_borrow_interests(self, response: list, market: Market = None):
         interests = []
         for i in range(0, len(response)):
-            row = self.safe_value(response, i)
+            row = self.safe_dict(response, i, {})
             interests.append(self.parse_borrow_interest(row, market))
         return interests
 
@@ -6981,7 +6981,7 @@ class BaseExchange(object):
     def parse_borrow_rate_history(self, response: object, code: Str, since: Int, limit: Int):
         result = []
         for i in range(0, len(response)):
-            item = self.safe_value(response, i)
+            item = self.safe_dict(response, i)
             borrowRate = self.parse_borrow_rate(item)
             result.append(borrowRate)
         sorted = self.sort_by(result, 'timestamp')
@@ -6990,7 +6990,7 @@ class BaseExchange(object):
     def parse_isolated_borrow_rates(self, info: list):
         result = {}
         for i in range(0, len(info)):
-            item = self.safe_value(info, i)
+            item = self.safe_dict(info, i, {})
             borrowRate = self.parse_isolated_borrow_rate(item)
             symbol = self.safe_string(borrowRate, 'symbol')
             result[symbol] = borrowRate

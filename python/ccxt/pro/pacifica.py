@@ -1082,12 +1082,11 @@ class pacifica(ccxt.async_support.pacifica):
         messageHash = 'candles:' + timeframe + ':' + symbol
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
-        ohlcv = self.safe_value(symbolOhlcvs, timeframe)
+        ohlcv = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if ohlcv is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             ohlcv = ArrayCacheByTimestamp(limit)
-            symbolOhlcvs[timeframe] = ohlcv
+            self.ohlcvs[symbol][timeframe] = ohlcv
         parsed = self.parse_ohlcv(data)
         ohlcv.append(parsed)
         client.resolve(ohlcv, messageHash)
