@@ -2840,7 +2840,9 @@ export class BaseExchange {
                 'option': undefined,
                 'index': undefined,
                 'addMargin': undefined,
+                'addLiquidity': undefined,
                 'borrowCrossMargin': undefined,
+                'borrowCurrency': undefined,
                 'borrowIsolatedMargin': undefined,
                 'borrowMargin': undefined,
                 'cancelAllOrders': undefined,
@@ -2853,6 +2855,10 @@ export class BaseExchange {
                 'cancelOrdersWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
+                'cancelDCAOrder': undefined,
+                'claimPoolFees': undefined,
+                'collectFees': undefined,
+                'createPool': undefined,
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
                 'createLimitBuyOrderWs': undefined,
@@ -2873,6 +2879,10 @@ export class BaseExchange {
                 'createMarketSellOrderWithCost': undefined,
                 'createMarketSellOrderWithCostWs': undefined,
                 'createOrder': undefined,
+                'createDCAOrder': undefined,
+                'confirmCancelDCAOrder': undefined,
+                'depositCollateral': undefined,
+                'depositStake': undefined,
                 'createOrderWs': undefined,
                 'createOrders': undefined,
                 'createOrderWithTakeProfitAndStopLoss': undefined,
@@ -2925,6 +2935,8 @@ export class BaseExchange {
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
+                'fetchDCAOrder': undefined,
+                'fetchDCAOrders': undefined,
                 'fetchCurrenciesWs': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
@@ -2950,8 +2962,14 @@ export class BaseExchange {
                 'fetchL2OrderBook': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': undefined,
+                'fetchLiquidity': undefined,
+                'fetchLiquidityPools': undefined,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
+                'fetchPoolFees': undefined,
+                'fetchPoolMintAddresses': undefined,
+                'fetchStake': undefined,
+                'fetchBorrowPositions': undefined,
                 'fetchLeverage': undefined,
                 'fetchLeverages': undefined,
                 'fetchLeverageTiers': undefined,
@@ -3068,6 +3086,11 @@ export class BaseExchange {
                 'unWatchOHLCV': undefined,
                 'watchMyLiquidationsForSymbols': undefined,
                 'withdraw': undefined,
+                'withdrawCollateral': undefined,
+                'withdrawStake': undefined,
+                'removeLiquidity': undefined,
+                'repayCurrency': undefined,
+                'submitPool': undefined,
                 'ws': undefined,
             },
             'urls': {
@@ -9609,6 +9632,287 @@ export default class Exchange extends BaseExchange {
 
     async closeAllPositions (params: Dict = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' closeAllPositions() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#createDCAOrder
+     * @description creates a dollar-cost averaging order
+     * @param {object} params exchange-specific DCA schedule and funding parameters
+     * @returns {object} the created DCA order
+     */
+    async createDCAOrder (params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' createDCAOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchDCAOrders
+     * @description fetches the user's dollar-cost averaging orders
+     * @param {int} [since] timestamp in milliseconds of the earliest order
+     * @param {int} [limit] maximum number of orders
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} a list of DCA orders
+     */
+    async fetchDCAOrders (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchDCAOrders() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchDCAOrder
+     * @description fetches one dollar-cost averaging order by id
+     * @param {string} id DCA order id
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} DCA order details
+     */
+    async fetchDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' fetchDCAOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#cancelDCAOrder
+     * @description initiates cancellation of a dollar-cost averaging order
+     * @param {string} id DCA order id
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} cancellation result, which may contain a transaction to sign
+     */
+    async cancelDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' cancelDCAOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#confirmCancelDCAOrder
+     * @description confirms DCA order cancellation after completing any required signing step
+     * @param {string} id DCA order id
+     * @param {object} params exchange-specific cancellation confirmation fields
+     * @returns {object} cancellation confirmation
+     */
+    async confirmCancelDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' confirmCancelDCAOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchLiquidityPools
+     * @description fetches available liquidity pools or vaults
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} liquidity pool structures with id, poolId, type, baseCurrency, quoteCurrency, lpCurrency, rates, and venue data in info
+     */
+    async fetchLiquidityPools (params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchLiquidityPools() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchLiquidity
+     * @description fetches the user's liquidity positions
+     * @param {string} [poolId] exchange-specific pool identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} liquidity position structures with id, poolId, owner, type, currency, amount, shares, collateral, debt, and venue data in info
+     */
+    async fetchLiquidity (poolId: Str = undefined, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchLiquidity() is not supported for pool ' + poolId);
+    }
+
+    /**
+     * @method
+     * @name exchange#addLiquidity
+     * @description adds liquidity to a pool
+     * @param {string} poolId exchange-specific pool identifier
+     * @param {number} amount amount of liquidity to add
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the liquidity operation result
+     */
+    async addLiquidity (poolId: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' addLiquidity() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#removeLiquidity
+     * @description removes liquidity from a pool
+     * @param {string} poolId exchange-specific pool identifier
+     * @param {number} amount amount of liquidity to remove
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the liquidity operation result
+     */
+    async removeLiquidity (poolId: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' removeLiquidity() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchPoolFees
+     * @description fetches unclaimed fees for a pool or liquidity position
+     * @param {string} [poolId] exchange-specific pool or position identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} fee structures with id, poolId, positionId, type, currency, amount, totalAmount, unclaimedAmount, and venue data in info
+     */
+    async fetchPoolFees (poolId: Str = undefined, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchPoolFees() is not supported for pool ' + poolId);
+    }
+
+    /**
+     * @method
+     * @name exchange#collectFees
+     * @description collects unclaimed liquidity pool fees
+     * @param {string} poolId exchange-specific pool or position identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the fee collection result
+     */
+    async collectFees (poolId: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' collectFees() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#claimPoolFees
+     * @description claims unclaimed fees for a liquidity pool position
+     * @param {string} poolId exchange-specific pool or position identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the fee claim result
+     */
+    async claimPoolFees (poolId: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' claimPoolFees() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchStake
+     * @description fetches staking positions for an account
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} a list of exchange-specific staking positions
+     */
+    async fetchStake (code: Str = undefined, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchStake() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#depositStake
+     * @description deposits assets into a staking product
+     * @param {string} code unified currency code
+     * @param {number} amount amount to stake
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the staking deposit result
+     */
+    async depositStake (code: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' depositStake() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#withdrawStake
+     * @description withdraws assets from a staking product
+     * @param {string} code unified currency code
+     * @param {number} amount amount to unstake
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the staking withdrawal result
+     */
+    async withdrawStake (code: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' withdrawStake() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#depositCollateral
+     * @description deposits collateral into a lending position
+     * @param {string} id lending position or vault identifier
+     * @param {number} amount amount of collateral to deposit
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the collateral operation result
+     */
+    async depositCollateral (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' depositCollateral() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#withdrawCollateral
+     * @description withdraws collateral from a lending position
+     * @param {string} id lending position or vault identifier
+     * @param {number} amount amount of collateral to withdraw
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the collateral operation result
+     */
+    async withdrawCollateral (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' withdrawCollateral() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#borrowCurrency
+     * @description borrows currency against a lending position
+     * @param {string} id lending position or vault identifier
+     * @param {number} amount amount of currency to borrow
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the borrow operation result
+     */
+    async borrowCurrency (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' borrowCurrency() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#repayCurrency
+     * @description repays borrowed currency
+     * @param {string} id lending position or vault identifier
+     * @param {number} amount amount of currency to repay
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the repayment result
+     */
+    async repayCurrency (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' repayCurrency() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchBorrowPositions
+     * @description fetches collateralized borrowing positions for a wallet
+     * @param {string} walletAddress wallet public key
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} a list of exchange-specific borrowing positions
+     */
+    async fetchBorrowPositions (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchBorrowPositions() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#createPool
+     * @description prepares a new liquidity pool
+     * @param {object} params exchange-specific pool creation parameters
+     * @returns {object} the pool creation result
+     */
+    async createPool (params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' createPool() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#submitPool
+     * @description submits a prepared liquidity pool
+     * @param {object} params exchange-specific pool submission parameters
+     * @returns {object} the pool submission result with id, signature, poolId, owner, and venue data in info when available
+     */
+    async submitPool (params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' submitPool() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchPoolMintAddresses
+     * @description fetches token mint addresses associated with a pool
+     * @param {string} id exchange-specific pool identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} pool mint addresses with poolId, baseCurrency, quoteCurrency, lpCurrency, and venue data in info when available
+     */
+    async fetchPoolMintAddresses (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' fetchPoolMintAddresses() is not supported yet');
     }
 
     async editOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {
