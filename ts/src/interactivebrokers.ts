@@ -1620,11 +1620,14 @@ export default class interactivebrokers extends Exchange {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const types = this.safeList (options, 'types', []);
         const cryptoCmeFutureSymbols = this.safeDict (options, 'cryptoCmeFutureSymbols', {});
+        const cryptoCboeFuturesSymbols = this.safeDict (options, 'cryptoCboeFuturesSymbols', {});
         const symbols = await this.fetchCoinbaseDerivativesSymbols ();
         const cmeSymbols = Object.keys (cryptoCmeFutureSymbols);
-        for (let i = 0; i < cmeSymbols.length; i++) {
-            if (!this.inArray (cmeSymbols[i], symbols)) {
-                symbols.push (cmeSymbols[i]);
+        const cfeSymbols = Object.keys (cryptoCboeFuturesSymbols);
+        const targetSymbols = this.arrayConcat (cmeSymbols, cfeSymbols);
+        for (let i = 0; i < targetSymbols.length; i++) {
+            if (!this.inArray (targetSymbols[i], symbols)) {
+                symbols.push (targetSymbols[i]);
             }
         }
         if (symbols.length === 0) {
@@ -2020,7 +2023,7 @@ export default class interactivebrokers extends Exchange {
                 base = this.safeString (cryptoCmeFutureSymbols, baseTickerId, baseTickerId);
             } else if (isCfe) {
                 base = this.safeString (cryptoCboeFutureSymbols, baseTickerId, baseTickerId);
-            } 
+            }
         }
         if (isPerp && !isCfd) {
             if (nameLower.startsWith ('nano ')) {
