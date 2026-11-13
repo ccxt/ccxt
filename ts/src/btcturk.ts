@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/btcturk.js';
-import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { ExchangeError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict, FeeString, Endpoint, List } from './base/types.js';
@@ -716,7 +716,7 @@ export default class btcturk extends Exchange {
      * @method
      * @name btcturk#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.btcturk.com/public-endpoints/get-kline-data
+     * @see https://docs.btcturk.com/docs/public-endpoints/get-kline-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -730,43 +730,32 @@ export default class btcturk extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const tf = this.safeString (this.timeframes, timeframe, timeframe); // allows the user to pass custom timeframes if needed
         const request: Dict = {
             'symbol': market['id'],
-            'resolution': this.safeString (this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
+            'resolution': tf,
         };
-        const until = this.safeInteger (params, 'until', this.milliseconds ());
-        const untilSeconds = this.parseToInt ((until / 1000));
-        request['to'] = untilSeconds;
-        if (since !== undefined) {
-            request['from'] = this.parseToInt (since / 1000);
-        }
-        let limitResolved: Int = undefined;
-        if (limit !== undefined) {
-            limitResolved = limit;
-            if (limit > 11000) {
-                limitResolved = 11000; // max 11000 candles diapason can be covered
-            }
-        } else if (since === undefined) {
-            limitResolved = 100; // default value
-        }
-        if ((limit !== undefined) || (since === undefined)) {
-            if (timeframe === '1y') { // difficult with leap years
-                throw new BadRequest (this.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
-            }
-            const seconds = this.parseTimeframe (timeframe);
-            const limitCount: Int = (limit === undefined) ? 100 : Math.min (limit, 11000);
-            const limitSeconds: int = this.parseToInt (seconds * (limitCount - 1));
-            if (since !== undefined) {
-                const sinceSeconds: int = this.parseToInt (since / 1000);
-                const to: int = sinceSeconds + limitSeconds;
-                if (to < untilSeconds) {
-                    request['to'] = to;
-                }
+        const defaultLimit = 100;
+        const now = this.milliseconds ();
+        const until = this.safeInteger (params, 'until');
+        const paramsWithoutUntil = this.omit (params, 'until');
+        const limitResolved = (limit !== undefined) ? Math.min (limit, 11000) : defaultLimit;
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        let sinceValue: Int = since;
+        let untilValue: Int = until;
+        if (untilValue === undefined) {
+            if (sinceValue !== undefined) {
+                untilValue = sinceValue - (-limitResolved * duration); // tranpsiler trick
             } else {
-                request['from'] = 0 - limitSeconds;
+                untilValue = now;
             }
         }
-        const response = await this.graphGetKlinesHistory (this.extend (request, params));
+        if (sinceValue === undefined) {
+            sinceValue = untilValue - limitResolved * duration;
+        }
+        request['to'] = this.parseToInt (untilValue / 1000);
+        request['from'] = this.parseToInt (sinceValue / 1000);
+        const response = await this.graphGetKlinesHistory (this.extend (request, paramsWithoutUntil));
         //
         //    {
         //        "s": "ok",
