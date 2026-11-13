@@ -508,10 +508,14 @@ class whitebit extends Exchange {
         //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
         //          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        //          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        //          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        //          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        //          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         //        },
         //        {
         //          ...
@@ -543,7 +547,6 @@ class whitebit extends Exchange {
         $swap = ($typeId === 'futures') || ($typeId === 'tradfiFutures');
         $margin = $isCollateral && !$swap;
         $contract = false;
-        $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
         $linear = null;
         $inverse = null;
         if ($swap) {
@@ -589,8 +592,8 @@ class whitebit extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $amountPrecision,
-                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'moneyPrec'))),
+                'amount' => $this->safe_number($market, 'stepSize'),
+                'price' => $this->safe_number($market, 'tickSize'),
             ),
             'limits' => array(
                 'leverage' => array(
