@@ -915,7 +915,7 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: dict, market: Market = None) -> FundingRate:
         #
         #         {
         #             "symbol":"PERP_AAVE_USDT",
@@ -2558,7 +2558,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_balance(data)
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list:
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2601,7 +2601,8 @@ class woofipro(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_dict(response, 'data', {})
-        return [currency, self.safe_list(data, 'rows', [])]
+        rows = self.safe_list(data, 'rows', [])
+        return rows
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         currencyId = self.safe_string(item, 'token')
@@ -2649,9 +2650,10 @@ class woofipro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        currencyRows = self.get_asset_history_rows(code, since, limit, params)
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1)
+        rows = self.get_asset_history_rows(code, since, limit, params)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2744,9 +2746,10 @@ class woofipro(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         request = {}
-        currencyRows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1)
+        rows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         #
         #     {
         #         "rows":[],
@@ -2758,10 +2761,7 @@ class woofipro(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        rowsList = []
-        if rows is not None:
-            rowsList = rows
-        return self.parse_transactions(rowsList, currency, since, limit, params)
+        return self.parse_transactions(rows, currency, since, limit, params)
 
     def get_withdraw_nonce(self, params: dict = {}) -> Num:
         response = self.v1PrivateGetWithdrawNonce(params)

@@ -1782,7 +1782,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         # fundingRate
         #

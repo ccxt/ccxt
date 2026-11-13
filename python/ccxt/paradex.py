@@ -1150,7 +1150,7 @@ class paradex(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchFundingRate() could not find a funding rate for ' + symbol)
         return rate
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USD-PERP",

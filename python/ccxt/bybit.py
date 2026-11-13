@@ -2865,7 +2865,7 @@ class bybit(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limitResolved)
 
-    def parse_funding_rate(self, ticker: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTCUSDT",

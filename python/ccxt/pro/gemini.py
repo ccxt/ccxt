@@ -255,9 +255,9 @@ class gemini(ccxt.async_support.gemini):
         symbols = list(storesForSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            stored = storesForSymbols[symbol]
+            symbolStore = storesForSymbols[symbol]
             messageHash = 'trades:' + symbol
-            client.resolve(stored, messageHash)
+            client.resolve(symbolStore, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """

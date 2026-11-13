@@ -2387,7 +2387,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "funding_rate": "0.0024",

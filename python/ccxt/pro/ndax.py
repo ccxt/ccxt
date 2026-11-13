@@ -193,8 +193,8 @@ class ndax(ccxt.async_support.ndax):
             market = self.market(symbol)
             marketId = self.safe_string(market, 'id', '')
             messageHash = name + ':' + marketId
-            tradesArray = self.safe_value(self.trades, symbol)
-            client.resolve(tradesArray, messageHash)
+            symbolTrades = self.safe_value(self.trades, symbol)
+            client.resolve(symbolTrades, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """

@@ -4345,7 +4345,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC_USDT",

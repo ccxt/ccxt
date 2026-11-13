@@ -1596,7 +1596,7 @@ class backpack(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 0, {})
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "fundingRate": "0.0001",

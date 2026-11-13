@@ -3380,7 +3380,7 @@ class digifinex(Exchange, ImplicitAPI):
         """
         return await self.fetch_funding_rate(symbol, params)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "instrument_id": "BTCUSDTPERP",

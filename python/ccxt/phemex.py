@@ -4155,7 +4155,7 @@ class phemex(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "askEp": 2332500,

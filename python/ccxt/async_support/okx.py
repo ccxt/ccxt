@@ -6539,7 +6539,7 @@ class okx(Exchange, ImplicitAPI):
         requestHeaders = privateHeaders if (apiName == 'private') else None
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #    {
         #        "fundingRate": "0.00027815",

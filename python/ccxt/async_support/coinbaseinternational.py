@@ -976,7 +976,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'datetime': fundingRate['datetime'],
         }
 
-    def parse_funding_rate(self, contract: object, market: Market = None):
+    def parse_funding_rate(self, contract: dict, market: Market = None):
         #
         # fetchFundingRateHistory
         #

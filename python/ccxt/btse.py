@@ -1425,7 +1425,7 @@ class btse(Exchange, ImplicitAPI):
                 rows.append(row)
         return self.parse_funding_rates(rows, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         # ticker/24hr contract rows
         #     {

@@ -2922,7 +2922,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             fundingRates.append(parsed)
         return self.index_by(fundingRates, 'symbol')
 
-    def parse_funding_rate(self, ticker: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "PF_ENJUSD",

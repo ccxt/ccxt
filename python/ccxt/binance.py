@@ -10584,7 +10584,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchFundingRates() supports linear and inverse contracts only')
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
         #
         # fetchFundingRate, fetchFundingRates

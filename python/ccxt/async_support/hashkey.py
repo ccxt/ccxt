@@ -3696,7 +3696,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "ETHUSDT-PERPETUAL",

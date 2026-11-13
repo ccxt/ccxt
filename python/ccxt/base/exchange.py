@@ -7009,7 +7009,7 @@ class BaseExchange(object):
         marketResolved = self.safe_market(marketId, market, delimiter, marketType)
         return marketResolved['symbol']
 
-    def parse_funding_rate(self, contract: str, market: Market = None):
+    def parse_funding_rate(self, contract: dict, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRate() is not supported yet')
 
     def parse_funding_rates(self, response: list, symbols: Strings = None):

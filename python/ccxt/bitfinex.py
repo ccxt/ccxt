@@ -3214,7 +3214,7 @@ class bitfinex(Exchange, ImplicitAPI):
             reversedArray.append(valueAtIndex)
         return reversedArray
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #       [
         #          "tBTCF0:USTF0",

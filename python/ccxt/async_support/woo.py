@@ -2769,7 +2769,7 @@ class woo(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositEntry, 'extra'),
         }
 
-    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list:
+    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         if self.markets is None:
             await self.load_markets()
         request = {}
@@ -2825,7 +2825,8 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return [currency, self.safe_list(data, 'rows', [])]
+        rows = self.safe_list(data, 'rows', [])
+        return rows
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
@@ -2839,9 +2840,10 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        currencyRows = await self.get_asset_history_rows(code, since, limit, params)
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1)
+        rows = await self.get_asset_history_rows(code, since, limit, params)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -2963,9 +2965,10 @@ class woo(Exchange, ImplicitAPI):
         request = {
             'type': 'BALANCE',
         }
-        currencyRows = await self.get_asset_history_rows(code, since, limit, self.extend(request, params))
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1, [])
+        rows = await self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         return self.parse_transactions(rows, currency, since, limit, self.omit(params, 'tokenSide'))
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -3482,7 +3485,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_incomes(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",

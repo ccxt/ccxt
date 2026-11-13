@@ -1816,7 +1816,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 0)
         return self.parse_funding_rate(data)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         symbol = self.safe_string(contract, 'symbol')
         fundingTimestamp = self.safe_integer(contract, 'timestamp')
         return {

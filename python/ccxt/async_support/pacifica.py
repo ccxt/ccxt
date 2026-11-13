@@ -1146,7 +1146,7 @@ class pacifica(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(result, symbols)
 
-    def parse_funding_rate(self, info: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, info: dict, market: Market = None) -> FundingRate:
         #
         #      {
         #         "funding": "0.00010529",

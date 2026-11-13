@@ -3224,7 +3224,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "contract_type": "perpetual",

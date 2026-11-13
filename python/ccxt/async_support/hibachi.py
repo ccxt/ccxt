@@ -1809,7 +1809,7 @@ class hibachi(Exchange, ImplicitAPI):
             referenceId = self.safe_string(item, 'transactionHash')
         return self.safe_ledger_entry({
             'id': self.safe_string(item, 'id'),
-            'currency': self.currency('USDT'),
+            'currency': 'USDT',
             'account': self.number_to_string(self.accountId),
             'referenceAccount': referenceAccount,
             'referenceId': referenceId,

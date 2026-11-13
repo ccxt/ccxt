@@ -1361,7 +1361,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             result.append(data)
         return self.parse_funding_rates(result, symbolsNormalized)
 
-    def parse_funding_rate(self, info: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, info: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "maxLeverage": "50",

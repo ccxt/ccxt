@@ -1644,7 +1644,7 @@ class lighter(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'c', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "market_id": 0,

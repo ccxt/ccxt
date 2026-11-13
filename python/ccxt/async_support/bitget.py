@@ -9261,7 +9261,7 @@ class bitget(Exchange, ImplicitAPI):
         paramsExtended = self.extend({'method': 'publicMixGetV2MixMarketCurrentFundRate'}, params)
         return await self.fetch_funding_rates(symbols, paramsExtended)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         # fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         #

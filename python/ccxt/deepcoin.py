@@ -2649,7 +2649,7 @@ class deepcoin(Exchange, ImplicitAPI):
         entry = self.safe_dict(rates, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "instrumentId": "ETHUSDT",

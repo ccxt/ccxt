@@ -1856,7 +1856,7 @@ class weex(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'swap')
         timestamp = self.safe_integer(contract, 'time')

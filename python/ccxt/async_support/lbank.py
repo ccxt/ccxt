@@ -1344,7 +1344,7 @@ class lbank(Exchange, ImplicitAPI):
             return self.safe_balance(result)
         return self.safe_balance(result)
 
-    def parse_funding_rate(self, ticker: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: dict, market: Market = None) -> FundingRate:
         # {
         #     "symbol": "BTCUSDT",
         #     "highestPrice": "69495.5",

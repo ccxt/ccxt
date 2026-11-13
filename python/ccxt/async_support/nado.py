@@ -2302,7 +2302,7 @@ class nado(Exchange, ImplicitAPI):
             'fee': fee,
         }, marketResolved)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "product_id": 1,

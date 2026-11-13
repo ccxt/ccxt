@@ -3209,7 +3209,7 @@ class deribit(Exchange, ImplicitAPI):
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, sinceResolved, limit)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #   {
         #       "jsonrpc":"2.0",

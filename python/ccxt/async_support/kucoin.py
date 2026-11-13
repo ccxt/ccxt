@@ -9598,7 +9598,7 @@ class kucoin(Exchange, ImplicitAPI):
                 rates.append(entry)
         return self.parse_funding_rates(rates, symbolsNormalized)
 
-    def parse_funding_rate(self, data: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, data: dict, market: Market = None) -> FundingRate:
         # uta
         #     {
         #         "symbol": ".ETHUSDTMFPI8H",

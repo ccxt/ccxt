@@ -1007,7 +1007,7 @@ class polymarket(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(response)
         return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "instrument_id": 1,
