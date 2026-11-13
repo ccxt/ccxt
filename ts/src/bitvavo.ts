@@ -221,35 +221,43 @@ export default class bitvavo extends Exchange {
                 },
             },
             'fees': {
+                // https://bitvavo.com/en/fees
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
                     'taker': this.parseNumber ('0.0025'),
-                    'maker': this.parseNumber ('0.002'),
+                    'maker': this.parseNumber ('0.0015'),
                     'tiers': {
                         'taker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0025') ],
                             [ this.parseNumber ('100000'), this.parseNumber ('0.0020') ],
-                            [ this.parseNumber ('250000'), this.parseNumber ('0.0016') ],
-                            [ this.parseNumber ('500000'), this.parseNumber ('0.0012') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0010') ],
-                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0008') ],
-                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0006') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0010') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0008') ],
                             [ this.parseNumber ('25000000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.0002') ],
                         ],
                         'maker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0015') ],
                             [ this.parseNumber ('100000'), this.parseNumber ('0.0010') ],
-                            [ this.parseNumber ('250000'), this.parseNumber ('0.0008') ],
-                            [ this.parseNumber ('500000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0008') ],
                             [ this.parseNumber ('1000000'), this.parseNumber ('0.0005') ],
-                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0004') ],
-                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0004') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0003') ],
-                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0001') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0') ],
                         ],
                     },
+                },
+                'byCategory': {
+                    'B': { 'maker': this.parseNumber ('0.0005'), 'taker': this.parseNumber ('0.0005') },
+                    'C': { 'maker': this.parseNumber ('0.001'), 'taker': this.parseNumber ('0.001') },
+                    'D': { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0.0001') },
                 },
             },
             'requiredCredentials': {
@@ -474,6 +482,8 @@ export default class bitvavo extends Exchange {
 
     override parseMarkets (markets: any) {
         const result: Market[] = [];
+        const defaultFees = this.safeDict (this.fees, 'trading', {});
+        const feesByCategory = this.safeDict (this.fees, 'byCategory', {});
         for (let i = 0; i < markets.length; i++) {
             const market = this.safeDict (markets, i);
             const id = this.safeString (market, 'market');
@@ -485,6 +495,8 @@ export default class bitvavo extends Exchange {
                 continue;
             }
             const status = this.safeString (market, 'status');
+            const feeCategory = this.safeString (market, 'feeCategory');
+            const fees = this.safeDict (feesByCategory, feeCategory, defaultFees);
             result.push (this.safeMarketStructure ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -509,8 +521,8 @@ export default class bitvavo extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': this.safeNumber (this.fees['trading'], 'taker'),
-                'maker': this.safeNumber (this.fees['trading'], 'maker'),
+                'taker': this.safeNumber (fees, 'taker'),
+                'maker': this.safeNumber (fees, 'maker'),
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityDecimals'))),
                     'price': this.safeNumber (market, 'tickSize'),
