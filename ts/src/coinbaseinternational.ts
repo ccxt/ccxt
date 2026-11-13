@@ -1007,7 +1007,7 @@ export default class coinbaseinternational extends Exchange {
         } as FundingRateHistory;
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined) {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined) {
         //
         // fetchFundingRateHistory
         //

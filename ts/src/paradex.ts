@@ -1178,7 +1178,7 @@ export default class paradex extends Exchange {
         return rate as FundingRate;
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",

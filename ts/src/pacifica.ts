@@ -1176,7 +1176,7 @@ export default class pacifica extends Exchange {
         return this.parseFundingRates (result, symbols);
     }
 
-    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: NullableDict, market: Market = undefined): FundingRate {
         //
         //      {
         //         "funding": "0.00010529",

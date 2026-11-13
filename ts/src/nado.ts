@@ -2436,7 +2436,7 @@ export default class nado extends Exchange {
         }, marketResolved);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "product_id": 1,

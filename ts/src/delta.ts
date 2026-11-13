@@ -2818,7 +2818,7 @@ export default class delta extends Exchange {
         return this.parseFundingRates (rates, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "close": 30600.5,

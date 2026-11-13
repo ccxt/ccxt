@@ -1826,7 +1826,7 @@ export default class bingx extends Exchange {
         return this.parseFundingRates (data, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC-USDT",

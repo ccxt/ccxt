@@ -571,7 +571,17 @@ pub fn quote_json_numbers(s: &str) -> String {
     String::from_utf8(out).unwrap_or_else(|_| s.to_string())
 }
 
-pub fn json_stringify(v: &Value) -> Value {
+/// The operand of `json_stringify`: a `Value`, or a dict / list local (optional or not) lent by reference.
+pub trait JsonOperand { fn to_json(self) -> serde_json::Value; }
+impl JsonOperand for &Value { fn to_json(self) -> serde_json::Value { Value::to_json(self) } }
+impl JsonOperand for &&Value { fn to_json(self) -> serde_json::Value { Value::to_json(self) } }
+impl JsonOperand for &Vec<Value> { fn to_json(self) -> serde_json::Value { serde_json::Value::Array(self.iter().map(Value::to_json).collect()) } }
+impl JsonOperand for &crate::value::Dict { fn to_json(self) -> serde_json::Value { Value::Dict(Arc::clone(self)).to_json() } }
+impl JsonOperand for &crate::value::List { fn to_json(self) -> serde_json::Value { Value::Arr(Arc::clone(self)).to_json() } }
+impl JsonOperand for &Option<crate::value::Dict> { fn to_json(self) -> serde_json::Value { Value::from(self).to_json() } }
+impl JsonOperand for &Option<crate::value::List> { fn to_json(self) -> serde_json::Value { Value::from(self).to_json() } }
+
+pub fn json_stringify(v: impl JsonOperand) -> Value {
     Value::Str(serde_json::to_string(&v.to_json()).unwrap_or_default().into())
 }
 

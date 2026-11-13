@@ -1433,7 +1433,7 @@ export default class hyperliquid extends Exchange {
         return this.parseFundingRates (result, symbolsNormalized);
     }
 
-    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "maxLeverage": "50",

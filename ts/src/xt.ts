@@ -4910,7 +4910,7 @@ export default class xt extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "btc_usdt",

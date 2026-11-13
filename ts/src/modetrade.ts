@@ -891,7 +891,7 @@ export default class modetrade extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
-    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: NullableDict, market: Market = undefined): FundingRate {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",

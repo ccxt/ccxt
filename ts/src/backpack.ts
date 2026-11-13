@@ -1727,7 +1727,7 @@ export default class backpack extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "fundingRate": "0.0001",

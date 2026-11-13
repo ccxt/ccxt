@@ -3702,7 +3702,7 @@ export default class woo extends Exchange {
         return this.parseIncomes (rows, market, since, limit);
     }
 
-    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",

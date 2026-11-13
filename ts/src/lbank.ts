@@ -1393,7 +1393,7 @@ export default class lbank extends Exchange {
         return this.safeBalance (result);
     }
 
-    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: NullableDict, market: Market = undefined): FundingRate {
         // {
         //     "symbol": "BTCUSDT",
         //     "highestPrice": "69495.5",

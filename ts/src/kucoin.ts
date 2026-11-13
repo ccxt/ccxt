@@ -10259,7 +10259,7 @@ export default class kucoin extends Exchange {
         return this.parseFundingRates (rates, symbolsNormalized);
     }
 
-    override parseFundingRate (data: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (data: NullableDict, market: Market = undefined): FundingRate {
         // uta
         //     {
         //         "symbol": ".ETHUSDTMFPI8H",

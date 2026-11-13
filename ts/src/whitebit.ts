@@ -3579,7 +3579,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingRates (data, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         // {
         //     "ticker_id":"ADA_PERP",

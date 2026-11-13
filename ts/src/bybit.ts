@@ -2954,7 +2954,7 @@ export default class bybit extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limitResolved);
     }
 
-    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTCUSDT",

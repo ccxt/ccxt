@@ -1820,7 +1820,7 @@ export default class aster extends Exchange {
         return this.parseTickers (response, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         // fundingRate
         //

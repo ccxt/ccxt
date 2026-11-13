@@ -4100,13 +4100,13 @@ export class BaseExchange {
         return !this.valueIsDefined (value) || value === '';
     }
 
-    safeNumberOmitZero (obj: object, key: NullableIndexType, defaultValue: Num = undefined): Num {
+    safeNumberOmitZero (obj: any, key: NullableIndexType, defaultValue: Num = undefined): Num {
         const value = this.safeString (obj, key);
         const final = this.parseNumber (this.omitZero (value));
         return (final === undefined) ? defaultValue : final;
     }
 
-    safeIntegerOmitZero (obj: object, key: NullableIndexType, defaultValue: Int = undefined): Int {
+    safeIntegerOmitZero (obj: any, key: NullableIndexType, defaultValue: Int = undefined): Int {
         const timestamp = this.safeInteger (obj, key, defaultValue);
         if (timestamp === undefined || timestamp === 0) {
             return undefined;
@@ -8097,7 +8097,7 @@ export class BaseExchange {
         return marketResolved['symbol'];
     }
 
-    parseFundingRate (contract: string, market: Market = undefined): FundingRate {
+    parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 

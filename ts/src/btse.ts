@@ -1480,7 +1480,7 @@ export default class btse extends Exchange {
         return this.parseFundingRates (rows, symbolsNormalized);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         // ticker/24hr contract rows
         //     {
