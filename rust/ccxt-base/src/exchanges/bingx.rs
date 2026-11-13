@@ -3726,7 +3726,7 @@ impl BingxCore {
         let mut response: Value = Value::Null;
         if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_15]).await;
+            response = self.spot_v2_public_get_quote_ticker(&[__ws_arg_15]).await;
         }  else {
             if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -3885,7 +3885,7 @@ impl BingxCore {
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
-            response = self.spot_v1_public_get_ticker24hr(&[paramsSubType.clone()]).await;
+            response = self.spot_v2_public_get_quote_ticker(&[paramsSubType.clone()]).await;
         }  else {
             if (subType.as_str() == Some("inverse")) {
                 response = self.cswap_v1_public_get_market_ticker(&[paramsSubType.clone()]).await;
