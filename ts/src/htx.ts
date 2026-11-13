@@ -3055,7 +3055,7 @@ export default class htx extends Exchange {
         if (until !== undefined) {
             untilSeconds = this.parseToInt (until / 1000);
         }
-        const isContract = (market['contract'] === true);
+        const isContract = (market['contract']);
         const marketType: Str = market['type'];
         const contractLimit: number = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
         let rangeLimit = limit;
@@ -4952,7 +4952,7 @@ export default class htx extends Exchange {
         const id = this.safeStringN (order, [ 'algo_id', 'id', 'order_id_str', 'order-id', 'order_id' ]);
         let side = this.safeString2 (order, 'direction', 'side');
         const contractCode = this.safeString (order, 'contract_code');
-        const isLinearOrder = (contractCode !== undefined) && (marketResolved !== undefined) && (marketResolved['linear'] === true) && (marketResolved['spot'] !== true);
+        const isLinearOrder = (contractCode !== undefined) && (marketResolved !== undefined) && (marketResolved['linear'] === true) && (!marketResolved['spot']);
         let type = this.safeString (order, 'order_price_type');
         if (isLinearOrder) {
             type = this.safeString (order, 'type');

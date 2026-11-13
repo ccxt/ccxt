@@ -1706,7 +1706,7 @@ export default class coinbase extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
-            'active': tradingDisabled !== true,
+            'active': !tradingDisabled,
             'contract': false,
             'linear': undefined,
             'inverse': undefined,

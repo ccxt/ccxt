@@ -630,7 +630,7 @@ export default class weex extends weexRest {
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
         let paramsPriceType: Dict = paramsOmitted;
-        if (isContract === true) {
+        if (isContract) {
             [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -699,7 +699,7 @@ export default class weex extends weexRest {
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
         let paramsPriceType: Dict = paramsOmitted;
-        if (isContract === true) {
+        if (isContract) {
             [ priceType, paramsPriceType ] = this.handleOptionStringAndParams2 (paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {

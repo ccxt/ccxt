@@ -4083,7 +4083,7 @@ export default class bybit extends Exchange {
         const side = this.safeStringLower (order, 'side');
         let amount: Str = undefined;
         let cost: Str = undefined;
-        const qtyIsQuote = (marketResolved['spot'] === true) && (type === 'market') && ((marketUnit === 'quoteCoin') || ((marketUnit === undefined) && (side === 'buy')));
+        const qtyIsQuote = (marketResolved['spot']) && (type === 'market') && ((marketUnit === 'quoteCoin') || ((marketUnit === undefined) && (side === 'buy')));
         if (qtyIsQuote) {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = this.safeString (order, 'cumExecValue');
@@ -4211,7 +4211,7 @@ export default class bybit extends Exchange {
         }
         const types = await this.isUnifiedEnabled ();
         const enableUnifiedAccount = types[1];
-        if (enableUnifiedAccount !== true) {
+        if (!enableUnifiedAccount) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
         }
         const market = this.market (symbol);
@@ -5006,7 +5006,7 @@ export default class bybit extends Exchange {
         const market = this.market (symbol);
         const types = await this.isUnifiedEnabled ();
         const enableUnifiedAccount = types[1];
-        if (enableUnifiedAccount !== true) {
+        if (!enableUnifiedAccount) {
             throw new NotSupported (this.id + ' cancelOrders() supports UTA accounts only');
         }
         const [ category, paramsValue ] = this.getBybitType ('cancelOrders', market, params);
@@ -5126,7 +5126,7 @@ export default class bybit extends Exchange {
         }
         const types = await this.isUnifiedEnabled ();
         const enableUnifiedAccount = types[1];
-        if (enableUnifiedAccount !== true) {
+        if (!enableUnifiedAccount) {
             throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports UTA accounts only');
         }
         const ordersRequests: List = [];
@@ -6681,7 +6681,7 @@ export default class bybit extends Exchange {
         const accounts = await this.isUnifiedEnabled ();
         const isUta = accounts[1];
         const [ accountTypeOption, paramsAccountType ] = this.handleOptionStringAndParams (paramsWithdrawTag, 'withdraw', 'accountType');
-        const defaultAccountType = (isUta === true) ? 'UTA' : 'SPOT';
+        const defaultAccountType = (isUta) ? 'UTA' : 'SPOT';
         const accountType = (accountTypeOption === undefined) ? defaultAccountType : accountTypeOption;
         if (this.markets === undefined) {
             await this.loadMarkets ();
