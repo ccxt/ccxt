@@ -1210,7 +1210,7 @@ class dydx(Exchange, ImplicitAPI):
         signature = self.sign_message(msg, self.privateKey)
         return signature
 
-    def sign_dydx_tx(self, privateKey: Str, message: object, memo: Str, chainId: Str, account: object, authenticators: object, fee: object = None) -> str:
+    def sign_dydx_tx(self, privateKey: Str, message: object, memo: Str, chainId: Str, account: dict, authenticators: object, fee: object = None) -> str:
         encodedTx, signDoc = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, fee)
         signature = self.sign_hash(encodedTx, privateKey)
         signatureR = self.safe_string(signature, 'r', '')

@@ -923,7 +923,7 @@ class nado(ccxt.async_support.nado):
             result.append(self.parse_order(self.extend({'status': 'canceled'}, cancelledOrders[i]), market))
         return result
 
-    async def watch_execute_request(self, requestIdString: str, request: dict):
+    async def watch_execute_request(self, requestIdString: str, request: dict) -> dict:
         # the v2 gateway dispatches requests concurrently, so responses arrive
         # in completion order, not send order — every execute carries a unique
         # request id and its response is correlated by the echoed id
