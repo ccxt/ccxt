@@ -761,14 +761,11 @@ impl Bitrue {
             return;
         }
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut parseable: Value = tick.clone();
+        let mut tick: crate::value::Dict = message.get("tick").cloned().unwrap_or_default().into_dict();
+        let mut parseable: Value = Value::from(&tick);
         if isFutures {
-            let mut rawAsks: crate::value::List = self.safe_list_k(tick.clone(), "asks", &[Value::from(vec![])]).into_list();
-            let mut rawBuys: crate::value::List = self.safe_list_k(tick, "buys", &[Value::from(vec![])]).into_list();
+            let mut rawAsks: crate::value::List = self.safe_list_k(&tick, "asks", &[Value::from(vec![])]).into_list();
+            let mut rawBuys: crate::value::List = self.safe_list_k(&tick, "buys", &[Value::from(vec![])]).into_list();
             parseable = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asks".to_string(), self.parse_contract_bids_asks(Value::Arr(rawAsks), symbol.clone().map(Value::from).unwrap_or(Value::Null)));
@@ -1119,8 +1116,8 @@ impl Bitrue {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
         if !(self.ohlcvs.shelf(&symbol).has(&timeframe)) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         stored.append(Value::Arr(parsed));

@@ -1039,8 +1039,8 @@ impl Weex {
         let mut symbol: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "trade::", symbol);
         if !(self.trades.has(&symbol)) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         let mut data: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
@@ -1184,7 +1184,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut callerMethodName: String = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("watchOHLCVForSymbols".into())]).as_str().unwrap_or("watchOHLCVForSymbols").to_string();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("callerMethodName".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut channels: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut firstEntry: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
@@ -1192,9 +1192,9 @@ impl Weex {
         let mut firstMarket: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut isContract: bool = (firstMarket).contract;
         let mut priceType: Value = Value::Str("LAST_PRICE".into());
-        let mut paramsPriceType: Value = paramsOmitted.clone();
+        let mut paramsPriceType: Value = Value::from(&paramsOmitted);
         if (isContract == true) {
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(paramsOmitted, Value::from(callerMethodName.clone()), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]).as_array().cloned().unwrap_or_default(); priceType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(&paramsOmitted, Value::from(callerMethodName.clone()), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]).as_array().cloned().unwrap_or_default(); priceType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         {
                         let mut i: i64 = 0;
@@ -1284,7 +1284,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut callerMethodName: String = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("unWatchOHLCVForSymbols".into())]).as_str().unwrap_or("unWatchOHLCVForSymbols").to_string();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("callerMethodName".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("callerMethodName".into()), &[]).into_dict();
         let mut channels: Vec<Value> = Vec::new();
         let mut subHashes: Vec<Value> = Vec::new();
         let mut unSubHashes: Vec<Value> = Vec::new();
@@ -1293,9 +1293,9 @@ impl Weex {
         let mut firstMarket: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut isContract: bool = (firstMarket).contract;
         let mut priceType: Value = Value::Str("LAST_PRICE".into());
-        let mut paramsPriceType: Value = paramsOmitted.clone();
+        let mut paramsPriceType: Value = Value::from(&paramsOmitted);
         if (isContract == true) {
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(paramsOmitted, Value::from(callerMethodName.clone()), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]).as_array().cloned().unwrap_or_default(); priceType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(&paramsOmitted, Value::from(callerMethodName.clone()), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]).as_array().cloned().unwrap_or_default(); priceType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         {
                         let mut i: i64 = 0;

@@ -4901,8 +4901,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.trades = crate::pro::cache::CacheMap::new();
         }
         if (self.trades.lookup(&sym).is_none()) {
-            let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            CacheStore::put(&mut self.trades, &sym, ArrayCache::new(tradesLimit));
+            let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheStore::put(&mut self.trades, &sym, ArrayCache::new(Value::from(tradesLimit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&sym);
         stored.append(trade.clone());

@@ -3664,9 +3664,9 @@ impl Paradex {
         let mut paginationCursor: Option<String> = self.safe_string_k(&response, "next", &[]).as_str().map(str::to_owned);
         let mut ordersLength: i64 = orders.len() as i64;
         if (paginationCursor.is_some()) && (ordersLength > 0) {
-            let mut first: Value = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut first, &Value::Str("next".into()), paginationCursor.map(Value::from).unwrap_or(Value::Null));
-            add_element_to_object(&mut orders, &Value::Int(0), first);
+            let mut first: Option<crate::value::Dict> = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_opt_dict();
+            if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("next".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
+            add_element_to_object(&mut orders, &Value::Int(0), first.map_or(Value::Null, Value::Dict));
         }
         return self.parse_orders(orders, market.as_ref(), &[since, limit]);
         Value::Null

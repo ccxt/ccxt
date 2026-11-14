@@ -3672,9 +3672,9 @@ impl Bybit {
         let mut paginationCursor: Option<String> = self.safe_string2(&result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]).as_str().map(str::to_owned);
         let mut dataLength: i64 = data.len() as i64;
         if (paginationCursor.is_some()) && (dataLength > 0) {
-            let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut first, &Value::Str("nextPageCursor".into()), paginationCursor.map(Value::from).unwrap_or(Value::Null));
-            add_element_to_object(&mut data, &Value::Int(0), first);
+            let mut first: Option<crate::value::Dict> = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_opt_dict();
+            if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("nextPageCursor".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
+            add_element_to_object(&mut data, &Value::Int(0), first.map_or(Value::Null, Value::Dict));
         }
         return data;
 
@@ -9777,10 +9777,10 @@ impl Bybit {
         let mut accounts: Value = self.is_unified_enabled(&[]).await;
         let mut isUta: Value = accounts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let accountTypeOptionparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsWithdrawTag, Value::Str("withdraw".into()), Value::Str("accountType".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut accountTypeOption: Value = accountTypeOptionparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut accountTypeOption: Option<String> = accountTypeOptionparamsAccountTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountType: crate::value::Dict = accountTypeOptionparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut defaultAccountType: String = (if (isUta.as_bool() == Some(true)) { "UTA".to_string() } else { "SPOT".to_string() });
-        let mut accountType: Value = (if (accountTypeOption == Value::Null) { Value::from(defaultAccountType) } else { accountTypeOption });
+        let mut accountType: Option<String> = (if (accountTypeOption.is_none()) { Some(defaultAccountType) } else { accountTypeOption });
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -9792,7 +9792,7 @@ impl Bybit {
                 m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("address".to_string(), address);
                 m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
-                m.insert("accountType".to_string(), accountType);
+                m.insert("accountType".to_string(), accountType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (tagWithdrawTag.is_some()) {
@@ -10471,7 +10471,7 @@ impl Bybit {
                 let mut sellLeverage: Value = Value::Null;
                 let mut buyLeverage: Value = Value::Null;
                 let mut leverage: Option<String> = self.safe_string_k(&paramsType, "leverage", &[]).as_str().map(str::to_owned);
-                let mut paramsOmitted: Value = Value::Null;
+                let mut paramsOmitted: Option<crate::value::Dict> = None;
                 if (leverage.is_none()) {
                     sellLeverage = self.safe_string2(Value::from(&paramsType), Value::Str("sell_leverage".into()), Value::Str("sellLeverage".into()), &[]);
                     buyLeverage = self.safe_string2(Value::from(&paramsType), Value::Str("buy_leverage".into()), Value::Str("buyLeverage".into()), &[]);
@@ -10484,11 +10484,11 @@ impl Bybit {
                     if (sellLeverage == Value::Null) {
                         sellLeverage = buyLeverage.clone();
                     }
-                    paramsOmitted = self.omit(&paramsType, &["buy_leverage", "sell_leverage", "sellLeverage", "buyLeverage"], &[]);
+                    paramsOmitted = self.omit(&paramsType, &["buy_leverage", "sell_leverage", "sellLeverage", "buyLeverage"], &[]).into_opt_dict();
                 }  else {
                     sellLeverage = leverage.clone().map(Value::from).unwrap_or(Value::Null);
                     buyLeverage = leverage.map(Value::from).unwrap_or(Value::Null);
-                    paramsOmitted = self.omit(&paramsType, Value::Str("leverage".into()), &[]);
+                    paramsOmitted = self.omit(&paramsType, Value::Str("leverage".into()), &[]).into_opt_dict();
                 }
                 let mut request: crate::value::Dict = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -10499,7 +10499,7 @@ impl Bybit {
                         m.insert("sellLeverage".to_string(), sellLeverage);
                     m
                 }).into_dict();
-                let __ws_arg_51 = self.extend(request, &[paramsOmitted]);
+                let __ws_arg_51 = self.extend(request, &[&paramsOmitted]);
                 response = self.private_post_v5_position_switch_isolated(&[__ws_arg_51]).await.into_opt_dict();
             }
         }

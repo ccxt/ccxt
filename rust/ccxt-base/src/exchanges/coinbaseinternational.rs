@@ -1781,10 +1781,10 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.handle_route_and_params("fetchFundingRateHistory", &[params]);
-        let mut paramsPaginate: Value = paramsResolved.clone();
+        let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchFundingRateHistory", &[params]).into_dict();
+        let mut paramsPaginate: Value = Value::from(&paramsResolved);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if paginate {
@@ -2230,15 +2230,15 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.handle_route_and_params("fetchBalance", &[params]);
+        let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchBalance", &[params]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate_v2(&[]).await;
-        let mut code: Option<String> = self.safe_string_k(paramsResolved.clone(), "code", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = paramsResolved.clone();
+        let mut code: Option<String> = self.safe_string_k(&paramsResolved, "code", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = Value::from(&paramsResolved);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOmitted = self.omit(paramsResolved, Value::Str("code".into()), &[]);
+            paramsOmitted = self.omit(&paramsResolved, Value::Str("code".into()), &[]);
         }
         let mut response: Option<crate::value::Dict> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) && (code.is_some()) {
@@ -4017,10 +4017,10 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.handle_route_and_params("fetchOpenOrders", &[params]);
-        let mut paramsPaginate: Value = paramsResolved.clone();
+        let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchOpenOrders", &[params]).into_dict();
+        let mut paramsPaginate: Value = Value::from(&paramsResolved);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if paginate {
@@ -4111,10 +4111,10 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.handle_route_and_params("fetchMyTrades", &[params]);
-        let mut paramsPaginate: Value = paramsResolved.clone();
+        let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchMyTrades", &[params]).into_dict();
+        let mut paramsPaginate: Value = Value::from(&paramsResolved);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: crate::value::Dict = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if paginate {

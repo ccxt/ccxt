@@ -873,8 +873,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("/".into())]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
         if !(self.trades.has(&symbol)) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut strored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         if (data.is_some()) {
@@ -1111,8 +1111,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
         if !(self.ohlcvs.shelf(&symbol).has(&timeframe)) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         if (data != Value::Null) {

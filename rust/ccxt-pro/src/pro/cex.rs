@@ -601,8 +601,8 @@ impl Cex {
             return;
         }
         if !(self.trades.has(&symbol)) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -669,8 +669,8 @@ impl Cex {
             });
             subscriptionHash = format!("{}{}", "ticker:", symbolValue);
         }
-        let mut request: Value = self.deep_extend(Value::Map(message), &[params]);
-        return self.watch(url.as_str(), messageHash.as_str(), request, subscriptionHash.as_str(), Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
+        return self.watch(url.as_str(), messageHash.as_str(), &request, subscriptionHash.as_str(), Value::Null).await;
         Value::Null
         }).await?))
     }

@@ -781,17 +781,17 @@ impl Nado {
             m
         })]).into_dict();
         let mut isTriggerOrder: bool = placeOrder.contains_key("trigger");
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isTriggerOrder {
-            response = self.trigger_private_post_execute(&[Value::from(&request)]).await;
+            response = self.trigger_private_post_execute(&[Value::from(&request)]).await.into_opt_dict();
         }  else {
-            response = self.gateway_private_post_execute(&[Value::Dict(request)]).await;
+            response = self.gateway_private_post_execute(&[Value::Dict(request)]).await.into_opt_dict();
         }
         let __ws_arg_0 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("place_order".to_string(), Value::Dict(placeOrder));
     m
-}), &[response]);
+}), &[&response]);
         return self.parse_order(__ws_arg_0, Some(&market));
         Value::Null
         }).await?))

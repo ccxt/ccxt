@@ -749,9 +749,9 @@ impl Hyperliquid {
             if (matches!(baseName.as_deref(), Some(__k) if spotCurrencyMapping.contains_key(__k))) {
                 let mut unifiedBaseName: Option<String> = self.safe_string(&spotCurrencyMapping, baseName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut quote: Option<String> = self.safe_string(&symbolParts, Value::Int(1), &[]).as_str().map(str::to_owned);
-                let mut newSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
-                if (matches!((&self.markets, &newSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    return (if let (Some(__m), Some(__k)) = (self.markets.as_map(), newSymbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut newSymbol: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+                if (matches!((&self.markets, Some(newSymbol.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                    return (if let Some(__m) = self.markets.as_map() { __m.get(newSymbol.as_str()).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 }
             }
         }

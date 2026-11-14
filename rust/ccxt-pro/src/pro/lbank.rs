@@ -1439,8 +1439,8 @@ if _try_result.is_err() {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(subscribe), &[&paramsOmitted]);
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], request, &messageHash[..], Value::Null).await.into();
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[&paramsOmitted]).into_dict();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))

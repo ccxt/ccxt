@@ -3805,12 +3805,12 @@ impl Extended {
         let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
         let mut baseRoundUp: bool = isBuy.as_bool().unwrap_or_default();
         let mut quoteRoundUp: bool = isBuy.as_bool().unwrap_or_default();
-        let mut baseAmount: Value = self.get_extended_stark_amount(amountString, syntheticResolution, &[Value::Bool(baseRoundUp)]);
-        let mut collateralAmount: Value = self.get_extended_stark_amount(quoteAmount.clone().map(Value::from).unwrap_or(Value::Null), collateralResolution, &[Value::Bool(quoteRoundUp)]);
+        let mut baseAmount: Option<String> = self.get_extended_stark_amount(amountString, syntheticResolution, &[Value::Bool(baseRoundUp)]).as_str().map(str::to_owned);
+        let mut collateralAmount: Option<String> = self.get_extended_stark_amount(quoteAmount.clone().map(Value::from).unwrap_or(Value::Null), collateralResolution, &[Value::Bool(quoteRoundUp)]).as_str().map(str::to_owned);
         if isBuy.as_bool() == Some(true) {
-            collateralAmount = crate::precise::Precise::stringNeg(&collateralAmount);
+            collateralAmount = crate::precise::Precise::stringNeg(&collateralAmount).as_str().map(str::to_owned);
         }  else {
-            baseAmount = crate::precise::Precise::stringNeg(&baseAmount);
+            baseAmount = crate::precise::Precise::stringNeg(&baseAmount).as_str().map(str::to_owned);
         }
         let mut feeAmount: Option<String> = self.get_extended_stark_amount(crate::precise::Precise::stringMul(&totalFee, &quoteAmount), collateralResolution, &[Value::Bool(true)]).as_str().map(str::to_owned);
         let mut settlement: indexmap::IndexMap<String, Value> = ({
@@ -3818,9 +3818,9 @@ impl Extended {
                 m.insert("starkKey".to_string(), starkKey.map(Value::from).unwrap_or(Value::Null));
                 m.insert("collateralPosition".to_string(), collateralPosition.map(Value::from).unwrap_or(Value::Null));
                 m.insert("baseAssetId".to_string(), syntheticId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("baseAmount".to_string(), baseAmount);
+                m.insert("baseAmount".to_string(), baseAmount.map(Value::from).unwrap_or(Value::Null));
                 m.insert("quoteAssetId".to_string(), collateralId.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("quoteAmount".to_string(), collateralAmount);
+                m.insert("quoteAmount".to_string(), collateralAmount.map(Value::from).unwrap_or(Value::Null));
                 m.insert("feeAssetId".to_string(), collateralId.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("feeAmount".to_string(), feeAmount.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiration".to_string(), Value::from(self.number_to_string(Value::from(settlementExpiration))));
@@ -3993,9 +3993,9 @@ impl Extended {
                 { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(&paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]).as_array().cloned().unwrap_or_default(); builderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilder = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             }
         }
-        let mut totalFee: Value = Value::from(fee.clone());
+        let mut totalFee: Option<String> = Some(fee.clone());
         if (builderFeeRate.is_some()) {
-            totalFee = crate::precise::Precise::stringAdd(&fee, &builderFeeRate.clone().map(Value::from).unwrap_or(Value::Null));
+            totalFee = crate::precise::Precise::stringAdd(&fee, &builderFeeRate.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut now: i64 = self.milliseconds();
         let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(paramsBuilder.clone(), "expiryEpochMillis", &[Value::Int((now + 3600000))]).as_i64();
@@ -4023,7 +4023,7 @@ impl Extended {
         }
         let mut settlementParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("totalFee".to_string(), totalFee);
+                m.insert("totalFee".to_string(), totalFee.map(Value::from).unwrap_or(Value::Null));
                 m.insert("starkKey".to_string(), starkKey.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("syntheticId".to_string(), syntheticId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("syntheticResolution".to_string(), Value::from(syntheticResolution));

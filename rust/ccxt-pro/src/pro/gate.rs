@@ -1397,7 +1397,7 @@ impl Gate {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
-        Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -1411,7 +1411,7 @@ impl Gate {
 }), &[params]);
         return self.subscribe_watch_tickers_and_bids_asks(&[symbols, Value::Str("watchTickers".into()), __ws_arg_4]).await;
         Value::Null
-        })).expect("a sync body never awaits")?))
+        }).await?))
     }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {

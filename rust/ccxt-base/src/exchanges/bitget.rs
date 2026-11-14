@@ -14028,9 +14028,9 @@ if _try_result.is_err() {
         if (initialMargin.is_none()) {
             initialMargin = crate::precise::Precise::stringDiv(&openNotional, &leverage).as_str().map(str::to_owned);
         }
-        let mut contracts: Value = self.parse_number(crate::precise::Precise::stringDiv(&baseAmount, &contractSize), &[]);
-        if (contracts == Value::Null) {
-            contracts = self.safe_number_k(position.clone(), "closeTotalPos", &[]);
+        let mut contracts: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&baseAmount, &contractSize), &[]).as_f64();
+        if (contracts.is_none()) {
+            contracts = self.safe_number_k(position.clone(), "closeTotalPos", &[]).as_f64();
         }
         let mut markPrice: Option<String> = self.safe_string_k(position.clone(), "markPrice", &[]).as_str().map(str::to_owned);
         let mut notional: Option<String> = crate::precise::Precise::stringMul(&baseAmount, &markPrice).as_str().map(str::to_owned);
@@ -14077,7 +14077,7 @@ if _try_result.is_err() {
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_n(position.clone(), Value::from(vec![Value::Str("pnl".into()), Value::Str("curRealisedPnl".into()), Value::Str("cumRealisedPnl".into())]), &[]));
         m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("contracts".to_string(), contracts);
+        m.insert("contracts".to_string(), Value::from(contracts));
         m.insert("contractSize".to_string(), Value::from(contractSizeNumber));
         m.insert("markPrice".to_string(), self.parse_number(markPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("lastPrice".to_string(), self.safe_number2(position.clone(), Value::Str("closeAvgPrice".into()), Value::Str("closePriceAvg".into()), &[]));

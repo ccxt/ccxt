@@ -2311,11 +2311,11 @@ impl Backpack {
         }
         let mut selection: crate::value::List = self.handle_stock_params("fetchTickers", params.clone(), &[]).into_list();
         let mut stockOnly: bool = self.safe_bool(&selection, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut query: Value = self.safe_dict(&selection, Value::Int(1), &[Value::Map({
+        let mut query: crate::value::Dict = self.safe_dict(&selection, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut source: Option<String> = self.safe_string_k(query.clone(), "source", &[Value::Str("Venue".into())]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut source: Option<String> = self.safe_string_k(&query, "source", &[Value::Str("Venue".into())]).as_str().map(str::to_owned);
         let mut symbolsLength: i64 = 0;
         if (symbols != Value::Null) {
             symbolsLength = symbols.len() as i64;
@@ -2342,10 +2342,10 @@ impl Backpack {
             }
         }
         let mut stockExplicitlyDisabled: bool = !(self.safe_bool2(params, Value::Str("stock".into()), Value::Str("defaultStock".into()), &[Value::Bool(true)]).as_bool() == Some(true));
-        let mut needsExternalRfqTickers: bool = (source.as_deref() == Some("Venue")) && (self.safe_string_k(query.clone(), "source", &[]) == Value::Null) && hasRfqSymbol && !stockExplicitlyDisabled;
-        let mut requestParams: Value = query.clone();
+        let mut needsExternalRfqTickers: bool = (source.as_deref() == Some("Venue")) && (self.safe_string_k(&query, "source", &[]) == Value::Null) && hasRfqSymbol && !stockExplicitlyDisabled;
+        let mut requestParams: Value = Value::from(&query);
         if (source.as_deref() == Some("External")) && (stockOnly || hasStockSymbol) && !(stockExplicitlyDisabled) {
-            requestParams = self.extend(query.clone(), &[Value::Map({
+            requestParams = self.extend(&query, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("stock".to_string(), Value::Bool(true));
                 m
@@ -3018,7 +3018,7 @@ impl Backpack {
         if rfq && (market.is_some()) && (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() != Some("RFQ")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " fetchMyTrades() rfq requires an RFQ market symbol")));
         }
-        let mut accountParams: Value = self.omit(&query, &["rfq", "until"], &[]);
+        let mut accountParams: crate::value::Dict = self.omit(&query, &["rfq", "until"], &[]).into_dict();
         let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
         if rfq || aggregate {
             let mut rfqRequest: indexmap::IndexMap<String, Value> = ({
@@ -3031,12 +3031,12 @@ impl Backpack {
             if (limit != Value::Null) {
                 rfqRequest.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
             }
-            let mut rfqParams: crate::value::Dict = self.omit(accountParams.clone(), &["assetClass", "marketType", "from", "to"], &[]).into_dict();
+            let mut rfqParams: crate::value::Dict = self.omit(&accountParams, &["assetClass", "marketType", "from", "to"], &[]).into_dict();
             let __ws_arg_12 = self.extend(Value::Map(rfqRequest), &[&rfqParams]);
             let mut rfqResponse: crate::value::List = self.private_get_wapi_v1_history_rfq_fill(&[__ws_arg_12]).await.into_list();
             let mut rfqTrades: Value = self.parse_trades(&rfqResponse, market.as_ref(), &[since.clone()]);
             if aggregate {
-                let __ws_arg_13 = self.omit(accountParams.clone(), &["rfqId", "quoteId", "deferredSettlement"], &[]);
+                let __ws_arg_13 = self.omit(&accountParams, &["rfqId", "quoteId", "deferredSettlement"], &[]);
                 let mut venueParams: crate::value::Dict = self.extend(__ws_arg_13, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("assetClass".to_string(), Value::Str("STOCK".into()));
@@ -3070,7 +3070,7 @@ impl Backpack {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut paramsOmitted: Value = accountParams;
+        let mut paramsOmitted: Value = Value::Dict(accountParams);
         if stock {
             request.insert("assetClass".into(), Value::Str("STOCK".into()));
         }
@@ -4843,13 +4843,13 @@ impl Backpack {
         let mut entryPrice: Option<f64> = self.safe_number_k(position.clone(), "entryPrice", &[]).as_f64();
         let mut markPrice: Option<f64> = self.safe_number_k(position.clone(), "markPrice", &[]).as_f64();
         let mut netCost: Option<String> = self.safe_string_k(position.clone(), "netCost", &[]).as_str().map(str::to_owned);
-        let mut hedged: Value = Value::Bool(false);
+        let mut hedged: Option<bool> = Some(false);
         let mut side: Option<String> = Some("long".to_string());
         if crate::precise::Precise::stringLt(&netCost, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("short".to_string());
         }
         if (netCost.is_none()) {
-            hedged = Value::Null;
+            hedged = None;
             side = None;
         }
         let mut unrealizedPnl: Option<f64> = self.safe_number_k(position.clone(), "pnlUnrealized", &[]).as_f64();
@@ -4863,7 +4863,7 @@ impl Backpack {
         m.insert("timestamp".to_string(), Value::from(self.parse8601(self.safe_string_k(position.clone(), "timestamp", &[]))));
         m.insert("datetime".to_string(), self.iso8601(Value::from(self.parse8601(self.safe_string_k(position.clone(), "timestamp", &[])))));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("hedged".to_string(), hedged);
+        m.insert("hedged".to_string(), hedged.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "netExposureQuantity", &[]));
         m.insert("contractSize".to_string(), Value::Null);

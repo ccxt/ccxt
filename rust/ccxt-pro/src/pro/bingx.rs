@@ -414,14 +414,14 @@ impl Bingx {
 }));
         let mut marketType: Option<String> = None;
         let mut subType: Option<String> = None;
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         let mut query: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(methodName.clone(), market, &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(methodName, market, &[Value::from(&query), Value::Str("linear".into())]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (marketType.as_deref() == Some("swap")) {
-            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
+            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }  else {
-            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[]);
+            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }
         let mut id: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -451,7 +451,7 @@ impl Bingx {
             query = self.omit(&query, Value::Str("symbolsAndTimeframes".into()), &[]).into_dict();
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[&query]);
-        return self.watch(&url, &messageHash, __ws_arg_0, subscribeHash, Value::Map(subscription)).await;
+        return self.watch(url.as_deref(), &messageHash, __ws_arg_0, subscribeHash, Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -482,7 +482,7 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchTicker".into()), Some(&market), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -490,9 +490,9 @@ impl Bingx {
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("swap")) {
-            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
+            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }  else {
-            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[Value::from((market).symbol.clone())]);
         let mut uuid: String = self.uuid(&[]);
@@ -512,7 +512,7 @@ impl Bingx {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsSubType]);
-        return self.watch(&url, (&messageHash).as_deref(), __ws_arg_1, (&messageHash).as_deref(), Value::Map(subscription)).await;
+        return self.watch(url.as_deref(), (&messageHash).as_deref(), __ws_arg_1, (&messageHash).as_deref(), Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -1349,8 +1349,8 @@ impl Bingx {
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
-            let mut limit: Value = self.safe_integer_k(&subscription, "limit", &[self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)])]);
-            CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, ArrayCacheByTimestamp::new(limit));
+            let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)])]).as_i64();
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&unifiedTimeframe);
         {
@@ -2513,7 +2513,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut a: crate::value::Dict = __pro_message.get("a").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_list_k(&a, "B", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&a, "B", &[Value::from(vec![])]).into_list();
         let mut timestamp: Option<i64> = self.safe_integer2(message, Value::Str("T".into()), Value::Str("E".into()), &[]).as_i64();
         let mut spotUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[]);
         let mut isSpot: bool = (spotUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(spotUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0));
@@ -2527,14 +2527,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })); }
         }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), data.clone()); } }
+        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), Value::from(&data)); } }
         if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&type_var)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
         {
                         let mut i: i64 = 0;
             let mut __for_first_98: bool = true;
             while { if !__for_first_98 { i += 1; } __for_first_98 = false; i < (data.len() as i64) } {
-            let mut balance: crate::value::Dict = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut balance: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::Int(i)).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "a", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();

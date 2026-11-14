@@ -2595,14 +2595,14 @@ impl Backpack {
         let mut contracts: Option<String> = self.safe_string_k(position.clone(), "Q", &[]).as_str().map(str::to_owned);
         let mut markPrice: Option<String> = self.safe_string_k(position.clone(), "M", &[]).as_str().map(str::to_owned);
         let mut netQuantity: Option<f64> = self.safe_number_k(position.clone(), "q", &[]).as_f64();
-        let mut hedged: Value = Value::Bool(false);
+        let mut hedged: Option<bool> = Some(false);
         let mut side: Option<String> = Some("long".to_string());
         if (netQuantity.is_some()) {
             if (netQuantity.is_some() && Some(0.0) > netQuantity) {
                 side = Some("short".to_string());
             }
         }  else {
-            hedged = Value::Null;
+            hedged = None;
             side = None;
         }
         let mut microseconds: i64 = self.safe_integer_k(position.clone(), "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
@@ -2625,7 +2625,7 @@ impl Backpack {
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("markPrice".to_string(), markPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("hedged".to_string(), hedged);
+        m.insert("hedged".to_string(), hedged.map_or(Value::Null, Value::Bool));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("maintenanceMargin".to_string(), Value::Null);

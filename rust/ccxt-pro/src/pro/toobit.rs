@@ -610,8 +610,8 @@ impl Toobit {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if !(self.trades.has(&symbol)) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();

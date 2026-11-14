@@ -1071,12 +1071,12 @@ impl Sxbet {
             return cached.map_or(Value::Null, Value::Dict);
         }
         let mut response: crate::value::Dict = self.sxbet_public_get_metadata_obv3(&[]).await.into_dict();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sxObv3Metadata".into(), data.clone()); }
-        return data;
+        })]).into_dict();
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sxObv3Metadata".into(), Value::from(&data)); }
+        return Value::Dict(data);
 
     Value::Null
 }
@@ -3169,9 +3169,9 @@ impl Sxbet {
             let mut level: crate::value::Dict = self.safe_dict(ownLevels.clone(), Value::Int(i), &[]).into_dict();
             let mut percentageOdds: Option<String> = self.safe_string_k(&level, "percentageOdds", &[]).as_str().map(str::to_owned);
             let mut size: String = self.safe_string_k(&level, "size", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-            let mut price: Value = self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds, &oneDenom), &[]);
-            let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&size, &usdcDecimals, &Value::Int(6)), &[]);
-            bids.push(Value::from(vec![price, amount]));
+            let mut price: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&percentageOdds, &oneDenom), &[]).as_f64();
+            let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&size, &usdcDecimals, &Value::Int(6)), &[]).as_f64();
+            bids.push(Value::from(vec![Value::from(price), Value::from(amount)]));
         }
         }
         let mut asks: Vec<Value> = Vec::new();
@@ -3185,11 +3185,11 @@ impl Sxbet {
             let mut size: String = self.safe_string_k(&level, "size", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
             // complement, and the takeable amount follows the remaining-taker-space formula
-            let mut price: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&percentageOdds, &oneDenom)), &[]);
+            let mut price: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&percentageOdds, &oneDenom)), &[]).as_f64();
             let mut ratio: Option<String> = crate::precise::Precise::stringDivPrec(&oneDenom, &percentageOdds, &Value::Int(12)).as_str().map(str::to_owned);
             let mut remainingTaker: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringMul(&size, &ratio), &size).as_str().map(str::to_owned);
-            let mut amount: Value = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingTaker, &usdcDecimals, &Value::Int(6)), &[]);
-            asks.push(Value::from(vec![price, amount]));
+            let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingTaker, &usdcDecimals, &Value::Int(6)), &[]).as_f64();
+            asks.push(Value::from(vec![Value::from(price), Value::from(amount)]));
         }
         }
         return Value::Map({
@@ -3868,8 +3868,8 @@ impl Sxbet {
                 self.trades = crate::pro::cache::CacheMap::new();
             }
             if (self.trades.lookup(&sym).is_none()) {
-                let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-                CacheStore::put(&mut self.trades, &sym, ArrayCache::new(tradesLimit));
+                let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+                CacheStore::put(&mut self.trades, &sym, ArrayCache::new(Value::from(tradesLimit)));
             }
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&sym);
             stored.append(Value::Dict(trade));

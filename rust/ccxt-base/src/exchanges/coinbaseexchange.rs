@@ -2473,12 +2473,12 @@ impl Coinbaseexchange {
         if postOnly {
             request.insert("post_only".into(), Value::Bool(true));
         }
-        let mut paramsOmitted: Value = self.omit(params, &["timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"], &[]);
-        let mut costParam: Option<f64> = self.safe_number2(paramsOmitted.clone(), Value::Str("cost".into()), Value::Str("funds".into()), &[]).as_f64();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"], &[]).into_dict();
+        let mut costParam: Option<f64> = self.safe_number2(&paramsOmitted, Value::Str("cost".into()), Value::Str("funds".into()), &[]).as_f64();
         let mut omitCost: bool = (type_var.as_str() == Some("market")) && (costParam.is_some());
-        let mut paramsCost: Value = paramsOmitted.clone();
+        let mut paramsCost: Value = Value::from(&paramsOmitted);
         if omitCost {
-            paramsCost = self.omit(paramsOmitted, &["cost", "funds"], &[]);
+            paramsCost = self.omit(&paramsOmitted, &["cost", "funds"], &[]);
         }
         if (type_var.as_str() == Some("limit")) {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));

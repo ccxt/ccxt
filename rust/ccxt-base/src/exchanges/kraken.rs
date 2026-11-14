@@ -2993,7 +2993,7 @@ impl Kraken {
             }
         }
         let mut flags: String = self.safe_string_k(orderOmitted.clone(), "oflags", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut isPostOnly: Value = Value::Bool(flags.contains("post"));
+        let mut isPostOnly: Option<bool> = Some(flags.contains("post"));
         let mut average: Option<f64> = self.safe_number_k(orderOmitted.clone(), "price", &[]).as_f64();
         if (marketResolved != Value::Null) {
             symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
@@ -3078,7 +3078,7 @@ impl Kraken {
         }
         let mut amendId: Option<String> = self.safe_string_k(orderOmitted.clone(), "amend_id", &[]).as_str().map(str::to_owned);
         if (amendId.is_some()) {
-            isPostOnly = Value::Null;
+            isPostOnly = None;
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3093,7 +3093,7 @@ impl Kraken {
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), typeParsed.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::Null);
-        m.insert("postOnly".to_string(), isPostOnly);
+        m.insert("postOnly".to_string(), isPostOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));

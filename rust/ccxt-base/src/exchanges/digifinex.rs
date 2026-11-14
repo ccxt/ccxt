@@ -2851,7 +2851,7 @@ impl Digifinex {
         request.insert(marketIdRequest, Value::from((market).id.as_deref()));
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsMarginMode)]);
         let mut postOnlyParsed: i64 = 0;
-        let mut paramsRequest: Value = Value::Null;
+        let mut paramsRequest: Option<crate::value::Dict> = None;
         if swap {
             let mut reduceOnly: bool = self.safe_bool_k(&paramsMarginMode, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut timeInForce: Option<String> = self.safe_string_k(&paramsMarginMode, "timeInForce", &[]).as_str().map(str::to_owned);
@@ -2880,7 +2880,7 @@ impl Digifinex {
             }
             request.insert("order_type".into(), Value::from(orderType));
             request.insert("size".into(), amount.clone()); // swap orders require the amount to be the number of contracts
-            paramsRequest = self.omit(&paramsMarginMode, &["reduceOnly", "timeInForce", "postOnly"], &[]);
+            paramsRequest = self.omit(&paramsMarginMode, &["reduceOnly", "timeInForce", "postOnly"], &[]).into_opt_dict();
         }  else {
             postOnlyParsed = (if postOnly { 1 } else { 2 });
             request.insert("market".into(), (if (marginMode.is_some()) { Value::Str("margin".into()) } else { marketTypeRaw.map(Value::from).unwrap_or(Value::Null) }));
@@ -2903,7 +2903,7 @@ impl Digifinex {
             }  else {
                 keysToOmit = Value::from(vec![Value::Str("postOnly".into())]);
             }
-            paramsRequest = self.omit(&paramsRequiresPrice, keysToOmit, &[]);
+            paramsRequest = self.omit(&paramsRequiresPrice, keysToOmit, &[]).into_opt_dict();
             if isMarketBuy {
                 let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
                 if (cost.is_some()) {
@@ -2932,7 +2932,7 @@ impl Digifinex {
                 request.insert("post_only".into(), Value::Bool(postOnly));
             }
         }
-        return self.extend(Value::Map(request), &[paramsRequest]);
+        return self.extend(Value::Map(request), &[&paramsRequest]);
 
     Value::Null
 }

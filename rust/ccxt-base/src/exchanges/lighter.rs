@@ -1620,12 +1620,12 @@ if _try_result.is_err() {
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })])]);
-                let mut orderObj: Value = self.safe_dict(__ws_arg_9, Value::Int(0), &[Value::Map({
+                let mut orderObj: crate::value::Dict = self.safe_dict(__ws_arg_9, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                if let Value::Dict(__d) = &mut orderObj { std::sync::Arc::make_mut(__d).insert("client_order_index".into(), Value::Int(0)); }
-                orders.push(orderObj.clone());
+})]).into_dict();
+                std::sync::Arc::make_mut(&mut orderObj).insert("client_order_index".into(), Value::Int(0));
+                orders.push(Value::Dict(orderObj));
             }
             if (takeProfit.is_some()) {
                 let __ws_arg_10 = self.create_order_request(symbol.as_str(), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), Value::Int(0), &[Value::from(takeProfitOrderLimitPrice), self.extend(paramsRequest, &[Value::Map({
@@ -1634,12 +1634,12 @@ if _try_result.is_err() {
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })])]);
-                let mut orderObj: Value = self.safe_dict(__ws_arg_10, Value::Int(0), &[Value::Map({
+                let mut orderObj: crate::value::Dict = self.safe_dict(__ws_arg_10, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                if let Value::Dict(__d) = &mut orderObj { std::sync::Arc::make_mut(__d).insert("client_order_index".into(), Value::Int(0)); }
-                orders.push(orderObj);
+})]).into_dict();
+                std::sync::Arc::make_mut(&mut orderObj).insert("client_order_index".into(), Value::Int(0));
+                orders.push(Value::Dict(orderObj));
             }
         }
         return Value::from(orders);

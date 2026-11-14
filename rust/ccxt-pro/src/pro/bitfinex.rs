@@ -730,7 +730,7 @@ impl Bitfinex {
         let mut __it = __args.into_iter();
         let mut symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
-        Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -738,7 +738,7 @@ impl Bitfinex {
 }));
         return self.subscribe("ticker", symbol.as_str().unwrap_or_default(), &[params]).await;
         Value::Null
-        })).expect("a sync body never awaits")?))
+        }).await?))
     }
 
 /*

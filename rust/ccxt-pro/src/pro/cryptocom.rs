@@ -489,17 +489,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bookSubscriptionType: Option<String> = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsBookSubscriptionType: crate::value::Dict = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let bookSubscriptionType2paramsBookSubscriptionType2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
-        let mut bookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(1).cloned().unwrap_or(Value::Null);
-        add_element_to_object(get_value_mut(&mut paramsBookSubscriptionType2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2);
-        let bookUpdateFrequencyparamsBookUpdateFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut bookSubscriptionType2: Option<String> = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut paramsBookSubscriptionType2: crate::value::Dict = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        add_element_to_object(std::sync::Arc::make_mut(&mut paramsBookSubscriptionType2).entry("params".to_string()).or_insert(Value::Null), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2.map(Value::from).unwrap_or(Value::Null));
+        let bookUpdateFrequencyparamsBookUpdateFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(&paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut bookUpdateFrequency: Option<String> = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsBookUpdateFrequency: crate::value::Dict = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let bookUpdateFrequency2paramsBookUpdateFrequency2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
-        let mut bookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(1).cloned().unwrap_or(Value::Null);
-        if (bookUpdateFrequency2 != Value::Null) {
-            add_element_to_object(get_value_mut(&mut paramsBookUpdateFrequency2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookUpdateFrequency2);
+        let mut bookUpdateFrequency2: Option<String> = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut paramsBookUpdateFrequency2: crate::value::Dict = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        if (bookUpdateFrequency2.is_some()) {
+            add_element_to_object(std::sync::Arc::make_mut(&mut paramsBookUpdateFrequency2).entry("params".to_string()).or_insert(Value::Null), &Value::Str("bookSubscriptionType".into()), bookUpdateFrequency2.map(Value::from).unwrap_or(Value::Null));
         }
         {
                         let mut i: i64 = 0;
@@ -512,7 +512,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), limitString.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut orderbook: Value = self.watch_public_multiple(Value::from(messageHashes), Value::from(topics), &[paramsBookUpdateFrequency2]).await;
+        let mut orderbook: Value = self.watch_public_multiple(Value::from(messageHashes), Value::from(topics), &[Value::Dict(paramsBookUpdateFrequency2)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -560,17 +560,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bookSubscriptionType: Option<String> = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsBookSubscriptionType: crate::value::Dict = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let bookSubscriptionType2paramsBookSubscriptionType2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookSubscriptionType, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookSubscriptionType".into()), &[bookSubscriptionType.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
-        let mut bookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookSubscriptionType2: Value = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(1).cloned().unwrap_or(Value::Null);
-        add_element_to_object(get_value_mut(&mut paramsBookSubscriptionType2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2);
-        let bookUpdateFrequencyparamsBookUpdateFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut bookSubscriptionType2: Option<String> = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut paramsBookSubscriptionType2: crate::value::Dict = bookSubscriptionType2paramsBookSubscriptionType2Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        add_element_to_object(std::sync::Arc::make_mut(&mut paramsBookSubscriptionType2).entry("params".to_string()).or_insert(Value::Null), &Value::Str("bookSubscriptionType".into()), bookSubscriptionType2.map(Value::from).unwrap_or(Value::Null));
+        let bookUpdateFrequencyparamsBookUpdateFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(&paramsBookSubscriptionType2, Value::Str("watchOrderBook".into()), Value::Str("bookUpdateFrequency".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut bookUpdateFrequency: Option<String> = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsBookUpdateFrequency: crate::value::Dict = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let bookUpdateFrequency2paramsBookUpdateFrequency2Variable: Vec<Value> = self.handle_option_string_and_params(&paramsBookUpdateFrequency, Value::Str("watchOrderBookForSymbols".into()), Value::Str("bookUpdateFrequency".into()), &[bookUpdateFrequency.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
-        let mut bookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsBookUpdateFrequency2: Value = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(1).cloned().unwrap_or(Value::Null);
-        if (bookUpdateFrequency2 != Value::Null) {
-            add_element_to_object(get_value_mut(&mut paramsBookUpdateFrequency2, &Value::Str("params".into())), &Value::Str("bookSubscriptionType".into()), bookUpdateFrequency2);
+        let mut bookUpdateFrequency2: Option<String> = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut paramsBookUpdateFrequency2: crate::value::Dict = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        if (bookUpdateFrequency2.is_some()) {
+            add_element_to_object(std::sync::Arc::make_mut(&mut paramsBookUpdateFrequency2).entry("params".to_string()).or_insert(Value::Null), &Value::Str("bookSubscriptionType".into()), bookUpdateFrequency2.map(Value::from).unwrap_or(Value::Null));
         }
         {
                         let mut i: i64 = 0;
@@ -583,7 +583,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), Value::Str(format!("{}", limit).into())).into()));
         }
         }
-        return self.un_watch_public_multiple("orderbook", symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHashes), Value::from(subMessageHashes), Value::from(topics), &[paramsBookUpdateFrequency2]).await;
+        return self.un_watch_public_multiple("orderbook", symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHashes), Value::from(subMessageHashes), Value::from(topics), &[Value::Dict(paramsBookUpdateFrequency2)]).await;
         Value::Null
         }).await?))
     }

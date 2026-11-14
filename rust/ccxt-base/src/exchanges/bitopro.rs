@@ -1331,11 +1331,11 @@ impl Bitopro {
             return candles;
         }
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut firstCandle: Value = self.safe_list(candles.clone(), Value::Int(0), &[Value::from(vec![])]);
-        let mut copyFrom: Value = firstCandle.clone();
+        let mut firstCandle: crate::value::List = self.safe_list(candles.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut copyFrom: Value = Value::from(&firstCandle);
         let mut timestamp: Value = Value::Null;
         if (since == Value::Null) {
-            timestamp = self.safe_integer(firstCandle, Value::Int(0), &[]);
+            timestamp = self.safe_integer(&firstCandle, Value::Int(0), &[]);
         }  else {
             timestamp = since;
         }

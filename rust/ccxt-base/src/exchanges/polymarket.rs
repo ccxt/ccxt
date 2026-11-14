@@ -856,17 +856,17 @@ impl Polymarket {
             if (baseId.is_none()) {
                 continue;
             }
-            let mut code: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if !(matches!(&code, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+            let mut code: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
+            if !(matches!(code.as_deref(), Some(__k) if result.contains_key(__k))) {
                 // the venue tags each underlying with a category - only the
                 // crypto ones are unified as crypto, equities, commodities and
                 // indices map onto the other currency type
                 let mut category: Option<String> = self.safe_string_k(&instrument, "category", &[]).as_str().map(str::to_owned);
                 let mut currencyType: String = (if (category.as_deref() == Some("crypto")) { "crypto".to_string() } else { "other".to_string() });
-                result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+                result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("name".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), Value::from(&instrument));
         m.insert("active".to_string(), Value::Bool(true));
@@ -915,11 +915,11 @@ impl Polymarket {
             if (currencyId.is_none()) {
                 continue;
             }
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
+            result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("name".to_string(), currencyId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), Value::from(&asset));
         m.insert("active".to_string(), Value::Bool(true));

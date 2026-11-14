@@ -694,20 +694,20 @@ impl Lighter {
                 while { if !__for_first_468 { i += 1; } __for_first_468 = false; i < (marketIds.len() as i64) } {
                 let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
-                let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+                let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
                 let mut ticker: crate::value::Dict = self.parse_ticker(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
-                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
-                client.resolve(Value::from(&ticker), &self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null));
+                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+                client.resolve(Value::from(&ticker), &self.get_message_hash(Value::Str("ticker".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
                 client.resolve(Value::Dict(ticker), &self.get_message_hash(Value::Str("ticker".into()), &[]).map(Value::from).unwrap_or(Value::Null));
             }
             }
         }  else {
             let mut marketId: Option<String> = self.safe_string(Value::Map(data.clone()), Value::Str("market_id".into()), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut ticker: crate::value::Dict = self.parse_ticker(Value::Map(data), Some(&market)).into_dict();
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
-            client.resolve(Value::Dict(ticker), &self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null));
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+            client.resolve(Value::Dict(ticker), &self.get_message_hash(Value::Str("ticker".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
         }
 }
 

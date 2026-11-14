@@ -1813,8 +1813,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut bi: i64 = 0;
                 let mut __for_first_1271: bool = true;
                 while { if !__for_first_1271 { bi += 1; } __for_first_1271 = false; bi < (rawNo.len() as i64) } {
-                let mut price: Value = self.safe_number(rawNo.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
-                bids.push(Value::from(vec![price, self.safe_number(rawNo.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
+                let mut price: Option<f64> = self.safe_number(rawNo.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
+                bids.push(Value::from(vec![Value::from(price), self.safe_number(rawNo.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
             }
             }
             {
@@ -1822,8 +1822,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1272: bool = true;
                 while { if !__for_first_1272 { ai += 1; } __for_first_1272 = false; ai < (rawYes.len() as i64) } {
                 let mut yesPrice: Option<f64> = self.safe_number(rawYes.get(ai as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
-                let mut price: Value = (if (yesPrice.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(yesPrice)))), &[]) } else { Value::Null });
-                asks.push(Value::from(vec![price, self.safe_number(rawYes.get(ai as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
+                let mut price: Option<f64> = (if (yesPrice.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(yesPrice)))), &[]).as_f64() } else { None });
+                asks.push(Value::from(vec![Value::from(price), self.safe_number(rawYes.get(ai as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
             }
             }
         }  else {
@@ -1831,8 +1831,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut bi: i64 = 0;
                 let mut __for_first_1273: bool = true;
                 while { if !__for_first_1273 { bi += 1; } __for_first_1273 = false; bi < (rawYes.len() as i64) } {
-                let mut price: Value = self.safe_number(rawYes.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
-                bids.push(Value::from(vec![price, self.safe_number(rawYes.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
+                let mut price: Option<f64> = self.safe_number(rawYes.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
+                bids.push(Value::from(vec![Value::from(price), self.safe_number(rawYes.get(bi as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
             }
             }
             {
@@ -1840,8 +1840,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1274: bool = true;
                 while { if !__for_first_1274 { ai += 1; } __for_first_1274 = false; ai < (rawNo.len() as i64) } {
                 let mut noPrice: Option<f64> = self.safe_number(rawNo.get(ai as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
-                let mut price: Value = (if (noPrice.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(noPrice)))), &[]) } else { Value::Null });
-                asks.push(Value::from(vec![price, self.safe_number(rawNo.get(ai as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
+                let mut price: Option<f64> = (if (noPrice.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(noPrice)))), &[]).as_f64() } else { None });
+                asks.push(Value::from(vec![Value::from(price), self.safe_number(rawNo.get(ai as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[])]));
             }
             }
         }
@@ -3609,7 +3609,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawEvents: Vec<Value> = Vec::new();
         let mut seriesTickersLength: i64 = seriesTickers.len() as i64;
         let mut pageLimit: Option<i64> = self.parse_to_int(self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(200)]));
-        let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxEventPagesPerSeries", &[Value::Int(20)]);
+        let mut maxPages: i64 = self.safe_integer_k(self.options.clone(), "maxEventPagesPerSeries", &[Value::Int(20)]).as_i64().unwrap_or(20);
         let mut hasLimit: bool = limit != Value::Null;
         let mut limitOrZero: Value = (if hasLimit { limit } else { Value::Int(0) });
         let mut limitValue: Option<i64> = self.parse_to_int(limitOrZero);
@@ -3625,7 +3625,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut page: i64 = 0;
                 let mut __for_first_1296: bool = true;
-                while { if !__for_first_1296 { page += 1; } __for_first_1296 = false; (page as f64) < maxPages.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1296 { page += 1; } __for_first_1296 = false; page < maxPages } {
                 let mut reqLimit: Option<i64> = pageLimit;
                 if hasLimit && (limitValue.is_some()) {
                     let mut collectedSoFar: i64 = rawEvents.len() as i64;
@@ -3824,9 +3824,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // the aggregates only mean something when the payload nested any markets at all
         let mut marketsCount: i64 = marketsList.len() as i64;
-        let mut active: Value = Value::Null;
+        let mut active: Option<bool> = None;
         if marketsCount > 0 {
-            active = Value::Bool(anyActive);
+            active = Some(anyActive);
         }
         let mut resolved: Option<bool> = self.safe_bool_k(rawEvent.clone(), "resolved", &[]).as_bool();
         if (resolved.is_none()) && (marketsCount > 0) {
@@ -3874,7 +3874,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("lastUpdatedAt".to_string(), Value::from(__ws_arg_23));
         m.insert("lastUpdatedAtDatetime".to_string(), __ws_arg_24);
         m.insert("resolutionSource".to_string(), __ws_arg_25);
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
         m.insert("resolved".to_string(), resolved.map_or(Value::Null, Value::Bool));
         m.insert("info".to_string(), rawEvent);
     m

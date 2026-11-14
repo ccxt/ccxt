@@ -1761,8 +1761,8 @@ impl Predictfun {
                 let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[]).into_list();
                 let mut bidPrice: Option<String> = self.safe_string(&bid, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut bidSize: Option<f64> = self.parse_number(self.safe_string(&bid, Value::Int(1), &[]), &[]).as_f64();
-                let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice), &[]);
-                noAsks.push(Value::from(vec![complementPrice, Value::from(bidSize)]));
+                let mut complementPrice: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &bidPrice), &[]).as_f64();
+                noAsks.push(Value::from(vec![Value::from(complementPrice), Value::from(bidSize)]));
             }
             }
             {
@@ -1772,8 +1772,8 @@ impl Predictfun {
                 let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[]).into_list();
                 let mut askPrice: Option<String> = self.safe_string(&ask, Value::Int(0), &[]).as_str().map(str::to_owned);
                 let mut askSize: Option<f64> = self.parse_number(self.safe_string(&ask, Value::Int(1), &[]), &[]).as_f64();
-                let mut complementPrice: Value = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice), &[]);
-                noBids.push(Value::from(vec![complementPrice, Value::from(askSize)]));
+                let mut complementPrice: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &askPrice), &[]).as_f64();
+                noBids.push(Value::from(vec![Value::from(complementPrice), Value::from(askSize)]));
             }
             }
             let mut noOrderbook: indexmap::IndexMap<String, Value> = ({

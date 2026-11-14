@@ -2134,13 +2134,13 @@ impl Limitless {
         let mut history: Value = rawHistory.clone();
         let mut rawHistoryLength: i64 = rawHistory.len() as i64;
         if rawHistoryLength > 0 {
-            let mut first: Value = self.safe_dict(rawHistory.clone(), Value::Int(0), &[Value::Map({
+            let mut first: crate::value::Dict = self.safe_dict(rawHistory.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut firstPrices: Option<crate::value::List> = self.safe_list_k(first.clone(), "prices", &[]).into_opt_list();
+})]).into_dict();
+            let mut firstPrices: Option<crate::value::List> = self.safe_list_k(&first, "prices", &[]).into_opt_list();
             if (firstPrices.is_some()) {
-                let mut selectedSeries: Value = first;
+                let mut selectedSeries: Value = Value::Dict(first);
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_1317: bool = true;

@@ -2133,17 +2133,17 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1398: bool = true;
             while { if !__for_first_1398 { i += 1; } __for_first_1398 = false; i < tradesLength } {
-            let mut trade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut tokenId: Option<String> = self.safe_string_k(trade.clone(), "tokenId", &[]).as_str().map(str::to_owned);
-            let mut marketId: Option<i64> = self.safe_integer_k(trade.clone(), "marketId", &[]).as_i64();
+            let mut trade: Option<crate::value::Dict> = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut tokenId: Option<String> = self.safe_string_k(&trade, "tokenId", &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<i64> = self.safe_integer_k(&trade, "marketId", &[]).as_i64();
             if (tokenId.is_none()) && (marketId.is_some()) {
                 let mut tradeMarket: Value = self.load_trade_market(Value::from(marketId)).await;
                 let mut info: crate::value::Dict = self.safe_dict_k(tradeMarket, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                let mut isYes: bool = self.safe_string_lower_k(trade.clone(), "outcomeSideEnum", &[]).as_str() == Some("yes");
-                add_element_to_object(&mut trade, &Value::Str("tokenId".into()), (if isYes { self.safe_string_k(&info, "yesTokenId", &[]) } else { self.safe_string_k(&info, "noTokenId", &[]) }));
+                let mut isYes: bool = self.safe_string_lower_k(&trade, "outcomeSideEnum", &[]).as_str() == Some("yes");
+                if let Some(__d) = &mut trade { std::sync::Arc::make_mut(__d).insert("tokenId".into(), (if isYes { self.safe_string_k(&info, "yesTokenId", &[]) } else { self.safe_string_k(&info, "noTokenId", &[]) })); }
             }
         }
         }
@@ -2276,10 +2276,10 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1399: bool = true;
             while { if !__for_first_1399 { i += 1; } __for_first_1399 = false; i < rawBalancesLength } {
-            let mut rawBalance: Value = rawBalances.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut quoteTokenAddress: Option<String> = self.safe_string_k(rawBalance.clone(), "quoteToken", &[]).as_str().map(str::to_owned);
+            let mut rawBalance: Option<crate::value::Dict> = rawBalances.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut quoteTokenAddress: Option<String> = self.safe_string_k(&rawBalance, "quoteToken", &[]).as_str().map(str::to_owned);
             let mut quoteToken: crate::value::Dict = self.load_quote_token(quoteTokenAddress.as_deref()).await.into_dict();
-            add_element_to_object(&mut rawBalance, &Value::Str("symbol".into()), self.safe_string_k(&quoteToken, "symbol", &[Value::Str("USDT".into())]));
+            if let Some(__d) = &mut rawBalance { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(&quoteToken, "symbol", &[Value::Str("USDT".into())])); }
         }
         }
         return self.parse_balance(&response);
@@ -3028,8 +3028,8 @@ if _try_result.is_err() {
             self.trades = crate::pro::cache::CacheMap::new();
         }
         if (self.trades.lookup(&sym.clone().map(Value::from).unwrap_or(Value::Null)).is_none()) {
-            let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            CacheStore::put(&mut self.trades, &sym.clone().map(Value::from).unwrap_or(Value::Null), ArrayCache::new(tradesLimit));
+            let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheStore::put(&mut self.trades, &sym.clone().map(Value::from).unwrap_or(Value::Null), ArrayCache::new(Value::from(tradesLimit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&sym.clone().map(Value::from).unwrap_or(Value::Null));
         stored.append(trade);

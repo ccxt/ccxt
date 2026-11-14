@@ -6715,9 +6715,9 @@ impl Binance {
                     if isLegacyLinear {
                         settle = self.safe_string_k(market.clone(), "quote", &[Value::Str("".into())]).as_str().map(str::to_owned);
                     }
-                    let mut legacySymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null")).into());
-                    if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &legacySymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        return (if let (Some(__m), Some(__k)) = (self.markets.as_map(), legacySymbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                    let mut legacySymbol: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+                    if (self.markets.clone() != Value::Null) && (matches!((&self.markets, Some(legacySymbol.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                        return (if let Some(__m) = self.markets.as_map() { __m.get(legacySymbol.as_str()).cloned().unwrap_or(Value::Null) } else { Value::Null });
                     }
                 }  else {
                     return market;
@@ -6751,9 +6751,9 @@ impl Binance {
                     if (quote.as_deref() == Some("USD")) {
                         settle = base;
                     }
-                    let mut futuresSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), settle.as_deref().unwrap_or("null")).into());
-                    if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &futuresSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        return (if let (Some(__m), Some(__k)) = (self.markets.as_map(), futuresSymbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                    let mut futuresSymbol: String = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), settle.as_deref().unwrap_or("null"));
+                    if (self.markets.clone() != Value::Null) && (matches!((&self.markets, Some(futuresSymbol.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                        return (if let Some(__m) = self.markets.as_map() { __m.get(futuresSymbol.as_str()).cloned().unwrap_or(Value::Null) } else { Value::Null });
                     }
                 }
             }  else if (symbol.as_str().unwrap_or("").contains("-C")) || (symbol.as_str().unwrap_or("").contains("-P")) {
@@ -7748,7 +7748,7 @@ impl Binance {
     m
 })]);
         }
-        let mut active: Value = (Value::Bool(status.as_deref() == Some("TRADING")));
+        let mut active: Option<bool> = Some(status.as_deref() == Some("TRADING"));
         if spot {
             let mut permissions: crate::value::List = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]).into_list();
             {
@@ -7756,7 +7756,7 @@ impl Binance {
                 let mut __for_first_276: bool = true;
                 while { if !__for_first_276 { j += 1; } __for_first_276 = false; j < (permissions.len() as i64) } {
                 if (self.safe_string(&permissions, Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
-                    active = Value::Bool(false);
+                    active = Some(false);
                     break;
                 }
             }
@@ -7790,7 +7790,7 @@ impl Binance {
             unifiedType = Some("future".to_string());
         }  else if option {
             unifiedType = Some("option".to_string());
-            active = Value::Null;
+            active = None;
         }
         let mut parsedStrike: Value = Value::Null;
         if (strike != Value::Null) {
@@ -7799,7 +7799,7 @@ impl Binance {
         let mut tradability: Option<String> = self.safe_string_k(market.clone(), "tradability", &[]).as_str().map(str::to_owned);
         if (tradability.is_some()) {
             if (tradability.as_deref() != Some("NONE")) {
-                active = Value::Bool(true);
+                active = Some(true);
             }
         }
         let mut feesTrading: indexmap::IndexMap<String, Value> = self.safe_dict_k(fees, "trading", &[Value::Map({
@@ -7825,7 +7825,7 @@ impl Binance {
                 m.insert("future".to_string(), Value::Bool(future));
                 m.insert("option".to_string(), Value::Bool(option));
                 m.insert("stock".to_string(), Value::Bool(stock));
-                m.insert("active".to_string(), active);
+                m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
                 m.insert("contract".to_string(), contract);
                 m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
                 m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
@@ -13657,12 +13657,12 @@ impl Binance {
         //       ]
         //     }
         let mut results: crate::value::List = self.safe_list_k(&response, "userAssetDribblets", &[Value::from(vec![])]).into_list();
-        let mut rows: Value = self.safe_integer_k(&response, "total", &[Value::Int(0)]);
+        let mut rows: i64 = self.safe_integer_k(&response, "total", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut data: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_291: bool = true;
-            while { if !__for_first_291 { i += 1; } __for_first_291 = false; (i as f64) < rows.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_291 { i += 1; } __for_first_291 = false; i < rows } {
             let mut logs: Value = self.safe_list_k(results.get(i as usize).cloned().unwrap_or(Value::Null), "userAssetDribbletDetails", &[Value::from(vec![])]);
             {
                                 let mut j: i64 = 0;

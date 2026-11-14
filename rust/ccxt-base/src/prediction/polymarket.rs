@@ -1992,12 +1992,12 @@ impl Polymarket {
                 let mut __for_first_1432: bool = true;
                 while { if !__for_first_1432 { i += 1; } __for_first_1432 = false; i < booksLength } {
                 let mut book: crate::value::Dict = books.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-                let mut tokenId: Option<String> = self.safe_string_k_opt(&book, "asset_id", &[]);
-                if (tokenId.is_none()) || !(matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesByTokenId.contains_key(__k.as_ref()))) {
+                let mut tokenId: Option<String> = self.safe_string_k(&book, "asset_id", &[]).as_str().map(str::to_owned);
+                if (tokenId.is_none()) || !(matches!(tokenId.as_deref(), Some(__k) if outcomesByTokenId.contains_key(__k))) {
                     continue;
                 }
                 let mut outcomeObj: Value = outcomesByTokenId.get(tokenId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                let mut mid: Option<String> = self.safe_string(midpoints.clone(), tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                let mut mid: Option<String> = self.safe_string(midpoints.clone(), Value::from(tokenId.as_deref()), &[]).as_str().map(str::to_owned);
                 let mut tickerInput: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("midpoint".to_string(), Value::Map({
@@ -2006,7 +2006,7 @@ impl Polymarket {
     m
 }));
                         m.insert("book".to_string(), Value::Dict(book));
-                        m.insert("lastTrade".to_string(), self.safe_dict(Value::Map(lastTradesByTokenId.clone()), tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+                        m.insert("lastTrade".to_string(), self.safe_dict(Value::Map(lastTradesByTokenId.clone()), Value::from(tokenId.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]));

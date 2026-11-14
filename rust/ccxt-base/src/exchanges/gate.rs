@@ -6034,7 +6034,7 @@ if _try_result.is_err() {
         if (untilMs.is_some()) {
             until = self.parse_to_int(Value::from((if let Some(__l) = untilMs { Some((__l as f64) / 1000.0) } else { None })));
         }
-        let mut paramsOmitted: Value = self.omit(&paramsRequest, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRequest, Value::Str("until".into()), &[]).into_dict();
         if (since != Value::Null) {
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             let mut fromTimestamp: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
@@ -6061,9 +6061,9 @@ if _try_result.is_err() {
             if isMark || isIndex {
                 std::sync::Arc::make_mut(&mut request).insert("contract".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", price.as_deref().unwrap_or("null"), "_").into()), Value::from((market).id.as_deref())).into()));
             }
-            let mut paramsContract: Value = paramsOmitted.clone();
+            let mut paramsContract: Value = Value::from(&paramsOmitted);
             if isMark || isIndex {
-                paramsContract = self.omit(paramsOmitted.clone(), Value::Str("price".into()), &[]);
+                paramsContract = self.omit(&paramsOmitted, Value::Str("price".into()), &[]);
             }
             if (market).future {
                 let __ws_arg_29 = self.extend(&request, &[paramsContract.clone()]);
@@ -6073,7 +6073,7 @@ if _try_result.is_err() {
                 response = self.public_futures_get_settle_candlesticks(&[__ws_arg_30]).await;
             }
         }  else {
-            let __ws_arg_31 = self.extend(request, &[paramsOmitted]);
+            let __ws_arg_31 = self.extend(request, &[&paramsOmitted]);
             response = self.public_spot_get_candlesticks(&[__ws_arg_31]).await;
         }
         return self.parse_ohlc_vs(self.to_array(response), Some(&market), &[timeframe, since, Value::from(limitValue)]);

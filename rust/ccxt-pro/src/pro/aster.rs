@@ -1329,8 +1329,8 @@ impl Aster {
             return;
         }
         if !(self.trades.has(&symbol)) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         stored.append(Value::Dict(parsed));
@@ -2006,8 +2006,8 @@ impl Aster {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
         if (self.ohlcvs.shelf_text(&symbol).lookup(&timeframe).is_none()) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         let mut parsed: crate::value::List = self.parse_ws_ohlcv(kline.map_or(Value::Null, Value::Dict), None).into_list();

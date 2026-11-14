@@ -448,14 +448,14 @@ impl Deribit {
         //     }
         //
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
-        let mut currencyId: Option<String> = self.safe_string_k(data.clone(), "currency", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
+        let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
         let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut balance: crate::value::Dict = self.parse_balance(data).into_dict();
+        let mut balance: crate::value::Dict = self.parse_balance(Value::Dict(data)).into_dict();
         if (currencyCode.is_some()) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Dict(balance)); }
         }
@@ -511,8 +511,8 @@ impl Deribit {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        return self.watch(url.as_deref(), &channel[..], request.clone(), &channel[..], request).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[&paramsOmitted]).into_dict();
+        return self.watch(url.as_deref(), &channel[..], &request, &channel[..], &request).await;
         Value::Null
         }).await?))
     }
@@ -572,8 +572,8 @@ impl Deribit {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        let mut newTickers: Value = self.watch_multiple(url.as_deref(), &channels, request.clone(), &channels, request.clone()).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[&paramsOmitted]).into_dict();
+        let mut newTickers: Value = self.watch_multiple(url.as_deref(), &channels, &request, &channels, &request).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -858,8 +858,8 @@ impl Deribit {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut trades: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         if (self.trades.lookup(&symbol).is_none()) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         {
@@ -923,8 +923,8 @@ impl Deribit {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut request: Value = self.deep_extend(Value::Map(message), &[&paramsOmitted]);
-        let mut trades: Value = self.watch(url.as_deref(), &channel[..], request.clone(), &channel[..], request).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[&paramsOmitted]).into_dict();
+        let mut trades: Value = self.watch(url.as_deref(), &channel[..], &request, &channel[..], &request).await;
         return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
@@ -1447,8 +1447,8 @@ impl Deribit {
         let mut unifiedTimeframe: Option<String> = self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         if (self.ohlcvs.shelf(&symbol).lookup(&unifiedTimeframe).is_none()) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, ArrayCacheByTimestamp::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&unifiedTimeframe);
         let mut ohlcv: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({

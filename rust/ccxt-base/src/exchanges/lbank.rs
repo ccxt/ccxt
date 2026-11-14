@@ -2899,7 +2899,7 @@ impl Lbank {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut sinceValue: Value = self.safe_integer_k(params.clone(), "start_date", &[since]);
+        let mut sinceValue: Option<i64> = self.safe_integer_k(params.clone(), "start_date", &[since]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("start_date".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2909,10 +2909,9 @@ impl Lbank {
         if (limit != Value::Null) {
             request.insert("size".into(), limit.clone());
         }
-        if (sinceValue != Value::Null) {
-            request.insert("start_date".into(), self.ymd(sinceValue.clone(), &[Value::Str("-".into())])); // max query 2 days ago
-            request.insert("end_date".into(), self.ymd((match (&(sinceValue), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-                _ => Value::Null }), &[Value::Str("-".into())])); // will cover 2 days
+        if (sinceValue.is_some()) {
+            request.insert("start_date".into(), self.ymd(Value::from(sinceValue), &[Value::Str("-".into())])); // max query 2 days ago
+            request.insert("end_date".into(), self.ymd(Value::from((if let Some(__l) = sinceValue { Some(__l + 86400000) } else { None })), &[Value::Str("-".into())])); // will cover 2 days
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.spot_private_post_transaction_history(&[__ws_arg_16]).await.into_dict();
@@ -2937,7 +2936,7 @@ impl Lbank {
         //      }
         //
         let mut trades: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&trades, Some(&market), &[sinceValue, limit]);
+        return self.parse_trades(&trades, Some(&market), &[Value::from(sinceValue), limit]);
         Value::Null
         }).await?))
     }

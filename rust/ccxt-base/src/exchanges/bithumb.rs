@@ -3410,12 +3410,12 @@ impl Bithumb {
         });
         let mut response: Option<crate::value::Dict> = None;
         let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]);
-        let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]).into_dict();
+        let mut clientOrderId: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
         let mut useClientOrderId: bool = ((!(twap) && (generation == Some(2))) && (clientOrderId.is_some()));
-        let mut paramsRequest: Value = paramsOmitted.clone();
+        let mut paramsRequest: Value = Value::from(&paramsOmitted);
         if useClientOrderId {
-            paramsRequest = self.omit(paramsOmitted, &["clientOrderId"], &[]);
+            paramsRequest = self.omit(&paramsOmitted, &["clientOrderId"], &[]);
         }
         if twap {
             request.insert("algo_order_id".into(), id.clone());
@@ -3612,7 +3612,7 @@ impl Bithumb {
         let mut paramsWithdrawTag: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("tag".into()), &[]).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut network: Option<String> = self.safe_string2(&paramsWithdrawTag, Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsNetwork: Value = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]);
+        let mut paramsNetwork: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict();
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3621,12 +3621,12 @@ impl Bithumb {
         let mut response: Option<crate::value::Dict> = None;
         let mut destinationRequest: Option<String> = None;
         let mut requiresDestination: bool = (code.as_str() == Some("XRP")) || (code.as_str() == Some("XMR")) || (code.as_str() == Some("EOS")) || (code.as_str() == Some("STEEM")) || (code.as_str() == Some("TON"));
-        let mut paramsDestination: Value = paramsNetwork.clone();
+        let mut paramsDestination: Value = Value::from(&paramsNetwork);
         if requiresDestination {
-            paramsDestination = self.omit(paramsNetwork.clone(), &["destination", "secondary_address"], &[]);
+            paramsDestination = self.omit(&paramsNetwork, &["destination", "secondary_address"], &[]);
         }
         if requiresDestination {
-            let mut destination: Option<String> = self.safe_string2(paramsNetwork, Value::Str("destination".into()), Value::Str("secondary_address".into()), &[]).as_str().map(str::to_owned);
+            let mut destination: Option<String> = self.safe_string2(&paramsNetwork, Value::Str("destination".into()), Value::Str("secondary_address".into()), &[]).as_str().map(str::to_owned);
             if (tagWithdrawTag.is_none()) && (destination.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), code).into()), " withdraw() requires a tag or an extra destination param")));
             }  else if (tagWithdrawTag.is_some()) {

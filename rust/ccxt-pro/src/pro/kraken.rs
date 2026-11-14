@@ -2164,7 +2164,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
-        Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
@@ -2180,7 +2180,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         return self.watch_private("orders", symbol.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_6]).await;
         Value::Null
-        })).expect("a sync body never awaits")?))
+        }).await?))
     }
 
     pub fn handle_orders(&mut self, mut client: Value, mut message: Value, optional_args: &[Value]) {
@@ -2235,13 +2235,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 })]).into_dict();
                 let mut id: Option<String> = self.safe_string_k(&order, "order_id", &[]).as_str().map(str::to_owned);
-                let mut parsed: Value = self.parse_ws_order(&order, None);
+                let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
                 let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
                 let mut previousOrders: crate::value::Dict = self.safe_dict(stored.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
                 let mut previousOrder: Option<crate::value::Dict> = self.safe_dict(&previousOrders, id.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
-                let mut newOrder: Value = parsed.clone();
+                let mut newOrder: Value = Value::from(&parsed);
                 if (previousOrder.is_some()) {
-                    let mut newRawOrder: crate::value::Dict = self.extend(crate::value::KeyRead::key_read(&&previousOrder, "info"), &[parsed.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)]).into_dict();
+                    let mut newRawOrder: crate::value::Dict = self.extend(crate::value::KeyRead::key_read(&&previousOrder, "info"), &[crate::value::KeyRead::key_read(&&parsed, "info")]).into_dict();
                     newOrder = self.parse_ws_order(&newRawOrder, None);
                 }
                 let mut length: i64 = Value::Int(CacheSlot::size(&stored)).as_i64().unwrap_or_default();

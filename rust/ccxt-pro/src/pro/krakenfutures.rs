@@ -2080,12 +2080,12 @@ impl Krakenfutures {
                 let mut __for_first_440: bool = true;
                 while { if !__for_first_440 { i += 1; } __for_first_440 = false; i < (holdingKeys.len() as i64) } {
                 let mut key: Option<String> = holdingKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let mut code: Value = self.safe_currency_code(Value::from(key.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
+                let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);
                 let mut newAccount: Value = self.account();
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(holding.clone(), key.map(Value::from).unwrap_or(Value::Null), &[])); }
-                if (code != Value::Null) {
-                    holdingCodes.insert(crate::runtime::stringify_param(&code), Value::Bool(true));
-                    if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount.clone()); } }
+                if (code.is_some()) {
+                    holdingCodes.insert(code.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
+                    if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), newAccount); } }
                 }
             }
             }
@@ -2160,14 +2160,14 @@ impl Krakenfutures {
                 while { if !__for_first_442 { i += 1; } __for_first_442 = false; i < (flexFuturesKeys.len() as i64) } {
                 let mut key: Option<String> = flexFuturesKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut flexFuture: crate::value::Dict = self.safe_dict(&flexFutureCurrencies, Value::from(key.as_deref()), &[]).into_dict();
-                let mut code: Value = self.safe_currency_code(key.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                let mut code: Option<String> = self.safe_currency_code(key.map(Value::from).unwrap_or(Value::Null), None);
                 let mut newAccount: Value = self.account();
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&flexFuture, "available", &[])); }
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(&flexFuture, "collateral_value", &[])); }
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&flexFuture, "quantity", &[])); }
-                if (code != Value::Null) {
-                    flexCodes.insert(crate::runtime::stringify_param(&code), Value::Bool(true));
-                    if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), newAccount); } }
+                if (code.is_some()) {
+                    flexCodes.insert(code.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
+                    if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), newAccount); } }
                 }
             }
             }

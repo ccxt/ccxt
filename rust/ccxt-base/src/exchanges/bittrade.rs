@@ -2641,11 +2641,11 @@ impl Bittrade {
         }  else {
             request.insert("client-order-id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: Value = self.omit(params, &["clientOrderId", "client-order-id"], &[]);
-        let mut paramsOrder: Value = paramsOmitted.clone();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "client-order-id"], &[]).into_dict();
+        let mut paramsOrder: Value = Value::from(&paramsOmitted);
         if (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy")) {
             let mut quoteAmount: Option<String> = None;
-            let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(paramsOmitted, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+            let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();

@@ -3641,10 +3641,10 @@ if _try_result.is_err() {
         let mut dataLength: i64 = data.len() as i64;
         if hasMore {
             if (paginationCursor.is_some()) && (dataLength > 0) {
-                let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                add_element_to_object(&mut first, &Value::Str("next_cursor".into()), paginationCursor.map(Value::from).unwrap_or(Value::Null));
-                add_element_to_object(&mut first, &Value::Str("has_more".into()), Value::Bool(hasMore));
-                add_element_to_object(&mut data, &Value::Int(0), first);
+                let mut first: Option<crate::value::Dict> = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_opt_dict();
+                if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("next_cursor".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
+                if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("has_more".into(), Value::Bool(hasMore)); }
+                add_element_to_object(&mut data, &Value::Int(0), first.map_or(Value::Null, Value::Dict));
             }
         }
         return data;
@@ -5358,7 +5358,7 @@ if _try_result.is_err() {
             urlKey = "test".to_string();
         }
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut baseApiUrl: Option<String> = self.safe_string((if let (Some(__m), Some(__k)) = (self.urls.as_map(), Some(urlKey.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
+        let mut baseApiUrl: Option<String> = self.safe_string((if let Some(__m) = self.urls.as_map() { __m.get(urlKey.as_str()).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }

@@ -610,12 +610,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url.clone().map(Value::from).unwrap_or(Value::Null)));
+        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         if !(client.has_subscription(&messageHash)) {
             client.add_subscription(&requestId, messageHash.clone());
         }
-        return self.watch(&url.clone().map(Value::from).unwrap_or(Value::Null), &messageHash, &message, &messageHash, subscription).await;
+        return self.watch(url.as_deref(), &messageHash, &message, &messageHash, subscription).await;
 
     Value::Null
 }
@@ -1030,13 +1030,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut url: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url.clone().map(Value::from).unwrap_or(Value::Null)));
+        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHashWithSymbols: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), join(&symbols, &Value::Str(",".into())));
         if !(client.has_subscription(messageHashWithSymbols.as_str())) {
             client.add_subscription(&requestId, Value::from(messageHashWithSymbols));
         }
-        return self.watch_multiple(&url.clone().map(Value::from).unwrap_or(Value::Null), messageHashes.clone(), &message, messageHashes.clone(), subscription).await;
+        return self.watch_multiple(url.as_deref(), messageHashes.clone(), &message, messageHashes.clone(), subscription).await;
 
     Value::Null
 }

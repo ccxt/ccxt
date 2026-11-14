@@ -1199,13 +1199,13 @@ impl Cryptomus {
         let mut sideBuy: bool = side.as_str() == Some("buy");
         let mut amountToString: Option<String> = self.number_to_string(amount);
         let mut priceToString: Option<String> = self.number_to_string(price.clone());
-        let mut paramsCost: Value = self.omit(&paramsOmitted, Value::Str("cost".into()), &[]);
+        let mut paramsCost: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("cost".into()), &[]).into_dict();
         let mut costParam: Option<String> = self.safe_string_k(&paramsOmitted, "cost", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = costParam.clone();
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("market")) {
-            let mut requiresPriceAndParams: Value = self.handle_option_bool_and_params(paramsCost.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
-            let mut paramsMarket: Value = paramsCost.clone();
+            let mut requiresPriceAndParams: Value = self.handle_option_bool_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
+            let mut paramsMarket: Value = Value::from(&paramsCost);
             if sideBuy {
                 paramsMarket = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }
@@ -1232,7 +1232,7 @@ impl Cryptomus {
             }
             request.insert("quantity".into(), amountToString.map(Value::from).unwrap_or(Value::Null));
             request.insert("price".into(), price);
-            let __ws_arg_4 = self.extend(Value::Map(request), &[paramsCost]);
+            let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsCost]);
             response = self.private_post_v2_user_api_exchange_orders(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a type parameter (limit or market)")));

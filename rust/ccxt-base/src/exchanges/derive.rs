@@ -5895,11 +5895,11 @@ impl Derive {
         let mut methodName: Value = methodName.into();
         let mut params: Value = params.into();
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("deriveWalletAddress".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut deriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (deriveWalletAddress != Value::Null) && (deriveWalletAddress.as_str() != Some("")) {
-            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".into(), deriveWalletAddress.clone()); }
-            return Value::from(vec![deriveWalletAddress, self.extend(paramsDeriveWalletAddress.clone(), &[])]);
+        if (deriveWalletAddress.is_some()) && (deriveWalletAddress.as_deref() != Some("")) {
+            if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".into(), deriveWalletAddress.clone().map(Value::from).unwrap_or(Value::Null)); }
+            return Value::from(vec![deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.extend(paramsDeriveWalletAddress.clone(), &[])]);
         }
         let mut optionsWallet: Option<String> = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]).as_str().map(str::to_owned);
         if (optionsWallet.is_some()) && (optionsWallet.as_deref() != Some("")) {

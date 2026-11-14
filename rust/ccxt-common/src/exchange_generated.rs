@@ -1002,15 +1002,15 @@ pub trait ExchangeBase:
             return Value::from(vec![]);
         }
         let mut sinceIsDefined: bool = (Value::from(since) != Value::Null) && (Value::from(since) != Value::Null);
-        let mut parsedArray: Value = self.to_array(Rows::rows(array));
-        let mut result: Value = parsedArray.clone();
+        let mut parsedArray: crate::value::List = self.to_array(Rows::rows(array)).into_list();
+        let mut result: Value = Value::from(&parsedArray);
         if sinceIsDefined {
             result = Value::from(vec![]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_77: bool = true;
                 while { if !__for_first_77 { i += 1; } __for_first_77 = false; i < (parsedArray.len() as i64) } {
-                let mut entry: Value = parsedArray.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = crate::value::KeyRead::read(&&parsedArray, &Value::Int(i));
                 let mut value: Option<i64> = self.safe_integer(entry.clone(), key.clone(), &[]).as_i64();
                 if (value.is_some()) && (value != Some(0)) && ((value.is_some() && since.is_some() && value >= since)) {
                     if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(entry); }
@@ -1034,8 +1034,8 @@ pub trait ExchangeBase:
         let mut tail = get_arg(optional_args, 1, Value::Bool(false));
         let mut valueIsDefined: bool = self.value_is_defined(value.clone());
         let mut sinceIsDefined: bool = (Value::from(since) != Value::Null) && (Value::from(since) != Value::Null);
-        let mut parsedArray: Value = self.to_array(Rows::rows(array));
-        let mut result: Value = parsedArray.clone();
+        let mut parsedArray: crate::value::List = self.to_array(Rows::rows(array)).into_list();
+        let mut result: Value = Value::from(&parsedArray);
         // single-pass filter for both symbol and since
         if valueIsDefined || sinceIsDefined {
             result = Value::from(vec![]);
@@ -1043,7 +1043,7 @@ pub trait ExchangeBase:
                                 let mut i: i64 = 0;
                 let mut __for_first_78: bool = true;
                 while { if !__for_first_78 { i += 1; } __for_first_78 = false; i < (parsedArray.len() as i64) } {
-                let mut entry: Value = parsedArray.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut entry: Value = crate::value::KeyRead::read(&&parsedArray, &Value::Int(i));
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 let mut entryFiledEqualValue: bool = is_equal(&self.safe_value(entry.clone(), field.clone(), &[]), &value);

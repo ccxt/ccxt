@@ -4386,7 +4386,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.ensure_user_data_stream_ws_subscribe_listen_token(&[Value::Str("margin".into()), Value::Map(marginParams)]).await;
             return Value::Null;
         }
-        let mut paramsOmitted: Value = self.omit(&paramsMarginMode, Value::Str("symbol".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::Str("symbol".into()), &[]).into_dict();
         let mut isStock: bool = type_var.as_str() == Some("stock");
         let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4422,18 +4422,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut response: Option<crate::value::Dict> = None;
                 if isStock {
-                    let mut requestParams: Value = self.omit(paramsOmitted.clone(), &["stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"], &[]);
-                    response = self.parent.sapi_post_equity_listen_key(&[requestParams]).await.into_opt_dict();
+                    let mut requestParams: crate::value::Dict = self.omit(&paramsOmitted, &["stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"], &[]).into_dict();
+                    response = self.parent.sapi_post_equity_listen_key(&[Value::Dict(requestParams)]).await.into_opt_dict();
                 }  else if isPortfolioMargin {
-                    response = self.parent.papi_post_listen_key(&[paramsOmitted.clone()]).await.into_opt_dict();
+                    response = self.parent.papi_post_listen_key(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
                 }  else if (type_var.as_str() == Some("linear")) {
-                    response = self.parent.fapi_private_post_listen_key(&[paramsOmitted.clone()]).await.into_opt_dict();
+                    response = self.parent.fapi_private_post_listen_key(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
                 }  else if (type_var.as_str() == Some("inverse")) {
-                    response = self.parent.dapi_private_post_listen_key(&[paramsOmitted.clone()]).await.into_opt_dict();
+                    response = self.parent.dapi_private_post_listen_key(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
                 }  else if (type_var.as_str() == Some("option")) {
-                    response = self.parent.eapi_private_post_listen_key(&[paramsOmitted.clone()]).await.into_opt_dict();
+                    response = self.parent.eapi_private_post_listen_key(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
                 }  else {
-                    response = self.parent.public_post_user_data_stream(&[paramsOmitted.clone()]).await.into_opt_dict();
+                    response = self.parent.public_post_user_data_stream(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
                 }
                 let mut listenKey: Option<String> = self.safe_string_k_opt(&response, "listenKey", &[]);
                 if (listenKey.is_none()) {
@@ -4447,9 +4447,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
                 // hoisted out of the delay call: the transpilers garble an inline
                 // dict literal nested inside a delay argument
-                let mut delayParams: Value = paramsOmitted.clone();
+                let mut delayParams: Value = Value::from(&paramsOmitted);
                 if isStock {
-                    delayParams = self.extend(paramsOmitted.clone(), &[Value::Map({
+                    delayParams = self.extend(&paramsOmitted, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("type".to_string(), Value::Str("stock".into()));
                             m.insert("defaultType".to_string(), Value::Str("stock".into()));
@@ -4522,29 +4522,29 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut paramsOmitted: Value = self.omit(&paramsPortfolioMargin, &["type", "symbol"], &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPortfolioMargin, &["type", "symbol"], &[]).into_dict();
         let mut time: i64 = self.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if isStock {
                 // the equity endpoint is create-or-renew: with an active key this
                 // POST extends the validity of that same key
-                let mut requestParams: Value = self.omit(paramsOmitted.clone(), &["stock", "name", "callerMethodName", "subType", "timeframe"], &[]);
-                self.parent.sapi_post_equity_listen_key(&[requestParams]).await;
+                let mut requestParams: crate::value::Dict = self.omit(&paramsOmitted, &["stock", "name", "callerMethodName", "subType", "timeframe"], &[]).into_dict();
+                self.parent.sapi_post_equity_listen_key(&[Value::Dict(requestParams)]).await;
             }  else if isPortfolioMargin {
-                let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 self.parent.papi_put_listen_key(&[__ws_arg_15]).await;
             }  else if (type_var.as_str() == Some("linear")) {
-                let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 self.parent.fapi_private_put_listen_key(&[__ws_arg_16]).await;
             }  else if (type_var.as_str() == Some("inverse")) {
-                let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 self.parent.dapi_private_put_listen_key(&[__ws_arg_17]).await;
             }  else if (type_var.as_str() == Some("option")) {
-                let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 self.parent.eapi_private_put_listen_key(&[__ws_arg_18]).await;
             }  else {
                 request.insert("listenKey".into(), listenKey.clone().map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
+                let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 self.parent.public_put_user_data_stream(&[__ws_arg_19]).await;
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -4600,10 +4600,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             refreshRateKey = "stockListenKeyRefreshRate".to_string();
         }
         let mut listenKeyRefreshRate: i64 = self.safe_integer(self.options.clone(), Value::from(refreshRateKey), &[Value::Int(1200000)]).as_i64().unwrap_or(1200000);
-        let mut delayParams: Value = paramsOmitted.clone();
+        let mut delayParams: Value = Value::from(&paramsOmitted);
         if isStock {
             // params had type omitted above - restore it so the next cycle routes back here
-            delayParams = self.extend(paramsOmitted.clone(), &[Value::Map({
+            delayParams = self.extend(&paramsOmitted, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("stock".into()));
                 m

@@ -3952,9 +3952,9 @@ impl Poloniex {
             let mut __for_first_1092: bool = true;
             while { if !__for_first_1092 { i += 1; } __for_first_1092 = false; i < (asks.len() as i64) } {
             if (((i % 2)) == 0) {
-                let mut price: Value = self.safe_number(&asks, Value::Int(i), &[]);
-                let mut amount: Value = self.safe_number(&asks, Value::Int((i + 1)), &[]);
-                asksResult.push(Value::from(vec![price, amount]));
+                let mut price: Option<f64> = self.safe_number(&asks, Value::Int(i), &[]).as_f64();
+                let mut amount: Option<f64> = self.safe_number(&asks, Value::Int((i + 1)), &[]).as_f64();
+                asksResult.push(Value::from(vec![Value::from(price), Value::from(amount)]));
             }
         }
         }
@@ -3963,9 +3963,9 @@ impl Poloniex {
             let mut __for_first_1093: bool = true;
             while { if !__for_first_1093 { i += 1; } __for_first_1093 = false; i < (bids.len() as i64) } {
             if (((i % 2)) == 0) {
-                let mut price: Value = self.safe_number(&bids, Value::Int(i), &[]);
-                let mut amount: Value = self.safe_number(&bids, Value::Int((i + 1)), &[]);
-                bidsResult.push(Value::from(vec![price, amount]));
+                let mut price: Option<f64> = self.safe_number(&bids, Value::Int(i), &[]).as_f64();
+                let mut amount: Option<f64> = self.safe_number(&bids, Value::Int((i + 1)), &[]).as_f64();
+                bidsResult.push(Value::from(vec![Value::from(price), Value::from(amount)]));
             }
         }
         }

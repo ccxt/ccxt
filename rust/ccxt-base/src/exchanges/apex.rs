@@ -913,8 +913,8 @@ impl Apex {
         //     ]
         // }
         let mut rows: crate::value::List = self.safe_list_k(&spotConfig, "assets", &[Value::from(vec![])]).into_list();
-        let mut chains: Value = self.safe_list_k(&multiChain, "chains", &[Value::from(vec![])]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_chains".into(), chains); }
+        let mut chains: crate::value::List = self.safe_list_k(&multiChain, "chains", &[Value::from(vec![])]).into_list();
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_chains".into(), Value::Arr(chains)); }
         let mut result: crate::value::Dict = self.parse_currencies(&rows).into_dict();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).shift_remove("_temp_currencies_chains"); }
         return Value::Dict(result);

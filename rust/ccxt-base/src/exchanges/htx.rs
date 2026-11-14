@@ -6291,9 +6291,9 @@ impl Htx {
                     while { if !__for_first_779 { i += 1; } __for_first_779 = false; i < (balances.len() as i64) } {
                     let mut balance: Option<crate::value::Dict> = crate::value::KeyRead::read(&&balances, &Value::Int(i)).into_opt_dict();
                     let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-                    let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-                    if (code != Value::Null) {
-                        { let __be_tmp = self.parse_margin_balance_helper(balance.map_or(Value::Null, Value::Dict), code.as_str().unwrap_or_default(), result.clone()); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+                    let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+                    if (code.is_some()) {
+                        { let __be_tmp = self.parse_margin_balance_helper(balance.map_or(Value::Null, Value::Dict), code.as_deref().unwrap_or_default(), result.clone()); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
                     }
                 }
                 }

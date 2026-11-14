@@ -3100,24 +3100,32 @@ if _try_result.is_err() {
             let mut currency: crate::value::Dict = currencies.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut assetId: Option<String> = self.safe_string_k(&currency, "asset_id", &[]).as_str().map(str::to_owned);
             let mut id: Option<String> = self.safe_string2(&currency, Value::Str("id".into()), Value::Str("code".into()), &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut name: Option<String> = self.safe_string_k_opt(&currency, "name", &[]);
-            if (code != Value::Null) {
-                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&code), (if let Some(__s) = name.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })); } }
+            if (code.is_some()) {
+                if let Value::Dict(__bf03d0) = &mut self.options {
+                    let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networks".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), (if let Some(__s) = name.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
+                    }
+                }
             }
-            if (code != Value::Null) {
-                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networksById".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&code), (if let Some(__s) = name.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })); } }
+            if (code.is_some()) {
+                if let Value::Dict(__bf03d0) = &mut self.options {
+                    let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networksById".to_string()).or_insert(Value::Null);
+                    if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), (if let Some(__s) = name.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
+                    }
+                }
             }
             let mut type_var: String = "fiat".to_string();
             if (assetId.is_some()) {
                 type_var = "crypto".to_string();
             }
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&currency));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("name".to_string(), name.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Bool(true));
@@ -3150,10 +3158,10 @@ if _try_result.is_err() {
             }
             if (assetId.is_some()) {
                 let mut lowerCaseName: Value = (if let Some(__s) = name.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-                if (code != Value::Null) {
-                    networks.insert(crate::runtime::stringify_param(&code), lowerCaseName.clone());
+                if (code.is_some()) {
+                    networks.insert(code.as_deref().unwrap_or("null").to_string(), lowerCaseName.clone());
                 }
-                networksById.insert(crate::runtime::stringify_param(&lowerCaseName), code.clone());
+                networksById.insert(crate::runtime::stringify_param(&lowerCaseName), code.map(Value::from).unwrap_or(Value::Null));
             }
         }
         }
@@ -3162,17 +3170,17 @@ if _try_result.is_err() {
             let mut __for_first_541: bool = true;
             while { if !__for_first_541 { i += 1; } __for_first_541 = false; i < (ratesIds.len() as i64) } {
             let mut currencyId: Option<&str> = ratesIds.get(i as usize).and_then(Value::as_str);
-            let mut code: Value = self.safe_currency_code(Value::from(currencyId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
-            if (code == Value::Null) || !(matches!(&code, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
-                if (code != Value::Null) {
-                    result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
+            if (code.is_none()) || !(matches!(code.as_deref(), Some(__k) if result.contains_key(__k))) {
+                if (code.is_some()) {
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("id".to_string(), Value::from(currencyId.as_deref()));
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("type".to_string(), Value::Str("crypto".into()));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

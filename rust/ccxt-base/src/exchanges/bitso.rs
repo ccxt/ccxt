@@ -2420,23 +2420,23 @@ impl Bitso {
             let mut __for_first_425: bool = true;
             while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(Value::from(currencyId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
-            if (codes != Value::Null) && !self.in_array(code.clone(), codes.clone()) {
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
+            if (codes != Value::Null) && !self.in_array(&code, codes.clone()) {
                 continue;
             }
-            if (code != Value::Null) {
+            if (code.is_some()) {
                 { let __be_tmp = Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deposit".to_string(), self.safe_number(self.safe_dict(Value::Map(result.clone()), code.clone(), &[]), Value::Str("deposit".into()), &[]));
+        m.insert("deposit".to_string(), self.safe_number(self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]), Value::Str("deposit".into()), &[]));
         m.insert("withdraw".to_string(), self.safe_number(&withdrawalFees, Value::from(currencyId.as_deref()), &[]));
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deposit".to_string(), self.safe_value(self.safe_dict(self.safe_dict(Value::Map(result.clone()), code.clone(), &[]), Value::Str("info".into()), &[]), Value::Str("deposit".into()), &[]));
+        m.insert("deposit".to_string(), self.safe_value(self.safe_dict(self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]), Value::Str("info".into()), &[]), Value::Str("deposit".into()), &[]));
         m.insert("withdraw".to_string(), self.safe_number(&withdrawalFees, Value::from(currencyId.as_deref()), &[]));
     m
 }));
     m
-}); result.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+}); result.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
             }
         }
         }
@@ -2824,10 +2824,10 @@ impl Bitso {
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
         let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
@@ -2842,7 +2842,7 @@ impl Bitso {
             endpoint = format!("{}{}", "/api", endpoint);
             let mut request: String = format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), endpoint);
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
-                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+                if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                     let mut jsonBody: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
                     requestBody = jsonBody.clone();
                     request.push_str(jsonBody.as_deref().unwrap_or("null"));

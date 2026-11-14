@@ -4029,18 +4029,18 @@ impl Aster {
             Value::Str("takeProfitPrice".into()),
         ];
         let mut omitKeys: Value = Value::from(__yd0);
-        let mut requestParams: Value = Value::Null;
+        let mut requestParams: Option<crate::value::Dict> = None;
         if tifIsMissing {
             request.insert("timeInForce".into(), tifOption.map(Value::from).unwrap_or(Value::Null));
-            requestParams = self.omit(&paramsTifOption, omitKeys.clone(), &[]);
+            requestParams = self.omit(&paramsTifOption, omitKeys.clone(), &[]).into_opt_dict();
         }  else {
-            requestParams = self.omit(params, omitKeys, &[]);
+            requestParams = self.omit(params, omitKeys, &[]).into_opt_dict();
         }
         if matches!((self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)])), Value::Bool(true)) && (market).swap {
             request.insert("builder".into(), self.safe_string_k(self.options.clone(), "builder", &[]));
             request.insert("feeRate".into(), self.safe_string_k(self.options.clone(), "builderRate", &[]));
         }
-        return self.extend(Value::Map(request), &[requestParams]);
+        return self.extend(Value::Map(request), &[&requestParams]);
 
     Value::Null
 }

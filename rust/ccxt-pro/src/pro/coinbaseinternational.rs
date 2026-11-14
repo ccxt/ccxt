@@ -574,14 +574,14 @@ impl Coinbaseinternational {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut extendedRequest: Value = self.deep_extend(Value::Map(request), &[&paramsResolved]);
+        let mut extendedRequest: crate::value::Dict = self.deep_extend(Value::Map(request), &[&paramsResolved]).into_dict();
         let mut channelsLength: i64 = channels.len() as i64;
         if (channelsLength == 1) {
             let __ws_arg_0 = self.safe_string(messageHashes.clone(), Value::Int(0), &[Value::Str("".into())]);
             let __ws_arg_1 = self.safe_string(channels.clone(), Value::Int(0), &[Value::Str("".into())]);
-            return self.watch(&url, &(__ws_arg_0), extendedRequest.clone(), &(__ws_arg_1), extendedRequest.clone()).await;
+            return self.watch(&url, &(__ws_arg_0), &extendedRequest, &(__ws_arg_1), &extendedRequest).await;
         }
-        return self.watch_multiple(&url, messageHashes, extendedRequest.clone(), channels, extendedRequest.clone()).await;
+        return self.watch_multiple(&url, messageHashes, &extendedRequest, channels, &extendedRequest).await;
 
     Value::Null
 }
@@ -1882,8 +1882,8 @@ impl Coinbaseinternational {
         let mut timeframe: Option<String> = self.find_timeframe(resolution.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         if (self.ohlcvs.shelf(&symbol).lookup(&timeframe).is_none()) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(limit));
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+            CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         let mut data: crate::value::Dict = self.safe_dict_k(&params, "data", &[Value::Map({
@@ -2865,9 +2865,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.parent.handle_route_and_params("cancelAllOrdersWs", &[params]);
+        let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("cancelAllOrdersWs", &[params]).into_dict();
         let mut method: String = "private/cancel_all".to_string();
-        let mut paramsRequest: Value = paramsResolved.clone();
+        let mut paramsRequest: Value = Value::from(&paramsResolved);
         if (symbol != Value::Null) {
             if (self.markets.clone() == Value::Null) {
                 if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2877,7 +2877,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
                 m
-            }), &[paramsResolved]);
+            }), &[&paramsResolved]);
             method = "private/cancel_all_by_instrument".to_string();
         }
         let mut result: Value = self.request_ws(Value::from(method), &[paramsRequest, Value::Bool(true)]).await;
