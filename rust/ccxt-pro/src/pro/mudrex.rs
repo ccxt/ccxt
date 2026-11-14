@@ -510,7 +510,7 @@ impl Mudrex {
         }
         let mut market: crate::types::Market = self.safe_market(s.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut parsed: Value = Value::from(vec![self.safe_timestamp_k(&data, "t", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
+        let mut parsed: crate::value::List = std::sync::Arc::new(vec![self.safe_timestamp_k(&data, "t", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&tf);
         if (stored.is_none()) {
@@ -520,7 +520,7 @@ impl Mudrex {
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &tf, stored.clone());
             }
         }
-        stored.append(parsed);
+        stored.append(Value::Arr(parsed));
         let mut messageHash: Option<String> = stream;
         client.resolve(Value::from(&stored), messageHash.as_deref());
 }

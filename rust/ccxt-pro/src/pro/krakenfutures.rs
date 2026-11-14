@@ -2113,7 +2113,7 @@ impl Krakenfutures {
                 let mut __for_first_441: bool = true;
                 while { if !__for_first_441 { i += 1; } __for_first_441 = false; i < (futuresKeys.len() as i64) } {
                 let mut key: Option<String> = futuresKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let mut symbol: Value = self.safe_symbol(Value::from(key.as_deref()), None, &[]);
+                let mut symbol: Option<String> = self.safe_symbol(Value::from(key.as_deref()), None, &[]).as_str().map(str::to_owned);
                 let mut newAccount: crate::value::Dict = self.account().into_dict();
                 let mut future: crate::value::Dict = self.safe_dict(futures.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
                 let mut currencyId: Option<String> = self.safe_string_k(&future, "unit", &[]).as_str().map(str::to_owned);
@@ -2125,11 +2125,11 @@ impl Krakenfutures {
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                if (symbol != Value::Null) && (code.is_some()) {
-                    futuresSymbols.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
+                if (symbol.is_some()) && (code.is_some()) {
+                    futuresSymbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                     symbolAccounts.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(newAccount));
                 }
-                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("margin".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&symbol), Value::Map(symbolAccounts)); } }
+                if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("margin".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(symbolAccounts)); } }
             }
             }
             { let __be_tmp = self.prune_stale_balance_keys(crate::value::get_value_k(&self.balance, "margin"), Value::Map(futuresSymbols)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
@@ -2201,14 +2201,14 @@ impl Krakenfutures {
         let mut seenKeys: Value = seenKeys.into();
         let __seenKeys_empty = indexmap::IndexMap::new();
         let seenKeys = seenKeys.as_map().unwrap_or(&__seenKeys_empty);
-        let mut reserved: Value = Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into()), Value::Str("debt".into())]);
+        let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into()), Value::Str("debt".into())]);
         let mut keys: Vec<Value> = object_keys(&balanceObject).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_443: bool = true;
             while { if !__for_first_443 { i += 1; } __for_first_443 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!(key.as_str(), Some(__k) if seenKeys.contains_key(__k))) && !self.in_array(key.clone(), reserved.clone()) {
+            if !(matches!(key.as_str(), Some(__k) if seenKeys.contains_key(__k))) && !self.in_array(key.clone(), &reserved) {
                 remove(&mut balanceObject, &key);
             }
         }

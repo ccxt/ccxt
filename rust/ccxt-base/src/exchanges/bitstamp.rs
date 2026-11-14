@@ -3223,7 +3223,7 @@ impl Bitstamp {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
@@ -3250,7 +3250,7 @@ impl Bitstamp {
                 response = self.private_post_sell_instant_pair(&[__ws_arg_8]).await;
             }
         }  else {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             if (capitalizedSide.as_deref() == Some("Buy")) {
                 let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_buy_pair(&[__ws_arg_9]).await;
@@ -3309,8 +3309,8 @@ impl Bitstamp {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
-                m.insert("price".to_string(), self.price_to_precision(symbol, price));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("price".to_string(), Value::from(self.price_to_precision(symbol, price)));
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
@@ -4485,7 +4485,7 @@ impl Bitstamp {
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), self.parse_to_numeric(self.currency_to_precision(code, amount.clone(), &[])));
+                m.insert("amount".to_string(), self.parse_to_numeric(Value::from(self.currency_to_precision(code, amount.clone(), &[]))));
                 m.insert("currency".to_string(), self.safe_string_upper_k(&currency, "id", &[]));
             m
         });

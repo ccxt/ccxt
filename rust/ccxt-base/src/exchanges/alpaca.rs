@@ -1989,17 +1989,17 @@ impl Alpaca {
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support stop orders for ").into()), type_var).into()), " orders, only stop_limit orders are supported")));
             }
-            request.insert("stop_price".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("type".into(), newType.map(Value::from).unwrap_or(Value::Null));
         }
         if type_var.as_str().unwrap_or("").contains("limit") {
-            request.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let mut cost: Option<String> = self.safe_string_k(params.clone(), "cost", &[]).as_str().map(str::to_owned);
         if (cost.is_some()) {
-            request.insert("notional".into(), self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("notional".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null))));
         }  else {
-            request.insert("qty".into(), self.amount_to_precision(symbol, amount));
+            request.insert("qty".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
         let mut paramsCost: crate::value::Dict = (if (cost.is_some()) { self.omit(params.clone(), Value::Str("cost".into()), &[]) } else { params }).into_dict();
         let defaultTIFparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
@@ -2308,15 +2308,15 @@ impl Alpaca {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (amount != Value::Null) {
-            request.insert("qty".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("qty".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
         }
         let mut paramsTrigger: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(params.clone(), Value::Str("triggerPrice".into()), &[]) } else { params }).into_dict();
         if (price != Value::Null) {
-            request.insert("limit_price".into(), self.price_to_precision(symbol, price));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTrigger, Value::Str("editOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("gtc".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Option<String> = timeInForceparamsTimeInForceVariable.get(0).and_then(Value::as_str).map(str::to_owned);

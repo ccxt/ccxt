@@ -2472,9 +2472,9 @@ impl Derive {
             market = Some(crate::types::Market::clone(&symbolMarket));
             request.insert("instrument_name".into(), Value::from((symbolMarket).id.as_deref()));
         }
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
-            limitResolved = Value::Int(1000);
+            limitResolved = Some(1000);
         }
         if (limit != Value::Null) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
@@ -2598,7 +2598,7 @@ impl Derive {
             m
         })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&result, "trades", &[Value::from(vec![])]).into_list();
-        return self.parse_trades(&data, market.as_ref(), &[since, limitResolved]);
+        return self.parse_trades(&data, market.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3161,7 +3161,7 @@ impl Derive {
         })]).as_map().cloned().unwrap_or_default();
         let mut tradeModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]),
             Value::from(vec![marketInfo.get("base_asset_address").cloned().unwrap_or(Value::Null), self.convert_to_big_int(marketInfo.get("base_asset_sub_id").cloned().unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)),
-            self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol, amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)),
+            self.convert_to_big_int(self.parse_units(Value::from(self.amount_to_precision(symbol, amountString.clone().map(Value::from).unwrap_or(Value::Null))), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.clone().map(Value::from).unwrap_or(Value::Null), &[]).map(Value::from).unwrap_or(Value::Null)),
             Value::from(subaccountId), Value::Bool(orderSideIsBuy)])), Value::Str("keccak".into()));
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("createOrder", &paramsMaxFee).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -3345,7 +3345,7 @@ impl Derive {
         })]).as_map().cloned().unwrap_or_default();
         let mut tradeModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]),
             Value::from(vec![marketInfo.get("base_asset_address").cloned().unwrap_or(Value::Null), self.convert_to_big_int(marketInfo.get("base_asset_sub_id").cloned().unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(priceString.clone(), &[]).map(Value::from).unwrap_or(Value::Null)),
-            self.convert_to_big_int(self.parse_units(self.amount_to_precision(symbol, amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(Value::from(maxFeeString.clone()), &[]).map(Value::from).unwrap_or(Value::Null)), Value::from(subaccountId),
+            self.convert_to_big_int(self.parse_units(Value::from(self.amount_to_precision(symbol, amountString.clone().map(Value::from).unwrap_or(Value::Null))), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(Value::from(maxFeeString.clone()), &[]).map(Value::from).unwrap_or(Value::Null)), Value::from(subaccountId),
             Value::Bool(orderSideIsBuy)])), Value::Str("keccak".into()));
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("editOrder", &paramsDeriveSubaccountId).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);

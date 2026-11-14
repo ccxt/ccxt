@@ -1145,14 +1145,14 @@ impl Blofin {
     m
 })]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
         let mut parsed: Value = self.parse_ws_balance(message);
-        let mut reserved: Value = Value::from(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
+        let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
         let mut keys: Vec<Value> = object_keys(&parsed).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_169: bool = true;
             while { if !__for_first_169 { i += 1; } __for_first_169 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if self.in_array(key.clone(), reserved.clone()) {
+            if self.in_array(key.clone(), &reserved) {
                 continue;
             }
             if let Value::Dict(__bf03d0) = &mut self.balance {

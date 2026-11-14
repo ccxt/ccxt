@@ -2675,7 +2675,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrderWs() requires a price argument for limit orders")));
             }
-            request.insert("price".into(), self.parse_number(self.price_to_precision(symbol, price), &[]));
+            request.insert("price".into(), self.parse_number(Value::from(self.price_to_precision(symbol, price)), &[]));
         }
         let mut postOnly: Option<bool> = self.safe_bool2(&paramsResolved, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]).as_bool();
         if (self.parent.is_native_deribit_credentials().as_bool() == Some(true)) {
@@ -2771,7 +2771,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("amount".into(), self.parse_number(self.parent.get_order_amount(Some(&market), amount.as_f64()).map(Value::from).unwrap_or(Value::Null), &[]));
         }
         if (price != Value::Null) {
-            request.insert("price".into(), self.parse_number(self.price_to_precision(symbol, price), &[]));
+            request.insert("price".into(), self.parse_number(Value::from(self.price_to_precision(symbol, price)), &[]));
         }
         let mut triggerPrice: Option<f64> = self.safe_number_n(&paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {

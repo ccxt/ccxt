@@ -92,7 +92,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
     {
         Box::pin(async move {
             match method {
-                "amount_to_precision" => self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_unified_order" => crate::types::IntoRaw::into_raw(self.cancel_unified_order(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
@@ -891,11 +891,9 @@ impl Bithumb {
         return self.super_safe_market(marketId, market, delimiter, Value::Str("spot".into()));
 }
 
-    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Value {
+    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-
-    Value::Null
+        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
 }
 
     pub fn get_gen2_market_id(&self, mut market: Value) -> Value {
@@ -2441,8 +2439,8 @@ impl Bithumb {
             request.insert("time_in_force".into(), Value::Str("ioc".into()));
         }
         if (type_var.as_str() == Some("limit")) {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
-            request.insert("volume".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+            request.insert("volume".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             request.insert("order_type".into(), Value::Str("limit".into()));
         }  else {
             let mut typeRequest: Option<String> = None;
@@ -2462,9 +2460,9 @@ impl Bithumb {
                     }
                     cost = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &Value::from(self.number_to_string(price))).as_str().map(str::to_owned);
                 }
-                request.insert("price".into(), self.price_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
             }  else {
-                request.insert("volume".into(), self.amount_to_precision(symbol, amount));
+                request.insert("volume".into(), Value::from(self.amount_to_precision(symbol, amount)));
                 typeRequest = Some("market".to_string());
             }
             request.insert("order_type".into(), typeRequest.map(Value::from).unwrap_or(Value::Null));
@@ -2534,9 +2532,9 @@ impl Bithumb {
         }  else {
             request.insert("order_currency".into(), Value::from((market).base.clone()));
             request.insert("payment_currency".into(), Value::from((market).quote.clone()));
-            request.insert("units".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("units".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             if (type_var.as_str() == Some("limit")) {
-                request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
                 let mut typeRequest: Option<String> = None;
                 if (side.as_str() == Some("buy")) {
                     typeRequest = Some("bid".to_string());
@@ -2662,7 +2660,7 @@ impl Bithumb {
             m
         });
         if (amount != Value::Null) {
-            request.insert("volume".into(), self.amount_to_precision(symbol, amount)); // required for sale
+            request.insert("volume".into(), Value::from(self.amount_to_precision(symbol, amount))); // required for sale
         }
         let mut sideRequest: Option<String> = None;
         if (side.as_str() == Some("buy")) {

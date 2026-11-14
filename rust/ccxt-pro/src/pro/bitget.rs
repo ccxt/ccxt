@@ -3248,15 +3248,15 @@ impl Bitget {
             instTypeDefault = Some("SPOT".to_string());
         }
         let instTypeOptionparamsInstTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarginMode, Value::Str("watchBalance".into()), Value::Str("instType".into()), &[instTypeDefault.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
-        let mut instTypeOption: Value = instTypeOptionparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut instTypeOption: Option<String> = instTypeOptionparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInstType: crate::value::Dict = instTypeOptionparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut instType: Value = instTypeOption;
+        let mut instType: Option<String> = instTypeOption;
         if isStockOrUta {
-            instType = Value::Str("UTA".into());
+            instType = Some("UTA".to_string());
         }
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), instType);
+                m.insert("instType".to_string(), instType.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut topicOrChannel: String = "channel".to_string();

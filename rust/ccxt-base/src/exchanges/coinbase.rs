@@ -1671,17 +1671,17 @@ impl Coinbase {
     m
 }));
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(code.as_str(), limit.as_i64(), &[params]).await.as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_str() == Some("v2PrivateGetAccountsAccountIdTransactions")) {
-            let __ws_arg_7 = self.extend(request.clone(), &[&paramsValue]);
+            let __ws_arg_7 = self.extend(&request, &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_transactions(&[__ws_arg_7]).await.into_opt_dict();
         }  else if (method.as_str() == Some("v2PrivateGetAccountsAccountIdWithdrawals")) {
-            let __ws_arg_8 = self.extend(request.clone(), &[&paramsValue]);
+            let __ws_arg_8 = self.extend(&request, &[&paramsValue]);
             response = self.v2_private_get_accounts_account_id_withdrawals(&[__ws_arg_8]).await.into_opt_dict();
         }  else {
             let __ws_arg_9 = self.extend(request, &[&paramsValue]);
@@ -3900,7 +3900,7 @@ if _try_result.is_err() {
             currency = Some(self.currency(code.clone()));
         }
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code(code.as_str(), limit.as_i64(), &[Value::Dict(paramsPaginate)]).await.as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
@@ -4488,9 +4488,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("stop_limit_stop_limit_gtd".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-        m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
-        m.insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+        m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+        m.insert("limit_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+        m.insert("stop_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
         m.insert("stop_direction".to_string(), stopDirection.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("end_time".to_string(), endTime.clone().map(Value::from).unwrap_or(Value::Null));
     m
@@ -4502,9 +4502,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("stop_limit_stop_limit_gtc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-        m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
-        m.insert("stop_price".to_string(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+        m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+        m.insert("limit_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+        m.insert("stop_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
         m.insert("stop_direction".to_string(), stopDirection.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
@@ -4517,19 +4517,19 @@ if _try_result.is_err() {
                     if (stopDirection.is_none()) {
                         stopDirection = (if (side.as_str() == Some("buy")) { Some("STOP_DIRECTION_STOP_UP".to_string()) } else { Some("STOP_DIRECTION_STOP_DOWN".to_string()) });
                     }
-                    tpslPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice)).as_str().map(str::to_owned);
+                    tpslPrice = self.price_to_precision(symbol.clone(), Value::from(stopLossPrice));
                 }  else {
                     if (stopDirection.is_none()) {
                         stopDirection = (if (side.as_str() == Some("buy")) { Some("STOP_DIRECTION_STOP_DOWN".to_string()) } else { Some("STOP_DIRECTION_STOP_UP".to_string()) });
                     }
-                    tpslPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice)).as_str().map(str::to_owned);
+                    tpslPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
                 }
                 request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stop_limit_stop_limit_gtc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-        m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
+        m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+        m.insert("limit_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         m.insert("stop_price".to_string(), tpslPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("stop_direction".to_string(), stopDirection.map(Value::from).unwrap_or(Value::Null));
     m
@@ -4545,8 +4545,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("limit_limit_gtd".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-        m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
+        m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+        m.insert("limit_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         m.insert("end_time".to_string(), endTime.map(Value::from).unwrap_or(Value::Null));
         m.insert("post_only".to_string(), Value::Bool(postOnly));
     m
@@ -4558,8 +4558,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("sor_limit_ioc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-        m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
+        m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+        m.insert("limit_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
     m
 }));
     m
@@ -4569,8 +4569,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("limit_limit_fok".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-        m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
+        m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+        m.insert("limit_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
     m
 }));
     m
@@ -4580,8 +4580,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("limit_limit_gtc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
-        m.insert("limit_price".to_string(), self.price_to_precision(symbol.clone(), price.clone()));
+        m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
+        m.insert("limit_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         m.insert("post_only".to_string(), Value::Bool(postOnly));
     m
 }));
@@ -4601,7 +4601,7 @@ if _try_result.is_err() {
                 let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
                 paramsMarketBuy = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
-                    total = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
+                    total = self.cost_to_precision(symbol.clone(), Value::from(cost));
                 }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -4609,10 +4609,10 @@ if _try_result.is_err() {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
                         let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        total = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        total = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
-                    total = self.cost_to_precision(symbol.clone(), amount.clone()).as_str().map(str::to_owned);
+                    total = self.cost_to_precision(symbol.clone(), amount.clone());
                 }
                 request.insert("order_configuration".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4628,7 +4628,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("market_market_ioc".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("base_size".to_string(), self.amount_to_precision(symbol, amount));
+        m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol, amount)));
     m
 }));
     m
@@ -5041,10 +5041,10 @@ if _try_result.is_err() {
             m
         });
         if (amount != Value::Null) {
-            request.insert("size".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let mut preview: bool = self.safe_bool2(params.clone(), Value::Str("preview".into()), Value::Str("test".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut response: Value = Value::Null;
@@ -6048,7 +6048,7 @@ if _try_result.is_err() {
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let requestparamsValueVariable: Vec<Value> = self.prepare_account_request_with_currency_code((self.safe_string_k(&currency, "code", &[])).as_str(), None, &[params]).await.as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_55 = self.extend(request, &[&paramsValue]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[__ws_arg_55]).await.into_dict();
@@ -6714,7 +6714,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("funds".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("value".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
+        m.insert("value".to_string(), Value::from(self.currency_to_precision(code, amount.clone(), &[])));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
     m
 }));

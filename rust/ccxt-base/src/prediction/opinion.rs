@@ -1455,10 +1455,10 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1396: bool = true;
             while { if !__for_first_1396 { i += 1; } __for_first_1396 = false; (i as f64) < listLength } {
-            let mut entry: Value = list.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut address: Option<String> = self.safe_string_lower_k(entry.clone(), "quoteTokenAddress", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = list.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut address: Option<String> = self.safe_string_lower_k(&entry, "quoteTokenAddress", &[]).as_str().map(str::to_owned);
             if (address.is_some()) {
-                quoteTokens.insert(address.as_deref().unwrap_or("null").to_string(), entry);
+                quoteTokens.insert(address.as_deref().unwrap_or("null").to_string(), Value::Dict(entry));
             }
         }
         }

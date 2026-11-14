@@ -561,7 +561,7 @@ impl Bybit {
         let mut methodValue: Value = (if (method == Value::Null) { Value::Str("".into()) } else { method });
         let mut isUsdcSettled: Option<bool> = None;
         let mut isSpot: Option<bool> = None;
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -575,17 +575,17 @@ impl Bybit {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             isUsdcSettled = Some(crate::value::KeyRead::key_read(&&market, "settle").as_str() == Some("USDC"));
-            type_var = self.safe_string_k(&market, "type", &[]);
+            type_var = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
         }  else {
             let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(methodValue.clone(), None, &[params.clone()]).as_array().cloned().unwrap_or_default();
-            let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             type_var = marketType;
             let mut defaultSettle: Option<String> = self.safe_string_k(self.options.clone(), "defaultSettle", &[]).as_str().map(str::to_owned);
             defaultSettle = self.safe_string2(Value::Dict(paramsMarketType), Value::Str("settle".into()), Value::Str("defaultSettle".into()), &[defaultSettle.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             isUsdcSettled = Some(defaultSettle.as_deref() == Some("USDC"));
         }
-        isSpot = Some(type_var.as_str() == Some("spot"));
+        isSpot = Some(type_var.as_deref() == Some("spot"));
         if isPrivate.as_bool() == Some(true) {
             let mut unified: Value = self.parent.is_unified_enabled(&[]).await;
             let mut isUnifiedMargin: bool = self.safe_bool(unified.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -598,7 +598,7 @@ impl Bybit {
         }  else {
             if (isSpot == Some(true)) {
                 url = accessibilityUrls.get("spot").cloned().unwrap_or(Value::Null);
-            }  else if (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
+            }  else if (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
                 let mut subType: Value = self.handle_sub_type_and_params(methodValue, market.as_ref(), &[params, Value::Str("linear".into())]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 url = accessibilityUrls.get(subType.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             }  else {
@@ -3352,7 +3352,7 @@ impl Bybit {
         //
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         let mut currencyId: Option<String> = self.safe_string2(balance.clone(), Value::Str("a".into()), Value::Str("coin".into()), &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
         account.insert("free".into(), self.safe_string_n(balance.clone(), Value::from(vec![Value::Str("availableToWithdraw".into()), Value::Str("f".into()), Value::Str("free".into())]), &[]));
         let mut used: Option<String> = self.safe_string2(balance.clone(), Value::Str("l".into()), Value::Str("locked".into()), &[]).as_str().map(str::to_owned);
         if (used.is_some()) {
@@ -3376,12 +3376,12 @@ impl Bybit {
     m
 })); }
             }
-            if (accountType != Value::Null) && (code != Value::Null) {
-                if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &accountType) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account.clone())); }
+            if (accountType != Value::Null) && (code.is_some()) {
+                if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType) { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account.clone())); }
             }
         }  else {
-            if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+            if (code.is_some()) {
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
 }

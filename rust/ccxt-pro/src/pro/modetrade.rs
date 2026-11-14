@@ -886,7 +886,7 @@ impl Modetrade {
         if (timeframe.is_none()) {
             return;
         }
-        let mut parsed: Value = Value::from(vec![self.safe_integer_k(&data, "startTime", &[]), self.safe_number_k(&data, "open", &[]), self.safe_number_k(&data, "high", &[]), self.safe_number_k(&data, "low", &[]), self.safe_number_k(&data, "close", &[]), self.safe_number_k(&data, "volume", &[])]);
+        let mut parsed: crate::value::List = std::sync::Arc::new(vec![self.safe_integer_k(&data, "startTime", &[]), self.safe_number_k(&data, "open", &[]), self.safe_number_k(&data, "high", &[]), self.safe_number_k(&data, "low", &[]), self.safe_number_k(&data, "close", &[]), self.safe_number_k(&data, "volume", &[])]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
@@ -895,7 +895,7 @@ impl Modetrade {
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored);
         }
         let mut ohlcvCache: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
-        ohlcvCache.append(parsed);
+        ohlcvCache.append(Value::Arr(parsed));
         client.resolve(Value::from(&ohlcvCache), topic.as_deref());
 }
 

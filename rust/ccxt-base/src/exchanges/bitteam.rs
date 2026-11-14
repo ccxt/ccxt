@@ -1668,14 +1668,14 @@ impl Bitteam {
                 m.insert("pairId".to_string(), self.safe_string_k(&market, "numericId", &[]));
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("side".to_string(), side);
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }  else {
-                request.insert("price".into(), self.price_to_precision(symbol, price));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);

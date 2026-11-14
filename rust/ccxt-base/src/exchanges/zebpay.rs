@@ -1346,10 +1346,10 @@ impl Zebpay {
         let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("endtime".into()), &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("endtime".into()), Value::Str("endTime".into()), Value::Str("interval".into()), Value::Str("startTime".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (market).spot {
             if (limit == Value::Null) {
-                limitResolved = Value::Int(100);
+                limitResolved = Some(100);
             }
             request.insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             if (since != Value::Null) {
@@ -1413,7 +1413,7 @@ impl Zebpay {
         //             ]
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -1757,16 +1757,16 @@ impl Zebpay {
             let mut marginAsset: String = self.safe_string_k(query.clone(), "marginAsset", &[Value::Str("INR".into())]).as_str().unwrap_or("INR").to_string();
             let mut formType: String = self.safe_string_upper_k(query.clone(), "formType", &[Value::Str("ORDER_FORM".into())]).as_str().unwrap_or("ORDER_FORM").to_string();
             request.insert("formType".into(), Value::from(formType));
-            request.insert("amount".into(), self.parse_to_numeric(self.amount_to_precision(Value::from((market).id.as_deref()), amount)));
+            request.insert("amount".into(), self.parse_to_numeric(Value::from(self.amount_to_precision(Value::from((market).id.as_deref()), amount))));
             request.insert("marginAsset".into(), Value::from(marginAsset));
             let mut hasTP: bool = takeProfitPrice.is_some();
             let mut hasSL: bool = stopLossPrice.is_some();
             if hasTP || hasSL {
                 if hasTP {
-                    request.insert("takeProfitPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("takeProfitPrice".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)))));
                 }
                 if hasSL {
-                    request.insert("stopLossPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("stopLossPrice".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)))));
                 }
                 let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[query.clone()]);
                 response = self.private_swap_post_v1_trade_order_add_tpsl(&[__ws_arg_11]).await.into_opt_dict();
@@ -1776,7 +1776,7 @@ impl Zebpay {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for limit orders")));
                     }
-                    request.insert("price".into(), self.parse_to_numeric(self.price_to_precision(symbol, price)));
+                    request.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol, price))));
                 }
                 let __ws_arg_12 = self.extend(Value::Map(request), &[query]);
                 response = self.private_swap_post_v1_trade_order(&[__ws_arg_12]).await.into_opt_dict();
@@ -1819,13 +1819,13 @@ impl Zebpay {
             if (quoteOrderQty == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " spot market orders require cost in params")));
             }
-            request.insert("quoteOrderAmount".into(), self.cost_to_precision(symbol.clone(), quoteOrderQty));
+            request.insert("quoteOrderAmount".into(), Value::from(self.cost_to_precision(symbol.clone(), quoteOrderQty)));
         }  else {
             if (triggerPrice.is_some()) {
-                request.insert("stopLossPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("stopLossPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             }
-            request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         return self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
 

@@ -105,7 +105,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
         Box::pin(async move {
             match method {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
-                "amount_to_precision" => self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -162,7 +162,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "price_to_precision" => crate::Value::from(self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
@@ -1974,8 +1974,8 @@ impl Polymarket {
         paramsOmitted = self.omit(paramsOmitted, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("reduceOnly".into()), Value::Str("clientOrderId".into())]), &[]);
         let mut instrumentId: Option<i64> = self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut isBuy: bool = (side.as_str() == Some("buy"));
-        let mut quantity: Value = self.amount_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), amount);
-        let mut priceString: Value = Value::Null;
+        let mut quantity: Option<String> = self.amount_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), amount);
+        let mut priceString: Option<String> = None;
         if (price != Value::Null) {
             priceString = self.price_to_precision(symbol.map(Value::from).unwrap_or(Value::Null), price);
         }
@@ -1983,19 +1983,19 @@ impl Polymarket {
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
-        let mut row: Value = Value::from(vec![Value::from(instrumentId), Value::Bool(isBuy), priceString.clone(), quantity.clone(), tif.clone().map(Value::from).unwrap_or(Value::Null), postOnly.clone(), reduceOnlyValue.map_or(Value::Null, Value::Bool), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut row: Value = Value::from(vec![Value::from(instrumentId), Value::Bool(isBuy), priceString.clone().map(Value::from).unwrap_or(Value::Null), quantity.clone().map(Value::from).unwrap_or(Value::Null), tif.clone().map(Value::from).unwrap_or(Value::Null), postOnly.clone(), reduceOnlyValue.map_or(Value::Null, Value::Bool), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut signable: crate::value::List = self.compact_signable(row).into_list();
         let mut entry: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("iid".to_string(), Value::from(instrumentId));
                 m.insert("buy".to_string(), Value::Bool(isBuy));
                 m.insert("po".to_string(), postOnly);
-                m.insert("qty".to_string(), quantity);
+                m.insert("qty".to_string(), quantity.map(Value::from).unwrap_or(Value::Null));
                 m.insert("tif".to_string(), tif.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        if (priceString != Value::Null) {
-            entry.insert("p".into(), priceString);
+        if (priceString.is_some()) {
+            entry.insert("p".into(), priceString.map(Value::from).unwrap_or(Value::Null));
         }
         if (reduceOnlyValue.is_some()) {
             entry.insert("ro".into(), reduceOnlyValue.map_or(Value::Null, Value::Bool));
@@ -2434,17 +2434,17 @@ impl Polymarket {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires both the amount and the price arguments")));
         }
         let mut orderId: Option<i64> = self.parse_to_int(id);
-        let mut priceString: Value = self.price_to_precision(Value::from((market).symbol.clone()), price);
-        let mut quantity: Value = self.amount_to_precision(Value::from((market).symbol.clone()), amount);
-        let mut signable: Value = Value::from(vec![Value::Str("modifyOrders".into()), Value::from(vec![Value::from(vec![Value::from(orderId), priceString.clone(), quantity.clone()])])]);
+        let mut priceString: Option<String> = self.price_to_precision(Value::from((market).symbol.clone()), price);
+        let mut quantity: Option<String> = self.amount_to_precision(Value::from((market).symbol.clone()), amount);
+        let mut signable: Value = Value::from(vec![Value::Str("modifyOrders".into()), Value::from(vec![Value::from(vec![Value::from(orderId), priceString.clone().map(Value::from).unwrap_or(Value::Null), quantity.clone().map(Value::from).unwrap_or(Value::Null)])])]);
         let mut bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("modifyOrders".into()));
                 m.insert("args".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("oid".to_string(), Value::from(orderId));
-        m.insert("p".to_string(), priceString);
-        m.insert("qty".to_string(), quantity);
+        m.insert("p".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("qty".to_string(), quantity.map(Value::from).unwrap_or(Value::Null));
     m
 })]));
             m
@@ -4076,9 +4076,9 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Value {
+    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Option<String> {
         if (price == Value::Null) {
-            return Value::Null;
+            return None;
         }
         // the venue caps prices at five significant figures on top of the
         // per-instrument decimals, deliberately for any magnitude - a six
@@ -4094,14 +4094,12 @@ impl Polymarket {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " price of ").into()), Value::from((market).symbol.clone())).into()), " must be greater than minimum price precision of ").into()),
                 Value::from(self.number_to_string(precision.get("price").cloned().unwrap_or(Value::Null))))));
         }
-        return result.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return result;
 }
 
-    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Value {
+    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
         if (amount == Value::Null) {
-            return Value::Null;
+            return None;
         }
         // quantities carry the same five significant figures cap
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4115,9 +4113,7 @@ impl Polymarket {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amount of ").into()), Value::from((market).symbol.clone())).into()), " must be greater than minimum amount precision of ").into()),
                 Value::from(self.number_to_string(precision.get("amount").cloned().unwrap_or(Value::Null))))));
         }
-        return result.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return result;
 }
 
     pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {

@@ -1656,11 +1656,11 @@ impl Gemini {
 })]);
             let mut lowerCaseId: Option<String> = marketIdWithoutPerp.as_str().map(str::to_lowercase);
             if (matches!((&conflictingMarkets, lowerCaseId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                let mut conflictingMarket: Value = (if let (Some(__m), Some(__k)) = (conflictingMarkets.as_map(), lowerCaseId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-                baseId = self.safe_string_k(conflictingMarket.clone(), "base", &[]);
-                quoteId = self.safe_string_k(conflictingMarket.clone(), "quote", &[]);
+                let mut conflictingMarket: crate::value::Dict = (if let (Some(__m), Some(__k)) = (conflictingMarkets.as_map(), lowerCaseId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).into_dict();
+                baseId = self.safe_string_k(&conflictingMarket, "base", &[]);
+                quoteId = self.safe_string_k(&conflictingMarket, "quote", &[]);
                 if isPerp {
-                    settleId = self.safe_string_k(conflictingMarket, "quote", &[]);
+                    settleId = self.safe_string_k(&conflictingMarket, "quote", &[]);
                 }
             }  else {
                 let mut quoteCurrencies: Value = self.handle_option(Value::Str("fetchMarketsFromAPI".into()), Value::Str("quoteCurrencies".into()), &[Value::from(vec![])]);
@@ -2628,8 +2628,8 @@ impl Gemini {
             clientOrderId = Some(format!("{}", self.milliseconds()));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
-        let mut priceString: Option<String> = self.price_to_precision(symbol.clone(), price).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount);
+        let mut priceString: Option<String> = self.price_to_precision(symbol.clone(), price);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("client_order_id".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -2643,17 +2643,17 @@ impl Gemini {
         let mut typeValue: Option<String> = self.safe_string_k(params.clone(), "type", &[type_var]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]), &[]).as_str().map(str::to_owned);
         // timeInForce and postOnly are consumed only by non-trigger orders
-        let mut omitKeys: Value = Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("type".into()), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]);
-        let mut optionKeys: Value = Value::from(vec![]);
+        let mut omitKeys: crate::value::List = std::sync::Arc::new(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("type".into()), Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), Value::Str("stopPrice".into())]);
+        let mut optionKeys: crate::value::List = std::sync::Arc::new(Vec::new());
         if (triggerPrice.is_none()) {
-            optionKeys = Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]);
+            optionKeys = std::sync::Arc::new(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), self.array_concat(omitKeys, optionKeys), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), self.array_concat(Value::Arr(omitKeys), Value::Arr(optionKeys)), &[]).into_dict();
         if (typeValue.as_deref() == Some("stopLimit")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter or a stop_price parameter for ").into()), typeValue.as_deref().unwrap_or("null")).into()), " orders")));
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("type".into(), Value::Str("exchange stop limit".into()));
         }  else {
             // No options can be applied to stop-limit orders at this time.

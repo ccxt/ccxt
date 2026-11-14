@@ -1684,7 +1684,7 @@ impl Independentreserve {
             let mut m = indexmap::IndexMap::new();
                 m.insert("primaryCurrencyCode".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("withdrawalAddress".to_string(), address);
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
             m
         });
         if (tagWithdrawTag.is_some()) {

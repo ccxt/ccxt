@@ -3449,14 +3449,14 @@ impl Hitbtc {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("client_order_id".to_string(), id);
-                m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         if (type_var.as_str() == Some("limit")) || (type_var.as_str() == Some("stopLimit")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " editOrder() limit order requires price")));
             }
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3537,14 +3537,14 @@ impl Hitbtc {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let requestparamsValueVariable: Vec<Value> = self.create_order_request(market.clone(), marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, marginMode.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarginMode)]).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("swap")) {
-            let __ws_arg_51 = self.extend(request.clone(), &[&paramsValue]);
+            let __ws_arg_51 = self.extend(&request, &[&paramsValue]);
             response = self.private_post_futures_order(&[__ws_arg_51]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            let __ws_arg_52 = self.extend(request.clone(), &[&paramsValue]);
+            let __ws_arg_52 = self.extend(&request, &[&paramsValue]);
             response = self.private_post_margin_order(&[__ws_arg_52]).await.into_opt_dict();
         }  else {
             let __ws_arg_53 = self.extend(request, &[&paramsValue]);
@@ -3576,7 +3576,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("side".to_string(), side);
-                m.insert("quantity".to_string(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount)));
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id", &[]));
             m
         });
@@ -3598,7 +3598,7 @@ impl Hitbtc {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for limit orders")));
             }
-            request.insert("price".into(), self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), price)));
         }
         if (timeInForce.as_deref() == Some("GTD")) {
             let mut expireTime: Option<String> = self.safe_string_k(params.clone(), "expire_time", &[]).as_str().map(str::to_owned);
@@ -3607,7 +3607,7 @@ impl Hitbtc {
             }
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), Value::from(triggerPrice)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), Value::from(triggerPrice))));
             if isLimit {
                 request.insert("type".into(), Value::Str("stopLimit".into()));
             }  else if (type_var.as_str() == Some("market")) {
@@ -3859,7 +3859,7 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut requestAmount: Option<String> = self.currency_to_precision(code, amount, &[]).as_str().map(str::to_owned);
+        let mut requestAmount: Option<String> = self.currency_to_precision(code, amount, &[]);
         let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3940,7 +3940,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("from_currency".to_string(), fromNetworkValue2);
                 m.insert("to_currency".to_string(), toNetworkValue2);
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
             m
         });
         let __ws_arg_55 = self.extend(Value::Map(request), &[params]);
@@ -4728,7 +4728,7 @@ impl Hitbtc {
             }
         }
         let mut stringAmount: Option<String> = self.number_to_string(amount);
-        let mut amountValue: Option<String> = (if (stringAmount.as_deref() != Some("0")) { self.amount_to_precision(symbol, stringAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) } else { Some("0".to_string()) });
+        let mut amountValue: Option<String> = (if (stringAmount.as_deref() != Some("0")) { self.amount_to_precision(symbol, stringAmount.map(Value::from).unwrap_or(Value::Null)) } else { Some("0".to_string()) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -5014,7 +5014,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("leverage".to_string(), Value::Str(format!("{}", leverage).into()));
-                m.insert("margin_balance".to_string(), self.amount_to_precision(symbol, Value::from(amount)));
+                m.insert("margin_balance".to_string(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
             m
         });
         let __ws_arg_75 = self.extend(Value::Map(request), &[params]);

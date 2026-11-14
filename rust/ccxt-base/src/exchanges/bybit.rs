@@ -3820,7 +3820,7 @@ impl Bybit {
             let mut quoteAndSettle: Option<String> = self.safe_string(&splitQuote, Value::Int(0), &[]).as_str().map(str::to_owned);
             quote = quoteAndSettle.map(Value::from).unwrap_or(Value::Null);
         }  else {
-            expiry = self.convert_market_id_expire_date(self.safe_string(&optionParts, Value::Int(1), &[]));
+            expiry = self.convert_market_id_expire_date((self.safe_string(&optionParts, Value::Int(1), &[])).as_str());
             if (symbol.as_str().unwrap_or("").ends_with("-USDT")) {
                 quote = Value::Str("USDT".into());
             }  else {
@@ -3829,7 +3829,7 @@ impl Bybit {
         }
         let mut strike: Option<String> = self.safe_string(&optionParts, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut optionType: Option<String> = self.safe_string(&optionParts, Value::Int(3), &[]).as_str().map(str::to_owned);
-        let mut datetime: Option<String> = self.convert_expire_date(expiry.clone()).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.convert_expire_date(expiry.as_str()).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         let mut amountPrecision: Option<f64> = None;
         let mut pricePrecision: Option<f64> = None;
@@ -3844,7 +3844,7 @@ impl Bybit {
             amountPrecision = Some(1_f64);
             pricePrecision = Some(0.01_f64);
         }
-        let mut convertedExpireDate: Option<String> = self.convert_expire_date_to_market_id_date(expiry.clone()).as_str().map(str::to_owned);
+        let mut convertedExpireDate: Option<String> = self.convert_expire_date_to_market_id_date(expiry.as_str()).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, "-").into()), convertedExpireDate.map(Value::from).unwrap_or(Value::Null)).into()), "-").into()),
@@ -3946,7 +3946,7 @@ impl Bybit {
         let mut emptyPrecisionAmount: bool = self.safe_number_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]) == Value::Null;
         let mut amountString: Option<String> = self.number_to_string(amount.clone());
         if !emptyPrecisionAmount && (amountString.as_deref() != Some("0")) {
-            return self.amount_to_precision(symbol, amount);
+            return Value::from(self.amount_to_precision(symbol, amount));
         }
         return amountString.map(Value::from).unwrap_or(Value::Null);
 
@@ -3962,7 +3962,7 @@ impl Bybit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut emptyPrecisionPrice: bool = self.safe_number_k(crate::value::KeyRead::key_read(&&market, "precision"), "price", &[]) == Value::Null;
         if !emptyPrecisionPrice {
-            return self.price_to_precision(symbol, price.clone());
+            return Value::from(self.price_to_precision(symbol, price.clone()));
         }
         return price;
 
@@ -3974,7 +3974,7 @@ impl Bybit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut emptyPrecisionPrice: bool = self.safe_number_k(crate::value::KeyRead::key_read(&&market, "precision"), "price", &[]) == Value::Null;
         if !emptyPrecisionPrice {
-            return self.cost_to_precision(symbol, cost.clone()).as_str().map(str::to_owned);
+            return Value::from(self.cost_to_precision(symbol, cost.clone())).as_str().map(str::to_owned);
         }
         return cost.as_str().map(str::to_owned);
 }
@@ -4316,16 +4316,16 @@ impl Bybit {
         }
         }
         let mut promises: Vec<Value> = promise_all(&Value::from(promisesUnresolved)).await.as_array().cloned().unwrap_or_default();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_501: bool = true;
             while { if !__for_first_501 { i += 1; } __for_first_501 = false; i < (promises.len() as i64) } {
             let mut parsedMarket: Value = promises.get(i as usize).cloned().unwrap_or(Value::Null);
-            result = self.array_concat(result, parsedMarket);
+            result = self.array_concat(Value::Arr(result), parsedMarket).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }
@@ -6424,42 +6424,42 @@ impl Bybit {
         let mut isUnifiedAccount: bool = (enableUnifiedMargin || enableUnifiedAccount);
         // don't use getBybitType here
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut type_var: Value = marketType;
+        let mut type_var: Option<String> = marketType;
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchBalance".into()), None, &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
-        let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (type_var.as_str() == Some("swap")) || (type_var.as_str() == Some("future")) {
+        if (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
             type_var = subType;
         }
-        let mut lowercaseRawType: Option<String> = (if (type_var != Value::Null) { type_var.as_str().map(str::to_lowercase) } else { None });
-        let mut isSpot: bool = type_var.as_str() == Some("spot");
-        let mut isLinear: bool = type_var.as_str() == Some("linear");
-        let mut isInverse: bool = type_var.as_str() == Some("inverse");
+        let mut lowercaseRawType: Option<String> = (if (type_var.is_some()) { type_var.as_deref().map(str::to_lowercase) } else { None });
+        let mut isSpot: bool = type_var.as_deref() == Some("spot");
+        let mut isLinear: bool = type_var.as_deref() == Some("linear");
+        let mut isInverse: bool = type_var.as_deref() == Some("inverse");
         let mut isFunding: bool = (lowercaseRawType.as_deref() == Some("fund")) || (lowercaseRawType.as_deref() == Some("funding"));
         if isUnifiedAccount {
             let mut unifiedMarginStatus: i64 = self.safe_integer_k(self.options.clone(), "unifiedMarginStatus", &[Value::Int(6)]).as_i64().unwrap_or(6);
             if unifiedMarginStatus < 5 {
                 // it's not uta.20 where inverse are unified
                 if isInverse {
-                    type_var = Value::Str("contract".into());
+                    type_var = Some("contract".to_string());
                 }  else {
-                    type_var = Value::Str("unified".into());
+                    type_var = Some("unified".to_string());
                 }
             }  else {
-                type_var = Value::Str("unified".into()); // uta.20 where inverse are unified
+                type_var = Some("unified".to_string()); // uta.20 where inverse are unified
             }
         }  else {
             if isLinear || isInverse {
-                type_var = Value::Str("contract".into());
+                type_var = Some("contract".to_string());
             }
         }
         let mut accountTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut unifiedType: Option<String> = self.safe_string_upper(&accountTypes, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        let mut unifiedType: Option<String> = self.safe_string_upper(&accountTypes, type_var.clone().map(Value::from).unwrap_or(Value::Null), &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[Value::from(&paramsSubType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -9124,8 +9124,8 @@ impl Bybit {
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let networkCodeparamsOmitedVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Option<String> = networkCodeparamsOmitedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsOmited: Value = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut indexedAddresses: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), paramsOmited).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut paramsOmited: crate::value::Dict = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut indexedAddresses: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsOmited)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut selectedNetworkCode: Option<String> = self.select_network_key_from_networks(crate::value::KeyRead::key_read(&&currency, "code"), networkCode.map(Value::from).unwrap_or(Value::Null), crate::types::IntoRaw::into_raw(indexedAddresses.clone()), &[Value::Bool(true)]).as_str().map(str::to_owned);
         return self.safe_dict(crate::types::IntoRaw::into_raw(indexedAddresses), selectedNetworkCode.map(Value::from).unwrap_or(Value::Null), &[]);
         Value::Null
@@ -10948,12 +10948,12 @@ impl Bybit {
     m
 })]).into_dict();
         let mut coins: crate::value::List = self.safe_list_k(&firstVip, "list", &[Value::from(vec![])]).into_list();
-        let mut coin: Value = self.safe_dict(&coins, Value::Int(0), &[Value::Map({
+        let mut coin: crate::value::Dict = self.safe_dict(&coins, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        if let Value::Dict(__d) = &mut coin { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        return self.parse_borrow_rate(coin, Some(&currency));
+})]).into_dict();
+        std::sync::Arc::make_mut(&mut coin).insert("timestamp".into(), Value::from(timestamp));
+        return self.parse_borrow_rate(Value::Dict(coin), Some(&currency));
         Value::Null
         }).await?))
     }
@@ -11190,14 +11190,14 @@ impl Bybit {
         let mut fromId: Option<String> = self.safe_string(&accountTypes, fromAccount.clone(), &[fromAccount.clone()]).as_str().map(str::to_owned);
         let mut toId: Option<String> = self.safe_string(&accountTypes, toAccount.clone(), &[toAccount.clone()]).as_str().map(str::to_owned);
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut amountToPrecision: Value = self.currency_to_precision(code, amount, &[]);
+        let mut amountToPrecision: Option<String> = self.currency_to_precision(code, amount, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("transferId".to_string(), transferId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("fromAccountType".to_string(), fromId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("toAccountType".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), amountToPrecision.clone());
+                m.insert("amount".to_string(), amountToPrecision.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_59 = self.extend(Value::Map(request), &[params]);
@@ -11222,7 +11222,7 @@ impl Bybit {
         let mut status: Option<String> = self.parse_transfer_status(statusRaw.as_deref());
         let __ws_arg_60 = self.parse_transfer(transfer, Some(&currency));
         let __ws_arg_61 = self.iso8601(Value::from(timestamp));
-        let __ws_arg_62 = self.parse_number(amountToPrecision, &[]);
+        let __ws_arg_62 = self.parse_number(amountToPrecision.map(Value::from).unwrap_or(Value::Null), &[]);
         return self.extend(__ws_arg_60, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -11349,7 +11349,7 @@ impl Bybit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
             m
         });
         let __ws_arg_64 = self.extend(Value::Map(request), &[params]);
@@ -12779,8 +12779,8 @@ impl Bybit {
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_523: bool = true;
-                while { if !__for_first_523 { j += 1; } __for_first_523 = false; (j as f64) < get_array_length(&entry).as_f64().unwrap_or(f64::NAN) } {
-                let mut id: Value = self.safe_integer(get_value(&entry, &Value::Int(j)), Value::Str("id".into()), &[]);
+                while { if !__for_first_523 { j += 1; } __for_first_523 = false; j < (entry.len() as i64) } {
+                let mut id: Value = self.safe_integer_k(entry.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), "id", &[]);
                 add_element_to_object(get_value_mut(&mut entry, &Value::Int(j)), &Value::Str("id".into()), id);
             }
             }

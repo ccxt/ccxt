@@ -962,12 +962,12 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_1118: bool = true;
             while { if !__for_first_1118 { i += 1; } __for_first_1118 = false; i < (data.len() as i64) } {
-            let mut tickerData: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut tickerData: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            if let Value::Dict(__d) = &mut tickerData { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-            let mut ticker: crate::value::Dict = self.parse_ticker(tickerData, None).into_dict();
+})]).into_dict();
+            std::sync::Arc::make_mut(&mut tickerData).insert("timestamp".into(), Value::from(timestamp));
+            let mut ticker: crate::value::Dict = self.parse_ticker(&tickerData, None).into_dict();
             let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (symbol == "") {
                 continue;
@@ -1605,17 +1605,17 @@ impl Revolutx {
                 m
             });
             if (cost.is_some()) {
-                conditionalConfig.insert("quote_size".into(), self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null)));
+                conditionalConfig.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null))));
             }  else {
-                conditionalConfig.insert("base_size".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                conditionalConfig.insert("base_size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }
             if (type_var.as_str() == Some("limit")) {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for limit trigger orders")));
                 }
-                conditionalConfig.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                conditionalConfig.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }
-            conditionalConfig.insert("trigger_price".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            conditionalConfig.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             orderConfiguration.insert("conditional".into(), Value::Map(conditionalConfig));
         }  else if isTpsl {
             if (cost.is_some()) {
@@ -1624,7 +1624,7 @@ impl Revolutx {
             let mut singleLeg: bool = !(hasStopLoss && hasTakeProfit);
             let mut tpslConfig: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("base_size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                    m.insert("base_size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
                 m
             });
             if hasTakeProfit {
@@ -1640,11 +1640,11 @@ impl Revolutx {
                 m
             });
             if (cost.is_some()) {
-                limitConfig.insert("quote_size".into(), self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null)));
+                limitConfig.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null))));
             }  else {
-                limitConfig.insert("base_size".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                limitConfig.insert("base_size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }
-            limitConfig.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            limitConfig.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
             if (timeInForce.is_some()) {
                 limitConfig.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             }
@@ -1664,9 +1664,9 @@ impl Revolutx {
                 m
             });
             if (cost.is_some()) {
-                marketConfig.insert("quote_size".into(), self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)));
+                marketConfig.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
             }  else {
-                marketConfig.insert("base_size".into(), self.amount_to_precision(symbol, amount));
+                marketConfig.insert("base_size".into(), Value::from(self.amount_to_precision(symbol, amount)));
             }
             orderConfiguration.insert("market".into(), Value::Map(marketConfig));
         }  else {
@@ -1743,7 +1743,7 @@ impl Revolutx {
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trigger_price".to_string(), self.price_to_precision(symbol.clone(), legTriggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                m.insert("trigger_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), legTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
             m
         });
         let mut legPrice: Option<String> = self.safe_string_k(leg, "price", &[]).as_str().map(str::to_owned);
@@ -1754,7 +1754,7 @@ impl Revolutx {
             legPrice = self.number_to_string(price);
         }
         if (legPrice.is_some()) {
-            result.insert("limit_price".into(), self.price_to_precision(symbol, legPrice.map(Value::from).unwrap_or(Value::Null)));
+            result.insert("limit_price".into(), Value::from(self.price_to_precision(symbol, legPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         return Value::Map(result);
 
@@ -2298,12 +2298,12 @@ impl Revolutx {
             m
         });
         if (cost.is_some()) {
-            request.insert("quote_size".into(), self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
         }  else if (amount != Value::Null) {
-            request.insert("base_size".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("base_size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         if (timeInForce.is_some()) {
             request.insert("time_in_force".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));

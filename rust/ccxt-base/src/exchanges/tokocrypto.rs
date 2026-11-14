@@ -2500,19 +2500,19 @@ impl Tokocrypto {
             quantityIsRequired = true;
         }
         if quantityIsRequired {
-            request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         if priceIsRequired {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), typeResolved).into()), " order")));
             }
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if triggerPriceIsRequired {
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice extra param for a ").into()), typeResolved).into()), " order")));
             }  else {
-                request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
             }
         }
         if timeInForceIsRequired {

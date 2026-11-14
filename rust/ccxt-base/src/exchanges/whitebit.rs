@@ -2661,19 +2661,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("fetchTickers".into()), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut methodOption: Value = methodOptionparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut methodOption: Option<String> = methodOptionparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut method: Value = methodOption;
-        if (method == Value::Null) {
+        let mut method: Option<String> = methodOption;
+        if (method.is_none()) {
             // if the user did not specify a method, choose it based on market type and symbols
             if onlyContractSymbols || (marketType.as_deref() == Some("swap")) {
-                method = Value::Str("v4PublicGetFutures".into());
+                method = Some("v4PublicGetFutures".to_string());
             }  else {
-                method = Value::Str("v4PublicGetTicker".into());
+                method = Some("v4PublicGetTicker".to_string());
             }
         }
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("v4PublicGetTicker")) {
+        if (method.as_deref() == Some("v4PublicGetTicker")) {
             //
             //      "BCH_RUB": {
             //          "base_id":1831,
@@ -2686,7 +2686,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             //      },
             //
             response = self.v4_public_get_ticker(&[Value::from(&paramsMethod)]).await;
-        }  else if (method.as_str() == Some("v4PublicGetFutures")) {
+        }  else if (method.as_deref() == Some("v4PublicGetFutures")) {
             //
             //     {
             //         "success": true,
@@ -3311,9 +3311,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (side.as_str() != Some("buy")) || (type_var.as_str() != Some("market")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() cost is only supported for market buy orders")));
             }
-            request.insert("amount".into(), self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null))));
         }  else {
-            request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         let mut clientOrderId: Option<String> = self.safe_string2(Value::from(&paramsCost), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
@@ -3358,10 +3358,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut useCollateralEndpoint: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("swap"));
         let mut response: Option<crate::value::Dict> = None;
         if isStopOrder {
-            request.insert("activation_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+            request.insert("activation_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
             if isLimitOrder {
                 // stop limit order
-                request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                 response = self.v4_private_post_order_stop_limit(&[__ws_arg_8]).await.into_opt_dict();
             }  else {
@@ -3377,7 +3377,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             if isLimitOrder {
                 // limit order
-                request.insert("price".into(), self.price_to_precision(symbol, price));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
                 if useCollateralEndpoint {
                     let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&orderParams]);
                     response = self.v4_private_post_order_collateral_limit(&[__ws_arg_11]).await.into_opt_dict();
@@ -3457,27 +3457,27 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut isStopOrder: bool = triggerPrice.is_some();
         // Handle activation price for stop orders
         if isStopOrder {
-            request.insert("activation_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+            request.insert("activation_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
         }
         let mut isLimitOrder: bool = type_var.as_str() == Some("limit");
         let mut total: Option<f64> = self.safe_number_k(params.clone(), "total", &[]).as_f64();
         if (total.is_some()) {
-            request.insert("total".into(), self.amount_to_precision(symbol.clone(), Value::from(total)));
+            request.insert("total".into(), Value::from(self.amount_to_precision(symbol.clone(), Value::from(total))));
         }  else if (amount != Value::Null) {
             if isLimitOrder {
                 // Limit orders always use amount parameter
-                request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }  else if (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy")) {
                 // Market buy orders use total parameter
-                request.insert("total".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("total".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }  else {
                 // Market sell orders use amount parameter
-                request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }
         }
         // Handle price parameter for limit orders
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol, price.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price.clone())));
         }
         // Ensure at least one modifiable parameter is provided
         let mut hasModifiableParam: bool = (amount != Value::Null) || (price != Value::Null) || (triggerPrice.is_some()) || (total.is_some());
@@ -4154,16 +4154,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (since != Value::Null) {
             request.insert("startDate".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-            limitResolved = Value::Int(100);
+            limitResolved = Some(100);
         }
-        request.insert("limit".into(), limitResolved.clone());
+        request.insert("limit".into(), Value::from(limitResolved));
         // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
         request.insert("transactionMethod".into(), Value::Str("2".into()));
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v4_private_post_main_account_history(&[__ws_arg_23]).await.into_dict();
-        return self.parse_transactions(self.safe_list_k(&response, "records", &[Value::from(vec![])]), currency.as_ref(), &[since, limitResolved]);
+        return self.parse_transactions(self.safe_list_k(&response, "records", &[Value::from(vec![])]), currency.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -4208,11 +4208,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (since != Value::Null) {
             request.insert("startDate".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit == Value::Null) || limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
-            limitResolved = Value::Int(100);
+            limitResolved = Some(100);
         }
-        request.insert("limit".into(), limitResolved.clone());
+        request.insert("limit".into(), Value::from(limitResolved));
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v4_private_post_main_account_history(&[__ws_arg_24]).await.into_dict();
@@ -4244,7 +4244,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut records: crate::value::List = self.safe_list_k(&response, "records", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions(&records, currency.as_ref(), &[since, limitResolved]);
+        return self.parse_transactions(&records, currency.as_ref(), &[since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -4565,7 +4565,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut fromAccountId: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("accountsByType")).cloned().unwrap_or(Value::Null), fromAccount.clone(), &[fromAccount.clone()]).as_str().map(str::to_owned);
         let mut toAccountId: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("accountsByType")).cloned().unwrap_or(Value::Null), toAccount.clone(), &[toAccount.clone()]).as_str().map(str::to_owned);
-        let mut amountString: Option<String> = self.currency_to_precision(code, amount, &[]).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.currency_to_precision(code, amount, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -4635,7 +4635,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ticker".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.clone(), amount, &[])));
                 m.insert("address".to_string(), address);
             m
         });

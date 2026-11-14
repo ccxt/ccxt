@@ -2027,14 +2027,14 @@ impl Cex {
                 m.insert("orderType".to_string(), self.capitalize((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
-                m.insert("amountCcy1".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("amountCcy1".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsAccountId, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Option<String> = timeInForceparamsTimeInForceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTimeInForce: crate::value::Dict = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_str() == Some("limit")) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             request.insert("timeInForce".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         }
         let triggerPriceparamsTriggerPriceVariable: Vec<Value> = self.handle_param_string(&paramsTimeInForce, Value::Str("triggerPrice".into()), &[]).as_array().cloned().unwrap_or_default();
@@ -2525,7 +2525,7 @@ impl Cex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("accountId".to_string(), targetAccount);
                 m.insert("clientTxId".to_string(), guid.map(Value::from).unwrap_or(Value::Null));
             m
@@ -2575,7 +2575,7 @@ impl Cex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("fromAccountId".to_string(), fromAccount);
                 m.insert("toAccountId".to_string(), toAccount);
             m

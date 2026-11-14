@@ -996,7 +996,7 @@ impl Coinbase {
                 let mut marketId: Option<String> = self.safe_string_k(&candle, "product_id", &[]).as_str().map(str::to_owned);
                 let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
                 let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-                let mut parsed: Value = Value::from(vec![self.safe_timestamp_k(&candle, "start", &[]), self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
+                let mut parsed: crate::value::List = std::sync::Arc::new(vec![self.safe_timestamp_k(&candle, "start", &[]), self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
                 CacheShelves::ensure(&mut self.ohlcvs, &symbol);
                 let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
                 if (stored.is_none()) {
@@ -1004,7 +1004,7 @@ impl Coinbase {
                     stored = Some(ArrayCacheByTimestamp::new(limit));
                     CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
                 }
-                stored.append(parsed);
+                stored.append(Value::Arr(parsed));
                 let mut messageHash: String = format!("{}{}", "candles::", symbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&stored), messageHash.as_str());
                 self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::from(&stored));

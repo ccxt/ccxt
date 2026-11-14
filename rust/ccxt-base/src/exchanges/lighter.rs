@@ -1552,7 +1552,7 @@ if _try_result.is_err() {
             m
         })]).as_map().cloned().unwrap_or_default();
         let mut amountStr: Option<String> = None;
-        let mut priceStr: Option<String> = self.price_to_precision(symbol.clone(), price).as_str().map(str::to_owned);
+        let mut priceStr: Option<String> = self.price_to_precision(symbol.clone(), price);
         let mut amountScale: Option<String> = self.pow("10", marketInfo.get("size_decimals").cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut priceScale: Value = self.pow("10", marketInfo.get("price_decimals").cloned().unwrap_or(Value::Null));
         let mut triggerPriceStr: Option<String> = Some("0".to_string()); // default is 0
@@ -1568,17 +1568,17 @@ if _try_result.is_err() {
                 }  else {
                     orderTypeNum = Some(3);
                 }
-                triggerPriceStr = self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                triggerPriceStr = self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
             }  else if (takeProfitPrice.is_some()) {
                 if isMarketOrder {
                     orderTypeNum = Some(4);
                 }  else {
                     orderTypeNum = Some(5);
                 }
-                triggerPriceStr = self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                triggerPriceStr = self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
             }
         }  else {
-            amountStr = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
+            amountStr = self.amount_to_precision(symbol.clone(), amount);
         }
         request.insert("order_expiry".into(), orderExpiry);
         request.insert("order_type".into(), Value::from(orderTypeNum));
@@ -1866,13 +1866,13 @@ if _try_result.is_err() {
         let mut triggerPrice: Option<String> = self.safe_string_n(Value::from(&paramsAccountIndex), Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(&paramsAccountIndex, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
         let mut amountStr: Option<String> = None;
-        let mut priceStr: Option<String> = self.price_to_precision(symbol.clone(), price).as_str().map(str::to_owned);
+        let mut priceStr: Option<String> = self.price_to_precision(symbol.clone(), price);
         let mut triggerPriceStr: Option<String> = Some("0".to_string()); // default is 0
         if (triggerPrice.is_some()) {
             amountStr = self.number_to_string(amount.clone());
-            triggerPriceStr = self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            triggerPriceStr = self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            amountStr = self.amount_to_precision(symbol, amount).as_str().map(str::to_owned);
+            amountStr = self.amount_to_precision(symbol, amount);
         }
         let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[paramsOmitted.clone()]).await;
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
@@ -3690,7 +3690,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " transfer() only supports USDC and ETH transfers")));
         }
         let mut amountDecimals: String = (if (currencyCode.as_deref() == Some("USDC")) { "6".to_string() } else { "8".to_string() });
-        let mut amountScaled: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::from(amountDecimals)), &self.currency_to_precision(code, amount, &[])));
+        let mut amountScaled: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::from(amountDecimals)), &Value::from(self.currency_to_precision(code, amount, &[]))));
         let mut fromRouteType: i64 = (if (fromAccount.as_str() == Some("perp")) { 0 } else { 1 }); // 0: perp, 1: spot
         let mut toRouteType: i64 = (if (toAccount.as_str() == Some("perp")) { 0 } else { 1 });
         let mut memo: String = self.safe_string_k(&paramsToAccountIndex, "memo", &[Value::Str("0x000000000000000000000000000000".into())]).as_str().unwrap_or("0x000000000000000000000000000000").to_string();
@@ -4154,7 +4154,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " withdraw() only supports USDC and ETH transfers")));
         }
         let mut amountDecimals: String = (if (currencyCode.as_deref() == Some("USDC")) { "6".to_string() } else { "8".to_string() });
-        let mut amountScaled: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::from(amountDecimals)), &self.currency_to_precision(code, amount, &[])));
+        let mut amountScaled: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::from(amountDecimals)), &Value::from(self.currency_to_precision(code, amount, &[]))));
         let mut routeType: i64 = self.safe_integer_k(&paramsAccountIndex, "routeType", &[Value::Int(0)]).as_i64().unwrap_or(0); // 0: perp, 1: spot
         let mut paramsOmitted: Value = self.omit(&paramsAccountIndex, Value::Str("routeType".into()), &[]);
         let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[paramsOmitted.clone()]).await;
@@ -4917,7 +4917,7 @@ if _try_result.is_err() {
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
-                m.insert("usdc_amount".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::Str("6".into())), &self.currency_to_precision(Value::Str("USDC".into()), amount, &[])))));
+                m.insert("usdc_amount".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::Str("6".into())), &Value::from(self.currency_to_precision(Value::Str("USDC".into()), amount, &[]))))));
                 m.insert("direction".to_string(), Value::from(direction));
                 m.insert("nonce".to_string(), nonce);
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));

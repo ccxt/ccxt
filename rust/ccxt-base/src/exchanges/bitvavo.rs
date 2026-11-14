@@ -1812,7 +1812,7 @@ impl Bitvavo {
                 m.insert("subaccountId".to_string(), subaccountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("subaccountId".into()), &[])]);
@@ -2091,11 +2091,11 @@ impl Bitvavo {
                 let mut precision: Option<f64> = self.safe_number_k(&self.currency(Value::from((market).quote.clone())), "precision", &[]).as_f64();
                 request.insert("amountQuote".into(), self.decimal_to_precision(Value::from(cost), Value::Int(crate::runtime::TRUNCATE), Value::from(precision), &[self.precisionMode.clone()]));
             }  else {
-                request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }
         }  else if isLimitOrder {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
-            request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         let mut isTakeProfit: bool = (takeProfitPrice.is_some()) || (type_var.as_str() == Some("takeProfit")) || (type_var.as_str() == Some("takeProfitLimit"));
         let mut isStopLoss: bool = (stopLossPrice.is_some()) || (triggerPrice.is_some()) && (!isTakeProfit) || (type_var.as_str() == Some("stopLoss")) || (type_var.as_str() == Some("stopLossLimit"));
@@ -2111,7 +2111,7 @@ impl Bitvavo {
             request.insert("orderType".into(), (if isMarketOrder { Value::Str("takeProfit".into()) } else { Value::Str("takeProfitLimit".into()) }));
         }
         if (triggerPrice.is_some()) {
-            request.insert("triggerAmount".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("triggerAmount".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("triggerType".into(), Value::Str("price".into()));
             request.insert("triggerReference".into(), Value::Str("lastTrade".into())); // 'bestBid', 'bestAsk', 'midPrice'
         }
@@ -2214,16 +2214,16 @@ impl Bitvavo {
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("amountRemaining".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]).into_dict();
         if (price != Value::Null) {
-            std::sync::Arc::make_mut(&mut request).insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            std::sync::Arc::make_mut(&mut request).insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if (amount != Value::Null) {
-            std::sync::Arc::make_mut(&mut request).insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
+            std::sync::Arc::make_mut(&mut request).insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         if (amountRemaining.is_some()) {
-            std::sync::Arc::make_mut(&mut request).insert("amountRemaining".into(), self.amount_to_precision(symbol.clone(), Value::from(amountRemaining)));
+            std::sync::Arc::make_mut(&mut request).insert("amountRemaining".into(), Value::from(self.amount_to_precision(symbol.clone(), Value::from(amountRemaining))));
         }
         if (triggerPrice.is_some()) {
-            std::sync::Arc::make_mut(&mut request).insert("triggerAmount".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            std::sync::Arc::make_mut(&mut request).insert("triggerAmount".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         request = self.extend(request, &[&paramsOmitted]).into_dict();
         if self.is_empty(&request).as_bool() == Some(true) {
@@ -2961,7 +2961,7 @@ impl Bitvavo {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("address".to_string(), address);
             m
         });

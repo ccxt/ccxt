@@ -4323,11 +4323,11 @@ if _try_result.is_err() {
                                 let mut mi: i64 = 0;
                 let mut __for_first_1337: bool = true;
                 while { if !__for_first_1337 { mi += 1; } __for_first_1337 = false; (mi as f64) < categoryMarketsLength } {
-                let mut raw: Value = categoryMarkets.get(mi as usize).cloned().unwrap_or(Value::Null);
-                let mut slug: Option<String> = self.safe_string_k(raw.clone(), "slug", &[]).as_str().map(str::to_owned);
+                let mut raw: crate::value::Dict = categoryMarkets.get(mi as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut slug: Option<String> = self.safe_string_k(&raw, "slug", &[]).as_str().map(str::to_owned);
                 if (slug.is_some()) && !(matches!(slug.as_deref(), Some(__k) if seen.contains_key(__k))) {
                     seen.insert(slug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                    allRaw.push(raw);
+                    allRaw.push(Value::Dict(raw));
                 }
             }
             }

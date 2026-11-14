@@ -3778,22 +3778,22 @@ impl Mexc {
         if (type_var.as_str() == Some("market")) {
             let mut cost: Option<f64> = self.safe_number2(params.clone(), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]).as_f64();
             if (cost.is_some()) {
-                request.insert("quoteOrderQty".into(), self.cost_to_precision(Value::from(symbol.clone()), Value::from(cost)));
+                request.insert("quoteOrderQty".into(), Value::from(self.cost_to_precision(Value::from(symbol.clone()), Value::from(cost))));
             }  else {
                 if (price == Value::Null) {
-                    request.insert("quantity".into(), self.amount_to_precision(Value::from(symbol.clone()), amount.clone()));
+                    request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from(symbol.clone()), amount.clone())));
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
                     let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    request.insert("quoteOrderQty".into(), self.cost_to_precision(Value::from(symbol.clone()), quoteAmount.map(Value::from).unwrap_or(Value::Null)));
+                    request.insert("quoteOrderQty".into(), Value::from(self.cost_to_precision(Value::from(symbol.clone()), quoteAmount.map(Value::from).unwrap_or(Value::Null))));
                 }
             }
         }  else {
-            request.insert("quantity".into(), self.amount_to_precision(Value::from(symbol.clone()), amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from(symbol.clone()), amount)));
         }
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(Value::from(symbol), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(Value::from(symbol), price)));
         }
         let mut paramsWithoutCost: crate::value::Dict = (if (type_var.as_str() == Some("market")) { self.omit(params.clone(), Value::Str("cost".into()), &[]) } else { params }).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_k(&paramsWithoutCost, "clientOrderId", &[]).as_str().map(str::to_owned);
@@ -3961,7 +3961,7 @@ impl Mexc {
         }  else {
             orderType = self.parse_to_int(type_var);
         }
-        let mut volString: Option<String> = self.amount_to_precision(Value::from(symbol.clone()), amount).as_str().map(str::to_owned);
+        let mut volString: Option<String> = self.amount_to_precision(Value::from(symbol.clone()), amount);
         if (volString.is_none()) {
             volString = Some("0".to_string());
         }
@@ -3974,7 +3974,7 @@ impl Mexc {
             m
         });
         if (orderType != Some(5)) && (orderType != Some(6)) {
-            let mut priceString: Option<String> = self.price_to_precision(Value::from(symbol.clone()), price).as_str().map(str::to_owned);
+            let mut priceString: Option<String> = self.price_to_precision(Value::from(symbol.clone()), price);
             if (priceString.is_none()) {
                 priceString = Some("0".to_string());
             }
@@ -4013,7 +4013,7 @@ impl Mexc {
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsReduceOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("externalOid".into()), Value::Str("postOnly".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("hedged".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) && (triggerPrice != Some(0.0)) {
-            request.insert("triggerPrice".into(), self.price_to_precision(Value::from(symbol), Value::from(triggerPrice)));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), Value::from(triggerPrice))));
             let triggerDirectionparamsTriggerDirectionVariable: Vec<Value> = self.handle_trigger_direction_and_params(&paramsOmitted, &[Value::Str("triggerType".into()), Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut triggerDirection: Option<String> = triggerDirectionparamsTriggerDirectionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsTriggerDirection: crate::value::Dict = triggerDirectionparamsTriggerDirectionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

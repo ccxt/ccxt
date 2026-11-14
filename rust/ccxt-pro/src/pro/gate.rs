@@ -814,7 +814,7 @@ impl Gate {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let requestrequestParamsVariable: Vec<Value> = self.parent.fetch_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Option<String> = self.get_type_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_status");
@@ -926,9 +926,9 @@ impl Gate {
             }
         }
         let requestrequestParamsVariable: Vec<Value> = self.parent.prepare_orders_by_status_request(status.as_str(), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[params]).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut newRequest: crate::value::Dict = self.omit(request, Value::from(vec![Value::Str("settle".into())]), &[]).into_dict();
+        let mut newRequest: crate::value::Dict = self.omit(&request, Value::from(vec![Value::Str("settle".into())]), &[]).into_dict();
         let mut messageType: Option<String> = self.get_type_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_list");
         let mut url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
@@ -1962,18 +1962,18 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_326: bool = true;
             while { if !__for_first_326 { i += 1; } __for_first_326 = false; i < (result.len() as i64) } {
-            let mut ohlcv: Value = result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut subscription: Value = self.safe_string_k(ohlcv.clone(), "n", &[Value::Str("".into())]);
+            let mut ohlcv: crate::value::Dict = result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut subscription: Value = self.safe_string_k(&ohlcv, "n", &[Value::Str("".into())]);
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = subscription.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut timeframeId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut timeframe: Option<String> = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut prefix: Value = Value::Str(format!("{}{}", timeframe.as_deref().unwrap_or("null"), "_").into());
             let mut marketId: Value = subscription.as_str().zip(prefix.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| subscription.clone());
             let mut symbol: Value = self.safe_symbol(marketId, None, &[Value::Str("_".into()), Value::from(marketType.clone())]);
-            let mut parsed: Value = self.parse_ohlcv(ohlcv.clone(), None);
+            let mut parsed: Value = self.parse_ohlcv(Value::from(&ohlcv), None);
             if (marketType == "spot") {
                 // spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
-                parsed = Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "a", &[])]);
+                parsed = Value::from(vec![self.safe_timestamp_k(&ohlcv, "t", &[]), self.safe_number_k(&ohlcv, "o", &[]), self.safe_number_k(&ohlcv, "h", &[]), self.safe_number_k(&ohlcv, "l", &[]), self.safe_number_k(&ohlcv, "c", &[]), self.safe_number_k(&ohlcv, "a", &[])]);
             }
             CacheShelves::ensure(&mut self.ohlcvs, &symbol);
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);

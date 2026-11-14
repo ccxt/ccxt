@@ -2656,7 +2656,7 @@ impl Toobit {
             m
         });
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let costparamsCostVariable: Vec<Value> = self.handle_param_string(params, Value::Str("cost".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut cost: Option<String> = costparamsCostVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2665,9 +2665,9 @@ impl Toobit {
             if (cost.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires params[\"cost\"] for market buy order")));
             }
-            request.insert("quantity".into(), self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("quantity".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
         }  else {
-            request.insert("quantity".into(), self.amount_to_precision(symbol, amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
         let isPostOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[Value::from(&paramsCost)]).as_array().cloned().unwrap_or_default();
         let mut isPostOnly: bool = isPostOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -2701,7 +2701,7 @@ impl Toobit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         let reduceOnlyparamsReduceOnlyVariable: Vec<Value> = self.handle_param_bool(params, Value::Str("reduceOnly".into()), &[]).as_array().cloned().unwrap_or_default();
@@ -2715,11 +2715,11 @@ impl Toobit {
             request.insert("side".into(), side);
         }
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         }
         if self.in_array(type_var.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("LIMIT".into())])) {
             request.insert("type".into(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }  else if (type_var.as_str() == Some("market")) {
             request.insert("type".into(), Value::Str("LIMIT".into())); // weird, but exchange works this way
             request.insert("priceType".into(), Value::Str("MARKET".into()));
@@ -2751,7 +2751,7 @@ impl Toobit {
             let mut limitPrice: Option<String> = self.safe_string_k(&stopLoss, "price", &[]).as_str().map(str::to_owned);
             if (limitPrice.is_some()) {
                 request.insert("slOrderType".into(), Value::Str("LIMIT".into()));
-                request.insert("slLimitPrice".into(), self.price_to_precision(symbol.clone(), limitPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("slLimitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), limitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
             if (triggerPriceType.is_some()) {
@@ -2763,7 +2763,7 @@ impl Toobit {
             let mut limitPrice: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
             if (limitPrice.is_some()) {
                 request.insert("tpOrderType".into(), Value::Str("LIMIT".into()));
-                request.insert("tpLimitPrice".into(), self.price_to_precision(symbol, limitPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("tpLimitPrice".into(), Value::from(self.price_to_precision(symbol, limitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
             if (triggerPriceType.is_some()) {
@@ -3438,7 +3438,7 @@ impl Toobit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("quantity".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("quantity".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("fromAccountType".to_string(), fromId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("toAccountType".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
             m
@@ -4018,7 +4018,7 @@ impl Toobit {
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("address".to_string(), address);
-                m.insert("quantity".to_string(), self.currency_to_precision(crate::value::KeyRead::key_read(&&currency, "code"), amount, &[]));
+                m.insert("quantity".to_string(), Value::from(self.currency_to_precision(crate::value::KeyRead::key_read(&&currency, "code"), amount, &[])));
                 m.insert("chainType".to_string(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
                 m.insert("clientOrderId".to_string(), Value::Int(self.milliseconds()));
             m

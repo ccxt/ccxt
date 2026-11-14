@@ -1980,10 +1980,10 @@ impl Polymarket {
                                 let mut li: i64 = 0;
                 let mut __for_first_1431: bool = true;
                 while { if !__for_first_1431 { li += 1; } __for_first_1431 = false; (li as f64) < lastTradesLength } {
-                let mut lastTradeEntry: Value = lastTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(li as usize).cloned().unwrap_or(Value::Null);
-                let mut lastTradeTokenId: Option<String> = self.safe_string_k(lastTradeEntry.clone(), "token_id", &[]).as_str().map(str::to_owned);
+                let mut lastTradeEntry: crate::value::Dict = lastTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(li as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut lastTradeTokenId: Option<String> = self.safe_string_k(&lastTradeEntry, "token_id", &[]).as_str().map(str::to_owned);
                 if (lastTradeTokenId.is_some()) {
-                    lastTradesByTokenId.insert(lastTradeTokenId.as_deref().unwrap_or("null").to_string(), lastTradeEntry);
+                    lastTradesByTokenId.insert(lastTradeTokenId.as_deref().unwrap_or("null").to_string(), Value::Dict(lastTradeEntry));
                 }
             }
             }
@@ -1992,8 +1992,8 @@ impl Polymarket {
                                 let mut i: i64 = 0;
                 let mut __for_first_1432: bool = true;
                 while { if !__for_first_1432 { i += 1; } __for_first_1432 = false; (i as f64) < booksLength } {
-                let mut book: Value = books.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut tokenId: Option<String> = self.safe_string_k_opt(book.clone(), "asset_id", &[]);
+                let mut book: crate::value::Dict = books.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut tokenId: Option<String> = self.safe_string_k_opt(&book, "asset_id", &[]);
                 if (tokenId.is_none()) || !(matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesByTokenId.contains_key(__k.as_ref()))) {
                     continue;
                 }
@@ -2006,7 +2006,7 @@ impl Polymarket {
         m.insert("mid".to_string(), mid.map(Value::from).unwrap_or(Value::Null));
     m
 }));
-                        m.insert("book".to_string(), book);
+                        m.insert("book".to_string(), Value::Dict(book));
                         m.insert("lastTrade".to_string(), self.safe_dict(Value::Map(lastTradesByTokenId.clone()), tokenId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

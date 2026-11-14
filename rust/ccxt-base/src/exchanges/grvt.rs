@@ -1952,7 +1952,7 @@ if _try_result.is_err() {
             request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_5 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.public_market_post_full_v1_trade_history(&[__ws_arg_5]).await.into_dict();
@@ -2135,7 +2135,7 @@ if _try_result.is_err() {
             request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_6 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.public_market_post_full_v1_kline(&[__ws_arg_6]).await.into_dict();
@@ -2221,7 +2221,7 @@ if _try_result.is_err() {
             request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_7 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.public_market_post_full_v1_funding(&[__ws_arg_7]).await.into_dict();
@@ -2448,11 +2448,11 @@ if _try_result.is_err() {
             request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut useTransfersEndpoint: bool = self.safe_bool_k(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if useTransfersEndpoint {
-            let __ws_arg_9 = self.extend(requestUntilOptionString.clone(), &[&paramsUntilOptionString]);
+            let __ws_arg_9 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
             let mut transfers: Value = self.internal_fetch_transfers(__ws_arg_9, &[crate::Value::from(currency.as_ref()), since.clone(), limit.clone()]).await;
             let mut transactions: Value = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(transfers, "deposit", &[Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
             return self.parse_transactions(transactions, currency.as_ref(), &[since.clone(), limit.clone()]);
@@ -2525,11 +2525,11 @@ if _try_result.is_err() {
             request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut useTransfersEndpoint: bool = self.safe_bool_k(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if useTransfersEndpoint {
-            let __ws_arg_11 = self.extend(requestUntilOptionString.clone(), &[&paramsUntilOptionString]);
+            let __ws_arg_11 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
             let mut transfers: Value = self.internal_fetch_transfers(__ws_arg_11, &[crate::Value::from(currency.as_ref()), since.clone(), limit.clone()]).await;
             let mut transactions: Value = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(transfers, "withdrawal", &[Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
             return self.parse_transactions(transactions, currency.as_ref(), &[since.clone(), limit.clone()]);
@@ -2773,7 +2773,7 @@ if _try_result.is_err() {
             request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_13 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_transfer_history(&[__ws_arg_13]).await.into_dict();
@@ -2900,7 +2900,7 @@ if _try_result.is_err() {
                 m.insert("to_account_id".to_string(), self.safe_string_k(paramsFundingAccountId.clone(), "to_account_id", &[defaultFromAccountId.map(Value::from).unwrap_or(Value::Null)]));
                 m.insert("to_sub_account_id".to_string(), self.safe_string_k(paramsFundingAccountId.clone(), "to_sub_account_id", &[toSubAccount]));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("num_tokens".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("num_tokens".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("signature".to_string(), self.default_signature());
                 m.insert("transfer_type".to_string(), Value::Str("STANDARD".into()));
                 m.insert("transfer_metadata".to_string(), Value::Null);
@@ -3097,7 +3097,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("to_eth_address".to_string(), address);
                 m.insert("from_account_id".to_string(), defaultFromAccountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("num_tokens".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("num_tokens".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("signature".to_string(), Value::Map(withdrawSignature));
             m
         });
@@ -3159,11 +3159,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut orderLeg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument".to_string(), Value::from((market).id.as_deref()));
-                m.insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         if (price != Value::Null) {
-            orderLeg.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price));
+            orderLeg.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }  else {
             orderLeg.insert("limit_price".into(), Value::Null);
         }
@@ -3499,7 +3499,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_17 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_fill_history(&[__ws_arg_17]).await.into_dict();
@@ -3934,7 +3934,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[Value::from(&paramsPaginate), Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_22 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_funding_payment_history(&[__ws_arg_22]).await.into_dict();
@@ -4035,7 +4035,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             request.insert("start_time".into(), Value::from(self.number_to_string((match (&(since), &(Value::Int(1000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
-        let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_23 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_order_history(&[__ws_arg_23]).await.into_dict();

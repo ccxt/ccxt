@@ -1499,8 +1499,8 @@ impl Coinone {
                 m.insert("target_currency".to_string(), Value::from((market).base_id.as_deref()));
                 m.insert("type".to_string(), Value::from(orderType));
                 m.insert("side".to_string(), Value::from(orderSide));
-                m.insert("price".to_string(), self.price_to_precision(symbol.clone(), price));
-                m.insert("qty".to_string(), self.amount_to_precision(symbol, amount));
+                m.insert("price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price)));
+                m.insert("qty".to_string(), Value::from(self.amount_to_precision(symbol, amount)));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);

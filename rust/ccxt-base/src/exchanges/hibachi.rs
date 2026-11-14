@@ -1348,7 +1348,7 @@ impl Hibachi {
         // - Quantity: Internal = External * (10^underlyingDecimals)
         // - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
         // - FeeRate: Internal = External * (10^8)
-        let mut amountStr: Option<String> = self.amount_to_precision(self.safe_string_k(&market, "symbol", &[]), amount).as_str().map(str::to_owned);
+        let mut amountStr: Option<String> = self.amount_to_precision(self.safe_string_k(&market, "symbol", &[]), amount);
         let mut feeRateStr: Option<String> = self.number_to_string(feeRate);
         let mut info: crate::value::Dict = self.safe_dict_k(&market, "info", &[]).into_dict();
         let mut underlying: String = format!("{}{}", Value::Str("1e".into()), self.safe_string_k(&info, "underlyingDecimals", &[Value::Str("".into())]));
@@ -1375,7 +1375,7 @@ impl Hibachi {
         let mut encodedFeeRate: crate::value::Bytes = self.base16_to_binary(Value::from(feeRatePadded), &[]);
         let mut encodedPrice: crate::value::Bytes = self.binary_concat(Value::Null, &[]);
         if (type_var.as_str() == Some("limit")) {
-            let mut priceStr: Option<String> = self.price_to_precision(self.safe_string_k(&market, "symbol", &[]), price).as_str().map(str::to_owned);
+            let mut priceStr: Option<String> = self.price_to_precision(self.safe_string_k(&market, "symbol", &[]), price);
             let mut priceInternal: Option<String> = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&priceStr.map(Value::from).unwrap_or(Value::Null), &Value::from(priceFactor)), &Value::Str(format!("{}{}", Value::Str("1e".into()), self.safe_string_k(&info,
                 "settlementDecimals", &[Value::Str("".into())])).into())), &Value::from(underlying)), &Value::from(one), &Value::Int(0)).as_str().map(str::to_owned);
             let mut price16: String = self.int_to_base16(Value::from(self.parse_to_int(priceInternal.map(Value::from).unwrap_or(Value::Null))), &[]);
@@ -1418,7 +1418,7 @@ impl Hibachi {
         }
         let mut priceInternal: Option<String> = Some("".to_string());
         if (price != Value::Null) && (price.as_f64() != Some(0.0)) {
-            priceInternal = self.price_to_precision(symbol.clone(), price.clone()).as_str().map(str::to_owned);
+            priceInternal = self.price_to_precision(symbol.clone(), price.clone());
         }
         let mut message: Value = self.order_message(Some(&market), nonce.clone(), feeRate.unwrap_or_default(), type_var.as_str(), side.as_str(), amount.clone(), &[price]);
         let mut signature: Option<String> = self.sign_message(message, (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
@@ -1428,7 +1428,7 @@ impl Hibachi {
                 m.insert("nonce".to_string(), nonce);
                 m.insert("side".to_string(), Value::from(sideInternal));
                 m.insert("orderType".to_string(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("quantity".to_string(), self.amount_to_precision(symbol, amount));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol, amount)));
                 m.insert("price".to_string(), priceInternal.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
                 m.insert("maxFeesPercent".to_string(), Value::from(self.number_to_string(Value::from(feeRate))));
@@ -1606,8 +1606,8 @@ impl Hibachi {
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id);
                 m.insert("nonce".to_string(), nonce);
-                m.insert("updatedQuantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
-                m.insert("updatedPrice".to_string(), self.price_to_precision(symbol, price));
+                m.insert("updatedQuantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("updatedPrice".to_string(), Value::from(self.price_to_precision(symbol, price)));
                 m.insert("maxFeesPercent".to_string(), Value::from(self.number_to_string(Value::from(feeRate))));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m

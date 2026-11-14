@@ -1367,7 +1367,7 @@ impl Deribit {
             expiry = self.safe_string(&optionParts, Value::Int(1), &[]);
         }  else {
             base = self.safe_string(&optionParts, Value::Int(0), &[Value::Str("".into())]).as_str().map(str::to_owned);
-            expiry = self.convert_market_id_expire_date(self.safe_string(&optionParts, Value::Int(1), &[]));
+            expiry = self.convert_market_id_expire_date((self.safe_string(&optionParts, Value::Int(1), &[])).as_str());
         }
         if (base.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createExpiredOptionMarket() missing base")));
@@ -1389,10 +1389,10 @@ impl Deribit {
         let mut splitBase: String = self.safe_string(Value::Array(if let Some(__s) = baseResolved.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut strike: String = self.safe_string(&optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut optionType: String = self.safe_string(&optionParts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut datetime: Value = self.convert_expire_date(expiry.clone());
+        let mut datetime: Value = self.convert_expire_date(expiry.as_str());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseResolved, "-").into()), self.convert_expire_date_to_market_id_date(expiry.clone())).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "-", strike).into()), "-").into()), optionType).into()))).into()));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseResolved, "-").into()), self.convert_expire_date_to_market_id_date(expiry.as_str())).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "-", strike).into()), "-").into()), optionType).into()))).into()));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", splitBase, "/").into()), quote).into()), ":").into()), settle).into()), "-").into()), expiry).into()), (Value::Str(format!("{}{}",
             Value::Str(format!("{}{}", Value::Str(format!("{}{}", "-", strike).into()), "-").into()), optionType).into()))).into()));
         m.insert("base".to_string(), baseResolved.clone());
@@ -3330,7 +3330,7 @@ impl Deribit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("type".to_string(), type_var.clone());
             m
         });
@@ -3359,7 +3359,7 @@ impl Deribit {
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), exchangeSpecificPostOnly.map_or(Value::Null, Value::Bool), &[params.clone()]);
         if isLimitOrder {
             request.insert("type".into(), Value::Str("limit".into()));
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }  else {
             request.insert("type".into(), Value::Str("market".into()));
         }
@@ -3369,7 +3369,7 @@ impl Deribit {
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
         }  else if isStopOrder {
             let mut triggerPrice: Option<String> = (if (stopLossPrice.is_some()) { stopLossPrice } else { takeProfitPrice });
-            request.insert("trigger_price".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("trigger".into(), Value::from(trigger));
             if isStopLossOrder {
                 if isMarketOrder {
@@ -3524,11 +3524,11 @@ impl Deribit {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id);
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let mut trailingAmount: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("trigger_offset".into()), &[]).as_str().map(str::to_owned);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();

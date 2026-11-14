@@ -5142,12 +5142,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // attaching it to public reads would hand the venue a wallet credential they do not need.
         // note v1/positions/{address} reads someone else's positions and is deliberately absent,
         // as is v1/orders/matches, which is the public trade feed
-        let mut walletPaths: Value = Value::from(vec![Value::Str("v1/orders".into()), Value::Str("v1/orders/{hash}".into()), Value::Str("v1/orders/remove".into()), Value::Str("v1/orders/remove-by-hash".into()), Value::Str("v1/account".into()), Value::Str("v1/account/activity".into()), Value::Str("v1/account/referral".into()),
+        let mut walletPaths: crate::value::List = std::sync::Arc::new(vec![Value::Str("v1/orders".into()), Value::Str("v1/orders/{hash}".into()), Value::Str("v1/orders/remove".into()), Value::Str("v1/orders/remove-by-hash".into()), Value::Str("v1/account".into()), Value::Str("v1/account/activity".into()), Value::Str("v1/account/referral".into()),
             Value::Str("v1/positions".into()), Value::Str("v1/oauth/finalize".into()), Value::Str("v1/oauth/orders".into()), Value::Str("v1/oauth/orders/create".into()), Value::Str("v1/oauth/orders/cancel".into()), Value::Str("v1/oauth/positions".into())]);
         let mut jwtToken: Option<String> = self.safe_string_k(self.options.clone(), "jwtToken", &[]).as_str().map(str::to_owned);
         // unlike the API key, the JWT IS required on the testnet - wallet endpoints there answer
         // 401 without it, so it is attached on both hosts
-        if (jwtToken.is_some()) && self.in_array(path, walletPaths) {
+        if (jwtToken.is_some()) && self.in_array(path, &walletPaths) {
             authHeaders.insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", jwtToken.as_deref().unwrap_or("null")).into()));
         }
         let mut bodyValue: Option<String> = None;

@@ -2878,7 +2878,7 @@ impl Digifinex {
                 postOnly = true;
             }
             if (price != Value::Null) {
-                request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }
             request.insert("order_type".into(), Value::from(orderType));
             request.insert("size".into(), amount.clone()); // swap orders require the amount to be the number of contracts
@@ -2890,7 +2890,7 @@ impl Digifinex {
             if (type_var.as_str() == Some("market")) {
                 suffix = "_market".to_string();
             }  else {
-                request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }
             request.insert("type".into(), Value::Str(format!("{}{}", side, suffix).into()));
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
@@ -2909,7 +2909,7 @@ impl Digifinex {
             if isMarketBuy {
                 let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
                 if (cost.is_some()) {
-                    quantity = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
+                    quantity = self.cost_to_precision(symbol.clone(), Value::from(cost));
                 }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -2917,13 +2917,13 @@ impl Digifinex {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
                         let mut costRequest: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
-                        quantity = self.cost_to_precision(symbol.clone(), Value::from(costRequest)).as_str().map(str::to_owned);
+                        quantity = self.cost_to_precision(symbol.clone(), Value::from(costRequest));
                     }
                 }  else {
-                    quantity = self.cost_to_precision(symbol.clone(), amount.clone()).as_str().map(str::to_owned);
+                    quantity = self.cost_to_precision(symbol.clone(), amount.clone());
                 }
             }  else {
-                quantity = self.amount_to_precision(symbol, amount).as_str().map(str::to_owned);
+                quantity = self.amount_to_precision(symbol, amount);
             }
             request.insert("amount".into(), quantity.map(Value::from).unwrap_or(Value::Null));
         }
@@ -3159,7 +3159,7 @@ impl Digifinex {
         }
         let marketTypeparamsOmittedVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsOmittedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsOmitted: Value = marketTypeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOmitted: crate::value::Dict = marketTypeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("swap")) {
             if (market.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a symbol argument for swap markets")));
@@ -3179,7 +3179,7 @@ impl Digifinex {
                 orders.push(Value::Map(orderItem));
             }
             }
-            return crate::types::IntoRaw::into_raw(self.cancel_orders_for_symbols(crate::types::FromRaw::from_raw(Value::from(orders)), paramsOmitted.clone()).await);
+            return crate::types::IntoRaw::into_raw(self.cancel_orders_for_symbols(crate::types::FromRaw::from_raw(Value::from(orders)), Value::from(&paramsOmitted)).await);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3187,7 +3187,7 @@ impl Digifinex {
                 m.insert("order_id".to_string(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             m
         });
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_spot_post_spot_order_cancel(&[__ws_arg_14]).await.into_dict();
         return self.parse_cancel_orders(&response, &[]);
         Value::Null
@@ -4600,14 +4600,14 @@ impl Digifinex {
         let mut fromSwap: bool = fromAccount.as_str() == Some("swap");
         let mut toSwap: bool = toAccount.as_str() == Some("swap");
         let mut response: Value = Value::Null;
-        let mut amountString: Value = self.currency_to_precision(code, amount, &[]);
+        let mut amountString: Option<String> = self.currency_to_precision(code, amount, &[]);
         if fromSwap || toSwap {
             if (fromId.as_deref() != Some("1")) && (toId.as_deref() != Some("1")) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only")));
             }
             request.insert("type".into(), (if toSwap { Value::Int(1) } else { Value::Int(2) })); // 1 = spot to swap, 2 = swap to spot
             request.insert("currency".into(), currencyId.clone());
-            request.insert("transfer_amount".into(), amountString.clone());
+            request.insert("transfer_amount".into(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
             //
             //     {
             //         "code": 0,
@@ -4622,7 +4622,7 @@ impl Digifinex {
             response = self.private_swap_post_account_transfer(&[__ws_arg_34]).await;
         }  else {
             request.insert("currency_mark".into(), currencyId);
-            request.insert("num".into(), amountString);
+            request.insert("num".into(), amountString.map(Value::from).unwrap_or(Value::Null));
             request.insert("from".into(), fromId.map(Value::from).unwrap_or(Value::Null)); // 1 = SPOT, 2 = MARGIN, 3 = OTC
             request.insert("to".into(), toId.map(Value::from).unwrap_or(Value::Null)); // 1 = SPOT, 2 = MARGIN, 3 = OTC
             //
@@ -4676,7 +4676,7 @@ impl Digifinex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), address);
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });

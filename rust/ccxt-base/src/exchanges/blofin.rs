@@ -2343,7 +2343,7 @@ impl Blofin {
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side.clone());
                 m.insert("orderType".to_string(), type_var.clone());
-                m.insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("ec6dd3a7dd982d0b".into())]));
             m
         });
@@ -2369,7 +2369,7 @@ impl Blofin {
             if (triggerPriceAny.is_some()) {
                 key = "orderPrice".to_string();
             }
-            request.insert(key, self.price_to_precision(symbol.clone(), price));
+            request.insert(key, Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let mut postOnly: bool = false;
         { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -2384,19 +2384,19 @@ impl Blofin {
         if hasStopLoss || hasTakeProfit {
             if hasStopLoss {
                 let mut slTriggerPrice: Option<String> = self.safe_string2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-                request.insert("slTriggerPrice".into(), self.price_to_precision(symbol.clone(), slTriggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("slTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), slTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
                 let mut slOrderPrice: String = self.safe_string_k(&stopLoss, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
-                request.insert("slOrderPrice".into(), self.price_to_precision(symbol.clone(), Value::from(slOrderPrice)));
+                request.insert("slOrderPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(slOrderPrice))));
             }
             if hasTakeProfit {
                 let mut tpTriggerPrice: Option<String> = self.safe_string2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-                request.insert("tpTriggerPrice".into(), self.price_to_precision(symbol.clone(), tpTriggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("tpTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), tpTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
                 let mut tpPrice: String = self.safe_string_k(&takeProfit, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
-                request.insert("tpOrderPrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpPrice)));
+                request.insert("tpOrderPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(tpPrice))));
             }
         }  else if (triggerPriceAny.is_some()) {
             request.insert("orderType".into(), Value::Str("trigger".into()));
-            request.insert("triggerPrice".into(), self.price_to_precision(symbol, triggerPriceAny.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPriceAny.map(Value::from).unwrap_or(Value::Null))));
             if isMarketOrder {
                 request.insert("orderPrice".into(), Value::Str("-1".into()));
             }
@@ -2669,7 +2669,7 @@ impl Blofin {
             m
         });
         if (amount != Value::Null) {
-            request.insert("size".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         let mut marginMode: String = self.safe_string_k(params.clone(), "marginMode", &[Value::Str("cross".into())]).as_str().unwrap_or("cross").to_string(); // cross or isolated
         if (marginMode != "cross") && (marginMode != "isolated") {
@@ -2678,7 +2678,7 @@ impl Blofin {
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
         if (stopLossPrice.is_some()) {
-            request.insert("slTriggerPrice".into(), self.price_to_precision(symbol.clone(), stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("slTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             if (type_var.as_str() == Some("market")) {
                 request.insert("slOrderPrice".into(), Value::Str("-1".into()));
             }  else {
@@ -2686,11 +2686,11 @@ impl Blofin {
                 if (slLimitPrice.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")));
                 }
-                request.insert("slOrderPrice".into(), self.price_to_precision(symbol.clone(), slLimitPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("slOrderPrice".into(), Value::from(self.price_to_precision(symbol.clone(), slLimitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
         }
         if (takeProfitPrice.is_some()) {
-            request.insert("tpTriggerPrice".into(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("tpTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             if (type_var.as_str() == Some("market")) {
                 request.insert("tpOrderPrice".into(), Value::Str("-1".into()));
             }  else {
@@ -2698,7 +2698,7 @@ impl Blofin {
                 if (tpLimitPrice.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")));
                 }
-                request.insert("tpOrderPrice".into(), self.price_to_precision(symbol, tpLimitPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("tpOrderPrice".into(), Value::from(self.price_to_precision(symbol, tpLimitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
         }
         request.insert("marginMode".into(), Value::from(marginMode));
@@ -4202,7 +4202,7 @@ impl Blofin {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("fromAccount".to_string(), fromId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("toAccount".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
             m

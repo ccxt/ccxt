@@ -1009,8 +1009,8 @@ impl Mercado {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
-            request.insert("limit_price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price.clone()));
-            request.insert("quantity".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone()));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price.clone())));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone())));
             if (side.as_str() == Some("buy")) {
                 let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.private_post_place_buy_order(&[__ws_arg_5]).await.into_opt_dict();
@@ -1026,11 +1026,11 @@ impl Mercado {
                 let mut amountString: Option<String> = self.number_to_string(amount.clone());
                 let mut priceString: Option<String> = self.number_to_string(price);
                 let mut cost: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
-                request.insert("cost".into(), self.price_to_precision(Value::from((market).symbol.clone()), cost));
+                request.insert("cost".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), cost)));
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
                 response = self.private_post_place_market_buy_order(&[__ws_arg_7]).await.into_opt_dict();
             }  else {
-                request.insert("quantity".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
                 let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
                 response = self.private_post_place_market_sell_order(&[__ws_arg_8]).await.into_opt_dict();
             }

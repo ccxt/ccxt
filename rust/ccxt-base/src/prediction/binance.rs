@@ -83,7 +83,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
     {
         Box::pin(async move {
             match method {
-                "amount_to_precision" => self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "complete_raw_topics" => self.complete_raw_topics(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
@@ -116,7 +116,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_topic_market" => self.parse_topic_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "price_to_precision" => crate::Value::from(self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
@@ -2279,7 +2279,7 @@ impl Binance {
     Value::Null
 }
 
-    pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Value {
+    pub fn price_to_precision(&self, mut outcome: Value, mut price: Value) -> Option<String> {
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2289,12 +2289,10 @@ impl Binance {
         if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
             decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
-        return self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
-
-    Value::Null
+        return self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
+    pub fn amount_to_precision(&self, mut outcome: Value, mut amount: Value) -> Option<String> {
         let mut market: crate::types::Market = (match self.market(outcome.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut prec: Value = self.safe_number(self.safe_dict_k(&market, "precision", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2304,9 +2302,7 @@ impl Binance {
         if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
             decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
-        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
-
-    Value::Null
+        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2371,7 +2367,7 @@ impl Binance {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), "createOrder requires price for limit order")));
             }
-            commonRequest.insert("priceLimit".into(), self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price.clone()));
+            commonRequest.insert("priceLimit".into(), Value::from(self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price.clone())));
             defaultTif = "GTC".to_string();
         }
         if (sideUpper == "BUY") {
@@ -2404,7 +2400,7 @@ impl Binance {
             let mut m = indexmap::IndexMap::new();
                 m.insert("tokenId".to_string(), crate::value::KeyRead::key_read(&&outcomeObj, "id"));
                 m.insert("side".to_string(), Value::from(sideUpper));
-                m.insert("amountIn".to_string(), crate::precise::Precise::stringMul(&__ws_arg_14, &Value::Str("1000000000000000000".into())));
+                m.insert("amountIn".to_string(), crate::precise::Precise::stringMul(&Value::from(__ws_arg_14), &Value::Str("1000000000000000000".into())));
             m
         })]).into_dict();
         let mut quote: Value = self.fetch_quote(&quoteRequest, &[paramsOmitted.clone()]).await;

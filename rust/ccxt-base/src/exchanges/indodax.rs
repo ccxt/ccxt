@@ -1489,7 +1489,7 @@ impl Indodax {
                 let mut quoteAmount: Option<String> = None;
                 let mut cost: Option<f64> = self.safe_number_k(params, "cost", &[]).as_f64();
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
                 }  else {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")));
@@ -1497,7 +1497,7 @@ impl Indodax {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
                 request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }  else {
@@ -1507,7 +1507,7 @@ impl Indodax {
             priceIsRequired = true;
             quantityIsRequired = true;
             if (side.as_str() == Some("buy")) {
-                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::from(self.number_to_string(price.clone()))))));
+                request.insert(crate::runtime::stringify_param(&(Value::from((market).quote_id.as_deref()))), self.parse_to_numeric(Value::from(self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::from(self.number_to_string(price.clone())))))));
             }
         }
         if priceIsRequired {
@@ -1517,7 +1517,7 @@ impl Indodax {
             request.insert("price".into(), price);
         }
         if quantityIsRequired {
-            request.insert(crate::runtime::stringify_param(&(Value::from((market).base_id.as_deref()))), self.amount_to_precision(symbol, amount));
+            request.insert(crate::runtime::stringify_param(&(Value::from((market).base_id.as_deref()))), Value::from(self.amount_to_precision(symbol, amount)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
         let mut result: Value = self.private_post_trade(&[__ws_arg_8]).await;

@@ -1992,7 +1992,7 @@ impl Krakenfutures {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side);
-                m.insert("size".to_string(), self.amount_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), amount));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), amount)));
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(Value::from(&paramsPostOnly), Value::Str("clientOrderId".into()), Value::Str("cliOrdId".into()), &[]).as_str().map(str::to_owned);
@@ -2014,15 +2014,15 @@ impl Krakenfutures {
         }
         if isTriggerOrder {
             typeValue = Some("stp".to_string());
-            request.insert("stopPrice".into(), self.price_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         }  else if isStopLossOrTakeProfitTrigger {
             reduceOnly = true;
             if isStopLossTriggerOrder {
                 typeValue = Some("stp".to_string());
-                request.insert("stopPrice".into(), self.price_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), stopLossTriggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), stopLossTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
             }  else if isTakeProfitTriggerOrder {
                 typeValue = Some("take_profit".to_string());
-                request.insert("stopPrice".into(), self.price_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), takeProfitTriggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbolValue.clone().map(Value::from).unwrap_or(Value::Null), takeProfitTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
             }
         }
         if reduceOnly {
@@ -2037,7 +2037,7 @@ impl Krakenfutures {
         }
         let mut isMarketOrder: bool = typeValue.as_deref() == Some("mkt");
         if (priceValue != Value::Null) && !isMarketOrder {
-            request.insert("limitPrice".into(), self.price_to_precision(symbolValue.map(Value::from).unwrap_or(Value::Null), priceValue));
+            request.insert("limitPrice".into(), Value::from(self.price_to_precision(symbolValue.map(Value::from).unwrap_or(Value::Null), priceValue)));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);

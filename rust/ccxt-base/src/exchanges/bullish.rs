@@ -2291,9 +2291,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsResult: Value = (if sinceFromUntil { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
         if (since != Value::Null) || (untilParam.is_some()) {
             let mut timeDelta: i64 = (((((((7 * 24)) * 60)) * 60)) * 1000); // 7 days
-            let mut sinceResolved: Value = since.clone();
+            let mut sinceResolved: Option<i64> = since.as_i64();
             if (since == Value::Null) && (untilParam.is_some()) {
-                sinceResolved = Value::from((if let Some(__l) = untilParam { Some(__l - timeDelta) } else { None }));
+                sinceResolved = (if let Some(__l) = untilParam { Some(__l - timeDelta) } else { None });
             }
             if (since != Value::Null) && (untilParam.is_none()) {
                 let mut now: i64 = self.milliseconds();
@@ -2304,7 +2304,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     until = self.sum(&[since, Value::from(timeDelta)]);
                 }
             }
-            add_element_to_object(&mut paramsResult, &sinceKey, self.iso8601(sinceResolved));
+            add_element_to_object(&mut paramsResult, &sinceKey, self.iso8601(Value::from(sinceResolved)));
             add_element_to_object(&mut paramsResult, &untilKey, self.iso8601(until));
         }
         return paramsResult;
@@ -2561,7 +2561,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("commandType".to_string(), Value::Str("V3CreateOrder".into()));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("tradingAccountId".to_string(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -2582,14 +2582,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         })]).into_dict();
         if !(matches!(&isMarketOrder, Value::Bool(true))) {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let mut triggerPrice: Option<String> = self.safe_string_k(&paramsTimeInForce, "triggerPrice", &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
             if matches!(&isMarketOrder, Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() does not support market trigger orders")));
             }
-            request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             orderType = "STOP_LIMIT".to_string();
         }
         let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&paramsTimeInForce, Value::Str("triggerPrice".into()), &[]).into_dict() } else { paramsTimeInForce });
@@ -2656,10 +2656,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("type".into(), Value::Str("POST_ONLY".into()));
         }
         if (amount != Value::Null) {
-            request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let mut paramsOmitted: crate::value::Dict = (if postOnly { self.omit(params.clone(), Value::Str("postOnly".into()), &[]) } else { params }).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3023,7 +3023,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("commandType".to_string(), Value::Str("V1Withdraw".into()));
         m.insert("destinationId".to_string(), address);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-        m.insert("quantity".to_string(), self.currency_to_precision(code.clone(), amount, &[]));
+        m.insert("quantity".to_string(), Value::from(self.currency_to_precision(code.clone(), amount, &[])));
     m
 }));
             m
@@ -3158,10 +3158,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let tradingAccountIdOptionparamsTradingAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("loadAccount".into()), Value::Str("tradingAccountId".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tradingAccountIdOption: Value = tradingAccountIdOptionparamsTradingAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tradingAccountIdOption: Option<String> = tradingAccountIdOptionparamsTradingAccountIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTradingAccountId: crate::value::Dict = tradingAccountIdOptionparamsTradingAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut tradingAccountId: Value = tradingAccountIdOption;
-        if (tradingAccountId == Value::Null) {
+        let mut tradingAccountId: Option<String> = tradingAccountIdOption;
+        if (tradingAccountId.is_none()) {
             let mut response: crate::value::List = self.private_get_v1_accounts_trading_accounts(&[Value::Dict(paramsTradingAccountId)]).await.into_list();
             let mut accounts: crate::value::List = self.to_array(&response).into_list();
             {
@@ -3171,16 +3171,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut account: crate::value::Dict = self.safe_dict(&accounts, Value::Int(i), &[]).into_dict();
                 let mut name: Option<String> = self.safe_string_k(&account, "tradingAccountName", &[]).as_str().map(str::to_owned);
                 if (name.as_deref() == Some("Primary Account")) {
-                    tradingAccountId = self.safe_string_k(&account, "tradingAccountId", &[]);
+                    tradingAccountId = self.safe_string_k(&account, "tradingAccountId", &[]).as_str().map(str::to_owned);
                     break;
                 }
             }
             }
         }
-        if (tradingAccountId == Value::Null) {
+        if (tradingAccountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")));
         }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingAccountId".into(), tradingAccountId); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null)); }
         return self.safe_string_k(self.options.clone(), "tradingAccountId", &[]);
 
     Value::Null
@@ -3630,7 +3630,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
                 m.insert("commandType".to_string(), Value::Str("V2TransferAsset".into()));
                 m.insert("assetSymbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("quantity".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
+                m.insert("quantity".to_string(), Value::from(self.currency_to_precision(code.clone(), amount.clone(), &[])));
                 m.insert("fromTradingAccountId".to_string(), fromAccount.clone());
                 m.insert("toTradingAccountId".to_string(), toAccount.clone());
             m
@@ -3750,19 +3750,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut now: i64 = self.milliseconds();
-        let mut startTimestamp: Value = since.clone();
+        let mut startTimestamp: Option<i64> = since.as_i64();
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("createdAtDatetime[lte]".into()), Value::Map(request.clone()), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut until: Option<i64> = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
         // current endpoint requires both since and until parameters
         if (since == Value::Null) {
-            startTimestamp = Value::Int((now - ((((((((1000 * 60)) * 60)) * 24)) * 90)))); // Only the last 90 days of data is available for querying
+            startTimestamp = Some((now - ((((((((1000 * 60)) * 60)) * 24)) * 90)))); // Only the last 90 days of data is available for querying
         }
         if (until.is_none()) {
             until = Some(now);
         }
-        request.insert("createdAtDatetime[gte]".into(), self.iso8601(startTimestamp));
+        request.insert("createdAtDatetime[gte]".into(), self.iso8601(Value::from(startTimestamp)));
         request.insert("createdAtDatetime[lte]".into(), self.iso8601(Value::from(until)));
         let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_v1_history_borrow_interest(&[__ws_arg_27]).await.into_list();

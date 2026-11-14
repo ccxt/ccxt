@@ -1305,8 +1305,8 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side);
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
-                m.insert("price".to_string(), self.price_to_precision(symbol, price));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("price".to_string(), Value::from(self.price_to_precision(symbol, price)));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -1765,7 +1765,7 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut keys: Vec<Value> = Value::Array(result.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1774,10 +1774,10 @@ impl P2b {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]).into_list();
-            orders = self.array_concat(orders, &parsedOrders);
+            orders = self.array_concat(Value::Arr(orders), &parsedOrders).into_list();
         }
         }
-        return orders;
+        return Value::Arr(orders);
         Value::Null
         }).await?))
     }

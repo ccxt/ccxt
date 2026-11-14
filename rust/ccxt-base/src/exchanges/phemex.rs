@@ -2367,7 +2367,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut userLimit: Value = limit.clone();
+        let mut userLimit: Option<i64> = limit.as_i64();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -2446,7 +2446,7 @@ impl Phemex {
         if usesSpecialFromToEndpoint {
             sinceResolved = sinceSeconds;
         }
-        return self.parse_ohlc_vs(&rows, Some(&market), &[timeframe, sinceResolved, userLimit]);
+        return self.parse_ohlc_vs(&rows, Some(&market), &[timeframe, sinceResolved, Value::from(userLimit)]);
         Value::Null
         }).await?))
     }
@@ -3239,16 +3239,16 @@ impl Phemex {
         }
         if (type_var.as_deref() == Some("swap")) {
             let settleparamsSettleVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("fetchBalance".into()), Value::Str("settle".into()), &[Value::Str("USDT".into())]).as_array().cloned().unwrap_or_default();
-            let mut settle: Value = settleparamsSettleVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut settle: Option<String> = settleparamsSettleVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsSettle: crate::value::Dict = settleparamsSettleVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            if (code.is_some()) || (settle != Value::Null) {
-                let mut coin: Value = Value::Null;
+            if (code.is_some()) || (settle.is_some()) {
+                let mut coin: Option<String> = None;
                 if (code.is_some()) {
-                    coin = code.map(Value::from).unwrap_or(Value::Null);
+                    coin = code;
                 }  else {
                     coin = settle;
                 }
-                let mut currency: crate::types::Currency = self.currency(coin);
+                let mut currency: crate::types::Currency = self.currency(coin.map(Value::from).unwrap_or(Value::Null));
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
                 if (crate::value::KeyRead::key_read(&&currency, "id").as_str() == Some("USDT")) {
                     let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsSettle]);
@@ -3856,7 +3856,7 @@ impl Phemex {
         let mut triggerPrice: Option<String> = self.safe_string_n(Value::from(&paramsOmitted), Value::from(vec![Value::Str("stopPx".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into())]), &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
             if isStableSettled {
-                request.insert("stopPxRp".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+                request.insert("stopPxRp".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             }  else {
                 request.insert("stopPxEp".into(), self.to_ep(triggerPrice.clone().map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
@@ -3892,10 +3892,10 @@ impl Phemex {
                     }
                 }
                 cost = (if (cost == Value::Null) { amount.clone() } else { cost.clone() });
-                let mut costString: Option<String> = self.cost_to_precision(symbol.clone(), cost).as_str().map(str::to_owned);
+                let mut costString: Option<String> = self.cost_to_precision(symbol.clone(), cost);
                 request.insert("quoteQtyEv".into(), self.to_ev(costString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }  else {
-                let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount.clone()).as_str().map(str::to_owned);
+                let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount.clone());
                 request.insert("baseQtyEv".into(), self.to_ev(amountString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }
         }  else if (market).swap {
@@ -3922,9 +3922,9 @@ impl Phemex {
             let mut posSideCapitalized: String = self.capitalize(posSide.map(Value::from).unwrap_or(Value::Null)).to_string();
             request.insert("posSide".into(), Value::from(posSideCapitalized));
             if isStableSettled {
-                request.insert("orderQtyRq".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("orderQtyRq".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }  else {
-                request.insert("orderQty".into(), Value::from(self.parse_to_int(self.amount_to_precision(symbol.clone(), amount))));
+                request.insert("orderQty".into(), Value::from(self.parse_to_int(Value::from(self.amount_to_precision(symbol.clone(), amount)))));
             }
             if (triggerPrice.is_some()) {
                 let mut triggerType: String = self.safe_string_k(orderParams.clone(), "triggerType", &[Value::Str("ByMarkPrice".into())]).as_str().unwrap_or("ByMarkPrice").to_string();
@@ -3959,7 +3959,7 @@ impl Phemex {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")));
                     }
                     if isStableSettled {
-                        request.insert("stopLossRp".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
+                        request.insert("stopLossRp".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice))));
                     }  else {
                         request.insert("stopLossEp".into(), self.to_ep(Value::from(stopLossTriggerPrice), Some(&market)));
                     }
@@ -3969,7 +3969,7 @@ impl Phemex {
                     }
                     let mut slLimitPrice: Option<String> = self.safe_string_k(&stopLoss, "price", &[]).as_str().map(str::to_owned);
                     if (slLimitPrice.is_some()) {
-                        request.insert("slPxRp".into(), self.price_to_precision(symbol.clone(), slLimitPrice.map(Value::from).unwrap_or(Value::Null)));
+                        request.insert("slPxRp".into(), Value::from(self.price_to_precision(symbol.clone(), slLimitPrice.map(Value::from).unwrap_or(Value::Null))));
                     }
                 }
                 if hasTakeProfit {
@@ -3978,7 +3978,7 @@ impl Phemex {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")));
                     }
                     if isStableSettled {
-                        request.insert("takeProfitRp".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
+                        request.insert("takeProfitRp".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice))));
                     }  else {
                         request.insert("takeProfitEp".into(), self.to_ep(Value::from(takeProfitTriggerPrice), Some(&market)));
                     }
@@ -3988,14 +3988,14 @@ impl Phemex {
                     }
                     let mut tpLimitPrice: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
                     if (tpLimitPrice.is_some()) {
-                        request.insert("tpPxRp".into(), self.price_to_precision(symbol.clone(), tpLimitPrice.map(Value::from).unwrap_or(Value::Null)));
+                        request.insert("tpPxRp".into(), Value::from(self.price_to_precision(symbol.clone(), tpLimitPrice.map(Value::from).unwrap_or(Value::Null))));
                     }
                 }
             }
         }
         if (typeValue.as_deref() == Some("Limit")) || (typeValue.as_deref() == Some("StopLimit")) || (typeValue.as_deref() == Some("LimitIfTouched")) {
             if isStableSettled {
-                request.insert("priceRp".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                request.insert("priceRp".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }  else {
                 let mut priceString: Option<String> = self.number_to_string(price);
                 request.insert("priceEp".into(), self.to_ep(priceString.map(Value::from).unwrap_or(Value::Null), Some(&market)));
@@ -4004,7 +4004,7 @@ impl Phemex {
         let mut takeProfitPrice: Option<String> = self.safe_string_k(orderParams.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
         if (takeProfitPrice.is_some()) {
             if isStableSettled {
-                request.insert("takeProfitRp".into(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+                request.insert("takeProfitRp".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             }  else {
                 request.insert("takeProfitEp".into(), self.to_ep(takeProfitPrice.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
@@ -4013,7 +4013,7 @@ impl Phemex {
         let mut stopLossPrice: Option<String> = self.safe_string_k(orderParams.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         if (stopLossPrice.is_some()) {
             if isStableSettled {
-                request.insert("stopLossRp".into(), self.price_to_precision(symbol, stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+                request.insert("stopLossRp".into(), Value::from(self.price_to_precision(symbol, stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             }  else {
                 request.insert("stopLossEp".into(), self.to_ep(stopLossPrice.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
@@ -4166,7 +4166,7 @@ impl Phemex {
         }
         if (price != Value::Null) {
             if isStableSettled {
-                request.insert("priceRp".into(), self.price_to_precision(Value::from((market).symbol.clone()), price.clone()));
+                request.insert("priceRp".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price.clone())));
             }  else {
                 request.insert("priceEp".into(), self.to_ep(price, Some(&market)));
             }
@@ -4178,7 +4178,7 @@ impl Phemex {
             request.insert("baseQtyEV".into(), finalQty.map(Value::from).unwrap_or(Value::Null));
         }  else if (amount != Value::Null) {
             if isStableSettled {
-                request.insert("orderQtyRq".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone()));
+                request.insert("orderQtyRq".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount.clone())));
             }  else {
                 request.insert("baseQtyEV".into(), self.to_ev(amount, &[(market).raw.clone()]));
             }
@@ -4186,7 +4186,7 @@ impl Phemex {
         let mut triggerPrice: Option<String> = self.safe_string_n(&paramsOmitted2, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
             if isStableSettled {
-                request.insert("stopPxRp".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+                request.insert("stopPxRp".into(), Value::from(self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             }  else {
                 request.insert("stopPxEp".into(), self.to_ep(triggerPrice.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }

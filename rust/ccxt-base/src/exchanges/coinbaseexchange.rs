@@ -2463,7 +2463,7 @@ impl Coinbaseexchange {
         }
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("triggerPrice".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
         }
         let mut timeInForce: Option<String> = self.safe_string2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
         if (timeInForce.is_some()) {
@@ -2481,15 +2481,15 @@ impl Coinbaseexchange {
             paramsCost = self.omit(paramsOmitted, Value::from(vec![Value::Str("cost".into()), Value::Str("funds".into())]), &[]);
         }
         if (type_var.as_str() == Some("limit")) {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
-            request.insert("size".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+            request.insert("size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
         }  else if (type_var.as_str() == Some("market")) {
             if (costParam.is_some()) {
-                request.insert("funds".into(), self.cost_to_precision(symbol.clone(), Value::from(costParam)));
+                request.insert("funds".into(), Value::from(self.cost_to_precision(symbol.clone(), Value::from(costParam))));
             }  else if (price != Value::Null) {
-                request.insert("funds".into(), self.cost_to_precision(symbol.clone(), (match (&(amount), &(price)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })));
+                request.insert("funds".into(), Value::from(self.cost_to_precision(symbol.clone(), (match (&(amount), &(price)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
             }  else {
-                request.insert("size".into(), self.amount_to_precision(symbol, amount));
+                request.insert("size".into(), Value::from(self.amount_to_precision(symbol, amount)));
             }
         }
         let __ws_arg_18 = self.extend(Value::Map(request), &[paramsCost]);

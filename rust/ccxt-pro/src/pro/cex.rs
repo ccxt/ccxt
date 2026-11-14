@@ -1549,11 +1549,11 @@ impl Cex {
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut pair: Option<String> = self.safe_string_k(&data, "pair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null));
-        if (symbol.as_str() == Some("")) {
+        let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        if (symbol.as_deref() == Some("")) {
             return;
         }
-        let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         let mut timestamp: Option<i64> = self.safe_integer2(&data, Value::Str("timestamp_ms".into()), Value::Str("timestamp".into()), &[]).as_i64();
         let mut incrementalId: Option<i64> = self.safe_integer_k(&data, "id", &[]).as_i64();
         // reset the existing orderbook instead of replacing it: a consumer
@@ -1566,14 +1566,18 @@ impl Cex {
 })]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
-        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
+        let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]).into_dict();
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(incrementalId));
         orderbook.reset(Value::Dict(snapshot));
-        if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("orderbook".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&symbol), Value::Map({
+        if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } {
+            let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("orderbook".to_string()).or_insert(Value::Null);
+            if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("incrementalId".to_string(), Value::from(incrementalId));
     m
-})); } }
+}));
+            }
+        }
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -1799,9 +1803,9 @@ impl Cex {
             return;
         }
         let mut messageHash: String = format!("{}{}", "ohlcv:", symbol.as_deref().unwrap_or("null"));
-        let mut ohlcv: Value = Value::from(vec![self.safe_timestamp_k(&data, "time", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
+        let mut ohlcv: crate::value::List = std::sync::Arc::new(vec![self.safe_timestamp_k(&data, "time", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&(Value::Str("unknown".into())));
-        stored.append(ohlcv);
+        stored.append(Value::Arr(ohlcv));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -1830,9 +1834,9 @@ impl Cex {
                         let mut i: i64 = 0;
             let mut __for_first_221: bool = true;
             while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (data.len() as i64) } {
-            let mut ohlcv: Value = Value::from(vec![self.safe_timestamp(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(2), &[]),
+            let mut ohlcv: crate::value::List = std::sync::Arc::new(vec![self.safe_timestamp(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(2), &[]),
                 self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(3), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(4), &[]), self.safe_number(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(5), &[])]);
-            stored.append(ohlcv);
+            stored.append(Value::Arr(ohlcv));
         }
         }
         let mut dataLength: i64 = data.len() as i64;

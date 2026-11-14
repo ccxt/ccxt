@@ -2157,18 +2157,18 @@ impl Latoken {
                 m.insert("condition".to_string(), Value::Str("GTC".into()));
                 m.insert("type".to_string(), Value::from(uppercaseType.clone()));
                 m.insert("clientOrderId".to_string(), Value::from(self.uuid(&[])));
-                m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("timestamp".to_string(), Value::Int(self.seconds()));
             m
         });
         if (uppercaseType == "LIMIT") {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) {
-            request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_auth_stop_order_place(&[__ws_arg_15]).await.into_opt_dict();
         }  else {
@@ -2558,7 +2558,7 @@ impl Latoken {
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("recipient".to_string(), toAccount.clone());
-                m.insert("value".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("value".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
             m
         });
         let mut response: Option<crate::value::Dict> = None;

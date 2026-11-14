@@ -1529,15 +1529,15 @@ impl Foxbit {
             request.insert("post_only".into(), Value::Bool(true));
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
         }
         if (typeValue == "INSTANT") {
-            request.insert("amount".into(), self.price_to_precision(symbol.clone(), amount.clone()));
+            request.insert("amount".into(), Value::from(self.price_to_precision(symbol.clone(), amount.clone())));
         }  else {
-            request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         if (typeValue == "LIMIT") || (typeValue == "STOP_LIMIT") {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
@@ -1618,16 +1618,16 @@ impl Foxbit {
                 if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).shift_remove("postOnly"); }
             }
             if (triggerPrice.is_some()) {
-                request.insert("stop_price".into(), self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::from(triggerPrice)));
+                request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::from(triggerPrice))));
                 if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).shift_remove("triggerPrice"); }
             }
             if (type_var == "INSTANT") {
-                request.insert("amount".into(), self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "amount", &[])));
+                request.insert("amount".into(), Value::from(self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "amount", &[]))));
             }  else {
-                request.insert("quantity".into(), self.amount_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "amount", &[])));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "amount", &[]))));
             }
             if (type_var == "LIMIT") || (type_var == "STOP_LIMIT") {
-                request.insert("price".into(), self.price_to_precision(symbol.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "price", &[])));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&order, "price", &[]))));
             }
             ordersRequests.push(self.extend(Value::Map(request), &[orderParams]));
         }
@@ -2274,17 +2274,17 @@ impl Foxbit {
             m
         });
         if (typeValue == "LIMIT") || (typeValue == "MARKET") {
-            createRequest.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            createRequest.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             if (typeValue == "LIMIT") {
-                createRequest.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                createRequest.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }
         }
         if (typeValue == "STOP_MARKET") {
-            createRequest.insert("stop_price".into(), self.price_to_precision(symbol.clone(), price));
-            createRequest.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            createRequest.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
+            createRequest.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
         }
         if (typeValue == "INSTANT") {
-            createRequest.insert("amount".into(), self.price_to_precision(symbol, amount));
+            createRequest.insert("amount".into(), Value::from(self.price_to_precision(symbol, amount)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

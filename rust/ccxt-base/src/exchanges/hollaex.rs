@@ -1948,7 +1948,7 @@ impl Hollaex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side);
-                m.insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("type".to_string(), type_var.clone());
             m
         });
@@ -1961,10 +1961,10 @@ impl Hollaex {
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam), &[params.clone()]);
         if !isMarketOrder {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop".into(), self.price_to_precision(symbol, Value::from(triggerPrice)));
+            request.insert("stop".into(), Value::from(self.price_to_precision(symbol, Value::from(triggerPrice))));
         }
         if postOnly {
             request.insert("meta".into(), Value::Map({

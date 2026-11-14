@@ -122,7 +122,7 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
     {
         Box::pin(async move {
             match method {
-                "amount_to_precision" => self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
@@ -183,7 +183,7 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "price_to_precision" => crate::Value::from(self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "set_margin" => crate::types::IntoRaw::into_raw(self.set_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
@@ -1403,24 +1403,20 @@ impl Bitfinex {
     Value::Null
 }
 
-    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Value {
+    pub fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         let mut symbolValue: Option<String> = self.safe_symbol(symbol, None, &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbolValue.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-
-    Value::Null
+        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
 }
 
-    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Value {
+    pub fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Option<String> {
         let mut symbolValue: Option<String> = self.safe_symbol(symbol, None, &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbolValue.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut priceValue: Option<String> = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "price", &[]), &[self.precisionMode.clone()]).as_str().map(str::to_owned);
-        return self.decimal_to_precision(priceValue.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-
-    Value::Null
+        return self.decimal_to_precision(priceValue.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
 }
 
 /*
@@ -2018,7 +2014,7 @@ impl Bitfinex {
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut fromCurrencyId: Option<String> = self.convert_derivatives_id(crate::Value::from(Some(&currency)), fromAccount.as_str().unwrap_or_default()).as_str().map(str::to_owned);
         let mut toCurrencyId: Option<String> = self.convert_derivatives_id(crate::Value::from(Some(&currency)), toAccount.as_str().unwrap_or_default()).as_str().map(str::to_owned);
-        let mut requestedAmount: Option<String> = self.currency_to_precision(code, amount, &[]).as_str().map(str::to_owned);
+        let mut requestedAmount: Option<String> = self.currency_to_precision(code, amount, &[]);
         // this request is slightly different from v1 fromAccount -> from
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2212,9 +2208,9 @@ impl Bitfinex {
                         let mut i: i64 = 0;
             let mut __for_first_345: bool = true;
             while { if !__for_first_345 { i += 1; } __for_first_345 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut price: Option<f64> = self.safe_number(order.clone(), Value::from(priceIndex), &[]).as_f64();
-            let mut signedAmount: Option<String> = self.safe_string(order, Value::Int(2), &[]).as_str().map(str::to_owned);
+            let mut order: crate::value::List = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+            let mut price: Option<f64> = self.safe_number(&order, Value::from(priceIndex), &[]).as_f64();
+            let mut signedAmount: Option<String> = self.safe_string(&order, Value::Int(2), &[]).as_str().map(str::to_owned);
             let mut amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut side: Value = Value::Str("asks".into());
             if crate::precise::Precise::stringGt(&signedAmount.map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -2841,7 +2837,7 @@ impl Bitfinex {
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
+        let mut amountString: Value = Value::from(self.amount_to_precision(symbol.clone(), amount));
         amountString = (if (side.as_str() == Some("buy")) { amountString.clone() } else { crate::precise::Precise::stringNeg(&amountString) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2861,10 +2857,10 @@ impl Bitfinex {
             request.insert("price_trailing".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
         }  else if (triggerPrice.is_some()) {
             // request['price'] is taken as triggerPrice for stop orders
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             if (type_var.as_str() == Some("limit")) {
                 orderType = Some("STOP LIMIT".to_string());
-                request.insert("price_aux_limit".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                request.insert("price_aux_limit".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }  else {
                 orderType = Some("STOP".to_string());
             }
@@ -2879,7 +2875,7 @@ impl Bitfinex {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() does not allow market IOC and FOK orders")));
         }
         if (type_var.as_str() != Some("market")) && (triggerPrice.is_none()) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         if ioc {
             orderType = Some("IOC".to_string());
@@ -4903,8 +4899,8 @@ impl Bitfinex {
                         let mut i: i64 = 0;
             let mut __for_first_360: bool = true;
             while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (rawRatesData.len() as i64) } {
-            let mut fr: Value = rawRatesData.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut rate: crate::value::Dict = self.parse_funding_rate_history(fr, Some(&market)).into_dict();
+            let mut fr: crate::value::List = rawRatesData.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+            let mut rate: crate::value::Dict = self.parse_funding_rate_history(Value::Arr(fr), Some(&market)).into_dict();
             rates.push(Value::Dict(rate));
         }
         }
@@ -5598,7 +5594,7 @@ impl Bitfinex {
             m
         });
         if (amount != Value::Null) {
-            let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
+            let mut amountString: Value = Value::from(self.amount_to_precision(symbol.clone(), amount));
             amountString = (if (side.as_str() == Some("buy")) { amountString.clone() } else { crate::precise::Precise::stringNeg(&amountString) });
             request.insert("amount".into(), amountString);
         }
@@ -5612,14 +5608,14 @@ impl Bitfinex {
             request.insert("price_trailing".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
         }  else if (triggerPrice.is_some()) {
             // request['price'] is taken as triggerPrice for stop orders
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             if (type_var.as_str() == Some("limit")) {
-                request.insert("price_aux_limit".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                request.insert("price_aux_limit".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
             }
         }
         let mut postOnly: bool = (postOnlyParam || (timeInForce.as_deref() == Some("PO")));
         if (type_var.as_str() != Some("market")) && (triggerPrice.is_none()) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         // flag values may be summed to combine flags
         let mut flags: i64 = 0;

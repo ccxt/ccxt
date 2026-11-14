@@ -2469,8 +2469,8 @@ impl Lbank {
         }
         if (type_var.as_str() == Some("limit")) {
             request.insert("type".into(), side.clone());
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
-            request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             if ioc {
                 request.insert("type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", side, "_").into()), "ioc").into()));
             }  else if fok {
@@ -2481,7 +2481,7 @@ impl Lbank {
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("sell")) {
                 request.insert("type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", side, "_").into()), "market").into()));
-                request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }  else if (side.as_str() == Some("buy")) {
                 request.insert("type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", side, "_").into()), "market").into()));
                 let mut quoteAmount: Option<String> = None;
@@ -2491,7 +2491,7 @@ impl Lbank {
                 let mut cost: Option<f64> = self.safe_number_k(paramsRequest.clone(), "cost", &[]).as_f64();
                 paramsRequest = self.omit(paramsRequest, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
                 }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -2499,10 +2499,10 @@ impl Lbank {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
                         let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
-                    quoteAmount = self.cost_to_precision(symbol, amount).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol, amount);
                 }
                 // market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
                 request.insert("price".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));

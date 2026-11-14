@@ -2954,7 +2954,7 @@ impl Paradex {
         request.insert("instruction".into(), instruction);
         // the exchange requires the price to be omitted for every market order type
         if (price != Value::Null) && !isMarket {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
@@ -2970,7 +2970,7 @@ impl Paradex {
         let mut sizeString: Option<String> = Some("0".to_string());
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
         if !isTakeProfitOrStopLoss || ((amount != Value::Null) && (amount.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) {
-            sizeString = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
+            sizeString = self.amount_to_precision(symbol.clone(), amount);
         }
         let mut stopPrice: Option<String> = None;
         if isStopOrder {
@@ -2979,13 +2979,13 @@ impl Paradex {
                 reduceOnly = Some(true);
             }
             if isStopLossOrder {
-                stopPrice = self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                stopPrice = self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
                 request.insert("type".into(), (if isMarket { Value::Str("STOP_LOSS_MARKET".into()) } else { Value::Str("STOP_LOSS_LIMIT".into()) }));
             }  else if isTakeProfitOrder {
-                stopPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                stopPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
                 request.insert("type".into(), (if isMarket { Value::Str("TAKE_PROFIT_MARKET".into()) } else { Value::Str("TAKE_PROFIT_LIMIT".into()) }));
             }  else {
-                stopPrice = self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                stopPrice = self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null));
                 request.insert("type".into(), (if isMarket { Value::Str("STOP_MARKET".into()) } else { Value::Str("STOP_LIMIT".into()) }));
             }
         }

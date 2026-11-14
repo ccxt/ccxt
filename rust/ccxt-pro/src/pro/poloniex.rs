@@ -631,7 +631,7 @@ impl Poloniex {
             let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
             paramsOmitted = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
-                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
+                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
             }  else if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
@@ -639,16 +639,16 @@ impl Poloniex {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
             }  else {
-                quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone()).as_str().map(str::to_owned);
+                quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
             }
             request.insert("amount".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            request.insert("quantity".into(), self.amount_to_precision(Value::from((market).symbol.clone()), amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
             if (price != Value::Null) {
-                request.insert("price".into(), self.price_to_precision(symbol, price));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             }
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
@@ -1277,14 +1277,14 @@ impl Poloniex {
         // the object keeps its identity and deltas that arrived while the
         // snapshot was in flight are not overwritten; the free/used/total
         // aggregates are rebuilt from the merged currencies by safeBalance
-        let mut reserved: Value = Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
+        let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
         let mut keys: Vec<Value> = object_keys(&response).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_637: bool = true;
             while { if !__for_first_637 { i += 1; } __for_first_637 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if self.in_array(key.clone(), reserved.clone()) {
+            if self.in_array(key.clone(), &reserved) {
                 continue;
             }
             if !(matches!((&self.balance, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

@@ -443,14 +443,14 @@ impl Onetrading {
                 m
             });
         }
-        let mut reserved: Value = Value::from(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
+        let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
         let mut keys: Vec<Value> = object_keys(&balance).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_557: bool = true;
             while { if !__for_first_557 { i += 1; } __for_first_557 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if self.in_array(key.clone(), reserved.clone()) {
+            if self.in_array(key.clone(), &reserved) {
                 continue;
             }
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (balance.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }
@@ -1686,7 +1686,7 @@ impl Onetrading {
         })]).into_dict();
         let mut timeframe: Option<String> = self.find_timeframe(timeframeId.map_or(Value::Null, Value::Dict), &[Value::Dict(timeframes)]);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv.", symbol.as_deref().unwrap_or("null")).into()), ".").into()), timeframe.as_deref().unwrap_or("null"));
-        let mut parsed: Value = Value::from(vec![Value::from(self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null))), (match message.get("open") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n),
+        let mut parsed: crate::value::List = std::sync::Arc::new(vec![Value::from(self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null))), (match message.get("open") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n),
             Err(_) => Value::Null }, _ => Value::Null }), (match message.get("high") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }),
             (match message.get("low") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }), (match message.get("close") { Some(Value::Float(__f)) => Value::Float(*__f),
             Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }), (match message.get("volume") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64),
@@ -1697,7 +1697,7 @@ impl Onetrading {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = Some(ArrayCacheByTimestamp::new(limit));
         }
-        stored.append(parsed);
+        stored.append(Value::Arr(parsed));
         if (symbol.is_some()) && (timeframe.is_some()) {
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }

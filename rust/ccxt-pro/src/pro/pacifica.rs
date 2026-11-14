@@ -438,7 +438,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let requestoperationTypeVariable: Vec<Value> = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut operationType: Option<String> = requestoperationTypeVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
@@ -457,7 +457,7 @@ impl Pacifica {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(operationType.clone().map(Value::from).unwrap_or(Value::Null), request).into_dict();
+        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(operationType.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(request)).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
         if (operationType.as_deref() == Some("create_stop_order")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrderWs() do not support stop order type of order. Check provided arguments correctly!")));

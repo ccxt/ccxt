@@ -1192,7 +1192,7 @@ impl Binance {
         let type_varsubTypeparamsValueVariable: Vec<Value> = self.resolve_auth_type(Value::Str("watchMyLiquidationsForSymbols".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varsubTypeparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut subType: Option<String> = type_varsubTypeparamsValueVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsValue: Value = type_varsubTypeparamsValueVariable.get(2).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.get(2).cloned().unwrap_or(Value::Null).into_dict();
         // hand the resolved type forward: the helper already omitted type and
         // subType from params, so a bare authenticate would re-derive from
         // options.defaultType and seed a different bucket than the listenKey
@@ -1202,7 +1202,7 @@ impl Binance {
         m.insert("type".to_string(), type_var.clone());
         m.insert("subType".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
     m
-}), &[paramsValue]);
+}), &[&paramsValue]);
         self.authenticate(&[__ws_arg_2]).await;
         let mut optionsType: crate::value::Dict = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2537,15 +2537,15 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let stockparamsStockVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("stock".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsStock: crate::value::Dict = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (match &(stock) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             if (timeframe.as_str() != Some("5m")) && (timeframe.as_str() != Some("1h")) && (timeframe.as_str() != Some("1d")) && (timeframe.as_str() != Some("1w")) && (timeframe.as_str() != Some("1M")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")));
             }
-            add_element_to_object(&mut paramsStock, &Value::Str("stock".into()), Value::Bool(true));
+            std::sync::Arc::make_mut(&mut paramsStock).insert("stock".into(), Value::Bool(true));
         }
-        add_element_to_object(&mut paramsStock, &Value::Str("callerMethodName".into()), Value::Str("watchOHLCV".into()));
-        let mut result: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), paramsStock).await);
+        std::sync::Arc::make_mut(&mut paramsStock).insert("callerMethodName".into(), Value::Str("watchOHLCV".into()));
+        let mut result: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), Value::Dict(paramsStock)).await);
         return get_value(&(if let (Some(__m), Some(__k)) = (result.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe);
         Value::Null
         }).await?))
@@ -2905,7 +2905,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         let mut inverse: Option<bool> = self.safe_bool_k(&market, "inverse", &[]).as_bool();
         let mut volumeKey: String = (if (inverse == Some(true)) { "q".to_string() } else { "v".to_string() });
-        let mut parsed: Value = Value::from(vec![self.safe_integer_k(&kline, "t", &[]), self.safe_float_k(&kline, "o", &[]), self.safe_float_k(&kline, "h", &[]), self.safe_float_k(&kline, "l", &[]), self.safe_float_k(&kline, "c", &[]), self.safe_float(&kline, Value::from(volumeKey), &[])]);
+        let mut parsed: crate::value::List = std::sync::Arc::new(vec![self.safe_integer_k(&kline, "t", &[]), self.safe_float_k(&kline, "o", &[]), self.safe_float_k(&kline, "h", &[]), self.safe_float_k(&kline, "l", &[]), self.safe_float_k(&kline, "c", &[]), self.safe_float(&kline, Value::from(volumeKey), &[])]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbol.as_deref().unwrap_or("null")).into()), "::").into()), unifiedTimeframe.as_deref().unwrap_or("null"));
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&unifiedTimeframe);
@@ -2916,7 +2916,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, stored.clone());
             }
         }
-        stored.append(parsed);
+        stored.append(Value::Arr(parsed));
         let mut resolveData: Value = Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
         client.resolve(resolveData, messageHash.as_str());
 }
@@ -5048,15 +5048,15 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let type_varsubTypeparamsValueVariable: Vec<Value> = self.resolve_auth_type(Value::Str("watchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varsubTypeparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut subType: Option<String> = type_varsubTypeparamsValueVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsValue: Value = type_varsubTypeparamsValueVariable.get(2).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.get(2).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_23 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), type_var.clone());
         m.insert("subType".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
     m
-}), &[paramsValue.clone()]);
+}), &[&paramsValue]);
         self.authenticate(&[__ws_arg_23]).await;
-        let mut isPortfolioMargin: Value = self.handle_option_bool_and_params2(paramsValue, Value::Str("watchBalance".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut isPortfolioMargin: Value = self.handle_option_bool_and_params2(&paramsValue, Value::Str("watchBalance".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut url: Value = Value::Str("".into());
         let mut urlType: Value = type_var.clone();
         if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
@@ -5218,13 +5218,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 while { if !__for_first_76 { i += 1; } __for_first_76 = false; i < (B.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut entry: Value = B.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "a", &[]).as_str().map(str::to_owned);
-                let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(entry.clone(), "f", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(entry.clone(), "l", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(entry, Value::from(wallet.clone()), &[])); }
-                if (code != Value::Null) {
-                    if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), account); } }
+                if (code.is_some()) {
+                    if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), account); } }
                 }
             }
             }
@@ -5267,20 +5267,20 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         // unguarded copies were the bug class behind the option keepalive and
         // stock keepalive fixes
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(methodName.clone(), market, &[params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(methodName, market, &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut type_var: Value = marketType;
-        if (type_var.as_str() != Some("option")) && (type_var.as_str() != Some("stock")) {
-            if self.parent.is_linear(type_var.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-                type_var = Value::Str("linear".into());
-            }  else if self.parent.is_inverse(type_var.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-                type_var = Value::Str("inverse".into());
+        let mut type_var: Option<String> = marketType;
+        if (type_var.as_deref() != Some("option")) && (type_var.as_deref() != Some("stock")) {
+            if self.parent.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
+                type_var = Some("linear".to_string());
+            }  else if self.parent.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
+                type_var = Some("inverse".to_string());
             }
         }
-        return Value::from(vec![type_var, subType.map(Value::from).unwrap_or(Value::Null), paramsSubType]);
+        return Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), paramsSubType]);
 
     Value::Null
 }
@@ -6279,7 +6279,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let type_varsubTypeparamsValueVariable: Vec<Value> = self.resolve_auth_type(Value::Str("watchOrders".into()), market.as_ref(), &[Value::Dict(paramsStock)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varsubTypeparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut subType: Option<String> = type_varsubTypeparamsValueVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsValue: Value = type_varsubTypeparamsValueVariable.get(2).cloned().unwrap_or(Value::Null);
+        let mut paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.get(2).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsExtended: crate::value::Dict = self.extend(paramsValue, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), type_var.clone());
@@ -7571,7 +7571,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let type_varsubTypeparamsAuthVariable: Vec<Value> = self.resolve_auth_type(Value::Str("watchMyTrades".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varsubTypeparamsAuthVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut subType: Option<String> = type_varsubTypeparamsAuthVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsAuth: Value = type_varsubTypeparamsAuthVariable.get(2).cloned().unwrap_or(Value::Null);
+        let mut paramsAuth: crate::value::Dict = type_varsubTypeparamsAuthVariable.get(2).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7683,7 +7683,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                 let mut orderFee: crate::value::Dict = fees.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                                 if (self.safe_string_k(&orderFee, "currency", &[]).as_str() == self.safe_string_k(tradeFee.clone(), "currency", &[]).as_str()) {
                                     let mut feeCost: Value = self.sum(&[tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&orderFee, "cost")]);
-                                    let mut feeCostString: Value = self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]);
+                                    let mut feeCostString: Value = Value::from(self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]));
                                     if (feeCostString == Value::Null) {
                                         feeCostString = Value::Str("0".into());
                                     }
@@ -7700,7 +7700,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                         }  else if (fee != Value::Null) {
                             if (self.safe_string_k(fee.clone(), "currency", &[]).as_str() == self.safe_string_k(tradeFee.clone(), "currency", &[]).as_str()) {
                                 let mut feeCost: Value = self.sum(&[fee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)]);
-                                let mut feeCostString: Value = self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]);
+                                let mut feeCostString: Value = Value::from(self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]));
                                 if (feeCostString == Value::Null) {
                                     feeCostString = Value::Str("0".into());
                                 }
@@ -7824,11 +7824,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             while { if !__for_first_86 { i += 1; } __for_first_86 = false; i < (B.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&B, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "a", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) {
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+            if (code.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("total".into(), self.safe_string_k(&entry, "b", &[]));
-                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); } }
+                if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
             }
         }
         }

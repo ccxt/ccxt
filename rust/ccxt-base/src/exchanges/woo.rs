@@ -2580,7 +2580,7 @@ impl Woo {
             request.insert("reduceOnly".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
         if !(isMarket) && (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         }
         let mut isMarketNotConditional: bool = isMarket && !isConditional;
         let mut paramsCost: Value = Value::from(&paramsMarginMode);
@@ -2594,19 +2594,19 @@ impl Woo {
             if (market).spot && (isPriceProvided || (cost.is_some())) {
                 let mut quoteAmount: Option<String> = None;
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null));
                 }  else {
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price);
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
                 request.insert("amount".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }  else {
-                request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
-            request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         let mut clientOrderId: Option<String> = self.safe_string_n(paramsCost.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
@@ -2616,7 +2616,7 @@ impl Woo {
             if (trailingTriggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a trailingTriggerPrice parameter for trailing orders")));
             }
-            request.insert("activatedPrice".into(), self.price_to_precision(symbol.clone(), trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("activatedPrice".into(), Value::from(self.price_to_precision(symbol.clone(), trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("algoType".into(), Value::Str("TRAILING_STOP".into()));
             if isTrailingAmountOrder {
                 request.insert("callbackValue".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
@@ -2626,7 +2626,7 @@ impl Woo {
             }
         }  else if (triggerPrice.is_some()) {
             if (algoType.as_deref() != Some("TRAILING_STOP")) {
-                request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
                 request.insert("algoType".into(), Value::Str("STOP".into()));
             }
         }  else if hasStopLoss || hasTakeProfit {
@@ -2642,7 +2642,7 @@ impl Woo {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), Value::from(closeSide.clone()));
                         m.insert("algoType".to_string(), Value::Str("STOP_LOSS".into()));
-                        m.insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice));
+                        m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice)));
                         m.insert("type".to_string(), Value::Str("CLOSE_POSITION".into()));
                         m.insert("reduceOnly".to_string(), Value::Bool(true));
                     m
@@ -2655,7 +2655,7 @@ impl Woo {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), Value::from(closeSide));
                         m.insert("algoType".to_string(), Value::Str("TAKE_PROFIT".into()));
-                        m.insert("triggerPrice".to_string(), self.price_to_precision(symbol, takeProfitPrice));
+                        m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol, takeProfitPrice)));
                         m.insert("type".to_string(), Value::Str("CLOSE_POSITION".into()));
                         m.insert("reduceOnly".to_string(), Value::Bool(true));
                     m
@@ -2756,17 +2756,17 @@ impl Woo {
             m
         });
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         }
         if (amount != Value::Null) {
-            request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         let mut clientOrderIdUnified: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
         }
         let mut trailingTriggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".into()), Value::Str("activatedPrice".into()), &[Value::from(self.number_to_string(price))]).as_str().map(str::to_owned);
         let mut trailingAmount: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("callbackValue".into()), &[]).as_str().map(str::to_owned);
@@ -2776,7 +2776,7 @@ impl Woo {
         let mut isTrailing: bool = isTrailingAmountOrder || isTrailingPercentOrder;
         if isTrailing {
             if (trailingTriggerPrice.is_some()) {
-                request.insert("activatedPrice".into(), self.price_to_precision(symbol, trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("activatedPrice".into(), Value::from(self.price_to_precision(symbol, trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             if isTrailingAmountOrder {
                 request.insert("callbackValue".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
@@ -4991,7 +4991,7 @@ impl Woo {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("token".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount.clone(), &[])));
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);

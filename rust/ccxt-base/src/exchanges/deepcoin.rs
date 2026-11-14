@@ -974,7 +974,7 @@ impl Deepcoin {
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types]); // backward-support
         }
         let mut promises: Vec<Value> = Vec::new();
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_607: bool = true;
@@ -987,10 +987,10 @@ impl Deepcoin {
                         let mut i: i64 = 0;
             let mut __for_first_608: bool = true;
             while { if !__for_first_608 { i += 1; } __for_first_608 = false; i < (responses.len() as i64) } {
-            result = self.array_concat(result, responses.get(i as usize).cloned().unwrap_or(Value::Null));
+            result = self.array_concat(Value::Arr(result), responses.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }
@@ -2070,8 +2070,8 @@ impl Deepcoin {
         if (network.is_some()) {
             network = self.safe_string(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned);
         }
-        let mut paramsOmitted: Value = (if (network.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
-        let mut addressess: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), paramsOmitted).await);
+        let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let mut addressess: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), Value::Dict(paramsOmitted)).await);
         let mut length: f64 = ((addressess.len() as i64) as f64);
         let mut index: Value = Value::Int(0);
         if (network.is_some()) && (length > ((1i64) as f64)) {
@@ -2333,7 +2333,7 @@ impl Deepcoin {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_id".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount.clone(), &[])));
                 m.insert("from_id".to_string(), fromId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("to_id".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("uid".to_string(), userId.map(Value::from).unwrap_or(Value::Null));
@@ -2583,7 +2583,7 @@ impl Deepcoin {
         let mut stopLossPrice: Option<String> = self.safe_string_k(&stopLoss, "triggerPrice", &[]).as_str().map(str::to_owned);
         if (stopLossPrice.is_some()) {
             keysToOmit.push(Value::Str("stopLoss".into()));
-            request.insert("slTriggerPx".into(), self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("slTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         let mut takeProfit: crate::value::Dict = self.safe_dict_k(&paramsOrderType, "takeProfit", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2592,14 +2592,14 @@ impl Deepcoin {
         let mut takeProfitPrice: Option<String> = self.safe_string_k(&takeProfit, "triggerPrice", &[]).as_str().map(str::to_owned);
         if (takeProfitPrice.is_some()) {
             keysToOmit.push(Value::Str("takeProfit".into()));
-            request.insert("tpTriggerPx".into(), self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("tpTriggerPx".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         if (price != Value::Null) {
             if isMarketOrder {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() does not require a price argument for market orders")));
             }
-            request.insert("px".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("px".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }  else if !isMarketOrder {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for limit orders")));
         }
@@ -2611,17 +2611,17 @@ impl Deepcoin {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() accepts a cost parameter for spot market orders only")));
                 }
                 keysToOmit.push(Value::Str("cost".into()));
-                request.insert("sz".into(), self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("sz".into(), Value::from(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
                 request.insert("tgtCcy".into(), Value::Str("quote_ccy".into()));
             }  else {
-                request.insert("sz".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("sz".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
                 request.insert("tgtCcy".into(), Value::Str("base_ccy".into()));
             }
             request.insert("side".into(), side.clone());
             request.insert("tdMode".into(), Value::Str("cash".into()));
             paramsRequest = self.omit(&paramsOrderType, Value::from(keysToOmit.clone()), &[]);
         }  else {
-            request.insert("sz".into(), self.amount_to_precision(symbol, amount));
+            request.insert("sz".into(), Value::from(self.amount_to_precision(symbol, amount)));
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOrderType, Value::from(keysToOmit), &[]).into_dict();
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::Dict(paramsOmitted), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2688,7 +2688,7 @@ impl Deepcoin {
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("productGroup".to_string(), self.capitalize(Value::from((market).market_type.clone())));
-                m.insert("sz".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("sz".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("side".to_string(), side.clone());
                 m.insert("orderType".to_string(), type_var.clone());
             m
@@ -2704,10 +2704,10 @@ impl Deepcoin {
         //         request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
         //     }
         // } else {
-        request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+        request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         // }
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }  else if (type_var.as_str() == Some("limit")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for limit trigger orders")));
         }
@@ -3556,10 +3556,10 @@ impl Deepcoin {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")));
             }
             if (stopLossPrice.is_some()) {
-                request.insert("slTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { self.price_to_precision(symbolResolved.clone(), Value::from(stopLossPrice)) } else { Value::from(self.number_to_string(Value::from(stopLossPrice))) }));
+                request.insert("slTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone(), Value::from(stopLossPrice))) } else { Value::from(self.number_to_string(Value::from(stopLossPrice))) }));
             }
             if (takeProfitPrice.is_some()) {
-                request.insert("tpTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { self.price_to_precision(symbolResolved.clone(), Value::from(takeProfitPrice)) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
+                request.insert("tpTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone(), Value::from(takeProfitPrice))) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
             }
             let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3567,14 +3567,14 @@ impl Deepcoin {
         }  else {
             if (price != Value::Null) {
                 if (symbolResolved != Value::Null) {
-                    request.insert("price".into(), self.price_to_precision(symbolResolved.clone(), price.clone()));
+                    request.insert("price".into(), Value::from(self.price_to_precision(symbolResolved.clone(), price.clone())));
                 }  else {
                     request.insert("price".into(), Value::from(self.number_to_string(price)));
                 }
             }
             if (amount != Value::Null) {
                 if (symbolResolved != Value::Null) {
-                    request.insert("volume".into(), self.amount_to_precision(symbolResolved, amount.clone()));
+                    request.insert("volume".into(), Value::from(self.amount_to_precision(symbolResolved, amount.clone())));
                 }  else {
                     request.insert("volume".into(), Value::from(self.number_to_string(amount)));
                 }

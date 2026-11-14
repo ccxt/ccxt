@@ -159,15 +159,15 @@ pub fn testConvertExpireDate() {
         m
     }));
     // callers write this into expiryDatetime, which types.ts documents with milliseconds
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Str("260503".into())).as_str() == Some("2026-05-03T00:00:00.000Z")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Str("240426".into())).as_str() == Some("2024-04-26T00:00:00.000Z")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Some("260503")).as_str() == Some("2026-05-03T00:00:00.000Z")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Some("240426")).as_str() == Some("2024-04-26T00:00:00.000Z")))));
     // both spellings of midnight parse to the same instant
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".into())))).as_f64() == Some(1777766400000.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.parse8601(Value::Str("2026-05-03T00:00:00Z".into()))).as_f64() == Value::from(exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".into())))).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.parse8601(exchange.convert_expire_date(Some("260503")))).as_f64() == Some(1777766400000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.parse8601(Value::Str("2026-05-03T00:00:00Z".into()))).as_f64() == Value::from(exchange.parse8601(exchange.convert_expire_date(Some("260503")))).as_f64()))));
     // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
     // invariant the change exists to establish, and it fails on the old spelling
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Str("260503".into())).as_str() == exchange.iso8601(Value::from(exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".into()))))).as_str()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Value::Null) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(Some("260503")).as_str() == exchange.iso8601(Value::from(exchange.parse8601(exchange.convert_expire_date(Some("260503"))))).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.convert_expire_date(None) == Value::Null))));
 }
 pub fn testYymmdd() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

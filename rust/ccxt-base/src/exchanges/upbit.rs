@@ -1427,7 +1427,7 @@ impl Upbit {
                 while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (marketSymbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((marketSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut quoteId: Option<String> = (market).quote_id.as_deref().map(str::to_owned);
-                if !self.in_array(&quoteId, Value::Arr(quoteIds.clone())) {
+                if !self.in_array(&quoteId, &quoteIds) {
                     std::sync::Arc::make_mut(&mut quoteIds).push(quoteId.map(Value::from).unwrap_or(Value::Null));
                 }
             }
@@ -1899,7 +1899,7 @@ impl Upbit {
         let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut cost: Option<String> = (match params.get("cost") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (cost.is_some()) {
-            quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null));
         }  else if createMarketBuyOrderRequiresPrice {
             if (price == Value::Null) || (amount == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
@@ -1907,12 +1907,12 @@ impl Upbit {
             let mut amountString: Option<String> = self.number_to_string(amount.clone());
             let mut priceString: Option<String> = self.number_to_string(price);
             let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
         }  else {
             if (amount == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")));
             }
-            quoteAmount = self.cost_to_precision(symbol, amount).as_str().map(str::to_owned);
+            quoteAmount = self.cost_to_precision(symbol, amount);
         }
         if (quoteAmount.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " calcOrderPrice() could not determine quote amount")));
@@ -1990,8 +1990,8 @@ impl Upbit {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " the limit type order in createOrder() is required price and amount.")));
             }
             request.insert("ord_type".into(), Value::Str("limit".into()));
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
-            request.insert("volume".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+            request.insert("volume".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 request.insert("ord_type".into(), Value::Str("price".into()));
@@ -2002,7 +2002,7 @@ impl Upbit {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " the market sell type order in createOrder() is required amount.")));
                 }
                 request.insert("ord_type".into(), Value::Str("market".into()));
-                request.insert("volume".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("volume".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() supports only limit or market types in the type argument.")));
@@ -2017,7 +2017,7 @@ impl Upbit {
                 if (amount == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " the best sell type order in createOrder() is required amount.")));
                 }
-                request.insert("volume".into(), self.amount_to_precision(symbol, amount));
+                request.insert("volume".into(), Value::from(self.amount_to_precision(symbol, amount)));
             }
         }
         if (clientOrderId.is_some()) {
@@ -2155,8 +2155,8 @@ impl Upbit {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() is required price and amount to create limit type order.")));
             }
             request.insert("new_ord_type".into(), Value::Str("limit".into()));
-            request.insert("new_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
-            request.insert("new_volume".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert("new_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+            request.insert("new_volume".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 request.insert("new_ord_type".into(), Value::Str("price".into()));
@@ -2167,7 +2167,7 @@ impl Upbit {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() is required amount to create market sell type order.")));
                 }
                 request.insert("new_ord_type".into(), Value::Str("market".into()));
-                request.insert("new_volume".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("new_volume".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " editOrder() supports only limit or market types in the type argument.")));
@@ -2182,7 +2182,7 @@ impl Upbit {
                 if (amount == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() is required amount to create best sell order.")));
                 }
-                request.insert("new_volume".into(), self.amount_to_precision(symbol, amount));
+                request.insert("new_volume".into(), Value::from(self.amount_to_precision(symbol, amount)));
             }
         }
         if (clientOrderId.is_some()) {

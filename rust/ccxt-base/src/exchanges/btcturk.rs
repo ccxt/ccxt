@@ -1265,11 +1265,11 @@ impl Btcturk {
                 m.insert("orderType".to_string(), side);
                 m.insert("orderMethod".to_string(), type_var.clone());
                 m.insert("pairSymbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         if (type_var.as_str() != Some("market")) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         if (matches!(&params, Value::Dict(__d) if __d.contains_key("clientOrderId"))) {
             request.insert("newClientOrderId".into(), params.as_map().and_then(|__m| __m.get("clientOrderId")).cloned().unwrap_or(Value::Null));

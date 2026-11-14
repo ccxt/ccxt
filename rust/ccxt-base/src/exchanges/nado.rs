@@ -826,8 +826,8 @@ impl Nado {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument")));
         }
         let mut productId: Option<i64> = self.parse_to_int(Value::from((market).id.as_deref()));
-        let mut priceString: Option<String> = self.price_to_precision(symbol.clone(), price).as_str().map(str::to_owned);
-        let mut amountString: Option<String> = self.amount_to_precision(symbol, amount).as_str().map(str::to_owned);
+        let mut priceString: Option<String> = self.price_to_precision(symbol.clone(), price);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol, amount);
         let mut priceX18: Option<String> = self.convert_to_x18(priceString.as_deref());
         let mut amountX18: Value = self.convert_to_x18(amountString.as_deref()).map(Value::from).unwrap_or(Value::Null);
         if (side.as_str() == Some("sell")) {
@@ -1062,8 +1062,8 @@ impl Nado {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires a price argument")));
         }
         let mut productId: Option<i64> = self.parse_to_int(Value::from((market).id.as_deref()));
-        let mut priceString: Option<String> = self.price_to_precision(symbol.clone(), price).as_str().map(str::to_owned);
-        let mut amountString: Option<String> = self.amount_to_precision(symbol, amount).as_str().map(str::to_owned);
+        let mut priceString: Option<String> = self.price_to_precision(symbol.clone(), price);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol, amount);
         let mut priceX18: Option<String> = self.convert_to_x18(priceString.as_deref());
         let mut amountX18: Value = self.convert_to_x18(amountString.as_deref()).map(Value::from).unwrap_or(Value::Null);
         if (side.as_str() == Some("sell")) {

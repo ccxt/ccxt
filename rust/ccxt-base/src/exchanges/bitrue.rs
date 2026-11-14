@@ -2754,7 +2754,7 @@ impl Bitrue {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a price argument")));
             }
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         }
         if (market).swap {
             let mut isMarket: bool = uppercaseType == "MARKET";
@@ -2790,8 +2790,8 @@ impl Bitrue {
                     if (cost.is_some()) {
                         requestAmount = cost;
                     }
-                    request.insert("amount".into(), self.cost_to_precision(symbol.clone(), requestAmount.clone().map(Value::from).unwrap_or(Value::Null)));
-                    request.insert("volume".into(), self.cost_to_precision(symbol.clone(), requestAmount.map(Value::from).unwrap_or(Value::Null)));
+                    request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.clone(), requestAmount.clone().map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("volume".into(), Value::from(self.cost_to_precision(symbol.clone(), requestAmount.map(Value::from).unwrap_or(Value::Null))));
                 }
             }  else {
                 request.insert("amount".into(), self.parse_to_numeric(amount.clone()));
@@ -2816,7 +2816,7 @@ impl Bitrue {
 })]);
         }  else if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             let mut validOrderTypes: crate::value::List = self.safe_list_k(crate::value::KeyRead::key_read(&&market, "info"), "orderTypes", &[Value::from(vec![])]).into_list();
             if !self.in_array(Value::from(uppercaseType), Value::Arr(validOrderTypes)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), type_var).into()), " is not a valid order type in market ").into()), symbol)));
@@ -2828,7 +2828,7 @@ impl Bitrue {
             let mut paramsNoClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
             let mut triggerPrice: Option<f64> = self.safe_number2(Value::from(&paramsNoClientOrderId), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
             if (triggerPrice.is_some()) {
-                request.insert("stopPrice".into(), self.price_to_precision(symbol, Value::from(triggerPrice)));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(triggerPrice))));
             }
             let mut paramsSpot: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&paramsNoClientOrderId, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]).into_dict() } else { paramsNoClientOrderId });
             let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsSpot]);
@@ -3896,7 +3896,7 @@ impl Bitrue {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coinSymbol".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("transferType".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", fromId.as_deref().unwrap_or("null"), "_to_").into()), toId.as_deref().unwrap_or("null")).into()));
             m
         });

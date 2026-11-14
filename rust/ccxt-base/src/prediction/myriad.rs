@@ -2141,13 +2141,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(composite.clone().map(Value::from).unwrap_or(Value::Null), market).into_dict();
         let mut marketSlug: Option<String> = self.safe_string_k(trade.clone(), "marketSlug", &[marketId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut outcomeTitle: Value = self.safe_string_k(trade.clone(), "outcomeTitle", &[rawOutcomeId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut outcomeTitle: Option<String> = self.safe_string_k(trade.clone(), "outcomeTitle", &[rawOutcomeId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut outcomeValue: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        let mut outcome: Option<String> = (if (outcomeValue.is_some()) { outcomeValue } else { self.slug_to_outcome_symbol(Value::from(marketSlug.as_deref()), Value::from(marketSlug.as_deref()), outcomeTitle.clone()).as_str().map(str::to_owned) });
+        let mut outcome: Option<String> = (if (outcomeValue.is_some()) { outcomeValue } else { self.slug_to_outcome_symbol(Value::from(marketSlug.as_deref()), Value::from(marketSlug.as_deref()), Value::from(outcomeTitle.as_deref())).as_str().map(str::to_owned) });
         let mut marketSymbolValue: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
         let mut marketSymbol: Option<String> = (if (marketSymbolValue.is_some()) { marketSymbolValue } else { self.slug_to_market_symbol(Value::from(marketSlug.as_deref()), Value::from(marketSlug.as_deref())).as_str().map(str::to_owned) });
-        let mut label: Value = self.safe_string_k(&outcomeObj, "label", &[]);
-        if (label == Value::Null) {
+        let mut label: Option<String> = self.safe_string_k(&outcomeObj, "label", &[]).as_str().map(str::to_owned);
+        if (label.is_none()) {
             label = outcomeTitle;
         }
         let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "timestamp", &[]).as_i64();
@@ -2169,7 +2169,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("status".to_string(), Value::Str("closed".into()));
         m.insert("outcome".to_string(), outcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("outcomeId".to_string(), composite.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("label".to_string(), label);
+        m.insert("label".to_string(), label.map(Value::from).unwrap_or(Value::Null));
         m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("market".into()));
         m.insert("timeInForce".to_string(), Value::Str("IOC".into()));
@@ -3940,12 +3940,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1364: bool = true;
             while { if !__for_first_1364 { i += 1; } __for_first_1364 = false; i < (points.len() as i64) } {
-            let mut point: Value = points.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut pointOpen: Option<f64> = self.safe_number_k(point.clone(), "open", &[]).as_f64();
-            let mut pointPrice: Option<f64> = self.safe_number_k(point.clone(), "price", &[self.safe_number(point.clone(), Value::Str("value".into()), &[])]).as_f64();
-            let mut pointTs: Option<i64> = self.safe_integer_k(point.clone(), "timestamp", &[]).as_i64();
+            let mut point: crate::value::Dict = points.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut pointOpen: Option<f64> = self.safe_number_k(&point, "open", &[]).as_f64();
+            let mut pointPrice: Option<f64> = self.safe_number_k(&point, "price", &[self.safe_number_k(&point, "value", &[])]).as_f64();
+            let mut pointTs: Option<i64> = self.safe_integer_k(&point, "timestamp", &[]).as_i64();
             if ((pointOpen.is_some()) || (pointPrice.is_some())) && (pointTs.is_some()) {
-                usablePoints.push(point);
+                usablePoints.push(Value::Dict(point));
             }
         }
         }

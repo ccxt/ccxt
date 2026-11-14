@@ -742,7 +742,7 @@ impl Hitbtc {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), Some(&market), &[]);
-            let mut item: Value = get_value(&data, &marketId);
+            let mut item: crate::value::Dict = get_value(&data, &marketId).into_dict();
             let mut messageHash: String = format!("{}{}", "orderbooks::", symbol);
             if !(self.orderbooks.has(&symbol)) {
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
@@ -756,14 +756,14 @@ impl Hitbtc {
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-            let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "t", &[]).as_i64();
-            let mut nonce: Option<i64> = self.safe_integer_k(item.clone(), "s", &[]).as_i64();
+            let mut timestamp: Option<i64> = self.safe_integer_k(&item, "t", &[]).as_i64();
+            let mut nonce: Option<i64> = self.safe_integer_k(&item, "s", &[]).as_i64();
             if (type_var == "snapshot") {
-                let mut parsedSnapshot: crate::value::Dict = self.parse_order_book(item.clone(), symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+                let mut parsedSnapshot: crate::value::Dict = self.parse_order_book(&item, symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
                 orderbook.reset(Value::Dict(parsedSnapshot));
             }  else {
-                let mut asks: crate::value::List = self.safe_list_k(item.clone(), "a", &[Value::from(vec![])]).into_list();
-                let mut bids: crate::value::List = self.safe_list_k(item, "b", &[Value::from(vec![])]).into_list();
+                let mut asks: crate::value::List = self.safe_list_k(&item, "a", &[Value::from(vec![])]).into_list();
+                let mut bids: crate::value::List = self.safe_list_k(&item, "b", &[Value::from(vec![])]).into_list();
                 self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
                 self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
             }
@@ -1938,7 +1938,7 @@ impl Hitbtc {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let orderRequestparamsValueVariable: Vec<Value> = self.parent.create_order_request(market, marketType.as_deref().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, marginMode.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsMarginMode)]).as_array().cloned().unwrap_or_default();
-        let mut orderRequest: Value = orderRequestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut orderRequest: crate::value::Dict = orderRequestparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = orderRequestparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: crate::value::Dict = self.extend(orderRequest, &[&paramsValue]).into_dict();
         if (marketType.as_deref() == Some("swap")) {
@@ -2145,14 +2145,14 @@ impl Hitbtc {
                 m
             });
         }
-        let mut reserved: Value = Value::from(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
+        let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
         let mut keys: Vec<Value> = object_keys(&balance).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_372: bool = true;
             while { if !__for_first_372 { i += 1; } __for_first_372 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if self.in_array(key.clone(), reserved.clone()) {
+            if self.in_array(key.clone(), &reserved) {
                 continue;
             }
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (balance.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); }

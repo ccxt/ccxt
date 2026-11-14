@@ -1754,11 +1754,11 @@ impl Bitso {
                 m.insert("book".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side);
                 m.insert("type".to_string(), type_var.clone());
-                m.insert("major".to_string(), self.amount_to_precision(Value::from((market).symbol.clone()), amount));
+                m.insert("major".to_string(), Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount)));
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_8]).await;

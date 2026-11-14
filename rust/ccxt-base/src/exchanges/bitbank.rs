@@ -1235,13 +1235,13 @@ impl Bitbank {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("side".to_string(), side);
                 m.insert("type".to_string(), type_var.clone());
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_user_spot_order(&[__ws_arg_4]).await.into_dict();

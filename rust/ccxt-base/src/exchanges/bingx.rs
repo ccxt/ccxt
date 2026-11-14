@@ -4944,24 +4944,24 @@ impl Bingx {
         if isSpot {
             paramsOrder = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("cost".into()), Value::Str("quoteOrderQty".into())]), &[]);
             if (cost.is_some()) {
-                request.insert("quoteOrderQty".into(), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null))));
+                request.insert("quoteOrderQty".into(), self.parse_to_numeric(Value::from(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null)))));
             }  else {
                 if isMarketOrder && (price != Value::Null) {
                     // keep the legacy behavior, to avoid  breaking the old spot-market-buying code
                     let mut calculatedCost: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::from(self.number_to_string(price.clone()))).as_str().map(str::to_owned);
                     request.insert("quoteOrderQty".into(), self.parse_to_numeric(calculatedCost.map(Value::from).unwrap_or(Value::Null)));
                 }  else {
-                    request.insert("quantity".into(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount.clone())));
+                    request.insert("quantity".into(), self.parse_to_numeric(Value::from(self.amount_to_precision(symbol.clone(), amount.clone()))));
                 }
             }
             if !isMarketOrder {
-                request.insert("price".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), price.clone())));
+                request.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), price.clone()))));
             }
             if (triggerPrice.is_some()) {
                 if isMarketOrder && (side.as_str() == Some("buy")) && (self.safe_string(Value::Map(request.clone()), Value::Str("quoteOrderQty".into()), &[]) == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")));
                 }
-                request.insert("stopPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+                request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
                 if (typeValue.as_deref() == Some("LIMIT")) {
                     request.insert("type".into(), Value::Str("TRIGGER_LIMIT".into()));
                 }  else if (typeValue.as_deref() == Some("MARKET")) {
@@ -4977,7 +4977,7 @@ impl Bingx {
                 }  else if (typeValue.as_deref() == Some("MARKET")) {
                     request.insert("type".into(), Value::Str("TAKE_STOP_MARKET".into()));
                 }
-                request.insert("stopPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), stopTakePrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("stopPrice".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), stopTakePrice.map(Value::from).unwrap_or(Value::Null)))));
             }
         }  else {
             if isTwapOrder {
@@ -4986,8 +4986,8 @@ impl Bingx {
                         m.insert("symbol".to_string(), request.get("symbol").cloned().unwrap_or(Value::Null));
                         m.insert("side".to_string(), request.get("side").cloned().unwrap_or(Value::Null));
                         m.insert("positionSide".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("LONG".into()) } else { Value::Str("SHORT".into()) }));
-                        m.insert("triggerPrice".to_string(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
-                        m.insert("totalAmount".to_string(), self.parse_to_numeric(self.amount_to_precision(symbol.clone(), amount.clone())));
+                        m.insert("triggerPrice".to_string(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)))));
+                        m.insert("totalAmount".to_string(), self.parse_to_numeric(Value::from(self.amount_to_precision(symbol.clone(), amount.clone()))));
                     m
                 });
                 return self.extend(Value::Map(twapRequest), &[&paramsPostOnly]);
@@ -5016,7 +5016,7 @@ impl Bingx {
                 paramsTakeProfit = self.omit(paramsStopLoss, Value::Str("takeProfit".into()), &[]);
             }
             if ((typeValue.as_deref() == Some("LIMIT")) || (typeValue.as_deref() == Some("TRIGGER_LIMIT")) || (typeValue.as_deref() == Some("STOP")) || (typeValue.as_deref() == Some("TAKE_PROFIT"))) && !isTrailing {
-                request.insert("price".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), price)));
+                request.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), price))));
             }
             let mut reduceOnlyParam: bool = self.safe_bool_k_opt(paramsTakeProfit.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             // stop loss / take profit price orders are always reduce only
@@ -5026,7 +5026,7 @@ impl Bingx {
                 request.insert("workingType".into(), self.encode_trigger_price_type(triggerPriceType.as_deref()));
             }
             if isTriggerOrder {
-                request.insert("stopPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("stopPrice".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)))));
                 if isMarketOrder || (typeValue.as_deref() == Some("TRIGGER_MARKET")) {
                     request.insert("type".into(), Value::Str("TRIGGER_MARKET".into()));
                 }  else if (typeValue.as_deref() == Some("LIMIT")) || (typeValue.as_deref() == Some("TRIGGER_LIMIT")) {
@@ -5035,14 +5035,14 @@ impl Bingx {
             }  else if isStopLossPriceOrder || isTakeProfitPriceOrder {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
                 if isStopLossPriceOrder {
-                    request.insert("stopPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("stopPrice".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)))));
                     if isMarketOrder || (typeValue.as_deref() == Some("STOP_MARKET")) {
                         request.insert("type".into(), Value::Str("STOP_MARKET".into()));
                     }  else if (typeValue.as_deref() == Some("LIMIT")) || (typeValue.as_deref() == Some("STOP")) {
                         request.insert("type".into(), Value::Str("STOP".into()));
                     }
                 }  else if isTakeProfitPriceOrder {
-                    request.insert("stopPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("stopPrice".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)))));
                     if isMarketOrder || (typeValue.as_deref() == Some("TAKE_PROFIT_MARKET")) {
                         request.insert("type".into(), Value::Str("TAKE_PROFIT_MARKET".into()));
                     }  else if (typeValue.as_deref() == Some("LIMIT")) || (typeValue.as_deref() == Some("TAKE_PROFIT")) {
@@ -5058,7 +5058,7 @@ impl Bingx {
                     request.insert("priceRate".into(), self.parse_to_numeric(requestTrailingPercent.map(Value::from).unwrap_or(Value::Null)));
                 }
                 if (trailingTriggerPrice.is_some()) {
-                    request.insert("activationPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                    request.insert("activationPrice".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null)))));
                 }
             }
             if hasStopLoss || hasTakeProfit {
@@ -5074,18 +5074,18 @@ impl Bingx {
                     let mut slType: Option<String> = self.safe_string_k(&stopLossDict, "type", &[Value::from(slDefaultType)]).as_str().map(str::to_owned);
                     let mut slRequest: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("stopPrice".to_string(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), slTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                            m.insert("stopPrice".to_string(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), slTriggerPrice.map(Value::from).unwrap_or(Value::Null)))));
                             m.insert("workingType".to_string(), self.encode_trigger_price_type(Some(slWorkingType.as_str())));
                             m.insert("type".to_string(), slType.map(Value::from).unwrap_or(Value::Null));
                         m
                     });
                     if (slPrice.is_some()) {
-                        slRequest.insert("price".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), slPrice.map(Value::from).unwrap_or(Value::Null))));
+                        slRequest.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), slPrice.map(Value::from).unwrap_or(Value::Null)))));
                     }
                     let mut slQuantity: Option<String> = self.safe_string_k(&stopLossDict, "quantity", &[stringifiedAmount.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                     let mut slQuantityRequest: Value = self.parse_to_numeric(Value::from(slQuantity.as_deref()));
                     if !((market).inverse == Some(true)) {
-                        slQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol.clone(), slQuantity.map(Value::from).unwrap_or(Value::Null)));
+                        slQuantityRequest = self.parse_to_numeric(Value::from(self.amount_to_precision(symbol.clone(), slQuantity.map(Value::from).unwrap_or(Value::Null))));
                     }
                     slRequest.insert("quantity".into(), slQuantityRequest);
                     request.insert("stopLoss".into(), json_stringify(&Value::Map(slRequest)));
@@ -5098,18 +5098,18 @@ impl Bingx {
                     let mut tpType: Option<String> = self.safe_string_k(&takeProfitDict, "type", &[Value::from(tpDefaultType)]).as_str().map(str::to_owned);
                     let mut tpRequest: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("stopPrice".to_string(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), tkTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                            m.insert("stopPrice".to_string(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), tkTriggerPrice.map(Value::from).unwrap_or(Value::Null)))));
                             m.insert("workingType".to_string(), self.encode_trigger_price_type(Some(tkWorkingType.as_str())));
                             m.insert("type".to_string(), tpType.map(Value::from).unwrap_or(Value::Null));
                         m
                     });
                     if (tpPrice.is_some()) {
-                        tpRequest.insert("price".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), tpPrice.map(Value::from).unwrap_or(Value::Null))));
+                        tpRequest.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), tpPrice.map(Value::from).unwrap_or(Value::Null)))));
                     }
                     let mut tkQuantity: Option<String> = self.safe_string_k(&takeProfitDict, "quantity", &[stringifiedAmount.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                     let mut tkQuantityRequest: Value = self.parse_to_numeric(Value::from(tkQuantity.as_deref()));
                     if !((market).inverse == Some(true)) {
-                        tkQuantityRequest = self.parse_to_numeric(self.amount_to_precision(symbol.clone(), tkQuantity.map(Value::from).unwrap_or(Value::Null)));
+                        tkQuantityRequest = self.parse_to_numeric(Value::from(self.amount_to_precision(symbol.clone(), tkQuantity.map(Value::from).unwrap_or(Value::Null))));
                     }
                     tpRequest.insert("quantity".into(), tkQuantityRequest);
                     request.insert("takeProfit".into(), json_stringify(&Value::Map(tpRequest)));
@@ -5130,11 +5130,11 @@ impl Bingx {
             request.insert("positionSide".into(), positionSide.map(Value::from).unwrap_or(Value::Null));
             let mut closePosition: bool = self.safe_bool_k(paramsOrder.clone(), "closePosition", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if (cost.is_some()) {
-                request.insert("quoteOrderQty".into(), self.parse_to_numeric(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("quoteOrderQty".into(), self.parse_to_numeric(Value::from(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)))));
             }  else if !closePosition {
                 let mut amountReq: Value = amount.clone();
                 if !((market).inverse == Some(true)) {
-                    amountReq = self.parse_to_numeric(self.amount_to_precision(symbol, amount));
+                    amountReq = self.parse_to_numeric(Value::from(self.amount_to_precision(symbol, amount)));
                 }
                 request.insert("quantity".into(), amountReq); // precision not available for inverse contracts
             }
@@ -6967,7 +6967,7 @@ impl Bingx {
                 m.insert("fromAccount".to_string(), (if (fromAccount.as_str() == Some("swap")) { Value::from(swapId.clone()) } else { fromIdMapped.map(Value::from).unwrap_or(Value::Null) }));
                 m.insert("toAccount".to_string(), (if (toAccount.as_str() == Some("swap")) { Value::from(swapId) } else { toIdMapped.map(Value::from).unwrap_or(Value::Null) }));
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.clone(), amount.clone(), &[])));
             m
         });
         let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsSubType]);
@@ -7690,9 +7690,9 @@ impl Bingx {
         }
         let mut amountString: Value = Value::Null;
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
-            amountString = self.currency_to_precision(Value::from((market).settle.as_deref()), amount.clone(), &[]);
+            amountString = Value::from(self.currency_to_precision(Value::from((market).settle.as_deref()), amount.clone(), &[]));
         }  else {
-            amountString = self.amount_to_precision(Value::from((market).symbol.clone()), amount);
+            amountString = Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -8187,7 +8187,7 @@ impl Bingx {
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("address".to_string(), address);
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("walletType".to_string(), Value::from(walletType));
             m
         });
@@ -9102,8 +9102,8 @@ impl Bingx {
             version = section.get(2).and_then(Value::as_str).map(str::to_owned);
             access = section.get(3).and_then(Value::as_str).map(str::to_owned);
         }
-        let mut flatAccountPaths: Value = Value::from(vec![Value::Str("account/apiPermissions".into()), Value::Str("account/apiRestrictions".into())]);
-        if !self.in_array(pathValue.clone(), flatAccountPaths) {
+        let mut flatAccountPaths: crate::value::List = std::sync::Arc::new(vec![Value::Str("account/apiPermissions".into()), Value::Str("account/apiRestrictions".into())]);
+        if !self.in_array(pathValue.clone(), &flatAccountPaths) {
             if (type_var.as_str() == Some("spot")) && (version.as_deref() == Some("v3")) {
                 url = Value::Str(format!("{}{}", url, "/api").into());
             }  else {

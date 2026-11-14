@@ -3203,19 +3203,19 @@ impl Woofipro {
             request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
         if (price != Value::Null) {
-            request.insert(priceKey, self.price_to_precision(symbol.clone(), price));
+            request.insert(priceKey, Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if isMarket && !isConditional {
-            request.insert(orderQtyKey.clone(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert(orderQtyKey.clone(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
-            request.insert(orderQtyKey, self.amount_to_precision(symbol.clone(), amount));
+            request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         if (triggerPrice.is_some()) {
-            request.insert("trigger_price".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("algo_type".into(), Value::Str("STOP".into()));
         }  else if hasStopLoss || hasTakeProfit {
             request.insert("algo_type".into(), Value::Str("TP_SL".into()));
@@ -3227,7 +3227,7 @@ impl Woofipro {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), Value::from(closeSide.clone()));
                         m.insert("algo_type".to_string(), Value::Str("TP_SL".into()));
-                        m.insert("trigger_price".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice));
+                        m.insert("trigger_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice)));
                         m.insert("type".to_string(), Value::Str("LIMIT".into()));
                         m.insert("reduce_only".to_string(), Value::Bool(true));
                     m
@@ -3240,7 +3240,7 @@ impl Woofipro {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), Value::from(closeSide));
                         m.insert("algo_type".to_string(), Value::Str("TP_SL".into()));
-                        m.insert("trigger_price".to_string(), self.price_to_precision(symbol, takeProfitPrice));
+                        m.insert("trigger_price".to_string(), Value::from(self.price_to_precision(symbol, takeProfitPrice)));
                         m.insert("type".to_string(), Value::Str("LIMIT".into()));
                         m.insert("reduce_only".to_string(), Value::Bool(true));
                     m
@@ -3458,17 +3458,17 @@ impl Woofipro {
         });
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]).as_str().map(str::to_owned);
         if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
         }
         let mut paramsChildOrders: Option<crate::value::List> = self.safe_list_k(params.clone(), "childOrders", &[]).into_opt_list();
         let mut isConditional: bool = (triggerPrice.is_some()) || (paramsChildOrders.is_some());
         let mut orderQtyKey: String = (if isConditional { "quantity".to_string() } else { "order_quantity".to_string() });
         let mut priceKey: String = (if isConditional { "price".to_string() } else { "order_price".to_string() });
         if (price != Value::Null) {
-            request.insert(priceKey, self.price_to_precision(symbol.clone(), price));
+            request.insert(priceKey, Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if (amount != Value::Null) {
-            request.insert(orderQtyKey, self.amount_to_precision(symbol, amount));
+            request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol, amount)));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into())]), &[]);
         let mut response: Option<crate::value::Dict> = None;

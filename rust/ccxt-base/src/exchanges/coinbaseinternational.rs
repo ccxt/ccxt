@@ -1801,19 +1801,19 @@ impl Coinbaseinternational {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut duration: i64 = ((self.parse_timeframe(Value::Str("1h".into()))) * 1000);
         let mut now: i64 = self.milliseconds();
-        let mut sinceResolved: Value = since.clone();
+        let mut sinceResolved: Option<i64> = since.as_i64();
         if (since == Value::Null) {
-            sinceResolved = Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
+            sinceResolved = Some((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("start_timestamp".to_string(), sinceResolved.clone());
+                m.insert("start_timestamp".to_string(), Value::from(sinceResolved));
                 m.insert("end_timestamp".to_string(), Value::from(now));
             m
         });
         if (limit != Value::Null) {
-            let mut endTimestamp: Value = self.sum(&[sinceResolved, (match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+            let mut endTimestamp: Value = self.sum(&[Value::from(sinceResolved), (match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
             request.insert("end_timestamp".into(), endTimestamp);
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
@@ -2582,14 +2582,14 @@ impl Coinbaseinternational {
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let mut now: i64 = self.milliseconds();
-        let mut sinceResolved: Value = since.clone();
+        let mut sinceResolved: Option<i64> = since.as_i64();
         if (since == Value::Null) {
-            sinceResolved = Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
+            sinceResolved = Some((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("start_timestamp".to_string(), sinceResolved);
+                m.insert("start_timestamp".to_string(), Value::from(sinceResolved));
                 m.insert("end_timestamp".to_string(), Value::from(now));
                 m.insert("query".to_string(), Value::Str("transfer".into()));
             m
@@ -2976,14 +2976,14 @@ impl Coinbaseinternational {
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let mut now: i64 = self.milliseconds();
-        let mut sinceResolved: Value = since.clone();
+        let mut sinceResolved: Option<i64> = since.as_i64();
         if (since == Value::Null) {
-            sinceResolved = Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
+            sinceResolved = Some((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("start_timestamp".to_string(), sinceResolved);
+                m.insert("start_timestamp".to_string(), Value::from(sinceResolved));
                 m.insert("end_timestamp".to_string(), Value::from(now));
             m
         });
@@ -3237,7 +3237,7 @@ impl Coinbaseinternational {
         if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(&market, "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
         }
-        return self.amount_to_precision(crate::value::KeyRead::key_read(&market, "symbol"), exchangeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        return Value::from(self.amount_to_precision(crate::value::KeyRead::key_read(&market, "symbol"), exchangeAmount.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
 }
 
 /*
@@ -3321,7 +3321,7 @@ impl Coinbaseinternational {
             }
             request.insert("price".into(), price.clone());
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
-                request.insert("price".into(), self.price_to_precision(symbol, price));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             }
         }
         let mut postOnly: Option<bool> = self.safe_bool2(&paramsResolved, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]).as_bool();
@@ -3830,7 +3830,7 @@ impl Coinbaseinternational {
             request.insert("amount".into(), self.get_order_amount(Some(&market), amount.as_f64()).map(Value::from).unwrap_or(Value::Null));
         }
         if (price != Value::Null) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let mut triggerPrice: Option<f64> = self.safe_number_n(&paramsResolved, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("triggerPrice".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {

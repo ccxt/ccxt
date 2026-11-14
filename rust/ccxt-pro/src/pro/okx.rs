@@ -984,11 +984,11 @@ impl Okx {
         }
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTicker".into()), Value::Str("channel".into()), &[Value::Str("tickers".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut paramsChannel, &Value::Str("channel".into()), channel.map(Value::from).unwrap_or(Value::Null));
+        let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        std::sync::Arc::make_mut(&mut paramsChannel).insert("channel".into(), channel.map(Value::from).unwrap_or(Value::Null));
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut ticker: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), paramsChannel).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut ticker: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), Value::Dict(paramsChannel)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         return self.safe_value(crate::types::IntoRaw::into_raw(ticker), Value::from(symbolValue), &[]);
         Value::Null
         }).await?))
@@ -1083,11 +1083,11 @@ impl Okx {
         }
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchMarkPrice".into()), Value::Str("channel".into()), &[Value::Str("mark-price".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut paramsChannel, &Value::Str("channel".into()), channel.map(Value::from).unwrap_or(Value::Null));
+        let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        std::sync::Arc::make_mut(&mut paramsChannel).insert("channel".into(), channel.map(Value::from).unwrap_or(Value::Null));
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut ticker: crate::types::Tickers = (match self.watch_mark_prices((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), paramsChannel).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut ticker: crate::types::Tickers = (match self.watch_mark_prices((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), Value::Dict(paramsChannel)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         return self.safe_value(crate::types::IntoRaw::into_raw(ticker), Value::from(symbolValue), &[]);
         Value::Null
         }).await?))
@@ -2719,14 +2719,14 @@ impl Okx {
                 m
             });
         }
-        let mut reserved: Value = Value::from(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
+        let mut reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
         let mut keys: Vec<Value> = Value::Array(balance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_548: bool = true;
             while { if !__for_first_548 { i += 1; } __for_first_548 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if self.in_array(key.clone(), reserved.clone()) {
+            if self.in_array(key.clone(), &reserved) {
                 continue;
             }
             { let __be_tmp = self.safe_value(&balance, key.clone(), &[]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), __be_tmp); } }
@@ -2799,7 +2799,7 @@ impl Okx {
 }));
         // By default, receive order updates from any instrument type
         let typeOptionparamsTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("type".into()), &[Value::Str("ANY".into())]).as_array().cloned().unwrap_or_default();
-        let mut typeOption: Value = typeOptionparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut typeOption: Option<String> = typeOptionparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsType: crate::value::Dict = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsType), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
@@ -2822,20 +2822,20 @@ impl Okx {
         let mut messageHash: String = format!("{}{}", channel, "::myTrades");
         let mut market: Option<crate::types::Market> = None;
         let mut symbolResolved: Value = Value::Null;
-        let mut type_var: Value = typeOption;
+        let mut type_var: Option<String> = typeOption;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol");
-            type_var = self.safe_string_k(&market, "type", &[]);
+            type_var = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), symbolResolved);
         }
-        if (type_var.as_str() == Some("future")) {
-            type_var = Value::Str("futures".into());
+        if (type_var.as_deref() == Some("future")) {
+            type_var = Some("futures".to_string());
         }
-        if (type_var == Value::Null) {
+        if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchMyTrades() type is required")));
         }
-        let mut uppercaseType: Option<String> = type_var.as_str().map(str::to_uppercase);
+        let mut uppercaseType: Option<String> = type_var.as_deref().map(str::to_uppercase);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchMyTrades".into()), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3058,7 +3058,7 @@ impl Okx {
 }));
         // By default, receive order updates from any instrument type
         let typeOptionparamsTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrders".into()), Value::Str("type".into()), &[Value::Str("ANY".into())]).as_array().cloned().unwrap_or_default();
-        let mut typeOption: Value = typeOptionparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut typeOption: Option<String> = typeOptionparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsType: crate::value::Dict = typeOptionparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsType), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
@@ -3076,19 +3076,19 @@ impl Okx {
 })]).await;
         let mut market: Option<crate::types::Market> = None;
         let mut symbolResolved: Option<String> = None;
-        let mut type_var: Value = typeOption;
+        let mut type_var: Option<String> = typeOption;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
-            type_var = self.safe_string_k(&market, "type", &[]);
+            type_var = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
         }
-        if (type_var.as_str() == Some("future")) {
-            type_var = Value::Str("futures".into());
+        if (type_var.as_deref() == Some("future")) {
+            type_var = Some("futures".to_string());
         }
-        if (type_var == Value::Null) {
+        if (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOrders() type is required")));
         }
-        let mut uppercaseType: Option<String> = type_var.as_str().map(str::to_uppercase);
+        let mut uppercaseType: Option<String> = type_var.as_deref().map(str::to_uppercase);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3303,8 +3303,8 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_553: bool = true;
             while { if !__for_first_553 { i += 1; } __for_first_553 = false; i < (filteredOrders.len() as i64) } {
-            let mut rawTrade: Value = filteredOrders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut trade: crate::value::Dict = self.order_to_trade(rawTrade, None).into_dict();
+            let mut rawTrade: crate::value::Dict = filteredOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut trade: crate::value::Dict = self.order_to_trade(Value::Dict(rawTrade), None).into_dict();
             myTrades.append(Value::from(&trade));
             let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             if (symbol.is_some()) {

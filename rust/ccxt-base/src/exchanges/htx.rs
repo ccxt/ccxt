@@ -155,7 +155,7 @@ impl crate::exchange_generated::ExchangeBase for Htx {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cost_to_precision" => self.cost_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "cost_to_precision" => crate::Value::from(self.cost_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "create_contract_order_request" => self.create_contract_order_request(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_str), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
@@ -3818,10 +3818,8 @@ impl Htx {
     Value::Null
 }
 
-    pub fn cost_to_precision(&self, mut symbol: Value, mut cost: Value) -> Value {
-        return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone()]);
-
-    Value::Null
+    pub fn cost_to_precision(&self, mut symbol: Value, mut cost: Value) -> Option<String> {
+        return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3860,7 +3858,7 @@ impl Htx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_array().cloned().unwrap_or_default(); types = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsTypes = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut allMarkets: Value = Value::from(vec![]);
+        let mut allMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut promises: Vec<Value> = Vec::new();
         let mut keys: Vec<Value> = Value::Array(types.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
@@ -3885,10 +3883,10 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_768: bool = true;
             while { if !__for_first_768 { i += 1; } __for_first_768 = false; i < (responses.len() as i64) } {
-            allMarkets = self.array_concat(allMarkets, responses.get(i as usize).cloned().unwrap_or(Value::Null));
+            allMarkets = self.array_concat(Value::Arr(allMarkets), responses.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
         }
         }
-        return allMarkets;
+        return Value::Arr(allMarkets);
         Value::Null
         }).await?))
     }
@@ -5509,9 +5507,9 @@ impl Htx {
         let mut isContract: bool = (market).contract;
         let mut marketType: String = (market).market_type.clone();
         let mut contractLimit: i64 = limit.as_i64().unwrap_or(2000); // only used for from/to calculation
-        let mut rangeLimit: Value = limit.clone();
+        let mut rangeLimit: Option<i64> = limit.as_i64();
         if isContract {
-            rangeLimit = Value::from(contractLimit);
+            rangeLimit = Some(contractLimit);
         }
         if isContract {
             if (limit != Value::Null) {
@@ -5631,7 +5629,7 @@ impl Htx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, rangeLimit]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(rangeLimit)]);
         Value::Null
         }).await?))
     }
@@ -7927,7 +7925,7 @@ impl Htx {
                 defaultOperator = "lte".to_string();
             }
             let mut stopOperator: Option<String> = self.safe_string_k(&paramsMarginMode, "operator", &[Value::from(defaultOperator)]).as_str().map(str::to_owned);
-            request.insert("stop-price".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("stop-price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("operator".into(), stopOperator.map(Value::from).unwrap_or(Value::Null));
             if (orderType.as_deref() == Some("limit")) || (orderType.as_deref() == Some("limit-fok")) {
                 orderType = Some(format!("{}{}", "stop-", orderType.as_deref().unwrap_or("null")));
@@ -7977,7 +7975,7 @@ impl Htx {
             let mut quoteAmount: Option<String> = None;
             let mut createMarketBuyOrderRequiresPrice: Value = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             if (cost.is_some()) {
-                quoteAmount = self.amount_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
+                quoteAmount = self.amount_to_precision(symbol.clone(), Value::from(cost));
             }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -7990,21 +7988,21 @@ impl Htx {
                     // we use amountToPrecision here because the exchange requires cost in base precision
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
-                    quoteAmount = self.amount_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+                    quoteAmount = self.amount_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)));
                 }
             }  else {
-                quoteAmount = self.amount_to_precision(symbol.clone(), amount.clone()).as_str().map(str::to_owned);
+                quoteAmount = self.amount_to_precision(symbol.clone(), amount.clone());
             }
             request.insert("amount".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         let mut limitOrderTypes: crate::value::Dict = self.safe_dict_k(&options, "limitOrderTypes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
         if (matches!(orderType.as_deref(), Some(__k) if limitOrderTypes.contains_key(__k))) {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsCost, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop-price".into()), Value::Str("clientOrderId".into()), Value::Str("client-order-id".into()), Value::Str("operator".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -8055,7 +8053,7 @@ impl Htx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("contract_code".to_string(), Value::from((market).id.as_deref()));
-                m.insert("volume".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("volume".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(type_var.as_str() == Some("post_only")), &[params]).as_array().cloned().unwrap_or_default();
@@ -8091,10 +8089,10 @@ impl Htx {
             // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
             if (stopLoss.is_some()) {
                 if (stopLossTriggerPriceAttached.is_some()) {
-                    request.insert("sl_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPriceAttached)));
+                    request.insert("sl_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPriceAttached))));
                 }
                 if (stopLossOrderPrice.is_some()) {
-                    request.insert("sl_order_price".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossOrderPrice)));
+                    request.insert("sl_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossOrderPrice))));
                 }
                 if (stopLossType.is_some()) {
                     request.insert("sl_type".into(), stopLossType.map(Value::from).unwrap_or(Value::Null));
@@ -8103,10 +8101,10 @@ impl Htx {
             }
             if (takeProfit.is_some()) {
                 if (takeProfitTriggerPriceAttached.is_some()) {
-                    request.insert("tp_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPriceAttached)));
+                    request.insert("tp_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPriceAttached))));
                 }
                 if (takeProfitOrderPrice.is_some()) {
-                    request.insert("tp_order_price".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitOrderPrice)));
+                    request.insert("tp_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitOrderPrice))));
                 }
                 if (takeProfitType.is_some()) {
                     request.insert("tp_type".into(), takeProfitType.map(Value::from).unwrap_or(Value::Null));
@@ -8145,17 +8143,17 @@ impl Htx {
             }
         }
         if isTrigger {
-            request.insert("trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
             if isLinear {
                 request.insert("type".into(), Value::Str("trigger".into()));
                 if (price != Value::Null) {
-                    request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                    request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 }
             }  else {
                 let mut triggerType: String = self.safe_string2(query.clone(), Value::Str("triggerType".into()), Value::Str("trigger_type".into()), &[Value::Str("le".into())]).as_str().unwrap_or("le").to_string();
                 request.insert("trigger_type".into(), Value::from(triggerType));
                 if (price != Value::Null) {
-                    request.insert("order_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                    request.insert("order_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 }
             }
         }  else if isStopLossTriggerOrder || isTakeProfitTriggerOrder {
@@ -8165,9 +8163,9 @@ impl Htx {
                 }  else {
                     request.insert("type".into(), Value::Str("sl".into()));
                 }
-                request.insert("sl_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
+                request.insert("sl_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice))));
                 if (price != Value::Null) {
-                    request.insert("sl_order_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                    request.insert("sl_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 }
             }  else {
                 if !isLinear {
@@ -8175,9 +8173,9 @@ impl Htx {
                 }  else {
                     request.insert("type".into(), Value::Str("tp".into()));
                 }
-                request.insert("tp_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
+                request.insert("tp_trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice))));
                 if (price != Value::Null) {
-                    request.insert("tp_order_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+                    request.insert("tp_order_price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 }
             }
         }  else if isTrailingPercentOrder {
@@ -8195,7 +8193,7 @@ impl Htx {
             }
             if (orderType.as_deref() == Some("limit")) || (orderType.as_deref() == Some("ioc")) || (orderType.as_deref() == Some("fok")) || (orderType.as_deref() == Some("post_only")) {
                 if (price != Value::Null) {
-                    request.insert("price".into(), self.price_to_precision(symbol, price));
+                    request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
                 }
             }
         }
@@ -9452,8 +9450,8 @@ impl Htx {
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let networkCodeparamsOmitedVariable: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
         let mut networkCode: Option<String> = networkCodeparamsOmitedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsOmited: Value = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut indexedAddresses: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), paramsOmited).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut paramsOmited: crate::value::Dict = networkCodeparamsOmitedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut indexedAddresses: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsOmited)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut selectedNetworkCode: Option<String> = self.select_network_key_from_networks(crate::value::KeyRead::key_read(&&currency, "code"), networkCode.map(Value::from).unwrap_or(Value::Null), crate::types::IntoRaw::into_raw(indexedAddresses.clone()), &[Value::Bool(true)]).as_str().map(str::to_owned);
         return self.safe_dict(crate::types::IntoRaw::into_raw(indexedAddresses), selectedNetworkCode.map(Value::from).unwrap_or(Value::Null), &[]);
         Value::Null
@@ -9843,7 +9841,7 @@ impl Htx {
         if (networkCode.is_some()) {
             request.insert("chain".into(), self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code.clone()]));
         }
-        let mut amountPrecision: Option<String> = self.currency_to_precision(code.clone(), amount, &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut amountPrecision: Option<String> = self.currency_to_precision(code.clone(), amount, &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)]);
         if (amountPrecision.is_none()) {
             amountPrecision = Some("0".to_string());
         }
@@ -9872,7 +9870,7 @@ impl Htx {
                 }
             }
             // fee needs to be deducted from whole amount
-            let mut feeString: Value = self.currency_to_precision(code.clone(), Value::from(fee), &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut feeString: Value = Value::from(self.currency_to_precision(code.clone(), Value::from(fee), &[networkCode.clone().map(Value::from).unwrap_or(Value::Null)]));
             let mut amountString: Option<String> = self.number_to_string(Value::from(amountValue));
             let mut amountSubtractedString: Option<String> = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &feeString).as_str().map(str::to_owned);
             let mut amountSubtractedParsed: Option<String> = amountSubtractedString;
@@ -9884,7 +9882,7 @@ impl Htx {
                 feeParsed = Value::Str("0".into());
             }
             request.insert("fee".into(), self.parse_number(feeParsed, &[]));
-            let mut amountAfterFee: Option<String> = self.currency_to_precision(code, self.parse_number(amountSubtractedParsed.map(Value::from).unwrap_or(Value::Null), &[]), &[networkCode.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut amountAfterFee: Option<String> = self.currency_to_precision(code, self.parse_number(amountSubtractedParsed.map(Value::from).unwrap_or(Value::Null), &[]), &[networkCode.map(Value::from).unwrap_or(Value::Null)]);
             if (amountAfterFee.is_none()) {
                 amountAfterFee = Some("0".to_string());
             }
@@ -10000,7 +9998,7 @@ impl Htx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut transferAmount: Option<String> = self.currency_to_precision(code, amount, &[]).as_str().map(str::to_owned);
+        let mut transferAmount: Option<String> = self.currency_to_precision(code, amount, &[]);
         if (transferAmount.is_none()) {
             transferAmount = Some("0".to_string());
         }
@@ -10553,23 +10551,23 @@ impl Htx {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut defaultSubType: String = "linear".to_string();
         let subTypeOptionparamsSubTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchFundingRates".into()), Value::Str("subType".into()), &[Value::from(defaultSubType)]).as_array().cloned().unwrap_or_default();
-        let mut subTypeOption: Value = subTypeOptionparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut subTypeOption: Option<String> = subTypeOptionparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeOptionparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut subType: Value = subTypeOption;
+        let mut subType: Option<String> = subTypeOption;
         if (symbolsNormalized.is_some()) {
             let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut isLinear: Option<bool> = (market).linear;
-            subType = (if (isLinear == Some(true)) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) });
+            subType = (if (isLinear == Some(true)) { Some("linear".to_string()) } else { Some("inverse".to_string()) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        if (subType.as_str() == Some("linear")) {
+        if (subType.as_deref() == Some("linear")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchFundingRates() not support this market type")));
-        }  else if (subType.as_str() == Some("inverse")) {
+        }  else if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_127 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.contract_public_get_swap_api_v1_swap_batch_funding_rate(&[__ws_arg_127]).await.into_opt_dict();
         }  else {
@@ -12257,7 +12255,7 @@ impl Htx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount.clone(), &[])));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -12311,7 +12309,7 @@ impl Htx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount.clone(), &[])));
             m
         });
         let __ws_arg_153 = self.extend(Value::Map(request), &[params]);
@@ -12366,7 +12364,7 @@ impl Htx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount.clone(), &[])));
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -12426,7 +12424,7 @@ impl Htx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount.clone(), &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount.clone(), &[])));
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -13136,7 +13134,7 @@ impl Htx {
             if (amount.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " closePosition () requires an extra argument params[\"amount\"] for inverse markets")));
             }
-            request.insert("volume".into(), self.amount_to_precision(symbol, amount.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("volume".into(), Value::from(self.amount_to_precision(symbol, amount.map(Value::from).unwrap_or(Value::Null))));
             request.insert("direction".into(), side);
             let mut paramsVolume: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("volume".into()), Value::Str("amount".into())]), &[]).into_dict();
             if (market).swap {

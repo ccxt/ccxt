@@ -2159,15 +2159,15 @@ impl Coinsph {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }
             newOrderRespType = self.safe_string_k(&newOrderRespTypes, "limit", &[Value::Str("FULL".into())]).as_str().unwrap_or("FULL").to_string();
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
-            request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             if (orderType.as_str() != Some("LIMIT_MAKER")) {
                 request.insert("timeInForce".into(), self.safe_string_k(&options, "timeInForce", &[Value::Str("GTC".into())]));
             }
         }  else if (orderType.as_str() == Some("MARKET")) || (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("TAKE_PROFIT")) {
             newOrderRespType = self.safe_string_k(&newOrderRespTypes, "market", &[Value::Str("FULL".into())]).as_str().unwrap_or("FULL").to_string();
             if (orderSide.as_deref() == Some("SELL")) {
-                request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }  else if (orderSide.as_deref() == Some("BUY")) {
                 let mut quoteAmount: Option<String> = None;
                 let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(paramsType.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
@@ -2176,7 +2176,7 @@ impl Coinsph {
                 let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsRequiresPrice), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]).as_f64();
                 paramsQuote = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
                 }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -2184,10 +2184,10 @@ impl Coinsph {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price);
                         let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                     }
                 }  else {
-                    quoteAmount = self.cost_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), amount);
                 }
                 request.insert("quoteOrderQty".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
             }
@@ -2197,7 +2197,7 @@ impl Coinsph {
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")));
             }
-            request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         request.insert("newOrderRespType".into(), Value::from(newOrderRespType));
         let mut paramsBase: Value = (if (paramsQuote != Value::Null) { paramsQuote } else { paramsType });

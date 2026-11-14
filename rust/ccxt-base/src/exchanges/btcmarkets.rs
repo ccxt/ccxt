@@ -1471,7 +1471,7 @@ impl Btcmarkets {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("side".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("Bid".into()) } else { Value::Str("Ask".into()) }));
             m
         });
@@ -1502,7 +1502,7 @@ impl Btcmarkets {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), type_var).into()), "order")));
             }  else {
-                request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
             }
         }
         if triggerPriceIsRequired {
@@ -1510,7 +1510,7 @@ impl Btcmarkets {
             if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter for a ").into()), type_var).into()), "order")));
             }  else {
-                request.insert("triggerPrice".into(), self.price_to_precision(symbol, Value::from(triggerPrice)));
+                request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(triggerPrice))));
             }
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
@@ -1657,14 +1657,14 @@ impl Btcmarkets {
         let mut cost: Option<String> = None;
         if (Value::from((market).quote.clone()).as_str() == Some("AUD")) {
             currency = Value::from((market).quote.clone()).as_str().map(str::to_owned);
-            cost = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::from(self.number_to_string(price)))).as_str().map(str::to_owned);
+            cost = self.cost_to_precision(symbol.clone(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::from(self.number_to_string(price))));
         }  else {
             currency = Value::from((market).base.clone()).as_str().map(str::to_owned);
-            cost = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
+            cost = self.amount_to_precision(symbol.clone(), amount);
         }
         let mut rate: Value = self.safe_value(&market, takerOrMaker.clone(), &[]);
         let mut rateCost: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(rate.clone())), &cost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut feeCost: Option<String> = self.fee_to_precision(symbol, rateCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut feeCost: Option<String> = self.fee_to_precision(symbol, rateCost.map(Value::from).unwrap_or(Value::Null));
         if (feeCost.is_none()) {
             feeCost = Some("0".to_string());
         }
@@ -2001,7 +2001,7 @@ impl Btcmarkets {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("assetName".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.clone(), amount, &[])));
             m
         });
         if (code.as_str() != Some("AUD")) {

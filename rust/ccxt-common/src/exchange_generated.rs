@@ -732,15 +732,15 @@ pub trait ExchangeBase:
     fn arrays_concat(&self, mut arraysOfArrays: Value) -> Value {
         let __arraysOfArrays_empty = Vec::new();
         let arraysOfArrays = arraysOfArrays.as_array().unwrap_or(&__arraysOfArrays_empty);
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_74: bool = true;
             while { if !__for_first_74 { i += 1; } __for_first_74 = false; i < (arraysOfArrays.len() as i64) } {
-            result = self.array_concat(result, arraysOfArrays.get(i as usize).cloned().unwrap_or(Value::Null));
+            result = self.array_concat(Value::Arr(result), arraysOfArrays.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
 
     Value::Null
 }
@@ -3945,17 +3945,17 @@ pub trait ExchangeBase:
             }
         }
         }
-        let mut result: Value = Value::from(vec![]);
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut feeValues: Vec<Value> = Value::Array(reduced.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_104: bool = true;
             while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < (feeValues.len() as i64) } {
             let mut reducedFeeValues: Value = object_values(&feeValues.get(i as usize).cloned().unwrap_or(Value::Null));
-            result = self.array_concat(result, reducedFeeValues);
+            result = self.array_concat(Value::Arr(result), reducedFeeValues).into_list();
         }
         }
-        return result;
+        return Value::Arr(result);
 
     Value::Null
 }
@@ -7795,19 +7795,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn cost_to_precision(&self, mut symbol: Value, mut cost: Value) -> Value {
+    fn cost_to_precision(&self, mut symbol: Value, mut cost: Value) -> Option<String> {
         if (cost == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), self.safe_string2(crate::value::KeyRead::key_read(&&market, "precision"), Value::Str("cost".into()), Value::Str("price".into()), &[]), &[self.precisionMode.clone(), self.paddingMode.clone()]);
-
-    Value::Null
+        return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), self.safe_string2(crate::value::KeyRead::key_read(&&market, "precision"), Value::Str("cost".into()), Value::Str("price".into()), &[]), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
-    fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Value {
+    fn price_to_precision(&self, mut symbol: Value, mut price: Value) -> Option<String> {
         if (price == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
         let mut result: Option<String> = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
@@ -7819,14 +7817,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " price of ").into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), " must be greater than minimum price precision of ").into()),
                 pricePrecision.as_deref().unwrap_or("null"))));
         }
-        return result.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return result;
 }
 
-    fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Value {
+    fn amount_to_precision(&self, mut symbol: Value, mut amount: Value) -> Option<String> {
         if (amount == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
         let mut result: Option<String> = self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
@@ -7838,22 +7834,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amount of ").into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), " must be greater than minimum amount precision of ").into()),
                 amountPrecision.as_deref().unwrap_or("null"))));
         }
-        return result.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return result;
 }
 
-    fn fee_to_precision(&self, mut symbol: Value, mut fee: Value) -> Value {
+    fn fee_to_precision(&self, mut symbol: Value, mut fee: Value) -> Option<String> {
         if (fee == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-        return self.decimal_to_precision(fee, Value::Int(crate::runtime::ROUND), market.get("precision").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
-
-    Value::Null
+        return self.decimal_to_precision(fee, Value::Int(crate::runtime::ROUND), market.get("precision").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
 }
 
-    fn currency_to_precision(&self, mut code: Value, mut fee: Value, optional_args: &[Value]) -> Value {
+    fn currency_to_precision(&self, mut code: Value, mut fee: Value, optional_args: &[Value]) -> Option<String> {
         let mut networkCode = get_arg(optional_args, 0, Value::Null);
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " currencyToPrecision() requires a code argument")));
@@ -7872,13 +7864,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             precision = self.safe_value_k(&networkItem, "precision", &[precision.clone()]);
         }
         if (precision == Value::Null) {
-            return self.force_string(fee.clone());
+            return self.force_string(fee.clone()).as_str().map(str::to_owned);
         }  else {
             let mut roundingMode: Value = self.safe_integer_k(self.options.clone(), "currencyToPrecisionRoundingMode", &[Value::Int(crate::runtime::ROUND)]);
-            return self.decimal_to_precision(fee, roundingMode, precision, &[self.precisionMode.clone(), self.paddingMode.clone()]);
+            return self.decimal_to_precision(fee, roundingMode, precision, &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
         }
-
-    Value::Null
 }
 
     fn force_string(&self, mut value: Value) -> Value {
@@ -8408,19 +8398,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 keysToOmit.push(Value::Str("triggerPrice".into()));
                 keysToOmit.push(Value::Str("stopPrice".into()));
             }
-            triggerPriceStr = self.price_to_precision(symbol.clone(), (match &triggerPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null })).as_str().map(str::to_owned);
+            triggerPriceStr = self.price_to_precision(symbol.clone(), (match &triggerPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         if (stopLossPrice != Value::Null) {
             if omitParams.as_bool() == Some(true) {
                 keysToOmit.push(Value::Str("stopLossPrice".into()));
             }
-            stopLossPriceStr = self.price_to_precision(symbol.clone(), (match &stopLossPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null })).as_str().map(str::to_owned);
+            stopLossPriceStr = self.price_to_precision(symbol.clone(), (match &stopLossPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         if (takeProfitPrice != Value::Null) {
             if omitParams.as_bool() == Some(true) {
                 keysToOmit.push(Value::Str("takeProfitPrice".into()));
             }
-            takeProfitPriceStr = self.price_to_precision(symbol, (match &takeProfitPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null })).as_str().map(str::to_owned);
+            takeProfitPriceStr = self.price_to_precision(symbol, (match &takeProfitPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         let mut keysToOmitLength: i64 = keysToOmit.len() as i64;
         let mut paramsOmitted: Value = (if (keysToOmitLength > 0) { self.omit(params.clone(), Value::from(keysToOmit), &[]) } else { params });
@@ -10044,66 +10034,69 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn convert_expire_date(&self, mut date: Value) -> Value {
+    fn convert_expire_date(&self, date: Option<&str>) -> Value {
+        let mut date: Value = date.into();
         if (date == Value::Null) {
             return Value::Null;
         }
         // parse YYMMDD to datetime string
-        let mut year: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut month: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut day: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut year: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None });
+        let mut month: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None });
+        let mut day: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(4).take(2).collect::<String>()) } else { None });
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
-        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "20", year).into()), "-").into()), month).into()), "-").into()), day).into()), "T00:00:00.000Z");
+        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "20", year.as_deref().unwrap_or("null")).into()), "-").into()), month.as_deref().unwrap_or("null")).into()), "-").into()), day.as_deref().unwrap_or("null")).into()), "T00:00:00.000Z");
         return Value::from(reconstructedDate);
 
     Value::Null
 }
 
-    fn convert_expire_date_to_market_id_date(&self, mut date: Value) -> Value {
+    fn convert_expire_date_to_market_id_date(&self, date: Option<&str>) -> Value {
+        let mut date: Value = date.into();
         if (date == Value::Null) {
             return Value::Null;
         }
         // parse 240119 to 19JAN24
-        let mut year: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut monthRaw: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut year: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None });
+        let mut monthRaw: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None });
         let mut month: Value = Value::Null;
-        let mut day: Value = date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        if (monthRaw.as_str() == Some("01")) {
+        let mut day: Option<String> = (if let Some(__s) = date.as_str().map(str::to_owned).as_deref() { Some(__s.chars().skip(4).take(2).collect::<String>()) } else { None });
+        if (monthRaw.as_deref() == Some("01")) {
             month = Value::Str("JAN".into());
-        }  else if (monthRaw.as_str() == Some("02")) {
+        }  else if (monthRaw.as_deref() == Some("02")) {
             month = Value::Str("FEB".into());
-        }  else if (monthRaw.as_str() == Some("03")) {
+        }  else if (monthRaw.as_deref() == Some("03")) {
             month = Value::Str("MAR".into());
-        }  else if (monthRaw.as_str() == Some("04")) {
+        }  else if (monthRaw.as_deref() == Some("04")) {
             month = Value::Str("APR".into());
-        }  else if (monthRaw.as_str() == Some("05")) {
+        }  else if (monthRaw.as_deref() == Some("05")) {
             month = Value::Str("MAY".into());
-        }  else if (monthRaw.as_str() == Some("06")) {
+        }  else if (monthRaw.as_deref() == Some("06")) {
             month = Value::Str("JUN".into());
-        }  else if (monthRaw.as_str() == Some("07")) {
+        }  else if (monthRaw.as_deref() == Some("07")) {
             month = Value::Str("JUL".into());
-        }  else if (monthRaw.as_str() == Some("08")) {
+        }  else if (monthRaw.as_deref() == Some("08")) {
             month = Value::Str("AUG".into());
-        }  else if (monthRaw.as_str() == Some("09")) {
+        }  else if (monthRaw.as_deref() == Some("09")) {
             month = Value::Str("SEP".into());
-        }  else if (monthRaw.as_str() == Some("10")) {
+        }  else if (monthRaw.as_deref() == Some("10")) {
             month = Value::Str("OCT".into());
-        }  else if (monthRaw.as_str() == Some("11")) {
+        }  else if (monthRaw.as_deref() == Some("11")) {
             month = Value::Str("NOV".into());
-        }  else if (monthRaw.as_str() == Some("12")) {
+        }  else if (monthRaw.as_deref() == Some("12")) {
             month = Value::Str("DEC".into());
         }
         if (month == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " invalid expiry date ").into()), date)));
         }
-        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day, month).into()), year);
+        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day.as_deref().unwrap_or("null"), month).into()), year.as_deref().unwrap_or("null"));
         return Value::from(reconstructedDate);
 
     Value::Null
 }
 
-    fn convert_market_id_expire_date(&self, mut date: Value) -> Value {
+    fn convert_market_id_expire_date(&self, date: Option<&str>) -> Value {
+        let mut date: Value = date.into();
         if (date == Value::Null) {
             return Value::Null;
         }
@@ -10125,18 +10118,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
-        let mut datePadded: Value = date.clone();
+        let mut datePadded: Option<String> = date.as_str().map(str::to_owned);
         if (Value::Int(date.len() as i64).as_f64() == Some(6.0)) {
-            datePadded = Value::Str(format!("{}{}", "0", date).into());
+            datePadded = Some(format!("{}{}", "0", date));
         }
-        let mut year: Value = datePadded.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut monthName: Value = datePadded.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(5); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut month: Option<String> = self.safe_string(&monthMappping, monthName, &[]).as_str().map(str::to_owned);
-        let mut day: Value = datePadded.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(5); let __j = __l.min(7); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut year: Option<String> = (if let Some(__s) = datePadded.as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None });
+        let mut monthName: Option<String> = (if let Some(__s) = datePadded.as_deref() { Some(__s.chars().skip(2).take(3).collect::<String>()) } else { None });
+        let mut month: Option<String> = self.safe_string(&monthMappping, monthName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut day: Option<String> = (if let Some(__s) = datePadded.as_deref() { Some(__s.chars().skip(5).take(2).collect::<String>()) } else { None });
         if (month.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " invalid expiry date ").into()), date)));
         }
-        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day, month.as_deref().unwrap_or("null")).into()), year);
+        let mut reconstructedDate: String = format!("{}{}", Value::Str(format!("{}{}", day.as_deref().unwrap_or("null"), month.as_deref().unwrap_or("null")).into()), year.as_deref().unwrap_or("null"));
         return Value::from(reconstructedDate);
 
     Value::Null
@@ -10362,9 +10355,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_180: bool = true;
                 while { if !__for_first_180 { i += 1; } __for_first_180 = false; i < (symbolsAndTimeframes.len() as i64) } {
-                let mut symbolAndTimeFrame: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut symbol: Option<String> = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-                let mut timeframe: Option<String> = self.safe_string(symbolAndTimeFrame, Value::Int(1), &[]).as_str().map(str::to_owned);
+                let mut symbolAndTimeFrame: crate::value::List = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+                let mut symbol: Option<String> = self.safe_string(&symbolAndTimeFrame, Value::Int(0), &[]).as_str().map(str::to_owned);
+                let mut timeframe: Option<String> = self.safe_string(&symbolAndTimeFrame, Value::Int(1), &[]).as_str().map(str::to_owned);
                 if (symbol.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cleanCache() requires a symbol argument")));
                 }
@@ -13267,7 +13260,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "account" => self.account(),
             "add_key_in_array_items" => self.add_key_in_array_items(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
-            "amount_to_precision" => self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "arrays_concat" => self.arrays_concat(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "assign_default_deposit_withdraw_fees" => self.assign_default_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "borrow_cross_margin" => crate::types::IntoRaw::into_raw(self.borrow_cross_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
@@ -13301,13 +13294,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "close_all_positions" => crate::types::IntoRaw::into_raw(self.close_all_positions(args.get(0).cloned().unwrap_or_default()).await),
             "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
             "common_currency_code" => self.common_currency_code(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "convert_expire_date" => self.convert_expire_date(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "convert_expire_date_to_market_id_date" => self.convert_expire_date_to_market_id_date(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "convert_market_id_expire_date" => self.convert_market_id_expire_date(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "convert_expire_date" => self.convert_expire_date(args.get(0).and_then(crate::Value::as_str)),
+            "convert_expire_date_to_market_id_date" => self.convert_expire_date_to_market_id_date(args.get(0).and_then(crate::Value::as_str)),
+            "convert_market_id_expire_date" => self.convert_market_id_expire_date(args.get(0).and_then(crate::Value::as_str)),
             "convert_ohlcv_to_trading_view" => self.convert_ohlcv_to_trading_view(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "convert_trading_view_to_ohlcv" => self.convert_trading_view_to_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "convert_type_to_account" => self.convert_type_to_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "cost_to_precision" => self.cost_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "cost_to_precision" => crate::Value::from(self.cost_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "create_ccxt_trade_id" => self.create_ccxt_trade_id(&args[..]),
             "create_contract_orders" => crate::types::IntoRaw::into_raw(self.create_contract_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
             "create_convert_trade" => crate::types::IntoRaw::into_raw(self.create_convert_trade(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64), args.get(4).cloned().unwrap_or_default()).await),
@@ -13387,7 +13380,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "currency" => crate::types::IntoRaw::into_raw(self.currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "currency_id" => self.currency_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "currency_ids" => self.currency_ids(&args[..]),
-            "currency_to_precision" => self.currency_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "currency_to_precision" => crate::Value::from(self.currency_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..])),
             "deposit_withdraw_fee" => self.deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "edit_limit_buy_order" => crate::types::IntoRaw::into_raw(self.edit_limit_buy_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64), args.get(4).cloned().unwrap_or_default()).await),
             "edit_limit_order" => crate::types::IntoRaw::into_raw(self.edit_limit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
@@ -13403,7 +13396,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "feature_value" => self.feature_value(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "feature_value_by_type" => self.feature_value_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "features_mapper" => self.features_mapper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "fee_to_precision" => self.fee_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "fee_to_precision" => crate::Value::from(self.fee_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "fetch" => self.fetch(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch2" => self.fetch2(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
@@ -13699,7 +13692,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "parse_ws_trades" => self.parse_ws_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
             "parsed_fee_and_fees" => self.parsed_fee_and_fees(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "price_to_precision" => crate::Value::from(self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "reduce_fees_by_currency" => self.reduce_fees_by_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
             "remove_keys_from_dict" => self.remove_keys_from_dict(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),

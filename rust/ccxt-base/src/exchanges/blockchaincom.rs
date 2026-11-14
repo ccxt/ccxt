@@ -1029,7 +1029,7 @@ impl Blockchaincom {
                 m.insert("ordType".to_string(), uppercaseOrderType.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("orderQty".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("orderQty".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
                 m.insert("clOrdId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -1057,10 +1057,10 @@ impl Blockchaincom {
             stopPriceRequired = true;
         }
         if priceRequired {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if stopPriceRequired {
-            request.insert("stopPx".into(), self.price_to_precision(symbol, triggerPrice));
+            request.insert("stopPx".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted2]);
         let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_3]).await.into_dict();

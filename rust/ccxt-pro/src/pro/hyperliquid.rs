@@ -481,8 +481,8 @@ impl Hyperliquid {
         }
         let orderglobalParamsVariable: Vec<Value> = self.parent.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut globalParams: Value = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orders: Vec<crate::types::Order> = (match self.create_orders_ws(crate::types::FromRaw::from_raw(Value::from(vec![order])), globalParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut globalParams: crate::value::Dict = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut orders: Vec<crate::types::Order> = (match self.create_orders_ws(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut ordersLength: i64 = orders.len() as i64;
         if (ordersLength == 0) {
             return self.safe_order(Value::Map({
@@ -2117,9 +2117,9 @@ impl Hyperliquid {
         //
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "coin", &[]).as_str().map(str::to_owned);
-        let mut code: Value = Value::Null;
+        let mut code: Option<String> = None;
         if (currencyId.is_none()) {
-            code = Value::Str("USDC".into());
+            code = Some("USDC".to_string());
             let mut marginSummary: crate::value::Dict = self.safe_dict_k(balance.clone(), "marginSummary", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2128,7 +2128,7 @@ impl Hyperliquid {
             account.insert("used".into(), self.safe_string_k(&marginSummary, "totalMarginUsed", &[]));
             account.insert("total".into(), self.safe_string_k(&marginSummary, "accountValue", &[]));
         }  else {
-            code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             account.insert("used".into(), self.safe_string_k(balance.clone(), "hold", &[]));
             account.insert("total".into(), self.safe_string_k(balance, "total", &[]));
         }
@@ -2139,12 +2139,12 @@ impl Hyperliquid {
     m
 })); }
             }
-            if (accountType != Value::Null) && (code != Value::Null) {
-                if let Value::Dict(__r05d) = get_value_mut(&mut self.balance, &accountType) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map(account.clone())); }
+            if (accountType != Value::Null) && (code.is_some()) {
+                if let Value::Dict(__r05d) = get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType) { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account.clone())); }
             }
         }  else {
-            if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+            if (code.is_some()) {
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
         }
 }

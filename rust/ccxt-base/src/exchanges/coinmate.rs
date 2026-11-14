@@ -1380,7 +1380,7 @@ impl Coinmate {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code.clone(), amount.clone(), &[])));
                 m.insert("address".to_string(), address.clone());
             m
         });
@@ -1922,14 +1922,14 @@ impl Coinmate {
         });
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
-                request.insert("total".into(), self.amount_to_precision(symbol.clone(), amount.clone())); // amount in fiat
+                request.insert("total".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone()))); // amount in fiat
             }  else {
-                request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount.clone())); // amount in fiat
+                request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone()))); // amount in fiat
             }
             method.push_str("Instant");
         }  else {
-            request.insert("amount".into(), self.amount_to_precision(symbol.clone(), amount)); // amount in crypto
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount))); // amount in crypto
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             method.push_str(&(self.capitalize(type_var.clone())).to_string());
         }
         let mut requestParams: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();

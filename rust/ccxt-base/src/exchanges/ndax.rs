@@ -2359,7 +2359,7 @@ impl Ndax {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into()), Value::Str("clientOrderId".into()), Value::Str("ClientOrderId".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderSide: i64 = (if (side.as_str() == Some("buy")) { 0 } else { 1 });
-        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("InstrumentId".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
@@ -2373,7 +2373,7 @@ impl Ndax {
         });
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price != Value::Null) {
-            request.insert("LimitPrice".into(), self.parse_number(self.price_to_precision(symbol, price), &[]));
+            request.insert("LimitPrice".into(), self.parse_number(Value::from(self.price_to_precision(symbol, price)), &[]));
         }
         if (clientOrderId.is_some()) {
             request.insert("ClientOrderId".into(), Value::from(clientOrderId));
@@ -2429,7 +2429,7 @@ impl Ndax {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("accountId".into()), Value::Str("AccountId".into()), Value::Str("clientOrderId".into()), Value::Str("ClientOrderId".into())]), &[]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderSide: i64 = (if (side.as_str() == Some("buy")) { 0 } else { 1 });
-        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OrderIdToReplace".to_string(), Value::from(self.parse_to_int(id)));
@@ -2447,7 +2447,7 @@ impl Ndax {
         });
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price != Value::Null) {
-            request.insert("LimitPrice".into(), self.parse_number(self.price_to_precision(symbol, price), &[]));
+            request.insert("LimitPrice".into(), self.parse_number(Value::from(self.price_to_precision(symbol, price)), &[]));
         }
         if (clientOrderId.is_some()) {
             request.insert("ClientOrderId".into(), Value::from(clientOrderId));

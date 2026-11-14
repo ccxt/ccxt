@@ -1970,10 +1970,10 @@ impl Apex {
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut orderSide: String = side.as_str().map(str::to_uppercase).unwrap_or_default();
-        let mut orderSize: Value = self.amount_to_precision(symbol.clone(), amount);
+        let mut orderSize: Value = Value::from(self.amount_to_precision(symbol.clone(), amount));
         let mut orderPrice: Value = Value::Str("0".into());
         if (price != Value::Null) {
-            orderPrice = self.price_to_precision(symbol.clone(), price.clone());
+            orderPrice = Value::from(self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut fees: crate::value::Dict = self.safe_dict_k(self.fees.clone(), "swap", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2031,7 +2031,7 @@ impl Apex {
             m
         });
         if (triggerPrice.is_some()) {
-            orderToSign.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+            orderToSign.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
         }
         let mut signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), &[Value::Map(orderToSign)]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2052,7 +2052,7 @@ impl Apex {
             m
         });
         if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         request.insert("signature".into(), signature);
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted3]);

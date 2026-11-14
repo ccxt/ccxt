@@ -1253,11 +1253,11 @@ impl Mudrex {
             });
             if (takeProfitPrice.is_some()) {
                 riskRequest.insert("is_takeprofit".into(), Value::Bool(true));
-                riskRequest.insert("takeprofit_price".into(), self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)));
+                riskRequest.insert("takeprofit_price".into(), Value::from(self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             if (stopLossPrice.is_some()) {
                 riskRequest.insert("is_stoploss".into(), Value::Bool(true));
-                riskRequest.insert("stoploss_price".into(), self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null)));
+                riskRequest.insert("stoploss_price".into(), Value::from(self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null))));
             }
             let __ws_arg_10 = self.extend(Value::Map(riskRequest), &[&paramsOmitted]);
             let mut riskResponse: Value = self.private_post_futures_positions_position_id_riskorder(&[__ws_arg_10]).await;
@@ -1273,8 +1273,8 @@ impl Mudrex {
                 m.insert("asset_id".to_string(), Value::from((market).id.as_deref()));
                 m.insert("is_symbol".to_string(), Value::Int(1));
                 m.insert("leverage".to_string(), Value::from(self.number_to_string(Value::from(lev))));
-                m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
-                m.insert("order_price".to_string(), self.price_to_precision(symbol.clone(), price));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+                m.insert("order_price".to_string(), Value::from(self.price_to_precision(symbol.clone(), price)));
                 m.insert("order_type".to_string(), (if (side.as_str() == Some("buy")) { Value::Str("LONG".into()) } else { Value::Str("SHORT".into()) }));
                 m.insert("trigger_type".to_string(), (if (type_var.as_str() == Some("market")) { Value::Str("MARKET".into()) } else { Value::Str("LIMIT".into()) }));
                 m.insert("reduce_only".to_string(), self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]));
@@ -1285,11 +1285,11 @@ impl Mudrex {
         let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
         if (takeProfit.is_some()) {
             request.insert("is_takeprofit".into(), Value::Bool(true));
-            request.insert("takeprofit_price".into(), self.price_to_precision(symbol.clone(), self.safe_string_n(&takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[])));
+            request.insert("takeprofit_price".into(), Value::from(self.price_to_precision(symbol.clone(), self.safe_string_n(&takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))));
         }
         if (stopLoss.is_some()) {
             request.insert("is_stoploss".into(), Value::Bool(true));
-            request.insert("stoploss_price".into(), self.price_to_precision(symbol, self.safe_string_n(&stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[])));
+            request.insert("stoploss_price".into(), Value::from(self.price_to_precision(symbol, self.safe_string_n(&stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))));
         }
         let mut orderParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("leverage".into()), Value::Str("reduceOnly".into()), Value::Str("takeProfit".into()), Value::Str("stopLoss".into())]), &[]).into_dict();
         let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&orderParams]);
@@ -1352,10 +1352,10 @@ impl Mudrex {
             m
         });
         if (amount != Value::Null) {
-            request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
         }
         if (price != Value::Null) {
-            request.insert("order_price".into(), self.price_to_precision(symbol, price));
+            request.insert("order_price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_patch_futures_orders_order_id(&[__ws_arg_12]).await;
@@ -1915,7 +1915,7 @@ impl Mudrex {
         if (amount != Value::Null) {
             let mut orderType: String = self.safe_string_upper_k(params.clone(), "order_type", &[Value::Str("LIMIT".into())]).as_str().unwrap_or("LIMIT").to_string();
             request.insert("order_type".into(), Value::from(orderType.clone()));
-            request.insert("quantity".into(), self.amount_to_precision(symbol, amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
             let mut lp: Option<String> = self.safe_string_k(params.clone(), "limit_price", &[]).as_str().map(str::to_owned);
             if (orderType == "LIMIT") && (lp.is_some()) {
                 request.insert("limit_price".into(), lp.map(Value::from).unwrap_or(Value::Null));
@@ -1977,7 +1977,7 @@ impl Mudrex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("position_id".to_string(), positionId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("margin".to_string(), self.cost_to_precision(symbol, amount));
+                m.insert("margin".to_string(), Value::from(self.cost_to_precision(symbol, amount)));
             m
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]).into_dict();

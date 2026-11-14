@@ -2127,12 +2127,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("timeframe".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) > ((300i64) as f64)) {
-            limitResolved = Value::Int(300);
+            limitResolved = Some(300);
         }
         if (limit != Value::Null) {
-            request.insert("count".into(), limitResolved.clone());
+            request.insert("count".into(), Value::from(limitResolved));
         }
         let mut now: Value = self.microseconds();
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
@@ -2177,7 +2177,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&result, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2401,11 +2401,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         if (uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         }
         let mut broker: String = self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string();
         request.insert("broker_id".into(), Value::from(broker));
@@ -2444,7 +2444,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isStopLossTrigger: bool = stopLossPrice.is_some();
         let mut isTakeProfitTrigger: bool = takeProfitPrice.is_some();
         if isTrigger {
-            request.insert("ref_price".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
             let mut priceString: Option<String> = self.number_to_string(price);
             if (uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
                 if (side.as_str() == Some("buy")) {
@@ -2481,14 +2481,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 request.insert("type".into(), Value::Str("STOP_LOSS".into()));
             }
-            request.insert("ref_price".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossPrice)));
+            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLossPrice))));
         }  else if isTakeProfitTrigger {
             if (uppercaseType == "LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
                 request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
             }  else {
                 request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
             }
-            request.insert("ref_price".into(), self.price_to_precision(symbol, Value::from(takeProfitPrice)));
+            request.insert("ref_price".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitPrice))));
         }  else {
             request.insert("type".into(), Value::from(uppercaseType));
         }
@@ -2693,7 +2693,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (uppercaseType.as_deref() == Some("LIMIT")) || (uppercaseType.as_deref() == Some("STOP_LIMIT")) || (uppercaseType.as_deref() == Some("TAKE_PROFIT_LIMIT")) {
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         }
         let mut broker: String = self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string();
         request.insert("broker_id".into(), Value::from(broker));
@@ -2777,7 +2777,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsCreateMarketBuy), Value::Str("cost".into()), Value::Str("notional".into()), &[]).as_f64();
             paramsMarketBuy = self.omit(&paramsCreateMarketBuy, Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
-                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
+                quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
             }  else if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
@@ -2785,14 +2785,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price);
                     let mut costRequest: Option<String> = crate::precise::Precise::stringMul(&amountString.map(Value::from).unwrap_or(Value::Null), &priceString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null));
                 }
             }  else {
-                quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone()).as_str().map(str::to_owned);
+                quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
             }
             request.insert("notional".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            request.insert("quantity".into(), self.amount_to_precision(symbol, amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketBuy, Value::from(vec![Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2871,8 +2871,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (amount == Value::Null) || (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")));
         }
-        request.insert("new_quantity".into(), self.amount_to_precision(symbol.clone(), amount));
-        request.insert("new_price".into(), self.price_to_precision(symbol, price));
+        request.insert("new_quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
+        request.insert("new_price".into(), Value::from(self.price_to_precision(symbol, price)));
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -5104,7 +5104,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("type".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         }
         if (price.is_some()) {
-            request.insert("price".into(), self.price_to_precision(Value::from((market).symbol.clone()), price.map(Value::from).unwrap_or(Value::Null)));
+            request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price.map(Value::from).unwrap_or(Value::Null))));
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.v1_private_post_private_close_position(&[__ws_arg_23]).await.into_dict();

@@ -1954,7 +1954,7 @@ impl Onetrading {
                 m.insert("instrument_code".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), Value::from(uppercaseType.clone()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         let mut priceIsRequired: bool = false;
@@ -1966,13 +1966,13 @@ impl Onetrading {
             if (uppercaseType == "MARKET") {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() cannot place stop market orders, only stop limit")));
             }
-            request.insert("trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+            request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
             request.insert("type".into(), Value::Str("STOP".into()));
         }  else if (uppercaseType == "STOP") {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice param for ").into()), type_var).into()), " orders")));
         }
         if priceIsRequired {
-            request.insert("price".into(), self.price_to_precision(symbol, price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {

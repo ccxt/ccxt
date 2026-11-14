@@ -4137,16 +4137,16 @@ impl Xt {
                         }  else {
                             costCalculated = cost.clone();
                         }
-                        request.insert("quoteQty".into(), self.cost_to_precision(symbol.clone(), costCalculated.map(Value::from).unwrap_or(Value::Null)));
+                        request.insert("quoteQty".into(), Value::from(self.cost_to_precision(symbol.clone(), costCalculated.map(Value::from).unwrap_or(Value::Null))));
                     }
                 }  else {
                     let mut amountCost: Value = (if (cost.is_some()) { cost.clone().map(Value::from).unwrap_or(Value::Null) } else { amount.clone() });
-                    request.insert("quoteQty".into(), self.cost_to_precision(symbol.clone(), amountCost));
+                    request.insert("quoteQty".into(), Value::from(self.cost_to_precision(symbol.clone(), amountCost)));
                 }
             }
         }  else {
             timeInForce = self.safe_string_upper_k(&paramsMarginMode, "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let mut isMarketBuy: bool = (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy"));
         let mut paramsWithoutCost: Value = Value::from(&paramsMarginMode);
@@ -4161,7 +4161,7 @@ impl Xt {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]).into_dict();
         if (side.as_str() == Some("sell")) || (type_var.as_str() == Some("limit")) {
-            request.insert("quantity".into(), self.amount_to_precision(symbol, amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
         request.insert("timeInForce".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4201,7 +4201,7 @@ impl Xt {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("origQty".to_string(), self.amount_to_precision(symbol.clone(), amount));
+                m.insert("origQty".to_string(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
             m
         });
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
@@ -4251,7 +4251,7 @@ impl Xt {
         }
         if (price != Value::Null) {
             if !(isStopLoss) && !(isTakeProfit) && !(isTrailing) {
-                request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+                request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
             }
         }
         if isTrailing {
@@ -4269,7 +4269,7 @@ impl Xt {
                 request.insert("callbackVal".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
             }
             if (trailingTriggerPrice.is_some()) {
-                request.insert("activationPrice".into(), self.price_to_precision(symbol.clone(), Value::from(trailingTriggerPrice)));
+                request.insert("activationPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(trailingTriggerPrice))));
             }
             let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into())]), &[]).into_dict();
             if ((market).linear == Some(true)) {
@@ -4283,7 +4283,7 @@ impl Xt {
             request.insert("timeInForce".into(), (if (timeInForce.is_none()) { Value::Str("GTC".into()) } else { timeInForce.clone().map(Value::from).unwrap_or(Value::Null) }));
             request.insert("triggerPriceType".into(), self.safe_string_k(&paramsOmitted4, "triggerPriceType", &[Value::Str("LATEST_PRICE".into())]));
             request.insert("orderSide".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-            request.insert("stopPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
             let mut entrustType: String = "STOP".to_string();
             if (type_var.as_str() == Some("market")) {
                 entrustType = "STOP_MARKET".to_string();
@@ -4299,9 +4299,9 @@ impl Xt {
             }
         }  else if isStopLoss || isTakeProfit {
             if isStopLoss {
-                request.insert("triggerStopPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLoss)));
+                request.insert("triggerStopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLoss))));
             }  else {
-                request.insert("triggerProfitPrice".into(), self.price_to_precision(symbol, Value::from(takeProfit)));
+                request.insert("triggerProfitPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfit))));
             }
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOmitted4, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).into_dict();
             if ((market).linear == Some(true)) {
@@ -6173,7 +6173,7 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("chain".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("address".to_string(), address);
             m
         });
@@ -7813,7 +7813,7 @@ impl Xt {
         let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsById", &[]).into_dict();
         let mut fromAccountId: Option<String> = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]).as_str().map(str::to_owned);
         let mut toAccountId: Option<String> = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]).as_str().map(str::to_owned);
-        let mut amountString: Option<String> = self.currency_to_precision(code, amount, &[]).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.currency_to_precision(code, amount, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bizId".to_string(), Value::from(self.uuid(&[])));
@@ -7967,16 +7967,16 @@ impl Xt {
             request.insert("profitId".into(), id.clone());
         }  else {
             request.insert("orderId".into(), id);
-            request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let mut response: Value = Value::Null;
         if (market).swap {
             if isStopLoss {
-                request.insert("triggerStopPrice".into(), self.price_to_precision(symbol.clone(), Value::from(stopLoss)));
+                request.insert("triggerStopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLoss))));
             }  else if (takeProfit.is_some()) {
-                request.insert("triggerProfitPrice".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfit)));
+                request.insert("triggerProfitPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfit))));
             }  else {
-                request.insert("origQty".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
+                request.insert("origQty".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }
             let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("editOrder".into()), Some(&market), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default();
             let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -7999,7 +7999,7 @@ impl Xt {
                 }
             }
         }  else {
-            request.insert("quantity".into(), self.amount_to_precision(symbol, amount));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
             let __ws_arg_112 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_spot_put_order_order_id(&[__ws_arg_112]).await;
         }
