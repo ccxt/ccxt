@@ -1642,7 +1642,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //     }
             //
             return this.safeTimestamp(response, "epoch");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

@@ -546,7 +546,7 @@ public class Lbank extends LbankApi
             //     }
             //
             return this.safeInteger(response, "data");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

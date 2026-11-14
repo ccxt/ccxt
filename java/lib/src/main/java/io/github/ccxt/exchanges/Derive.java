@@ -808,7 +808,7 @@ public class Derive extends DeriveApi
             //     }
             //
             return this.safeInteger(response, "result");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

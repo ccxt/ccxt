@@ -1295,7 +1295,7 @@ public class Bingx extends BingxApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             return this.safeInteger(data, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

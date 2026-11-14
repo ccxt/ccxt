@@ -1086,7 +1086,7 @@ public class Opinion extends OpinionApi
                 throw new ExchangeError(((this.id + " loadQuoteToken() could not find quote token ") + quoteTokenAddress)) ;
             }
             return quoteToken;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -1113,7 +1113,7 @@ public class Opinion extends OpinionApi
             String multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
             this.options.put("multiSignAddress", multiSignAddress);
             return multiSignAddress;
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
@@ -1966,7 +1966,7 @@ public class Opinion extends OpinionApi
             // sign() treats an empty key as absent
             this.apiKey = "";
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

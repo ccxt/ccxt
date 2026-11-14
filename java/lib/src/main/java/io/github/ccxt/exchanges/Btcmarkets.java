@@ -747,7 +747,7 @@ public class Btcmarkets extends BtcmarketsApi
             //     }
             //
             return this.parse8601(this.safeString(response, "timestamp"));
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

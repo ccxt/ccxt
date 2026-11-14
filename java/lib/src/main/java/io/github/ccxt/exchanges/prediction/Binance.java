@@ -1948,7 +1948,7 @@ public class Binance extends BinanceApi
             // }
             //
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

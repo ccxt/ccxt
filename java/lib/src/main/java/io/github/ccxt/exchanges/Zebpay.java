@@ -454,7 +454,7 @@ public class Zebpay extends ZebpayApi
             //
             Long time = this.safeInteger(data, "timestamp");
             return time;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

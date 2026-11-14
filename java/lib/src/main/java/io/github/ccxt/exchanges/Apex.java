@@ -417,7 +417,7 @@ public class Apex extends ApexApi
             //     }
             // }
             return this.safeInteger(data, "time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -1547,7 +1547,7 @@ public class Apex extends ApexApi
                 this.options.put("accountId", this.safeString(accountData, "id", "0"));
             }
             return this.safeString(this.options, "accountId");
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

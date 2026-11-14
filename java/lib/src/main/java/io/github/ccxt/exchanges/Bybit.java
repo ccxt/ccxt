@@ -2786,7 +2786,7 @@ public class Bybit extends BybitApi
             //     }
             //
             return this.safeInteger(response, "time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

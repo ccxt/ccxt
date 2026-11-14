@@ -2669,7 +2669,7 @@ public class Hibachi extends HibachiApi
             //     { "timestampMs":1754077574040 }
             //
             return this.safeInteger(response, "timestampMs");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

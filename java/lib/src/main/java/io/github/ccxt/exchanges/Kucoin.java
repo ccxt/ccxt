@@ -2119,7 +2119,7 @@ public class Kucoin extends KucoinApi
                 response = (this.publicGetTimestamp(paramsMarketType)).join();
             }
             return this.safeInteger(response, "data");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -2820,7 +2820,7 @@ public class Kucoin extends KucoinApi
                 this.options.put("hf", this.safeBool(result, "data", (Object) null));
             }
             return true;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 
@@ -13868,7 +13868,7 @@ public class Kucoin extends KucoinApi
             }
             Boolean uta = java.util.Objects.equals(this.safeBool(this.options, "uta", (Object) null), true);
             return uta;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 

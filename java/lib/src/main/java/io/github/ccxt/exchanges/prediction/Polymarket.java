@@ -1850,7 +1850,7 @@ public class Polymarket extends PolymarketApi
                 put( "serverTime", response );
             }};
             return this.safeTimestamp(result, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

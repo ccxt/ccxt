@@ -1095,7 +1095,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             // Promise<string> with Promise<Order['status']>.
             Order order = (this.fetchOrder(id, symbol, parameters)).join();
             return this.safeString(order, "status");
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

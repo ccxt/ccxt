@@ -2885,7 +2885,7 @@ public class Kalshi extends KalshiApi
                 fullEvent.put("markets", this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList())));
             }
             return fullEvent;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

@@ -677,7 +677,7 @@ public class Alpaca extends AlpacaApi
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
             return timestamp;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

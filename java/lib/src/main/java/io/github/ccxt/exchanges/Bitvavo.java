@@ -535,7 +535,7 @@ public class Bitvavo extends BitvavoApi
             //     { "time": 1590379519148 }
             //
             return this.safeInteger(response, "time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

@@ -717,7 +717,7 @@ public class Coinbase extends CoinbaseApi
                 response = (this.v3PublicGetBrokerageTime(paramsOmitted)).join();
             }
             return this.safeTimestamp2(response, "epoch", "epochSeconds");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -3541,7 +3541,7 @@ public class Coinbase extends CoinbaseApi
                 }
             }
             return null;
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

@@ -548,7 +548,7 @@ public class Upbit extends UpbitApi
                 h2kMap0.put("limits", mapLiteral1);
                 return h2kMap0;
             }
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

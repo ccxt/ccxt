@@ -3370,7 +3370,7 @@ public class Extended extends ExtendedApi
                 h2kMap5.put("amount", amountString);
                 return h2kMap5;
             }
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

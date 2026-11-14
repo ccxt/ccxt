@@ -492,7 +492,7 @@ public class Hyperliquid extends HyperliquidApi
             // { specialStatuses: null, time: '1764617438643' }
             //
             return this.safeInteger(response, "time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -6016,7 +6016,7 @@ public class Hyperliquid extends HyperliquidApi
             request.put("signature", signature);
             Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

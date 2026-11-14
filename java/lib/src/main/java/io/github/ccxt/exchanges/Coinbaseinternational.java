@@ -721,7 +721,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             Long timestamp = this.safeInteger(response, "result");
             return timestamp;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -3854,7 +3854,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             this.options.put("v2AccessToken", accessToken);
             this.options.put("v2TokenExpires", this.sum(now, tokenRefreshInMilliseconds));
             return accessToken;
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

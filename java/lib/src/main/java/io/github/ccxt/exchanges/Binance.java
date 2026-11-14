@@ -4718,7 +4718,7 @@ public class Binance extends BinanceApi
                 response = (this.publicGetTime(query)).join();
             }
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -17019,7 +17019,7 @@ public class Binance extends BinanceApi
             //     }
             //
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -17050,7 +17050,7 @@ public class Binance extends BinanceApi
             //     }
             //
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

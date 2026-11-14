@@ -620,7 +620,7 @@ public class Dydx extends DydxApi
             // }
             //
             return this.safeInteger(response, "epoch");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -1798,7 +1798,7 @@ public class Dydx extends DydxApi
                 throw new ExchangeError((this.id + " fetchLatestBlockHeight() could not parse last_block_height")) ;
             }
             return height;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

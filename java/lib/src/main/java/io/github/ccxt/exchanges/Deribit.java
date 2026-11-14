@@ -957,7 +957,7 @@ public class Deribit extends DeribitApi
             //     }
             //
             return this.safeInteger(response, "result");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

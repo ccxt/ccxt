@@ -489,7 +489,7 @@ public class Onetrading extends OnetradingApi
             //     }
             //
             return this.safeInteger(response, "epoch_millis");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -847,7 +847,7 @@ public class Onetrading extends OnetradingApi
     }});
             }
             return result;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -924,7 +924,7 @@ public class Onetrading extends OnetradingApi
     }});
             }
             return result;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

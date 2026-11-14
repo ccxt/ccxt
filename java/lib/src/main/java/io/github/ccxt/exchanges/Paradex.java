@@ -790,7 +790,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             return this.safeInteger(response, "server_time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -2003,7 +2003,7 @@ public class Paradex extends ParadexApi
             Helpers.addElementToObject(parameters, "public_key", this.safeString(account, "publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -2070,7 +2070,7 @@ public class Paradex extends ParadexApi
             this.options.put("authToken", token);
             this.options.put("expires", expires);
             return token;
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

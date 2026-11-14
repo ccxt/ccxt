@@ -2323,7 +2323,7 @@ public class Htx extends HtxApi
             //     {"status":"ok","ts":1637504164707}
             //
             return this.safeInteger2(response, "data", "ts");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -4395,7 +4395,7 @@ public class Htx extends HtxApi
             }
             Map<String, Object> defaultAccount = (Map<String, Object>) this.safeDict(accounts, 0, new HashMap<String, Object>() {{}});
             return this.safeString(defaultAccount, "id");
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

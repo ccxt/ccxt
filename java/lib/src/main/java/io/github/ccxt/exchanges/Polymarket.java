@@ -470,7 +470,7 @@ public class Polymarket extends PolymarketApi
             //     { "time": 1788524530209 }
             //
             return this.safeInteger(response, "time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

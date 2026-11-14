@@ -1774,7 +1774,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             return this.safeTimestamp(response, "server_time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

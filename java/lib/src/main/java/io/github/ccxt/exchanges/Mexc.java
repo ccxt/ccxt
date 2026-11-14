@@ -1473,7 +1473,7 @@ public class Mexc extends MexcApi
                 return this.safeInteger(response, "data");
             }
             return null;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

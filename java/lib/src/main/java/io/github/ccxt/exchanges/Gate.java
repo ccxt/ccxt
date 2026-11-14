@@ -2026,7 +2026,7 @@ public class Gate extends GateApi
             }
             Boolean unified = java.util.Objects.equals(this.safeBool(this.options, "unifiedAccount", (Object) null), true);
             return unified;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 
@@ -2060,7 +2060,7 @@ public class Gate extends GateApi
             //     }
             //
             return this.safeInteger(response, "server_time");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -3342,7 +3342,7 @@ public class Gate extends GateApi
     }});
             }
             return result;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

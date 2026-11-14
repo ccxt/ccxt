@@ -1283,7 +1283,7 @@ public class Xt extends XtApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
             return this.safeInteger(data, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

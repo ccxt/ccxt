@@ -194,7 +194,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 ((Map<String,Object>)this.options.get("urls")).remove((String)connectId);
             }
             return null;
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
@@ -355,7 +355,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             }
             return this.safeString(this.options, "utaToken");
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

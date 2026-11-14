@@ -652,7 +652,7 @@ public class Cex extends CexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             Long timestamp = this.safeInteger(data, "timestamp");
             return timestamp;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

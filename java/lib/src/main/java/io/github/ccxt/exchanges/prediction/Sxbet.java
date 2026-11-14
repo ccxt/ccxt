@@ -792,7 +792,7 @@ public class Sxbet extends SxbetApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             this.options.put("sxObv3Metadata", data);
             return data;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -2633,7 +2633,7 @@ public class Sxbet extends SxbetApi
             Map<String, Object> response = (this.sxbetPrivateGetUserRealtimeTokenV3ApiKey(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeString2(data, "token", "realtimeToken", this.safeString(response, "token"));
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

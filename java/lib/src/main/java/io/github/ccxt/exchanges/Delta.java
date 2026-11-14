@@ -555,7 +555,7 @@ public class Delta extends DeltaApi
             // full response sample under `fetchStatus`
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.safeIntegerProduct(result, "server_time", 0.001);
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

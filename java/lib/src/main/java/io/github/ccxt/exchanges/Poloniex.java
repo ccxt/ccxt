@@ -1328,7 +1328,7 @@ public class Poloniex extends PoloniexApi
 
             Map<String, Object> response = (this.publicGetTimestamp(parameters)).join();
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -3114,7 +3114,7 @@ public class Poloniex extends PoloniexApi
             }};
             String found = (((indexed.containsKey(id)))) ? "true" : "false";
             return this.safeString(statuses, found);
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

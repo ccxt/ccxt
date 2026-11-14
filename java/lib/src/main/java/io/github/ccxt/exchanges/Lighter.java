@@ -626,7 +626,7 @@ public class Lighter extends LighterApi
             (this.handleBuilderFeeApproval(accountIndex, apiKeyIndex)).join();
             Boolean loaded = (!java.util.Objects.equals(signer, null));
             return loaded;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 
@@ -874,7 +874,7 @@ public class Lighter extends LighterApi
                 return false;
             }
             return true;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 
@@ -914,7 +914,7 @@ public class Lighter extends LighterApi
             tiersForAccountIndexes.put(accountIndexStr, isStandard);
             this.options.put("tiersForAccountIndexes", tiersForAccountIndexes);
             return isStandard;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 
@@ -1513,7 +1513,7 @@ public class Lighter extends LighterApi
             //     }
             //
             return this.safeTimestamp(response, "timestamp");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

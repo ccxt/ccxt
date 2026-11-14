@@ -2596,7 +2596,7 @@ public class Backpack extends BackpackApi
             //     1753131712992
             //
             return this.safeInteger(response, 0, this.milliseconds());
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

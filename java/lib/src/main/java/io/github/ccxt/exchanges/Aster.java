@@ -1517,7 +1517,7 @@ public class Aster extends AsterApi
             // }
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 

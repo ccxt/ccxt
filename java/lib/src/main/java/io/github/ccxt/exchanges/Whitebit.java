@@ -2497,7 +2497,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             return this.safeIntegerProduct(response, "time", 1000);
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
