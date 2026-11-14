@@ -2432,11 +2432,11 @@ class gate extends \ccxt\async\gate {
     }
 
     public function get_url_by_market(mixed $market): string {
-        $baseUrl = $this->urls['api'][$market['type']];
         if ($this->safe_bool($market, 'contract', false)) {
-            return ($this->safe_bool($market, 'linear', false)) ? $baseUrl['usdt'] : $baseUrl['btc'];
+            $settleKey = ($this->safe_bool($market, 'linear', false)) ? 'usdt' : 'btc';
+            return $this->safe_string($this->urls['api'][$market['type']], $settleKey, '');
         } else {
-            return $baseUrl;
+            return $this->safe_string($this->urls['api'], $market['type'], '');
         }
     }
 
@@ -2454,12 +2454,11 @@ class gate extends \ccxt\async\gate {
     }
 
     public function get_url_by_market_type(?string $type, ?bool $isInverse = false): ?string {
-        $api = $this->urls['api'];
-        $url = $this->safe_value($api, $type);
         if (($type === 'swap') || ($type === 'future')) {
-            return $isInverse ? $url['btc'] : $url['usdt'];
+            $settleKey = $isInverse ? 'btc' : 'usdt';
+            return $this->safe_string($this->safe_dict($this->urls['api'], $type), $settleKey);
         } else {
-            return $url;
+            return $this->safe_string($this->urls['api'], $type);
         }
     }
 

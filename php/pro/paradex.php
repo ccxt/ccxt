@@ -88,12 +88,13 @@ class paradex extends \ccxt\async\paradex {
     }
 
     public function get_ws_url(): string {
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         if (!$this->safe_bool($this->options, 'sbe', true)) {
             return $url;
+        } else {
+            $schemaVersion = $this->safe_string($this->options, 'sbeSchemaVersion', '3');
+            return $url . '?sbeSchemaId=1&sbeSchemaVersion=' . $schemaVersion;
         }
-        $schemaVersion = $this->safe_string($this->options, 'sbeSchemaVersion', '3');
-        return $url . '?sbeSchemaId=1&sbeSchemaVersion=' . $schemaVersion;
     }
 
     public function get_order_book_channel(?string $marketId, bool $deltas = false): string {

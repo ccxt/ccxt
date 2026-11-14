@@ -272,7 +272,7 @@ class testMainClass {
             }
             $skip_message = null;
             $supported_by_exchange = (is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) && ($exchange->has[$method_name] !== null) && ($exchange->has[$method_name] !== false);
-            if (!$is_load_markets && ((count($this->only_specific_tests) > 0) && ($exchange->in_array($method_name, $this->only_specific_tests) !== true))) {
+            if (!$is_load_markets && ((count($this->only_specific_tests) > 0) && !$exchange->in_array($method_name, $this->only_specific_tests))) {
                 $skip_message = '[INFO] IGNORED_TEST';
             } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test && !$is_feature_test && !$is_constructor_test) {
                 $skip_message = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message

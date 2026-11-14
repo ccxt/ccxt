@@ -117,9 +117,10 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             return 'wss://www.deribit.com/ws/api/v2';
         }
         if ($isPrivate) {
-            return $this->urls['api']['wsPrivate'];
+            return $this->safe_string($this->urls['api'], 'wsPrivate', '');
+        } else {
+            return $this->safe_string($this->urls['api'], 'ws', '');
         }
-        return $this->urls['api']['ws'];
     }
 
     public function ping(Client $client): Dict | Str {
