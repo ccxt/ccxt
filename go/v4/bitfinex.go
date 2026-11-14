@@ -1602,7 +1602,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	}()
 	var orders []any = this.ToArray(orderbook)
 	for i := 0; i < len(orders); i++ {
-		var order any = DerefScalar(orders[i])
+		var order any = orders[i]
 		var price *float64 = this.SafeNumber(order, priceIndex)
 		var signedAmount *string = this.SafeString(order, 2)
 		var amount *string = Precise.StringAbs(signedAmount)
@@ -4551,7 +4551,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	var rawRatesData []any = this.ToArray(response)
 	var rates []any = []any{}
 	for i := 0; i < len(rawRatesData); i++ {
-		var fr any = DerefScalar(rawRatesData[i])
+		var fr any = rawRatesData[i]
 		var rate any = this.ParseFundingRateHistory(fr, market)
 		rates = append(rates, rate)
 	}

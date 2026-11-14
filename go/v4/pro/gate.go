@@ -1769,7 +1769,7 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	}
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var ohlcv any = ccxt.DerefScalar(result[i])
+		var ohlcv any = result[i]
 		var subscription string = *this.SafeString(ohlcv, "n", "")
 		var parts []string = strings.Split(subscription, "_")
 		var timeframeId *string = this.SafeString(parts, 0)

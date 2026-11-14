@@ -5040,7 +5040,7 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 			return
 		}
 		for i := 0; i < len(B); i++ {
-			var entry any = ccxt.DerefScalar(B[i])
+			var entry any = B[i]
 			var currencyId *string = this.SafeString(entry, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
