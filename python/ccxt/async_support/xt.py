@@ -5559,8 +5559,9 @@ class xt(Exchange, ImplicitAPI):
             jsonBody = self.json(query)
             signedBody = None if isUndefinedBody else jsonBody
             payloadString = ''
+            timestampPart = '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
             if (endpoint == 'spot') or (endpoint == 'user'):
-                spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp
+                spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + self.apiKey + '&xt-validate-recvwindow=' + recvWindow + timestampPart
                 if isUndefinedBody:
                     if urlencoded != '':
                         url = apiUrl + payload + '?' + urlencoded
@@ -5572,7 +5573,7 @@ class xt(Exchange, ImplicitAPI):
                 headersValue['xt-validate-algorithms'] = 'HmacSHA256'
                 headersValue['xt-validate-recvwindow'] = recvWindow
             else:
-                futurePrefix = 'xt-validate-appkey=' + self.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp  # we can't glue timestamp, breaks in php
+                futurePrefix = 'xt-validate-appkey=' + self.apiKey + timestampPart
                 if method == 'GET':
                     if urlencoded != '':
                         url = apiUrl + payload + '?' + urlencoded
