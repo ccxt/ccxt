@@ -1518,7 +1518,7 @@ export default class polymarket extends Exchange {
         const request: Dict = { 'market': conditionId };
         request['limit'] = this.safeInteger (this.options, 'tradesPageSize', 500);
         const response = await this.dataPublicGetTrades (this.extend (request, params));
-        const rawTrades = Array.isArray (response) ? response : this.safeList (response, 'data', []);
+        const rawTrades: Dict[] = Array.isArray (response) ? response : this.safeList (response, 'data', []);
         const filteredTrades: any[] = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = rawTrades[i];

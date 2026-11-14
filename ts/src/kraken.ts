@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
+import type { IndexType, Dictionary, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, CurrencyInterface, Market, MarketInterface, TransferEntry, Num, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, List, DepositAddress, Position, OrderRequest, NullableDict, FeeString, NullableList, Status, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1142,7 +1142,7 @@ export default class kraken extends Exchange {
             request['pair'] = marketIds.join (',');
         }
         const response = await this.publicGetTicker (this.extend (request, params));
-        const tickers = this.safeDict (response, 'result', {});
+        const tickers: Dictionary<Dict> = this.safeDict (response, 'result', {});
         const ids = Object.keys (tickers);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
@@ -1369,7 +1369,7 @@ export default class kraken extends Exchange {
         //                                                    "fee": "0.0050000000",
         //                                                "balance": "0.0000051000"           },
         const result = this.safeDict (response, 'result', {});
-        const ledger = this.safeDict (result, 'ledger', {});
+        const ledger: Dictionary<Dict> = this.safeDict (result, 'ledger', {});
         const keys = Object.keys (ledger);
         const items: List = [];
         for (let i = 0; i < keys.length; i++) {

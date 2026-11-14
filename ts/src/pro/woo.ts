@@ -5,7 +5,7 @@ import wooRest from '../woo.js';
 import { ArgumentsRequired, ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Fee, List, Bool, FundingRate, Market, int } from '../base/types.js';
+import type { Dictionary, Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Fee, List, Bool, FundingRate, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -1434,7 +1434,7 @@ export default class woo extends wooRest {
         //    }
         //
         const data = this.safeDict (message, 'data', {});
-        const rawPositions = this.safeDict (data, 'positions', {});
+        const rawPositions: Dictionary<Dict> = this.safeDict (data, 'positions', {});
         const postitionsIds = Object.keys (rawPositions);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();

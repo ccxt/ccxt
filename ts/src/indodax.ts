@@ -6,7 +6,7 @@ import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, Endpoint } from './base/types.js';
+import type{ Dictionary, Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress, Fee, List, NullableDict, DepositWithdrawFee, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -643,7 +643,7 @@ export default class indodax extends Exchange {
         // }
         //
         const response = await this.publicGetApiTickerAll (params);
-        const tickers = this.safeDict (response, 'tickers', {});
+        const tickers: Dictionary<Dict> = this.safeDict (response, 'tickers', {});
         const keys = Object.keys (tickers);
         const parsedTickers: Dict = {};
         for (let i = 0; i < keys.length; i++) {

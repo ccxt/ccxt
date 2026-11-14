@@ -995,7 +995,7 @@ export default class xt extends xtRest {
         //        ]
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const firstTicker = this.safeDict (data, 0);
         const spotTest = this.safeString2 (firstTicker, 'cv', 'aq');
         let tradeType: Str = 'contract';

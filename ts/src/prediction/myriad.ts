@@ -270,7 +270,7 @@ export default class myriad extends Exchange {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const found = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const found: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const networkId = this.safeString (raw, 'networkId', '');
@@ -446,7 +446,7 @@ export default class myriad extends Exchange {
                 'limit': limit,
             }, rest));
             const responseIsArray = Array.isArray (response);
-            const found = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const found: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
             for (let j = 0; j < found.length; j++) {
                 const raw = found[j];
                 const questionId = this.safeString (raw, 'id');
@@ -487,7 +487,7 @@ export default class myriad extends Exchange {
             }
             const response = await this.myriadPublicGetQuestions (this.extend (request, rest));
             const responseIsArray = Array.isArray (response);
-            const rawQuestions = (responseIsArray) ? response : this.safeList (response, 'data', []);
+            const rawQuestions: Dict[] = (responseIsArray) ? response : this.safeList (response, 'data', []);
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
                 break;
