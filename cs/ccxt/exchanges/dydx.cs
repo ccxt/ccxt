@@ -1424,7 +1424,7 @@ public partial class dydx : Exchange
         return signature;
     }
 
-    public virtual string? signDydxTx(object privateKey, object message, string? memo, string? chainId, object account, object authenticators, object fee = null)
+    public virtual string? signDydxTx(object privateKey, object message, string? memo, string? chainId, IDictionary<string, object> account, object authenticators, object fee = null)
     {
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((IList<object>) encodedTxsignDocVariable)[0];
