@@ -848,6 +848,19 @@ impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**se
 pub trait OmitSource { fn into_operand(self) -> Value; }
 impl OmitSource for Value { fn into_operand(self) -> Value { self } }
 impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
+/// The keys `omit` drops: a `Value` (one string, or a list whose string items are keys; anything else drops nothing),
+/// or a literal key list printed as `&["a", "b"]`.
+pub trait OmitKeys { fn for_each_key(self, f: impl FnMut(&str)); }
+impl OmitKeys for Value {
+    fn for_each_key(self, mut f: impl FnMut(&str)) {
+        match self {
+            Value::Arr(ks) => { for k in ks.iter() { if let Value::Str(s) = k { f(s.as_ref()); } } }
+            Value::Str(s) => f(s.as_ref()),
+            _ => {}
+        }
+    }
+}
+impl<const N: usize> OmitKeys for &[&str; N] { fn for_each_key(self, mut f: impl FnMut(&str)) { for k in self.iter() { f(k); } } }
 /// A dict local lent to a `params: impl Into<Value>` parameter: the shared map, not a copy.
 impl From<&Dict> for Value { fn from(m: &Dict) -> Self { Value::Dict(Arc::clone(m)) } }
 impl From<&List> for Value { fn from(a: &List) -> Self { Value::Arr(Arc::clone(a)) } }

@@ -1957,23 +1957,11 @@ impl Exchange {
         current
     }
 
-    pub fn omit(&self, obj: impl crate::value::OmitSource, keys: Value, _optional_args: &[Value]) -> Value {
+    pub fn omit(&self, obj: impl crate::value::OmitSource, keys: impl crate::value::OmitKeys, _optional_args: &[Value]) -> Value {
         match obj.into_operand() {
             Value::Dict(mut m) => {
                 let mm = Arc::make_mut(&mut m);
-                match keys {
-                    Value::Arr(ks) => {
-                        for k in ks.iter() {
-                            if let Value::Str(s) = k {
-                                mm.shift_remove(s.as_ref());
-                            }
-                        }
-                    }
-                    Value::Str(s) => {
-                        mm.shift_remove(s.as_ref());
-                    }
-                    _ => {}
-                }
+                keys.for_each_key(|k| { mm.shift_remove(k); });
                 Value::Dict(m)
             }
             other => other,
