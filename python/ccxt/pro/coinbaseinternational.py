@@ -111,8 +111,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if self.isNativeDeribitCredentials() is True:
             return 'wss://www.deribit.com/ws/api/v2'
         if isPrivate:
-            return self.urls['api']['wsPrivate']
-        return self.urls['api']['ws']
+            return self.safe_string(self.urls['api'], 'wsPrivate', '')
+        else:
+            return self.safe_string(self.urls['api'], 'ws', '')
 
     def ping(self, client: Client) -> dict | Str:
         refreshAt = self.safe_integer(self.options, 'wsAuthRefreshAt')

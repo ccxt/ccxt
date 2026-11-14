@@ -2113,11 +2113,11 @@ class gate(ccxt.async_support.gate):
                 client.resolve(result, requestId)
 
     def get_url_by_market(self, market: object) -> str:
-        baseUrl = self.urls['api'][market['type']]
         if self.safe_bool(market, 'contract', False):
-            return baseUrl['usdt'] if (self.safe_bool(market, 'linear', False)) else baseUrl['btc']
+            settleKey = 'usdt' if (self.safe_bool(market, 'linear', False)) else 'btc'
+            return self.safe_string(self.urls['api'][market['type']], settleKey, '')
         else:
-            return baseUrl
+            return self.safe_string(self.urls['api'], market['type'], '')
 
     def get_type_by_market(self, market: Market) -> Str:
         if market is None:
@@ -2130,12 +2130,11 @@ class gate(ccxt.async_support.gate):
             return 'futures'
 
     def get_url_by_market_type(self, type: Str, isInverse: Bool = False) -> Str:
-        api = self.urls['api']
-        url = self.safe_value(api, type)
         if (type == 'swap') or (type == 'future'):
-            return url['btc'] if isInverse else url['usdt']
+            settleKey = 'btc' if isInverse else 'usdt'
+            return self.safe_string(self.safe_dict(self.urls['api'], type), settleKey)
         else:
-            return url
+            return self.safe_string(self.urls['api'], type)
 
     def get_market_type_by_url(self, url: str) -> str:
         findBy = {

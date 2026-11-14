@@ -85,11 +85,12 @@ class paradex(ccxt.async_support.paradex):
         })
 
     def get_ws_url(self) -> str:
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws', '')
         if not self.safe_bool(self.options, 'sbe', True):
             return url
-        schemaVersion = self.safe_string(self.options, 'sbeSchemaVersion', '3')
-        return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion
+        else:
+            schemaVersion = self.safe_string(self.options, 'sbeSchemaVersion', '3')
+            return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion
 
     def get_order_book_channel(self, marketId: Str, deltas: bool = False) -> str:
         if deltas:
