@@ -1083,9 +1083,9 @@ export default class polymarket extends Exchange {
             const midpoints = responses[1];
             const lastTradesResponse = responses[2];
             const booksIsArray = Array.isArray (booksResponse);
-            const books = (booksIsArray) ? booksResponse : [];
+            const books: Dict[] = (booksIsArray) ? booksResponse : [];
             const lastTradesIsArray = Array.isArray (lastTradesResponse);
-            const lastTrades = (lastTradesIsArray) ? lastTradesResponse : [];
+            const lastTrades: Dict[] = (lastTradesIsArray) ? lastTradesResponse : [];
             const lastTradesByTokenId: Dict = {};
             const lastTradesLength = lastTrades.length;
             for (let li = 0; li < lastTradesLength; li++) {

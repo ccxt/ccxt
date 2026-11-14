@@ -646,7 +646,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const markets = this.safeDict (assetsResponse, 'result', {});
+        const markets: Dictionary<Dict> = this.safeDict (assetsResponse, 'result', {});
         const cachedCurrencies = this.safeDict (this.options, 'cachedCurrencies', {});
         const keys = Object.keys (markets);
         const result: List = [];
@@ -2572,7 +2572,7 @@ export default class kraken extends Exchange {
             'trades': true, // whether or not to include trades in output (optional, default false)
             'txid': ids.join (','), // comma delimited list of transaction ids to query info about (20 maximum)
         }, params));
-        const result = this.safeDict (response, 'result', {});
+        const result: Dictionary<Dict> = this.safeDict (response, 'result', {});
         const orders: List = [];
         const orderIds = Object.keys (result);
         for (let i = 0; i < orderIds.length; i++) {
@@ -2882,7 +2882,7 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const open = this.safeDict (result, 'open', {});
+        const open: Dictionary<Dict> = this.safeDict (result, 'open', {});
         const orders: List = [];
         const orderIds = Object.keys (open);
         for (let i = 0; i < orderIds.length; i++) {
@@ -2971,7 +2971,7 @@ export default class kraken extends Exchange {
             market = this.market (symbol);
         }
         const result = this.safeDict (response, 'result', {});
-        const closed = this.safeDict (result, 'closed', {});
+        const closed: Dictionary<Dict> = this.safeDict (result, 'closed', {});
         const orders: List = [];
         const orderIds = Object.keys (closed);
         for (let i = 0; i < orderIds.length; i++) {

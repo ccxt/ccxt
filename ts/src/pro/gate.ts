@@ -1201,7 +1201,7 @@ export default class gate extends gateRest {
             marketType = 'spot';
         }
         const rawResult = this.safeValue (message, 'result');
-        let result: List = [];
+        let result: Dict[] = [];
         if (Array.isArray (rawResult)) {
             result = this.safeList (message, 'result', []);
         } else {

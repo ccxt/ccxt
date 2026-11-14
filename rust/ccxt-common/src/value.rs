@@ -97,11 +97,11 @@ impl Value {
     ///
     /// On a WS-cache Map (carrying a `__cacheKind` marker; see
     /// `crate::pro::cache`) it dispatches to the per-kind logic below.
-    pub fn append(&mut self, item: Value) {
+    pub fn append(&mut self, item: impl Into<Value>) {
         match self {
-            Value::Arr(a) => Arc::make_mut(a).push(item),
+            Value::Arr(a) => Arc::make_mut(a).push(item.into()),
             Value::Dict(m) if m.contains_key("__cacheKind") => {
-                cache_append(self, item);
+                cache_append(self, item.into());
             }
             _ => {}
         }

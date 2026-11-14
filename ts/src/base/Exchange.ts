@@ -9488,7 +9488,7 @@ export class BaseExchange {
         const symbols = this.safeList (subscription, 'symbols', []);
         const symbolsLength = symbols.length;
         if (topic === 'ohlcv') {
-            const symbolsAndTimeframes = this.safeList (subscription, 'symbolsAndTimeframes', []);
+            const symbolsAndTimeframes: string[][] = this.safeList (subscription, 'symbolsAndTimeframes', []);
             for (let i = 0; i < symbolsAndTimeframes.length; i++) {
                 const symbolAndTimeFrame = symbolsAndTimeframes[i];
                 const symbol = this.safeString (symbolAndTimeFrame, 0);

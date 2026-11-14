@@ -2770,7 +2770,7 @@ export default class myriad extends Exchange {
             chart = this.safeDict (chartsDict, bucketKey);
         }
         const pointsList = this.safeList (chart, 'prices', this.safeList (chart, 'data', chart as any));
-        let points = (pointsList !== undefined) ? pointsList : [];
+        let points: Dict[] = (pointsList !== undefined) ? pointsList : [];
         const pointsLength = points.length;
         if (pointsLength === 0) {
             const priceCharts = this.safeDict (response, 'price_charts', {});

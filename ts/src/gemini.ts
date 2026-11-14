@@ -6,7 +6,7 @@ import Exchange from './abstract/gemini.js';
 import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict, Endpoint, DepositAddresses } from './base/types.js';
+import type{ Balances, Currencies, Currency, CurrencyInterface, Dict, Dictionary, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Bool, Fee, NullableDict, Endpoint, DepositAddresses } from './base/types.js';
 import type { OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -860,7 +860,7 @@ export default class gemini extends Exchange {
             const marketIdUpper = (marketId as string).toUpperCase ();
             const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
             const marketIdWithoutPerp = marketIdUpper.replace ('PERP', '');
-            const conflictingMarkets = this.safeDict (this.options, 'conflictingMarkets', {});
+            const conflictingMarkets: Dictionary<Dict> = this.safeDict (this.options, 'conflictingMarkets', {});
             const lowerCaseId = marketIdWithoutPerp.toLowerCase ();
             if (lowerCaseId in conflictingMarkets) {
                 const conflictingMarket = conflictingMarkets[lowerCaseId];

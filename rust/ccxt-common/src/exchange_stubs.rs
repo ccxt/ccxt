@@ -2057,9 +2057,9 @@ impl Exchange {
         }
     }
 
-    pub fn in_array(&self, needle: impl Into<Value>, haystack: Value) -> bool {
+    pub fn in_array(&self, needle: impl Into<Value>, haystack: impl Into<Value>) -> bool {
         let needle: Value = needle.into();
-        if let Value::Arr(a) = haystack {
+        if let Value::Arr(a) = haystack.into() {
             a.iter().any(|x| crate::runtime::is_equal(x, &needle))
         } else {
             false

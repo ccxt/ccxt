@@ -1209,7 +1209,7 @@ export default class bitfinex extends Exchange {
             'nonce': undefined,
         };
         const priceIndex = (this.safeString (fullRequest, 'precision') === 'R0') ? 1 : 0;
-        const orders = this.toArray (orderbook);
+        const orders: any[][] = this.toArray (orderbook);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const price = this.safeNumber (order, priceIndex);
@@ -3385,7 +3385,7 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        const rawRatesData = this.toArray (response);
+        const rawRatesData: any[][] = this.toArray (response);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < rawRatesData.length; i++) {
             const fr = rawRatesData[i];

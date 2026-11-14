@@ -1369,7 +1369,7 @@ export default class backpack extends Exchange {
      * @param {Array} entries parsed trades or orders
      * @returns {Array} tokenized stock structures
      */
-    filterStockStructures (entries: List): List {
+    filterStockStructures (entries: Dict[]): List {
         const result: List = [];
         for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];

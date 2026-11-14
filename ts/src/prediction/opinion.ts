@@ -887,7 +887,7 @@ export default class opinion extends Exchange {
         }
         const response = await this.opinionPublicGetQuoteToken ({});
         const result = this.safeDict (response, 'result', {});
-        const list = this.safeList (result, 'list', []);
+        const list: Dict[] = this.safeList (result, 'list', []);
         const listLength = list.length;
         const quoteTokens: Dict = {};
         for (let i = 0; i < listLength; i++) {

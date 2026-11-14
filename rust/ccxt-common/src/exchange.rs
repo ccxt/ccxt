@@ -2044,7 +2044,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_market(&self, symbol: Value) -> Value {
         crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol.as_str().unwrap_or_default()))
     }
-    fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
+    fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Option<String> {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)
     }
     fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> Value {

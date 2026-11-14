@@ -3071,11 +3071,11 @@ export default class limitless extends Exchange {
      * @param {string} [categoryId] a limitless category id — pages only that category's listing
      * @returns {object[]} raw limitless market objects
      */
-    async fetchRawActiveMarkets (params: Dict = {}, categoryId: Str = undefined): Promise<any[]> {
+    async fetchRawActiveMarkets (params: Dict = {}, categoryId: Str = undefined): Promise<Dict[]> {
         const maxMarkets = this.safeInteger (params, 'limit', this.safeInteger (this.options, 'fetchMarketsLimit', 1000));
         const pageSize = this.safeInteger (this.options, 'marketsPageSize', 25);
         const rest = this.omit (params, [ 'query', 'queries', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'status', 'tags' ]);
-        const allRaw: any[] = [];
+        const allRaw: Dict[] = [];
         let page = 1;
         while (true) {
             const request: Dict = { 'page': page, 'limit': pageSize };

@@ -3754,7 +3754,7 @@ export default class binance extends binanceRest {
                 this.balance[accountType][code] = account;
             }
         } else {
-            const B = this.safeList (balanceMessage, 'B');
+            const B: Dict[] | undefined = this.safeList (balanceMessage, 'B');
             if (B === undefined) {
                 return;
             }

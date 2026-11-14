@@ -1320,7 +1320,7 @@ export default class phemex extends phemexRest {
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeList (message, 'closed', []);
             const open = this.safeList (message, 'open', []);
-            const orders = this.arrayConcat (open, closed);
+            const orders: Dict[] = this.arrayConcat (open, closed);
             const ordersLength = orders.length;
             if (ordersLength === 0) {
                 return;

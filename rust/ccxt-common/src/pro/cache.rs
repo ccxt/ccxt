@@ -65,7 +65,7 @@ fn new_marker(kind: &str, max_size: Value) -> Value {
 pub struct Cache(Value);
 
 impl Cache {
-    pub fn append(&mut self, item: Value) { self.0.append(item) }
+    pub fn append(&mut self, item: impl Into<Value>) { self.0.append(item) }
     pub fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> { self.0.get_limit(symbol, limit) }
     pub fn clear(&mut self) { self.0.clear() }
     pub fn hashmap(&self) -> Value { self.0.hashmap() }
@@ -95,7 +95,7 @@ impl crate::value::Rows for &Option<Cache> {
 
 /// The cache operations on an optional cache slot; an absent cache ignores them, as a `Value::Null` receiver did.
 pub trait CacheSlot {
-    fn append(&mut self, item: Value);
+    fn append(&mut self, item: impl Into<Value>);
     fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64>;
     fn clear(&mut self);
     fn hashmap(&self) -> Value;
@@ -103,7 +103,7 @@ pub trait CacheSlot {
 }
 
 impl CacheSlot for Option<Cache> {
-    fn append(&mut self, item: Value) { if let Some(c) = self { c.append(item) } }
+    fn append(&mut self, item: impl Into<Value>) { if let Some(c) = self { c.append(item) } }
     fn get_limit(&mut self, symbol: Option<&str>, limit: Option<i64>) -> Option<i64> {
         match self { Some(c) => c.get_limit(symbol, limit), None => limit }
     }
