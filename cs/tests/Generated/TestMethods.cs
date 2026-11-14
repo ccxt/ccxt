@@ -298,7 +298,7 @@ public partial class testMainClass
         }
         string? skipMessage = null;
         bool supportedByExchange = (inOp(exchange.has, methodName)) && (!isEqual(getValue(exchange.has, methodName), null)) && (!isEqual(getValue(exchange.has, methodName), false));
-        if (!isLoadMarkets && ((getArrayLength(this.onlySpecificTests) > 0) && (!isEqual(exchange.inArray(methodName, this.onlySpecificTests), true))))
+        if (!isLoadMarkets && ((getArrayLength(this.onlySpecificTests) > 0) && !isTrue(exchange.inArray(methodName, this.onlySpecificTests))))
         {
             skipMessage = "[INFO] IGNORED_TEST";
         } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest)

@@ -113,9 +113,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         if (isPrivate == true)
         {
-            return ((string?)((object)((this.urlsApi != null && this.urlsApi.ContainsKey("wsPrivate") ? this.urlsApi["wsPrivate"] : null))));
+            return this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "wsPrivate", "");
+        } else
+        {
+            return this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         }
-        return ((string?)((object)((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null))));
     }
 
     public override object ping(WebSocketClient client)

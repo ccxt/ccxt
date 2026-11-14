@@ -69,13 +69,15 @@ public partial class paradex : ccxt.paradex
 
     public virtual string? getWsUrl()
     {
-        object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
+        string url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         if (!(this.safeBool(this.options, "sbe", true) == true))
         {
-            return ((string?)((object)(url)));
+            return url;
+        } else
+        {
+            string? schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
+            return ((url + "?sbeSchemaId=1&sbeSchemaVersion=") + schemaVersion);
         }
-        string? schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
-        return ((string?)((object)(add(add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion))));
     }
 
     public virtual string? getOrderBookChannel(object marketId, bool? deltas = null)

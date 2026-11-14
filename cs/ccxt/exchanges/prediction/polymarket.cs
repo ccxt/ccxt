@@ -1921,7 +1921,7 @@ public partial class polymarket : PredictionExchange
         List<object> filteredTrades = new List<object>() {};
         for (int i = 0; i < (rawTrades?.Count ?? 0); i++)
         {
-            object trade = rawTrades[i];
+            IDictionary<string, object> trade = ((IDictionary<string, object>)rawTrades[i]);
             string? tradeAsset = this.safeString(trade, "asset");
             if ((tradeAsset == tokenId))
             {

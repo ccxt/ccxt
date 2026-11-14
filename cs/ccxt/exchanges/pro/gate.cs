@@ -2617,13 +2617,13 @@ public partial class gate : ccxt.gate
 
     public virtual string? getUrlByMarket(IDictionary<string, object> market)
     {
-        object baseUrl = getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null));
         if ((this.safeBool(market, "contract", false) == true))
         {
-            return ((string?)((object)((this.safeBool(market, "linear", false) == true) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc"))));
+            string settleKey = (this.safeBool(market, "linear", false) == true) ? "usdt" : "btc";
+            return ((string?)((object)(this.safeString(getValue((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null)), settleKey, ""))));
         } else
         {
-            return ((string?)((object)(baseUrl)));
+            return ((string?)((object)(this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), (market != null && market.ContainsKey("type") ? market["type"] : null), ""))));
         }
     }
 
@@ -2648,14 +2648,13 @@ public partial class gate : ccxt.gate
     public virtual string? getUrlByMarketType(object type, bool? isInverse = null)
     {
         isInverse ??= false;
-        object api = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        object url = this.safeValue(api, type);
         if (((type is "swap")) || ((type is "future")))
         {
-            return ((string?)((object)(isInverse == true ? getValue(url, "btc") : getValue(url, "usdt"))));
+            string settleKey = isInverse == true ? "btc" : "usdt";
+            return this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), type), settleKey);
         } else
         {
-            return ((string?)((object)(url)));
+            return this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), type);
         }
     }
 
