@@ -2861,7 +2861,7 @@ export default class pacifica extends Exchange {
     override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}) {
         const operationType = 'update_leverage';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
