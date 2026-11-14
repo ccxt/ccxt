@@ -1438,7 +1438,7 @@ public partial class phemex : ccxt.phemex
             trades = this.safeList(message, "fills", new List<object>() {});
             for (int i = 0; i < (orders?.Count ?? 0); i++)
             {
-                object rawOrder = orders[i];
+                IDictionary<string, object> rawOrder = ((IDictionary<string, object>)orders[i]);
                 ccxt.Order parsedOrder = this.parseOrder(rawOrder);
                 parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
             }

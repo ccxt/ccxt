@@ -8184,7 +8184,7 @@ public partial class BaseExchange
         if (topic == "ohlcv")
         {
             List<object> symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
-            for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
+            for (int i = 0; i < symbolsAndTimeframes.Count; i++)
             {
                 object symbolAndTimeFrame = symbolsAndTimeframes[i];
                 string? symbol = this.safeString(symbolAndTimeFrame, 0);
