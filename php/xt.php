@@ -5889,8 +5889,9 @@ class xt extends Exchange {
             $jsonBody = $this->json($query);
             $signedBody = $isUndefinedBody ? null : $jsonBody;
             $payloadString = '';
+            $timestampPart = '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
             if (($endpoint === 'spot') || ($endpoint === 'user')) {
-                $spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . '&xt-validate-t' . 'imestamp=' . $timestamp;
+                $spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' . $this->apiKey . '&xt-validate-recvwindow=' . $recvWindow . $timestampPart;
                 if ($isUndefinedBody) {
                     if ($urlencoded !== '') {
                         $url = $apiUrl . $payload . '?' . $urlencoded;
@@ -5904,7 +5905,7 @@ class xt extends Exchange {
                 $headersValue['xt-validate-algorithms'] = 'HmacSHA256';
                 $headersValue['xt-validate-recvwindow'] = $recvWindow;
             } else {
-                $futurePrefix = 'xt-validate-appkey=' . $this->apiKey . '&xt-validate-t' . 'imestamp=' . $timestamp; // we can't glue timestamp, breaks in php
+                $futurePrefix = 'xt-validate-appkey=' . $this->apiKey . $timestampPart;
                 if ($method === 'GET') {
                     if ($urlencoded !== '') {
                         $url = $apiUrl . $payload . '?' . $urlencoded;
