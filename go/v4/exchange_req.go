@@ -81,14 +81,14 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 		// sign() may return a typed nil pointer (*string) as body; unwrap it, otherwise `body != nil` is true and a literal "null" body is sent (rejected with 403 by cloudfront on GET)
 		body = derefScalar(body)
 
-		// Convert url to string
-		urlStr, ok := url.(string)
+		// Convert url to string: a venue sign() may build the url as a *string local
+		urlStr, ok := derefScalar(url).(string)
 		if !ok {
 			panic("url must be a string")
 		}
 
 		// Convert method to string
-		methodStr, ok := method.(string)
+		methodStr, ok := derefScalar(method).(string)
 		if !ok {
 			panic("method must be a string")
 		}
