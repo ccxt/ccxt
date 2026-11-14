@@ -195,16 +195,16 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "watch_multiple_subscription" => self.watch_multiple_subscription(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str), &args[3.min(args.len())..]).await,
-                "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
-                "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "watch_multiple_subscription" => self.watch_multiple_subscription(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..]).await,
+                "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
+                "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
+                "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
@@ -1360,7 +1360,6 @@ impl Whitebit {
 }
 
     pub async fn watch_public(&mut self, messageHash: &str, method: &str, optional_args: &[Value]) -> Value {
-        let mut messageHash: Value = messageHash.into();
         let mut method: Value = method.into();
         let mut reqParams = get_arg(optional_args, 0, Value::from(vec![]));
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -1377,13 +1376,12 @@ impl Whitebit {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        return self.watch(url.as_deref(), &messageHash, &message, &messageHash, Value::Null).await;
+        return self.watch(url.as_deref(), messageHash, &message, messageHash, Value::Null).await;
 
     Value::Null
 }
 
     pub async fn watch_multiple_subscription(&mut self, messageHash: &str, method: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
-        let mut messageHash: Value = messageHash.into();
         let mut method: Value = method.into();
         let mut symbol: Value = symbol.into();
         let isNested: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
@@ -1422,7 +1420,7 @@ impl Whitebit {
                 m
             }));
             let mut message: crate::value::Dict = self.extend(request.clone().map_or(Value::Null, Value::Dict), &[params]).into_dict();
-            return self.watch(url.as_deref(), &messageHash, &message, &method, Value::Map(subscription)).await;
+            return self.watch(url.as_deref(), messageHash, &message, &method, Value::Map(subscription)).await;
         }  else {
             let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), method.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1439,7 +1437,7 @@ impl Whitebit {
                 hasSymbolSubscription = false;
             }
             if hasSymbolSubscription {
-                return self.watch(url.as_deref(), &messageHash, request.map_or(Value::Null, Value::Dict), &method, subscription.clone()).await;
+                return self.watch(url.as_deref(), messageHash, request.map_or(Value::Null, Value::Dict), &method, subscription.clone()).await;
             }  else {
                 // resubscribe
                 let mut marketIdsNew: Value = Value::from(vec![]);
@@ -1457,7 +1455,7 @@ impl Whitebit {
                 if (__ch.has_subscription(&method)) {
                     __ch.remove_subscription(&method);
                 }
-                return self.watch(url.as_deref(), &messageHash, Value::Map(resubRequest), &method, subscription).await;
+                return self.watch(url.as_deref(), messageHash, Value::Map(resubRequest), &method, subscription).await;
             }
         }
 
@@ -1465,7 +1463,6 @@ impl Whitebit {
 }
 
     pub async fn watch_private(&mut self, messageHash: &str, method: &str, optional_args: &[Value]) -> Value {
-        let mut messageHash: Value = messageHash.into();
         let mut method: Value = method.into();
         let mut reqParams = get_arg(optional_args, 0, Value::from(vec![]));
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -1484,7 +1481,7 @@ impl Whitebit {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        return self.watch(url.as_deref(), &messageHash, &message, &messageHash, Value::Null).await;
+        return self.watch(url.as_deref(), messageHash, &message, messageHash, Value::Null).await;
 
     Value::Null
 }

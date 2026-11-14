@@ -104,38 +104,38 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
     {
         Box::pin(async move {
             match method {
-                "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
-                    args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "estimate_tx_fee" => self.estimate_tx_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
+                "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
+                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "estimate_tx_fee" => self.estimate_tx_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_deposits_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_deposits_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_dydx_account" => self.fetch_dydx_account().await,
-                "fetch_funding_rate_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate_history(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_funding_rate_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_latest_block_height" => self.fetch_latest_block_height(&args[..]).await,
-                "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_ohlcv" => crate::types::IntoRaw::into_raw(self.fetch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
-                "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_ohlcv" => crate::types::IntoRaw::into_raw(self.fetch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
+                "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
+                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
+                "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_transactions_helper" => self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
-                "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_transactions_helper" => self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
+                "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_wallet_address" => self.get_wallet_address(),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "handle_public_address" => self.handle_public_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_public_address" => self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "hash_message" => crate::Value::from(self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -147,15 +147,16 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "pow" => self.pow(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "pow" => self.pow(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "retrieve_credentials" => self.retrieve_credentials(),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
-                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_onboarding_action" => self.sign_onboarding_action(),
-                "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
-                "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
+                "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
+                "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -1937,11 +1938,12 @@ impl Dydx {
     Value::Null
 }
 
-    pub fn sign_dydx_tx(&self, privateKey: Option<&str>, message: impl Into<crate::Value>, memo: Option<&str>, chainId: Option<&str>, mut account: Value, mut authenticators: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn sign_dydx_tx(&self, privateKey: Option<&str>, message: impl Into<crate::Value>, memo: Option<&str>, chainId: Option<&str>, account: impl Into<crate::Value>, mut authenticators: Value, optional_args: &[Value]) -> Option<String> {
         let mut privateKey: Value = privateKey.into();
         let mut message: Value = message.into();
         let mut memo: Value = memo.into();
         let mut chainId: Value = chainId.into();
+        let mut account: Value = account.into();
         let mut fee = get_arg(optional_args, 0, Value::Null);
         let encodedTxsignDocVariable: Vec<Value> = self.encode_dydx_tx_for_signing(message, memo, chainId, account, authenticators, &[fee]).as_array().cloned().unwrap_or_default();
         let mut encodedTx: Option<String> = encodedTxsignDocVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2302,7 +2304,7 @@ impl Dydx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
-        let mut account: Value = self.fetch_dydx_account().await;
+        let mut account: crate::value::Dict = self.fetch_dydx_account().await.into_dict();
         let mut lastBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
         // params['latestBlockHeight'] = lastBlockHeight;
         let mut newParams: crate::value::Dict = self.extend(params, &[Value::Map({
@@ -2314,7 +2316,7 @@ impl Dydx {
         let mut orderId: Value = orderRequestRes.get(0).cloned().unwrap_or(Value::Null);
         let mut orderRequest: Value = orderRequestRes.get(1).cloned().unwrap_or(Value::Null);
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), orderRequest.clone(), Some(""), chainName.as_deref(), account, Value::Null, &[]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), orderRequest.clone(), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2435,7 +2437,7 @@ impl Dydx {
             }
         }
         let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
-        let mut account: Value = self.fetch_dydx_account().await;
+        let mut account: crate::value::Dict = self.fetch_dydx_account().await.into_dict();
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2466,7 +2468,7 @@ impl Dydx {
             m
         });
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), account, Value::Null, &[]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2538,7 +2540,7 @@ impl Dydx {
             goodTillBlock = Some((latestBlockHeight + 20));
         }
         let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
-        let mut account: Value = self.fetch_dydx_account().await;
+        let mut account: crate::value::Dict = self.fetch_dydx_account().await.into_dict();
         let mut marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2568,7 +2570,7 @@ impl Dydx {
             m
         });
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), account, Value::Null, &[]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -2749,9 +2751,10 @@ impl Dydx {
         }).await?))
     }
 
-    pub async fn estimate_tx_fee(&mut self, message: impl Into<crate::Value>, memo: Option<&str>, mut account: Value) -> Value {
+    pub async fn estimate_tx_fee(&mut self, message: impl Into<crate::Value>, memo: Option<&str>, account: impl Into<crate::Value>) -> Value {
         let mut message: Value = message.into();
         let mut memo: Value = memo.into();
+        let mut account: Value = account.into();
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
         let mut txBytes: Option<String> = self.encode_dydx_tx_for_simulation(message, memo, (match account.get("sequence") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }),
@@ -2868,7 +2871,7 @@ impl Dydx {
             }
         }
         let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
-        let mut account: Value = self.fetch_dydx_account().await;
+        let mut account: crate::value::Dict = self.fetch_dydx_account().await.into_dict();
         let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
         let mut payload: Option<crate::value::Dict> = None;
         let mut signingPayload: Value = Value::Null;
@@ -2926,9 +2929,9 @@ impl Dydx {
                 m
             });
         }
-        let mut txFee: crate::value::Dict = self.estimate_tx_fee(signingPayload.clone(), Some(""), account.clone()).await.into_dict();
+        let mut txFee: crate::value::Dict = self.estimate_tx_fee(signingPayload.clone(), Some(""), &account).await.into_dict();
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), signingPayload, Some(""), chainName.as_deref(), account, Value::Null, &[Value::Dict(txFee)]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), signingPayload, Some(""), chainName.as_deref(), &account, Value::Null, &[Value::Dict(txFee)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));
@@ -3129,7 +3132,7 @@ impl Dydx {
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let mut credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
-        let mut account: Value = self.fetch_dydx_account().await;
+        let mut account: crate::value::Dict = self.fetch_dydx_account().await.into_dict();
         let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3150,9 +3153,9 @@ impl Dydx {
                 m.insert("value".to_string(), Value::Map(payload));
             m
         });
-        let mut txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), tag.as_deref(), account.clone()).await.into_dict();
+        let mut txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), tag.as_deref(), &account).await.into_dict();
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), tag.as_deref(), chainName.as_deref(), account, Value::Null, &[Value::Dict(txFee)]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), tag.as_deref(), chainName.as_deref(), &account, Value::Null, &[Value::Dict(txFee)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));

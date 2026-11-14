@@ -196,33 +196,33 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
                 "parse_ws_rfq_order" => self.parse_ws_rfq_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "prepare_ws_stock_params" => self.prepare_ws_stock_params(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "subscribe_ws_tickers" => self.subscribe_ws_tickers(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
+                "prepare_ws_stock_params" => self.prepare_ws_stock_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "subscribe_ws_tickers" => self.subscribe_ws_tickers(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "un_watch_balance" => self.un_watch_balance(&args[..]).await,
                 "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
+                "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
+                "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_positions" => crate::types::IntoRaw::into_raw(self.un_watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_tickers" => crate::types::IntoRaw::into_raw(self.un_watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
+                "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_ohlcv_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
+                "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_order_book_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_private" => self.watch_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "watch_public" => self.watch_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_trades_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
@@ -446,10 +446,10 @@ impl Backpack {
 }));
         let mut bidAsk = get_arg(optional_args, 2, Value::Bool(false));
         let unwatch: bool = get_arg(optional_args, 3, Value::Bool(false)).is_truthy();
-        let mut query: Value = self.prepare_ws_stock_params(methodName.as_str().unwrap_or_default(), params).await;
-        let mut stock: bool = self.safe_bool_k(query.clone(), "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut explicitSource: Option<String> = self.safe_string_k(query.clone(), "source", &[]).as_str().map(str::to_owned);
-        let mut channel: Option<String> = self.safe_string_k(query.clone(), "channel", &[]).as_str().map(str::to_owned);
+        let mut query: crate::value::Dict = self.prepare_ws_stock_params(methodName.as_str().unwrap_or_default(), params).await.into_dict();
+        let mut stock: bool = self.safe_bool_k(&query, "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut explicitSource: Option<String> = self.safe_string_k(&query, "source", &[]).as_str().map(str::to_owned);
+        let mut channel: Option<String> = self.safe_string_k(&query, "channel", &[]).as_str().map(str::to_owned);
         let mut normalized: crate::value::List = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]).into_list();
         let mut symbolsResolved: Vec<Value> = Vec::new();
         let mut topics: Value = Value::from(vec![]);
@@ -473,7 +473,7 @@ impl Backpack {
             if (symbols == Value::Null) && (stock || (explicitSource.as_deref() == Some("External")) || (channel.is_some())) && (crate::value::KeyRead::key_read(&&market, "stock").as_bool() != Some(true)) {
                 continue;
             }
-            let mut marketSelection: crate::value::List = self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), query.clone(), &[(market).raw.clone()]).into_list();
+            let mut marketSelection: crate::value::List = self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), &query, &[(market).raw.clone()]).into_list();
             let mut marketStock: bool = self.safe_bool(&marketSelection, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut marketParams: crate::value::Dict = self.safe_dict(&marketSelection, Value::Int(1), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -513,7 +513,7 @@ impl Backpack {
                     let mut quoteChannel: String = (if (source.as_deref() == Some("External")) { "stockPrice".to_string() } else { "stockIndicativeQuote".to_string() });
                     topic = format!("{}{}", Value::Str(format!("{}{}", quoteChannel, ".").into()), ticker);
                 }  else {
-                    self.ws_venue_market_id(methodName.clone(), (market).raw.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
+                    self.ws_venue_market_id(methodName.clone(), (market).raw.clone(), &query).map(Value::from).unwrap_or(Value::Null);
                     topic = format!("{}{}", Value::Str("bookTicker.".into()), Value::from((market).id.as_deref().unwrap_or("")));
                 }
             }  else if (source.as_deref() == Some("External")) {
@@ -561,7 +561,7 @@ impl Backpack {
         if (symbolsResolvedLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires at least one matching market")));
         }
-        let mut payload: Value = self.omit(query, &["stock", "source", "interval", "channel"], &[]);
+        let mut payload: crate::value::Dict = self.omit(&query, &["stock", "source", "interval", "channel"], &[]).into_dict();
         if unwatch {
             let mut topicsLength: i64 = topics.len() as i64;
             if topicsLength > 0 {
@@ -570,13 +570,13 @@ impl Backpack {
                         m.insert("method".to_string(), Value::Str("UNSUBSCRIBE".into()));
                         m.insert("params".to_string(), topics.clone());
                     m
-                }), &[payload.clone()]).into_dict();
+                }), &[&payload]).into_dict();
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:marketData:".into()), Value::Str(topics.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
                 self.watch_multiple(url.as_str(), Value::from(vec![messageHash.clone()]), &request, Value::Null, Value::Null).await;
                 client.resolve(Value::Bool(true), &messageHash);
             }
         }  else {
-            self.watch_public(topics, Value::from(messageHashes), &[payload]).await;
+            self.watch_public(topics, Value::from(messageHashes), &[Value::Dict(payload)]).await;
         }
         if bidAsk.as_bool() == Some(true) {
             return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), Value::from(symbolsResolved), &[]);
@@ -1281,7 +1281,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut query: Value = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await;
+        let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await.into_dict();
         let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")));
@@ -1299,12 +1299,12 @@ impl Backpack {
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), Value::from(tf.clone()), &[Value::from(tf)]).as_str().map(str::to_owned);
-            self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), (market).raw.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
+            self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), (market).raw.clone(), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", Value::from((market).symbol.clone())).into()), ":").into()), interval.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut symboltimeframecandlesVariable = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[])]).await;
+        let mut symboltimeframecandlesVariable = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(&query, &["stock", "source"], &[])]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(2));
@@ -1340,7 +1340,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut query: Value = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await;
+        let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchOHLCVForSymbols", params).await.into_dict();
         let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")));
@@ -1358,12 +1358,12 @@ impl Backpack {
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), Value::from(tf.clone()), &[Value::from(tf)]).as_str().map(str::to_owned);
-            self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), (market).raw.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
+            self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), (market).raw.clone(), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:candles:", Value::from((market).symbol.clone())).into()), ":").into()), interval.as_deref().unwrap_or("null")).into()));
         }
         }
-        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[]), Value::Bool(true)]).await;
+        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(&query, &["stock", "source"], &[]), Value::Bool(true)]).await;
         Value::Null
         }).await?))
     }
@@ -1504,7 +1504,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut query: Value = self.prepare_ws_stock_params("watchTradesForSymbols", params).await;
+        let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchTradesForSymbols", params).await.into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1521,12 +1521,12 @@ impl Backpack {
             while { if !__for_first_45 { i += 1; } __for_first_45 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
+            self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), market.clone(), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str("trade.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
             messageHashes.push(Value::Str(format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut trades: Value = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[])]).await;
+        let mut trades: Value = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(&query, &["stock", "source"], &[])]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -1561,7 +1561,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut query: Value = self.prepare_ws_stock_params("watchTradesForSymbols", params).await;
+        let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchTradesForSymbols", params).await.into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1578,12 +1578,12 @@ impl Backpack {
             while { if !__for_first_46 { i += 1; } __for_first_46 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
+            self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), market.clone(), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str("trade.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
             messageHashes.push(Value::Str(format!("{}{}", "unsubscribe:trades:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
-        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[]), Value::Bool(true)]).await;
+        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(&query, &["stock", "source"], &[]), Value::Bool(true)]).await;
         Value::Null
         }).await?))
     }
@@ -1746,7 +1746,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut query: Value = self.prepare_ws_stock_params("watchOrderBookForSymbols", params).await;
+        let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchOrderBookForSymbols", params).await.into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1760,7 +1760,7 @@ impl Backpack {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             messageHashes.push(Value::Str(format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null")).into()));
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
+            self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str("depth.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
             if !(self.orderbooks.has(&symbol)) {
                 { let __cv = self.order_book(&[Value::Map({
@@ -1770,7 +1770,7 @@ impl Backpack {
             }
         }
         }
-        let mut orderbook: Value = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[])]).await;
+        let mut orderbook: Value = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(&query, &["stock", "source"], &[])]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1825,7 +1825,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut query: Value = self.prepare_ws_stock_params("watchOrderBookForSymbols", params).await;
+        let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchOrderBookForSymbols", params).await.into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1839,11 +1839,11 @@ impl Backpack {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             messageHashes.push(Value::Str(format!("{}{}", "unsubscribe:orderbook:", symbol.as_deref().unwrap_or("null")).into()));
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
+            self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str("depth.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
         }
         }
-        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(query, &["stock", "source"], &[]), Value::Bool(true)]).await;
+        return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(&query, &["stock", "source"], &[]), Value::Bool(true)]).await;
         Value::Null
         }).await?))
     }
@@ -1993,14 +1993,14 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut query: Value = self.prepare_ws_stock_params("watchOrders", params).await;
+        let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchOrders", params).await.into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            self.parent.handle_stock_params("watchOrders", query.clone(), &[crate::Value::from(market.as_ref())]);
+            self.parent.handle_stock_params("watchOrders", &query, &[crate::Value::from(market.as_ref())]);
         }
         let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         let mut topic: String = "account.orderUpdate".to_string();
@@ -2016,13 +2016,13 @@ impl Backpack {
         if (market.is_none()) {
             topics.push(Value::Str("account.rfqUpdate".into()));
         }
-        let mut orders: Value = self.watch_private(Value::from(topics), Value::from(vec![Value::from(messageHash)]), &[self.omit(query.clone(), Value::Str("stock".into()), &[])]).await;
+        let mut orders: Value = self.watch_private(Value::from(topics), Value::from(vec![Value::from(messageHash)]), &[self.omit(&query, Value::Str("stock".into()), &[])]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
         let mut filtered: crate::value::List = self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]).into_list();
-        if matches!(self.safe_bool_k(query, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
+        if matches!(self.safe_bool_k(&query, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
             return self.parent.filter_stock_structures(&filtered);
         }
         return Value::Arr(filtered);
@@ -2051,14 +2051,14 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut query: Value = self.prepare_ws_stock_params("watchOrders", params).await;
+        let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchOrders", params).await.into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            self.parent.handle_stock_params("watchOrders", query.clone(), &[crate::Value::from(market.as_ref())]);
+            self.parent.handle_stock_params("watchOrders", &query, &[crate::Value::from(market.as_ref())]);
         }
         let mut topic: String = "account.orderUpdate".to_string();
         let mut messageHash: String = "unsubscribe:orders".to_string();
@@ -2073,7 +2073,7 @@ impl Backpack {
         if (market.is_none()) {
             topics.push(Value::Str("account.rfqUpdate".into()));
         }
-        return self.watch_private(Value::from(topics), Value::from(vec![Value::from(messageHash)]), &[self.omit(query, Value::Str("stock".into()), &[]), Value::Bool(true)]).await;
+        return self.watch_private(Value::from(topics), Value::from(vec![Value::from(messageHash)]), &[self.omit(&query, Value::Str("stock".into()), &[]), Value::Bool(true)]).await;
         Value::Null
         }).await?))
     }

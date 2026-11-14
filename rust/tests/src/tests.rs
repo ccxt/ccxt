@@ -185,10 +185,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     while { if !__for_first_1614 { i += 1; } __for_first_1614 = false; i < (testFileNames.len() as i64) } {
                     let mut testFileName: Value = testFileNames.get(i as usize).cloned().unwrap_or(Value::Null);
                     {
-                                                let mut j: Value = Value::Int(0);
+                                                let mut j: i64 = 0;
                         let mut __for_first_1613: bool = true;
-                        while { if !__for_first_1613 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1613 = false; j.as_f64().unwrap_or(f64::NAN) < possibleMethodNames.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_f64().unwrap_or(f64::NAN) } {
-                        let mut methodName: Value = get_value(&possibleMethodNames, &j);
+                        while { if !__for_first_1613 { j += 1; } __for_first_1613 = false; (j as f64) < possibleMethodNames.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_f64().unwrap_or(f64::NAN) } {
+                        let mut methodName: Value = get_value(&possibleMethodNames, &Value::Int(j));
                         methodName = replace_str(&methodName, &Value::Str("()".into()), &Value::Str("".into()));
                         if is_equal(&testFileName, &methodName) {
                             append_to_array(&mut self.onlySpecificTests.clone(), testFileName.clone());

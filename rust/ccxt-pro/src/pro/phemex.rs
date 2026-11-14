@@ -184,7 +184,7 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..]).await,
-                "from_en" => self.from_en(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "from_en" => crate::Value::from(self.from_en(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "from_ep" => self.from_ep(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "from_er" => self.from_er(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "from_ev" => self.from_ev(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -193,18 +193,18 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
                 "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "request_id" => crate::Value::from(self.request_id()),
-                "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "un_subscribe_public" => self.un_subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
-                "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
+                "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
-                "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
+                "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
+                "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
                 _ => crate::exchange_generated::ExchangeBase::call_dynamic(&mut self.parent, method, args).await,
             }
@@ -221,7 +221,7 @@ impl Phemex {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "custom_handle_delta" => { self.custom_handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
             "custom_handle_deltas" => { self.custom_handle_deltas(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); crate::Value::Null },
-            "from_en" => self.from_en(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "from_en" => crate::Value::from(self.from_en(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "from_ep" => self.from_ep(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "from_er" => self.from_er(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "from_ev" => self.from_ev(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -319,18 +319,16 @@ impl Phemex {
     Value::Null
 }
 
-    pub fn from_en(&self, en: impl Into<crate::Value>, scale: impl Into<crate::Value>) -> Value {
+    pub fn from_en(&self, en: impl Into<crate::Value>, scale: impl Into<crate::Value>) -> Option<String> {
         let mut en: Value = en.into();
         let mut scale: Value = scale.into();
         if (en == Value::Null) {
-            return Value::Null;
+            return None;
         }
         let mut precise = Precise::new(en);
         { let __sv_tmp = self.sum(&[get_value(&precise, &Value::Str("decimals".into())), scale]); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
         precise.reduce();
-        return to_string_val(&precise);
-
-    Value::Null
+        return to_string_val(&precise).as_str().map(str::to_owned);
 }
 
     pub fn from_ep(&self, mut ep: Value, optional_args: &[Value]) -> Value {
@@ -338,7 +336,7 @@ impl Phemex {
         if (ep == Value::Null) || (market == Value::Null) {
             return ep;
         }
-        return self.from_en(ep, self.safe_integer_k(market, "priceScale", &[]));
+        return self.from_en(ep, self.safe_integer_k(market, "priceScale", &[])).map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -348,7 +346,7 @@ impl Phemex {
         if (ev == Value::Null) || (market == Value::Null) {
             return ev;
         }
-        return self.from_en(ev, self.safe_integer_k(market, "valueScale", &[]));
+        return self.from_en(ev, self.safe_integer_k(market, "valueScale", &[])).map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -358,7 +356,7 @@ impl Phemex {
         if (er == Value::Null) || (market == Value::Null) {
             return er;
         }
-        return self.from_en(er, self.safe_integer_k(market, "ratioScale", &[]));
+        return self.from_en(er, self.safe_integer_k(market, "ratioScale", &[])).map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -706,8 +704,8 @@ impl Phemex {
             })]).into_dict();
             let mut scale: i64 = self.safe_integer_k(&currency, "valueScale", &[Value::Int(8)]).as_i64().unwrap_or(8);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            let mut used: Value = self.safe_string_k(&balance, "totalUsedBalanceRv", &[]);
-            if (used == Value::Null) {
+            let mut used: Option<String> = self.safe_string_k(&balance, "totalUsedBalanceRv", &[]).as_str().map(str::to_owned);
+            if (used.is_none()) {
                 let mut usedEv: Option<String> = self.safe_string_k(&balance, "totalUsedBalanceEv", &[]).as_str().map(str::to_owned);
                 if (usedEv.is_none()) {
                     let mut lockedTradingBalanceEv: Option<String> = self.safe_string_k(&balance, "lockedTradingBalanceEv", &[]).as_str().map(str::to_owned);
@@ -716,13 +714,13 @@ impl Phemex {
                 }
                 used = self.from_en(usedEv.map(Value::from).unwrap_or(Value::Null), Value::from(scale));
             }
-            let mut total: Value = self.safe_string_k(&balance, "accountBalanceRv", &[]);
-            if (total == Value::Null) {
+            let mut total: Option<String> = self.safe_string_k(&balance, "accountBalanceRv", &[]).as_str().map(str::to_owned);
+            if (total.is_none()) {
                 let mut totalEv: Option<String> = self.safe_string2(&balance, Value::Str("accountBalanceEv".into()), Value::Str("balanceEv".into()), &[]).as_str().map(str::to_owned);
                 total = self.from_en(totalEv.map(Value::from).unwrap_or(Value::Null), Value::from(scale));
             }
-            account.insert("used".into(), used);
-            account.insert("total".into(), total);
+            account.insert("used".into(), used.map(Value::from).unwrap_or(Value::Null));
+            account.insert("total".into(), total.map(Value::from).unwrap_or(Value::Null));
             if (code != Value::Null) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
             }
@@ -1597,13 +1595,13 @@ impl Phemex {
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut parsed: crate::value::Dict = self.parse_trade(rawTrade, None).into_dict();
             cachedTrades.append(Value::from(&parsed));
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
             if (type_var == Value::Null) {
                 let mut marketSettle: Option<String> = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
                 type_var = (if (marketSettle.as_deref() == Some("USDT")) { Value::Str("perpetual".into()) } else { crate::value::KeyRead::key_read(&&market, "type") });
             }
-            if (symbol != Value::Null) {
-                marketIds.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
+            if (symbol.is_some()) {
+                marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
@@ -2282,7 +2280,6 @@ impl Phemex {
 
     pub async fn subscribe_private(&mut self, type_var: Option<&str>, messageHash: &str, optional_args: &[Value]) -> Value {
         let mut type_var: Value = type_var.into();
-        let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2310,7 +2307,7 @@ impl Phemex {
             m
         }).into_dict();
         request = self.extend(request, &[&paramsOmitted]).into_dict();
-        return self.watch(url.as_deref(), &messageHash, &request, channel.as_str(), Value::Null).await;
+        return self.watch(url.as_deref(), messageHash, &request, channel.as_str(), Value::Null).await;
 
     Value::Null
 }
