@@ -83,12 +83,13 @@ export default class paradex extends paradexRest {
     }
 
     getWsUrl (): string {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws', '');
         if (!this.safeBool (this.options, 'sbe', true)) {
             return url;
+        } else {
+            const schemaVersion = this.safeString (this.options, 'sbeSchemaVersion', '3');
+            return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
         }
-        const schemaVersion = this.safeString (this.options, 'sbeSchemaVersion', '3');
-        return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
     }
 
     getOrderBookChannel (marketId: Str, deltas: boolean = false): string {

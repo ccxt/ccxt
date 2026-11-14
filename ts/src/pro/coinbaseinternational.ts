@@ -109,9 +109,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             return 'wss://www.deribit.com/ws/api/v2';
         }
         if (isPrivate) {
-            return this.urls['api']['wsPrivate'];
+            return this.safeString (this.urls['api'], 'wsPrivate', '');
+        } else {
+            return this.safeString (this.urls['api'], 'ws', '');
         }
-        return this.urls['api']['ws'];
     }
 
     override ping (client: Client): Dict | Str {

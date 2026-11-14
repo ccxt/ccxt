@@ -1286,8 +1286,8 @@ impl Exchange {
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_millis() as i64).unwrap_or(0)
     }
-    pub fn seconds(&self) -> Value {
-        Value::Int(self.milliseconds() / 1000)
+    pub fn seconds(&self) -> i64 {
+        self.milliseconds() / 1000
     }
     pub fn microseconds(&self) -> Value {
         Value::Int(self.milliseconds() * 1000)

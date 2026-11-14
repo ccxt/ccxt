@@ -1286,7 +1286,7 @@ impl Exchange {
     }
 
     /// `randNumber(size)` — a random integer with `size` decimal digits.
-    pub fn rand_number(&self, size: Value) -> Value {
+    pub fn rand_number(&self, size: Value) -> i64 {
         use rand::Rng;
         let n = size.as_i64().unwrap_or(0).max(0) as usize;
         let mut rng = rand::thread_rng();
@@ -1294,7 +1294,7 @@ impl Exchange {
         for _ in 0..n {
             s.push(char::from(b'0' + rng.gen_range(0..10u8)));
         }
-        Value::Int(s.parse::<i64>().unwrap_or(0))
+        s.parse::<i64>().unwrap_or(0)
     }
 
     /// `randomBytes(length)` — `length` random bytes as a hex string.
@@ -1933,8 +1933,8 @@ impl Exchange {
         Value::Bool(empty)
     }
 
-    pub fn value_is_defined(&self, v: Value) -> Value {
-        Value::Bool(!v.is_null())
+    pub fn value_is_defined(&self, v: Value) -> bool {
+        !v.is_null()
     }
 
     // ── extend / deep_extend / omit ─────────────────────────────────────────
@@ -2057,13 +2057,12 @@ impl Exchange {
         }
     }
 
-    pub fn in_array(&self, needle: Value, haystack: Value) -> Value {
-        let hit = if let Value::Arr(a) = haystack {
+    pub fn in_array(&self, needle: Value, haystack: Value) -> bool {
+        if let Value::Arr(a) = haystack {
             a.iter().any(|x| crate::runtime::is_equal(x, &needle))
         } else {
             false
-        };
-        Value::Bool(hit)
+        }
     }
 
     pub fn unique(&self, v: Value) -> Value {
@@ -2631,10 +2630,10 @@ impl Exchange {
         }
         pairs.join("&")
     }
-    pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> Value {
+    pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> bool {
         match optional_args.get(0) {
-            Some(Value::Str(s)) => Value::Bool(s.starts_with('{') || s.starts_with('[')),
-            _ => Value::Bool(false),
+            Some(Value::Str(s)) => s.starts_with('{') || s.starts_with('['),
+            _ => false,
         }
     }
     pub fn strip(&self, s: Value, _optional_args: &[Value]) -> Value {
@@ -3008,16 +3007,16 @@ impl Exchange {
     /// `precisionFromString(str)` — ports `functions/number.ts`.
     /// Scientific notation (`1e-4` → 4, `1e4` → -4); otherwise the
     /// number of fractional digits after stripping trailing zeros.
-    pub fn precision_from_string(&self, s: Value) -> Value {
+    pub fn precision_from_string(&self, s: Value) -> i64 {
         let s = stringify_param(&s);
         if let Some(idx) = s.find(['e', 'E']) {
             let exp: i64 = s[idx + 1..].parse().unwrap_or(0);
-            return Value::Int(-exp);
+            return -exp;
         }
         let trimmed = s.trim_end_matches('0');
         match trimmed.split_once('.') {
-            Some((_, frac)) => Value::Int(frac.len() as i64),
-            None => Value::Int(0),
+            Some((_, frac)) => frac.len() as i64,
+            None => 0,
         }
     }
 
