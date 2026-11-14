@@ -91,11 +91,11 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     let mut swap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
     let mut future: Value = market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null);
     let mut option: Value = market.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null);
-    let mut index: Value = exchange.safe_bool(market.clone(), Value::Str("index".into()), &[]); // todo: unify
+    let mut index: Value = exchange.safe_bool(&market, Value::Str("index".into()), &[]); // todo: unify
     let mut isIndex: Value = Value::Bool((index != Value::Null) && is_true(&index));
     let mut linear: Value = market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null);
     let mut inverse: Value = market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null);
-    let mut quanto: Value = exchange.safe_bool(market.clone(), Value::Str("quanto".into()), &[]); // todo: unify
+    let mut quanto: Value = exchange.safe_bool(&market, Value::Str("quanto".into()), &[]); // todo: unify
     let mut isQuanto: bool = (quanto != Value::Null) && is_true(&quanto);
     let mut isInactiveMarket: bool = market.as_map().and_then(|__m| __m.get("active")).cloned().unwrap_or(Value::Null).as_bool() == Some(false);
     //
@@ -125,10 +125,10 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         append_to_array(&mut emptyAllowedFor, Value::Str("base".into()));
         append_to_array(&mut emptyAllowedFor, Value::Str("quote".into()));
     }
-    if (exchange.safe_string(market.clone(), Value::Str("type".into()), &[]).as_str() == Some("prediction")) {
+    if (exchange.safe_string(&market, Value::Str("type".into()), &[]).as_str() == Some("prediction")) {
         // prediction market rows carry the unified 'market' handle, the
         // deprecated 'symbol' key is intentionally absent from their structures
-        format = exchange.omit(format.clone(), Value::from(vec![Value::Str("symbol".into())]), &[]);
+        format = exchange.omit(format, Value::from(vec![Value::Str("symbol".into())]), &[]);
     }
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), format.clone(), emptyAllowedFor.clone()]);
     // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
@@ -193,7 +193,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         // if not spot, any of the below should be true
         assert!(ccxt::runtime::is_true(&(((contract.as_bool() == Some(true)) && ((future.as_bool() == Some(true)) || (swap.as_bool() == Some(true)) || (option.as_bool() == Some(true)) || is_true(&(isIndex)))))));
     }
-    let mut contractSize: Value = exchange.safe_string(market.clone(), Value::Str("contractSize".into()), &[]);
+    let mut contractSize: Value = exchange.safe_string(&market, Value::Str("contractSize".into()), &[]);
     // contract fields
     if (contract.as_bool() == Some(true)) && !isInactiveMarket {
         if isQuanto {
@@ -293,7 +293,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
             // max >= 0
             crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), limitEntry.clone(), Value::Str("max".into()).clone(), Value::Str("0".into()).clone()]);
             // max >= min
-            let mut minString: Value = exchange.safe_string(limitEntry.clone(), Value::Str("min".into()), &[]);
+            let mut minString: Value = exchange.safe_string(&limitEntry, Value::Str("min".into()), &[]);
             if (minString != Value::Null) {
                 crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), limitEntry.clone(), Value::Str("max".into()).clone(), minString.clone()]);
             }
@@ -311,7 +311,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
     crate::tests_support::shared::assert_timestamp(exchange.clone(), &[skippedProperties.clone(), method.clone(), market.clone(), Value::Null.clone(), Value::Str("created".into()).clone()]);
     // margin modes
     if !(in_op(&skippedProperties, &Value::Str("marginModes".into()))) {
-        let mut marginModes: Value = exchange.safe_dict(market.clone(), Value::Str("marginModes".into()), &[Value::Map({
+        let mut marginModes: Value = exchange.safe_dict(&market, Value::Str("marginModes".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]); // in future, remove safeDict

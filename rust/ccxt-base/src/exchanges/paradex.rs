@@ -2006,16 +2006,16 @@ impl Paradex {
         //
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "price_change_rate_24h", &[]).as_str().map(str::to_owned);
         if (percentage.is_some()) {
-            percentage = crate::precise::Precise::stringMul(&percentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            percentage = crate::precise::Precise::stringMul(&percentage.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last_traded_price", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "created_at", &[]).as_i64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), Value::Null);
@@ -2495,10 +2495,10 @@ impl Paradex {
         let mut timestamp: Option<i64> = self.safe_integer_k(interest.clone(), "created_at", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(interest.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("openInterestAmount".to_string(), self.safe_string_k(interest.clone(), "open_interest", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -2545,12 +2545,12 @@ impl Paradex {
 
     pub async fn prepare_paradex_domain(&mut self, optional_args: &[Value]) -> Value {
         let l1: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let mut systemConfig: Value = self.get_system_config().await;
+        let mut systemConfig: crate::value::Dict = self.get_system_config().await.into_dict();
         if l1 {
             let mut l1D: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::Str("Paradex".into()));
-                    m.insert("chainId".to_string(), self.safe_string_k(systemConfig.clone(), "l1_chain_id", &[]));
+                    m.insert("chainId".to_string(), self.safe_string_k(&systemConfig, "l1_chain_id", &[]));
                     m.insert("version".to_string(), Value::Str("1".into()));
                 m
             });
@@ -2559,7 +2559,7 @@ impl Paradex {
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("Paradex".into()));
-                m.insert("chainId".to_string(), self.safe_string_k(systemConfig, "starknet_chain_id", &[]));
+                m.insert("chainId".to_string(), self.safe_string_k(&systemConfig, "starknet_chain_id", &[]));
                 m.insert("version".to_string(), Value::Int(1));
             m
         });
@@ -2571,7 +2571,7 @@ impl Paradex {
     pub async fn retrieve_account(&mut self) -> Value {
         if (self.safe_dict_k(self.options.clone(), "paradexAccount", &[]) == Value::Null) {
             self.check_required_credentials(&[]);
-            let mut systemConfig: Value = self.get_system_config().await;
+            let mut systemConfig: crate::value::Dict = self.get_system_config().await.into_dict();
             let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[Value::Bool(true)]).await.into_dict();
             let mut messageTypes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2590,7 +2590,7 @@ impl Paradex {
             });
             let mut msg: Value = self.eth_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(message));
             let mut signature: Value = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
-            let mut account: indexmap::IndexMap<String, Value> = self.retrieve_stark_account(signature, self.safe_string_k(systemConfig.clone(), "paraclear_account_hash", &[]), self.safe_string_k(systemConfig, "paraclear_account_proxy_hash", &[])).as_map().cloned().unwrap_or_default();
+            let mut account: indexmap::IndexMap<String, Value> = self.retrieve_stark_account(signature, self.safe_string_k(&systemConfig, "paraclear_account_hash", &[]), self.safe_string_k(&systemConfig, "paraclear_account_proxy_hash", &[])).as_map().cloned().unwrap_or_default();
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".into(), Value::Map(account)); }
         }
         return self.safe_dict_k(self.options.clone(), "paradexAccount", &[Value::Map({
@@ -2606,7 +2606,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut account: Value = self.retrieve_account().await;
+        let mut account: crate::value::Dict = self.retrieve_account().await.into_dict();
         let mut req: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("Onboarding".into()));
@@ -2623,11 +2623,11 @@ impl Paradex {
 })]));
             m
         });
-        let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(req), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
-        let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(req), self.safe_string_k(&account, "address", &[])).as_str().map(str::to_owned);
+        let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&account, "privateKey")).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null)); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(account.clone(), "address", &[])); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("public_key".into(), self.safe_string_k(account, "publicKey", &[])); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(&account, "address", &[])); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("public_key".into(), self.safe_string_k(&account, "publicKey", &[])); }
         let mut response: Value = self.private_post_onboarding(&[params]).await;
         return response;
 
@@ -2650,7 +2650,7 @@ impl Paradex {
                 return cachedToken.map(Value::from).unwrap_or(Value::Null);
             }
         }
-        let mut account: Value = self.retrieve_account().await;
+        let mut account: crate::value::Dict = self.retrieve_account().await.into_dict();
         // https://docs.paradex.trade/api-reference/general-information/authentication
         let mut expires: Option<i64> = (if let Some(__l) = now { Some(__l + 180) } else { None });
         let mut req: indexmap::IndexMap<String, Value> = ({
@@ -2693,10 +2693,10 @@ impl Paradex {
 })]));
             m
         });
-        let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(req.clone()), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
-        let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(req.clone()), self.safe_string_k(&account, "address", &[])).as_str().map(str::to_owned);
+        let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&account, "privateKey")).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null)); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(account, "address", &[])); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), self.safe_string_k(&account, "address", &[])); }
         add_element_to_object(&mut params, &Value::Str("timestamp".into()), req.get("timestamp").cloned().unwrap_or(Value::Null));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("expiration".into(), req.get("expiration").cloned().unwrap_or(Value::Null)); }
         let mut response: crate::value::Dict = self.private_post_auth(&[params]).await.into_dict();
@@ -2752,7 +2752,7 @@ impl Paradex {
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -2787,7 +2787,7 @@ impl Paradex {
         let mut flags: Option<crate::value::List> = self.safe_list_k(order.clone(), "flags", &[]).into_opt_list();
         let mut reduceOnly: Value = Value::Null;
         if (flags.is_some()) {
-            reduceOnly = self.in_array(Value::Str("REDUCE_ONLY".into()), flags.map_or(Value::Null, Value::Arr));
+            reduceOnly = Value::Bool(self.in_array(Value::Str("REDUCE_ONLY".into()), flags.map_or(Value::Null, Value::Arr)));
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2798,7 +2798,7 @@ impl Paradex {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
@@ -3003,7 +3003,7 @@ impl Paradex {
 
     pub async fn sign_order_request(&mut self, mut request: Value, optional_args: &[Value]) -> Value {
         let modify: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let mut account: Value = self.retrieve_account().await;
+        let mut account: crate::value::Dict = self.retrieve_account().await.into_dict();
         let mut now: i64 = self.milliseconds();
         let mut orderType: Option<String> = self.safe_string_k(request.clone(), "type", &[]).as_str().map(str::to_owned);
         if (orderType.is_none()) {
@@ -3076,8 +3076,8 @@ impl Paradex {
             });
         }
         let mut domain: crate::value::Dict = self.prepare_paradex_domain(&[]).await.into_dict();
-        let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(orderReq.clone()), self.safe_string_k(account.clone(), "address", &[])).as_str().map(str::to_owned);
-        let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), account.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut msg: Option<String> = self.starknet_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(orderReq.clone()), self.safe_string_k(&account, "address", &[])).as_str().map(str::to_owned);
+        let mut signature: Option<String> = self.starknet_sign(msg.map(Value::from).unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&account, "privateKey")).as_str().map(str::to_owned);
         let mut signedRequest: crate::value::Dict = self.extend(request, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
@@ -3132,7 +3132,7 @@ impl Paradex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]);
-        request = self.sign_order_request(request.clone(), &[]).await;
+        request = self.sign_order_request(request, &[]).await;
         let mut response: crate::value::Dict = self.private_post_orders(&[request]).await.into_dict();
         //
         // {
@@ -3215,10 +3215,10 @@ impl Paradex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]);
-        request = self.omit(request.clone(), Value::from(vec![Value::Str("instruction".into()), Value::Str("client_id".into()), Value::Str("flags".into()), Value::Str("recv_window".into())]), &[]);
+        request = self.omit(request, Value::from(vec![Value::Str("instruction".into()), Value::Str("client_id".into()), Value::Str("flags".into()), Value::Str("recv_window".into())]), &[]);
         add_element_to_object(&mut request, &Value::Str("order_id".into()), id.clone());
         add_element_to_object(&mut request, &Value::Str("id".into()), id);
-        request = self.sign_order_request(request.clone(), &[Value::Bool(true)]).await;
+        request = self.sign_order_request(request, &[Value::Bool(true)]).await;
         let mut response: crate::value::Dict = self.private_put_orders_order_id(&[request]).await.into_dict();
         return self.parse_order(&response, Some(&market));
         Value::Null
@@ -3266,7 +3266,7 @@ impl Paradex {
             })]).into_dict();
             let mut extendedParams: crate::value::Dict = self.extend(params.clone(), &[&orderParams]).into_dict();
             let mut orderRequest: Value = self.create_order_request(symbol.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(extendedParams)]);
-            orderRequest = self.sign_order_request(orderRequest.clone(), &[]).await;
+            orderRequest = self.sign_order_request(orderRequest, &[]).await;
             ordersRequests.push(orderRequest);
         }
         }
@@ -4055,7 +4055,7 @@ impl Paradex {
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         let mut quantity: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(position.clone(), "size", &[])).as_str().map(str::to_owned);
@@ -4067,7 +4067,7 @@ impl Paradex {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "average_entry_price", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), self.parse_number(notionalString.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -5054,7 +5054,7 @@ impl Paradex {
         //
         let mut marketId: Option<String> = self.safe_string_k(greeks.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("option".into())]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(greeks.clone(), "created_at", &[]).as_i64();
         let mut greeksData: crate::value::Dict = self.safe_dict_k(greeks.clone(), "greeks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5062,7 +5062,7 @@ impl Paradex {
 })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("delta".to_string(), self.safe_number_k(&greeksData, "delta", &[]));

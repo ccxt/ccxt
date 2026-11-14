@@ -1465,7 +1465,7 @@ impl Dydx {
         //
         let mut status: Option<String> = self.parse_order_status((self.safe_string_upper_k(order.clone(), "status", &[])).as_str());
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "ticker", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "totalFilled", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "updatedAt", &[]));
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -1728,7 +1728,7 @@ impl Dydx {
         let mut side: Option<String> = self.safe_string_lower_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut quantity: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         if (side.as_deref() != Some("long")) {
-            quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            quantity = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &quantity.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(position.clone(), "createdAt", &[]));
         return self.safe_position(Value::Map({
@@ -1878,12 +1878,12 @@ impl Dydx {
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
             __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }),
             Value::Str("secp256k1".into()), Value::Null);
-        let mut r: Value = self.safe_string_k(&signature, "r", &[Value::Str("".into())]);
-        let mut s: Value = self.safe_string_k(&signature, "s", &[Value::Str("".into())]);
+        let mut r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("r".to_string(), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null));
-        m.insert("s".to_string(), s.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null));
+        m.insert("r".to_string(), Value::from(format!("{:0>64}", r)));
+        m.insert("s".to_string(), Value::from(format!("{:0>64}", s)));
         m.insert("v".to_string(), self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]));
     m
 });
@@ -2036,7 +2036,7 @@ impl Dydx {
                         let mut i: Value = Value::Int(1);
             let mut __for_first_659: bool = true;
             while { if !__for_first_659 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
-            r = crate::precise::Precise::stringMul(&r.clone().map(Value::from).unwrap_or(Value::Null), &n).as_str().map(str::to_owned);
+            r = crate::precise::Precise::stringMul(&r.map(Value::from).unwrap_or(Value::Null), &n).as_str().map(str::to_owned);
         }
         }
         return r.map(Value::from).unwrap_or(Value::Null);
@@ -2133,7 +2133,7 @@ impl Dydx {
                 conditionalType = 2;
                 conditionalOrderTriggerSubticks = self.price_to_precision(symbol, takeProfitPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
-            conditionalOrderTriggerSubticks = crate::precise::Precise::stringMul(&conditionalOrderTriggerSubticks.clone().map(Value::from).unwrap_or(Value::Null), &priceScale).as_str().map(str::to_owned);
+            conditionalOrderTriggerSubticks = crate::precise::Precise::stringMul(&conditionalOrderTriggerSubticks.map(Value::from).unwrap_or(Value::Null), &priceScale).as_str().map(str::to_owned);
         }
         let mut latestBlockHeight: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "latestBlockHeight", &[]).as_i64();
         let mut goodTillBlock: Option<i64> = self.safe_integer_k(&paramsSubAccountId, "goodTillBlock", &[]).as_i64();
@@ -2155,11 +2155,11 @@ impl Dydx {
             if (goodTillBlockTimeInSecondsOption.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required("goodTillBlockTimeInSeconds is required."));
             }
-            goodTillBlockTime = (if let Some(__r) = goodTillBlockTimeInSecondsOption { Some((self.seconds().as_i64().unwrap_or_default()) + __r) } else { None });
+            goodTillBlockTime = (if let Some(__r) = goodTillBlockTimeInSecondsOption { Some((self.seconds()) + __r) } else { None });
         }
         let mut sideNumber: i64 = (if (orderSide == "BUY") { 1 } else { 2 });
-        let mut defaultClientOrderId: Value = self.rand_number(Value::Int(9)); // 2**32 - 1 is 10 digits, but it may overflow with 10
-        let mut clientOrderId: Value = self.safe_integer_k(&paramsGoodTillBlockTimeInSeconds, "clientOrderId", &[defaultClientOrderId]);
+        let mut defaultClientOrderId: i64 = self.rand_number(Value::Int(9)); // 2**32 - 1 is 10 digits, but it may overflow with 10
+        let mut clientOrderId: Option<i64> = self.safe_integer_k(&paramsGoodTillBlockTimeInSeconds, "clientOrderId", &[Value::from(defaultClientOrderId)]).as_i64();
         let mut orderPayload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order".to_string(), Value::Map({
@@ -2172,7 +2172,7 @@ impl Dydx {
         m.insert("number".to_string(), Value::from(subaccountIdOption));
     m
 }));
-        m.insert("clientId".to_string(), clientOrderId.clone());
+        m.insert("clientId".to_string(), Value::from(clientOrderId));
         m.insert("orderFlags".to_string(), Value::from(orderFlag));
         m.insert("clobPairId".to_string(), marketInfo.get("clobPairId").cloned().unwrap_or(Value::Null));
     m
@@ -2203,10 +2203,10 @@ impl Dydx {
         let mut walletAddress: Option<String> = self.get_wallet_address().as_str().map(str::to_owned);
         let mut clobPairId: i64 = self.safe_integer_k(Value::Map(marketInfo), "clobPairId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut subaccountIdValue: Option<i64> = (if (subaccountIdOption.is_none()) { Some(0) } else { subaccountIdOption });
-        let mut clientOrderIdValue: Value = (if (clientOrderId == Value::Null) { Value::Int(0) } else { clientOrderId });
+        let mut clientOrderIdValue: Option<i64> = (if (clientOrderId.is_none()) { Some(0) } else { clientOrderId });
         let mut orderFlagValue: Option<i64> = (if (orderFlag.is_none()) { Some(0) } else { orderFlag });
         let mut clobPairIdValue: i64 = (if (false) { 0 } else { clobPairId });
-        let mut orderId: Option<String> = self.create_order_id_from_parts(walletAddress.as_deref().unwrap_or_default(), Value::from(subaccountIdValue).as_f64().unwrap_or_default(), clientOrderIdValue.as_f64().unwrap_or_default(), Value::from(orderFlagValue).as_f64().unwrap_or_default(), (clobPairIdValue as f64));
+        let mut orderId: Option<String> = self.create_order_id_from_parts(walletAddress.as_deref().unwrap_or_default(), Value::from(subaccountIdValue).as_f64().unwrap_or_default(), Value::from(clientOrderIdValue).as_f64().unwrap_or_default(), Value::from(orderFlagValue).as_f64().unwrap_or_default(), (clobPairIdValue as f64));
         return Value::from(vec![orderId.map(Value::from).unwrap_or(Value::Null), self.extend(Value::Map(signingPayload), &[paramsOmitted])]);
 
     Value::Null
@@ -2397,7 +2397,7 @@ impl Dydx {
         if (clientOrderId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.".into()))));
         }
-        let mut idString: Option<String> = self.number_to_string(id.clone());
+        let mut idString: Option<String> = self.number_to_string(id);
         if idString.as_deref().unwrap_or_default().contains("-") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.".into()))));
         }
@@ -2424,7 +2424,7 @@ impl Dydx {
             if (goodTillBlockOption.is_some()) && goodTillBlockOption > Some(0) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" goodTillBlock should be 0 for long term or conditional order.".into()))));
             }
-            goodTillBlockTime = (if let Some(__r) = goodTillBlockTimeInSecondsOption { Some((self.seconds().as_i64().unwrap_or_default()) + __r) } else { None });
+            goodTillBlockTime = (if let Some(__r) = goodTillBlockTimeInSecondsOption { Some((self.seconds()) + __r) } else { None });
         }  else {
             if (goodTillBlock.is_none()) {
                 let mut latestBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
@@ -2540,7 +2540,7 @@ impl Dydx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut cancelOrders: Value = Value::Map({
+        let mut cancelOrders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("clientIds".to_string(), clientOrderIds.map_or(Value::Null, Value::Arr));
                 m.insert("clobPairId".to_string(), marketInfo.get("clobPairId").cloned().unwrap_or(Value::Null));
@@ -2554,7 +2554,7 @@ impl Dydx {
         m.insert("number".to_string(), Value::from(subAccountIdOption));
     m
 }));
-                m.insert("shortTermCancels".to_string(), Value::from(vec![cancelOrders]));
+                m.insert("shortTermCancels".to_string(), Value::from(vec![Value::Map(cancelOrders)]));
                 m.insert("goodTilBlock".to_string(), Value::from(goodTillBlock));
             m
         });
@@ -2656,7 +2656,7 @@ impl Dydx {
         // }
         //
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut type_var: Option<String> = self.safe_string_upper_k(item.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = None;
@@ -2793,14 +2793,14 @@ impl Dydx {
             denom = self.safe_string_k(&feeDenom, "CHAINTOKEN_DENOM", &[]).as_str().map(str::to_owned);
         }
         let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed.map(Value::from).unwrap_or(Value::Null), &defaultFeeMultiplier.map(Value::from).unwrap_or(Value::Null)))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(gasLimit.clone())), &gasPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(gasLimit.clone())), &gasPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (feeAmount.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" estimateTxFee() missing feeAmount".into()))));
         }
         if feeAmount.as_deref().unwrap_or_default().contains(".") {
-            feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.clone().map(Value::from).unwrap_or(Value::Null))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
+            feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.map(Value::from).unwrap_or(Value::Null))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
         }
-        let mut feeObj: Value = Value::Map({
+        let mut feeObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), feeAmount.map(Value::from).unwrap_or(Value::Null));
                 m.insert("denom".to_string(), denom.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2808,7 +2808,7 @@ impl Dydx {
         });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), Value::from(vec![feeObj]));
+        m.insert("amount".to_string(), Value::from(vec![Value::Map(feeObj)]));
         m.insert("gasLimit".to_string(), gasLimit);
     m
 });

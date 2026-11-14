@@ -17,7 +17,7 @@ pub async fn testWatchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
     assert!(ccxt::runtime::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // prefer 1m timeframe if available, otherwise return the first one
     let mut chosenTimeframeKey: Value = Value::Str("1m".into());
-    if !is_true(&exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone())) {
+    if !exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone()) {
         chosenTimeframeKey = timeframeKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     }
     let mut limit: Value = Value::Int(10);

@@ -1033,11 +1033,11 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut fundingRate: Value = self.parse_ws_funding_rate(data, None, &[message]);
-        let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[Value::Str("".into())]);
-        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
+        let mut fundingRate: crate::value::Dict = self.parse_ws_funding_rate(data, None, &[message]).into_dict();
+        let mut symbol: Value = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]);
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
         let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), symbol);
-        client.resolve(fundingRate, messageHash.as_str());
+        client.resolve(Value::Dict(fundingRate), messageHash.as_str());
 }
 
     pub fn parse_ws_funding_rate(&self, mut fundingRate: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {

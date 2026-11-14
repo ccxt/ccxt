@@ -804,9 +804,9 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut fundingRate: Value = self.parse_funding_rate(data, Some(&market));
-        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
-        client.resolve(fundingRate, &(Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), symbol).into())));
+        let mut fundingRate: crate::value::Dict = self.parse_funding_rate(data, Some(&market)).into_dict();
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
+        client.resolve(Value::Dict(fundingRate), &(Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), symbol).into())));
 }
 
 /*
@@ -1016,7 +1016,7 @@ impl Bitstamp {
     m
 }) });
         let mut subscription: Value = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
-        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_string_k(subscription, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -1119,7 +1119,7 @@ impl Bitstamp {
     m
 }) }).as_map().cloned().unwrap_or_default();
         let mut subscription: Value = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
-        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_string_k(subscription, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -1315,7 +1315,7 @@ impl Bitstamp {
             self.prune_cached_by_symbols(Value::from(&freshTradesCache), Value::from(&self.myTrades), Value::Arr(symbols));
             self.myTrades = Some(freshTradesCache);
         }  else {
-            self.clean_cache(subscription.clone());
+            self.clean_cache(subscription);
         }
         self.clean_unsubscription(client, subHash.map(Value::from).unwrap_or(Value::Null), Value::from(unsubHash), &[]);
 }
@@ -1337,7 +1337,7 @@ impl Bitstamp {
             while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (entries.len() as i64) } {
             let mut entry: Value = entries.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entrySymbol: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            if !(self.in_array(entrySymbol.map(Value::from).unwrap_or(Value::Null), symbols.clone()).as_bool() == Some(true)) {
+            if !self.in_array(entrySymbol.map(Value::from).unwrap_or(Value::Null), symbols.clone()) {
                 newCache.append(entry);
             }
         }

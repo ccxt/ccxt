@@ -977,15 +977,15 @@ impl Luno {
             let mut stablecoins: Value = Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())]);
             let mut taker: Option<f64> = None;
             let mut maker: Option<f64> = None;
-            if self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), fiats).as_bool() == Some(true) {
-                if self.in_array(base.clone().map(Value::from).unwrap_or(Value::Null), stablecoins).as_bool() == Some(true) {
+            if self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), fiats) {
+                if self.in_array(base.clone().map(Value::from).unwrap_or(Value::Null), stablecoins) {
                     taker = Some(0.002_f64);
                     maker = Some(-0.0001_f64); // a rebate, not a charge
                 }  else {
                     taker = Some(0.006_f64);
                     maker = Some(0.004_f64);
                 }
-            }  else if !(self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), unverifiedQuotes).as_bool() == Some(true)) {
+            }  else if !self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), unverifiedQuotes) {
                 // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                 // are both in Luno's crypto/crypto column
                 taker = Some(0.001_f64);
@@ -1485,7 +1485,7 @@ impl Luno {
         // }
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "pair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last_trade", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1553,9 +1553,9 @@ impl Luno {
             while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(id.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-            let mut ticker: Value = (if let (Some(__m), Some(__k)) = (tickers.as_map(), id.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, Some(&market)));
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+            let mut ticker: crate::value::Dict = (if let (Some(__m), Some(__k)) = (tickers.as_map(), id.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).into_dict();
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&ticker, Some(&market)));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -1691,7 +1691,7 @@ impl Luno {
     m
 }));
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -2198,7 +2198,7 @@ impl Luno {
         let mut account_id: Option<String> = self.safe_string_k(entry.clone(), "account_id", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone());
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut available_delta: Option<String> = self.safe_string_k(entry.clone(), "available_delta", &[]).as_str().map(str::to_owned);
         let mut balance_delta: Option<String> = self.safe_string_k(entry.clone(), "balance_delta", &[]).as_str().map(str::to_owned);

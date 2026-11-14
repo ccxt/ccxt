@@ -2900,7 +2900,7 @@ impl Mexc {
                 request.insert("endTime".into(), Value::from(until));
             }
             let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[Value::Str("spotPublicGetAggTrades".into())]).as_str().map(str::to_owned);
-            method = self.safe_string_k(params.clone(), "method", &[Value::from(method.as_deref())]).as_str().map(str::to_owned); // AggTrades, HistoricalTrades, Trades
+            method = self.safe_string_k(params.clone(), "method", &[method.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned); // AggTrades, HistoricalTrades, Trades
             let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("method".into())]), &[]).into_dict();
             if (method.as_deref() == Some("spotPublicGetAggTrades")) {
                 let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -2969,7 +2969,7 @@ impl Mexc {
             //     }
             //
             timestamp = self.safe_integer_k(trade.clone(), "t", &[]).as_i64();
-            marketResolved = Some(self.safe_market(Value::Null, market.clone(), &[]));
+            marketResolved = Some(self.safe_market(Value::Null, market, &[]));
             symbol = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
             priceString = self.safe_string_k(trade.clone(), "p", &[]).as_str().map(str::to_owned);
             amountString = self.safe_string_k(trade.clone(), "v", &[]).as_str().map(str::to_owned);
@@ -3495,7 +3495,7 @@ impl Mexc {
             low = self.safe_string_k(ticker.clone(), "lower24Price", &[]).as_str().map(str::to_owned);
             changeValue = self.safe_string_k(ticker.clone(), "riseFallValue", &[]).as_str().map(str::to_owned);
             changePcnt = self.safe_string_k(ticker.clone(), "riseFallRate", &[]).as_str().map(str::to_owned);
-            changePcnt = crate::precise::Precise::stringMul(&changePcnt.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            changePcnt = crate::precise::Precise::stringMul(&changePcnt.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         }  else {
             //
             //     {
@@ -3538,7 +3538,7 @@ impl Mexc {
             prevClose = self.safe_string_k(ticker.clone(), "prevClosePrice", &[]).as_str().map(str::to_owned);
             changeValue = self.safe_string_k(ticker.clone(), "priceChange", &[]).as_str().map(str::to_owned);
             changePcnt = self.safe_string_k(ticker.clone(), "priceChangePercent", &[]).as_str().map(str::to_owned);
-            changePcnt = crate::precise::Precise::stringMul(&changePcnt.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            changePcnt = crate::precise::Precise::stringMul(&changePcnt.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3856,7 +3856,7 @@ impl Mexc {
         }
         let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("test".into()), &[]);
-        let mut request: crate::value::Dict = self.create_spot_order_request(market.clone(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), marginMode, paramsOmitted]).into_dict();
+        let mut request: crate::value::Dict = self.create_spot_order_request(market, type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), marginMode, paramsOmitted]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if test {
             response = self.spot_private_post_order_test(&[Value::from(&request)]).await.into_opt_dict();
@@ -3944,7 +3944,7 @@ impl Mexc {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSwapOrder() marginMode parameter should be either \"cross\" or \"isolated\"".into()))));
             }
         }
-        if (type_var.as_str() != Some("limit")) && (type_var.as_str() != Some("market")) && (!(self.in_array(type_var.clone(), Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5), Value::Int(6)])).as_bool() == Some(true))) {
+        if (type_var.as_str() != Some("limit")) && (type_var.as_str() != Some("market")) && (!self.in_array(type_var.clone(), Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5), Value::Int(6)]))) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price".into()))));
         }
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool((match &(type_var) { Value::Int(__x) => *__x == 2, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
@@ -4309,7 +4309,7 @@ impl Mexc {
                 let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&queryInner]);
                 response = self.spot_private_get_all_orders(&[__ws_arg_22]).await;
             }
-            return self.parse_orders(response.clone(), market.as_ref(), &[since.clone(), limit.clone()]);
+            return self.parse_orders(response, market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
             if (since != Value::Null) {
                 request.insert("start_time".into(), since.clone());
@@ -4340,7 +4340,7 @@ impl Mexc {
                 request.insert("page_size".into(), limit.clone());
             }
             let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchOrders", &[Value::Str("contractPrivateGetOrderListHistoryOrders".into())]).as_str().map(str::to_owned);
-            method = self.safe_string_k(&query, "method", &[Value::from(method.as_deref())]).as_str().map(str::to_owned);
+            method = self.safe_string_k(&query, "method", &[method.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut ordersOfRegular: Value = Value::from(vec![]);
             let mut ordersOfTrigger: Value = Value::from(vec![]);
             if (method.as_deref() == Some("contractPrivateGetOrderListHistoryOrders")) {
@@ -4739,24 +4739,24 @@ impl Mexc {
         }  else {
             let mut trigger: Option<bool> = self.safe_bool2(Value::from(&query), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
             let mut method: Option<String> = self.safe_string_k(self.options.clone(), "cancelOrder", &[Value::Str("contractPrivatePostOrderCancel".into())]).as_str().map(str::to_owned); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
-            method = self.safe_string_k(&query, "method", &[Value::from(method.as_deref())]).as_str().map(str::to_owned);
+            method = self.safe_string_k(&query, "method", &[method.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             if (trigger == Some(true)) {
                 method = Some("contractPrivatePostPlanorderCancel".to_string());
             }
-            let mut response: Value = Value::Null;
+            let mut response: Option<crate::value::Dict> = None;
             if (method.as_deref() == Some("contractPrivatePostOrderCancel")) {
-                response = self.contract_private_post_order_cancel(&[Value::from(vec![id.clone()])]).await; // the request cannot be changed or extended. This is the only way to send.
+                response = self.contract_private_post_order_cancel(&[Value::from(vec![id.clone()])]).await.into_opt_dict(); // the request cannot be changed or extended. This is the only way to send.
             }  else if (method.as_deref() == Some("contractPrivatePostPlanorderCancel")) {
                 if (symbol == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument for trigger orders".into()))));
                 }
-                let mut cancelRequest: Value = Value::Map({
+                let mut cancelRequest: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("symbol".to_string(), self.safe_string_k(&market, "id", &[]));
                         m.insert("orderId".to_string(), id.clone());
                     m
                 });
-                response = self.contract_private_post_planorder_cancel(&[Value::from(vec![cancelRequest])]).await; // the request cannot be changed or extended. This is the only way to send.
+                response = self.contract_private_post_planorder_cancel(&[Value::from(vec![Value::Map(cancelRequest)])]).await.into_opt_dict(); // the request cannot be changed or extended. This is the only way to send.
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() not support this method".into()))));
             }
@@ -4778,11 +4778,11 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
     m
 }), market.as_ref());
             }
-            data = self.safe_value_k(response, "data", &[]);
+            data = self.safe_value_k(&response, "data", &[]);
             let mut order: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(0), &[]).into_dict();
             let mut errorMsg: String = self.safe_string_k(&order, "errorMsg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (errorMsg != "success") {
@@ -4899,7 +4899,7 @@ impl Mexc {
             // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             let mut method: Option<String> = self.safe_string_k(self.options.clone(), "cancelAllOrders", &[Value::Str("contractPrivatePostOrderCancelAll".into())]).as_str().map(str::to_owned);
-            method = self.safe_string_k(&paramsMarketType, "method", &[Value::from(method.as_deref())]).as_str().map(str::to_owned);
+            method = self.safe_string_k(&paramsMarketType, "method", &[method.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut response: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -5475,10 +5475,10 @@ impl Mexc {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result.clone(), baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
+                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result.clone(), quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
+                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
                 }
             }
             }
@@ -6403,7 +6403,7 @@ impl Mexc {
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap.clone().map(Value::from).unwrap_or(Value::Null), &riskIncrVol.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
-                    m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Null, Value::Str("contract".into())]));
+                    m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("contract".into())]));
                     m.insert("currency".to_string(), self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
                     m.insert("minNotional".to_string(), self.parse_number(floor.clone(), &[]));
                     m.insert("maxNotional".to_string(), self.parse_number(cap.clone().map(Value::from).unwrap_or(Value::Null), &[]));
@@ -6412,8 +6412,8 @@ impl Mexc {
                     m.insert("info".to_string(), info.clone());
                 m
             }));
-            initialMarginRate = crate::precise::Precise::stringAdd(&initialMarginRate.clone().map(Value::from).unwrap_or(Value::Null), &riskIncrImr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-            maintenanceMarginRate = crate::precise::Precise::stringAdd(&maintenanceMarginRate.clone().map(Value::from).unwrap_or(Value::Null), &riskIncrMmr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            initialMarginRate = crate::precise::Precise::stringAdd(&initialMarginRate.map(Value::from).unwrap_or(Value::Null), &riskIncrImr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            maintenanceMarginRate = crate::precise::Precise::stringAdd(&maintenanceMarginRate.map(Value::from).unwrap_or(Value::Null), &riskIncrMmr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             floor = cap.map(Value::from).unwrap_or(Value::Null);
         }
         return Value::from(tiers);
@@ -6440,7 +6440,7 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)])));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(depositAddress, "memo", &[]));
     m
@@ -6491,7 +6491,7 @@ impl Mexc {
                 let mut network: Value = (if (networkUnified == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_dict(networks.clone(), networkUnified.clone(), &[Value::Map({
+}) } else { self.safe_dict(networks, networkUnified, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
@@ -6573,7 +6573,7 @@ impl Mexc {
             let mut network: Value = (if (networkUnified == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_dict(networks.clone(), networkUnified.clone(), &[Value::Map({
+}) } else { self.safe_dict(networks, networkUnified, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
@@ -6843,7 +6843,7 @@ impl Mexc {
         }
         if (type_var == "withdrawal") {
             // mexc withdrawal amount includes the fee
-            amountString = crate::precise::Precise::stringSub(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &feeCostString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountString = crate::precise::Precise::stringSub(&amountString.map(Value::from).unwrap_or(Value::Null), &feeCostString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7714,7 +7714,7 @@ impl Mexc {
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
             let mut currency: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut code: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
-            if (codes == Value::Null) || self.in_array(Value::from(code.as_deref()), codes.clone()).as_bool() == Some(true) {
+            if (codes == Value::Null) || (self.in_array(Value::from(code.as_deref()), codes.clone())) {
                 withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_transaction_fee(Value::Dict(entry), &[crate::Value::from(Some(&currency))]));
             }
         }

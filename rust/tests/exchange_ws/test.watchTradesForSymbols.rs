@@ -41,7 +41,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 assert!(ccxt::runtime::is_true(&((symbol != Value::Null))));
                 testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trade.clone(), symbol.clone(), now.clone(), Value::Bool(true));
                 crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trade.clone(), Value::Str("symbol".into()).clone(), symbols.clone()]);
-                if !is_true(&exchange.in_array(symbol.clone(), returnedSymbols.clone())) {
+                if !exchange.in_array(symbol.clone(), returnedSymbols.clone()) {
                     append_to_array(&mut returnedSymbols, symbol.clone());
                 }
             }
@@ -56,7 +56,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     assert!(ccxt::runtime::is_true(&((receivedLength > 0))));
     if !allReceived {
         // an illiquid symbol may not trade inside the window, that is the market and not a bug
-        println_val(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", logText, Value::Str("warning: only received part of symbols before the deadline: ".into())).into()), exchange.json(returnedSymbols.clone())).into()));
+        println_val(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", logText, Value::Str("warning: only received part of symbols before the deadline: ".into())).into()), exchange.json(returnedSymbols)).into()));
     }
     return Value::Bool(true);
 

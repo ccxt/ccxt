@@ -1503,13 +1503,13 @@ impl Gemini {
         let mut marketIds: Vec<Value> = Vec::new();
         let mut allMarketIds: Value = Value::from(vec![]);
         if (matches!(&marketIdsRaw, Value::Arr(_))) {
-            allMarketIds = marketIdsRaw.clone();
+            allMarketIds = marketIdsRaw;
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_713: bool = true;
             while { if !__for_first_713 { i += 1; } __for_first_713 = false; i < (allMarketIds.len() as i64) } {
-            if !(self.in_array(allMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)).as_bool() == Some(true)) {
+            if !self.in_array(allMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)) {
                 marketIds.push(allMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
@@ -1552,7 +1552,7 @@ impl Gemini {
                     while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut pairInfo: Option<crate::value::List> = self.safe_list(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), &[]).into_opt_list();
-                    if (pairInfo.is_some()) && !(self.in_array(marketId.map(Value::from).unwrap_or(Value::Null), Value::from(&brokenPairs)).as_bool() == Some(true)) {
+                    if (pairInfo.is_some()) && !self.in_array(marketId.map(Value::from).unwrap_or(Value::Null), Value::from(&brokenPairs)) {
                         let mut parsed: Value = self.parse_market(pairInfo.map_or(Value::Null, Value::Arr));
                         if (parsed != Value::Null) {
                             result.push(parsed.clone());
@@ -1565,7 +1565,7 @@ impl Gemini {
                                         let mut i: i64 = 0;
                     let mut __for_first_717: bool = true;
                     while { if !__for_first_717 { i += 1; } __for_first_717 = false; i < (marketIds.len() as i64) } {
-                    if !(self.in_array(marketIds.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)).as_bool() == Some(true)) {
+                    if !self.in_array(marketIds.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)) {
                         let mut parsed: Value = self.parse_market(marketIds.get(i as usize).cloned().unwrap_or(Value::Null));
                         if (parsed != Value::Null) {
                             result.push(parsed);
@@ -1864,9 +1864,9 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tickerPromiseA: Value = self.fetch_ticker_v1(symbol.as_str().unwrap_or_default(), &[params.clone()]).await;
-        let mut tickerPromiseB: Value = self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[params]).await;
-        let tickerAtickerBVariable: Vec<Value> = promise_all(&Value::from(vec![tickerPromiseA, tickerPromiseB])).await.as_array().cloned().unwrap_or_default();
+        let mut tickerPromiseA: crate::value::Dict = self.fetch_ticker_v1(symbol.as_str().unwrap_or_default(), &[params.clone()]).await.into_dict();
+        let mut tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[params]).await.into_dict();
+        let tickerAtickerBVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tickerPromiseA), Value::Dict(tickerPromiseB)])).await.as_array().cloned().unwrap_or_default();
         let mut tickerA: Value = tickerAtickerBVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut tickerB: Value = tickerAtickerBVariable.get(1).cloned().unwrap_or(Value::Null);
         return self.deep_extend(tickerA, &[Value::Map({
@@ -2116,7 +2116,7 @@ impl Gemini {
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2443,7 +2443,7 @@ impl Gemini {
         }
         let mut fee: Value = Value::Null;
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_k(order.clone(), "order_id", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "client_order_id", &[]).as_str().map(str::to_owned);
@@ -2849,7 +2849,7 @@ impl Gemini {
         if (nonceMethod.as_deref() == Some("milliseconds")) {
             return Value::Int(self.milliseconds());
         }
-        return self.seconds();
+        return Value::Int(self.seconds());
 
     Value::Null
 }
@@ -3109,7 +3109,7 @@ impl Gemini {
     m
 }), &[query.clone()]).into_opt_dict();
             let mut payload: Value = json_stringify(&request);
-            payload = Value::from(self.string_to_base64(payload.clone(), &[]));
+            payload = Value::from(self.string_to_base64(payload, &[]));
             let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
             headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -3149,7 +3149,7 @@ impl Gemini {
         if (response == Value::Null) {
             if matches!(&body, Value::Str(_)) {
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), Value::from(feedback));
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback));
             }
             return Value::Null;
         }
@@ -3269,7 +3269,7 @@ impl Gemini {
         //
         let mut candles: Value = Value::from(vec![]);
         if (matches!(&response, Value::Arr(_))) {
-            candles = response.clone();
+            candles = response;
         }
         return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
@@ -3323,7 +3323,7 @@ impl Gemini {
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }

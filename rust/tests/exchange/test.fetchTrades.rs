@@ -43,7 +43,7 @@ pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, 
         crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), trades.clone()]);
     }
     if !(in_op(&skippedProperties, &Value::Str("side".into()))) && !(in_op(&skippedProperties, &Value::Str("sideSequence".into()))) {
-        helperTestFetchTradesSideSequence(exchange.clone(), skippedProperties.clone(), symbol.clone(), method.clone(), trades.clone()).await;
+        helperTestFetchTradesSideSequence(exchange.clone(), skippedProperties, symbol, method, trades).await;
     }
     return Value::Bool(true);
 
@@ -73,7 +73,7 @@ async fn helperTestFetchTradesSideSequence(mut exchange: Value, mut skippedPrope
         while { if !__for_first_1595 { i += 1; } __for_first_1595 = false; i < (trades.len() as i64) } {
         let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let mut ts: Value = get_value(&trade, &Value::Str("timestamp".into()));
-        let mut price: Value = exchange.safe_string(trade.clone(), Value::Str("price".into()), &[]);
+        let mut price: Value = exchange.safe_string(&trade, Value::Str("price".into()), &[]);
         let mut side: Value = get_value(&trade, &Value::Str("side".into()));
         //
         let mut isSameTs: bool = is_equal(&ts, &lastTs);
@@ -95,10 +95,10 @@ async fn helperTestFetchTradesSideSequence(mut exchange: Value, mut skippedPrope
                 assert!(ccxt::runtime::is_true(&((side.as_str() == Some("sell")))));
             }
         }
-        lastPrice = price.clone();
-        lastTs = ts.clone();
-        lastSide = side.clone();
-        lastTrade = trade.clone();
+        lastPrice = price;
+        lastTs = ts;
+        lastSide = side;
+        lastTrade = trade;
     }
     }
     return Value::Bool(true);

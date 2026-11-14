@@ -559,10 +559,10 @@ impl Toobit {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
-        let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized)]).into_opt_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsNormalized)]).into_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+                m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                 m.insert("topic".to_string(), Value::Str("trade".into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
@@ -849,7 +849,7 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
+        let mut symbolValue: Value = Value::from(self.symbol(symbol));
         let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         return crate::value::KeyRead::read(&&tickers, &symbolValue);
         Value::Null
@@ -890,10 +890,10 @@ impl Toobit {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
-        let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_opt_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+                m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                 m.insert("topic".to_string(), Value::Str("realtimes".into()));
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
@@ -971,15 +971,15 @@ impl Toobit {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut parsed: Value = self.parse_ws_ticker(Value::Dict(ticker), None);
-            let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut parsed: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None).into_dict();
+            let mut symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
             if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
+                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&parsed)); }
             }
             if (symbol != Value::Null) {
-                newTickers.insert(crate::runtime::stringify_param(&symbol), parsed.clone());
+                newTickers.insert(crate::runtime::stringify_param(&symbol), Value::from(&parsed));
             }
-            client.resolve(parsed.clone(), &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), self.safe_string_k(parsed, "symbol", &[Value::Str("".into())])).into())));
+            client.resolve(Value::from(&parsed), &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())])).into())));
         }
         }
         client.resolve(Value::Map(newTickers), "tickers");
@@ -1062,11 +1062,11 @@ impl Toobit {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), channel).into()));
         }
         }
-        let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized)]).into_opt_list();
+        let mut marketIds: crate::value::List = self.market_ids(&[Value::Arr(symbolsNormalized)]).into_list();
         let mut url: String = format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("common".into()), &[Value::Str("".into())]), Value::Str("/quote/ws/v1".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+                m.insert("symbol".to_string(), Value::Str(marketIds.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                 m.insert("topic".to_string(), channel);
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
@@ -1467,7 +1467,7 @@ impl Toobit {
         let mut order: Value = order.into();
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "O", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "s", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut priceType: Option<String> = self.safe_string_lower_k(order.clone(), "pt", &[]).as_str().map(str::to_owned);
         let mut rawOrderType: Option<String> = self.safe_string_lower_k(order.clone(), "o", &[]).as_str().map(str::to_owned);
         let mut orderType: Option<String> = None;
@@ -1606,8 +1606,8 @@ impl Toobit {
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "T", &[]));
         m.insert("timestamp".to_string(), ts.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("datetime".to_string(), self.iso8601(ts.clone().map(Value::from).unwrap_or(Value::Null)));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]));
+        m.insert("datetime".to_string(), self.iso8601(ts.map(Value::from).unwrap_or(Value::Null)));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "o", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "S", &[]));

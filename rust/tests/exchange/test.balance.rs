@@ -40,7 +40,7 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesFree.clone(), Value::Str("free".into()).clone()]);
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesUsed.clone(), Value::Str("used".into()).clone()]);
     let mut allCodes: Value = exchange.array_concat(codesTotal.clone(), codesFree.clone());
-    allCodes = exchange.array_concat(allCodes.clone(), codesUsed.clone());
+    allCodes = exchange.array_concat(allCodes, codesUsed.clone());
     let mut codesLength: i64 = codesTotal.len() as i64;
     let mut freeLength: i64 = codesFree.len() as i64;
     let mut usedLength: i64 = codesUsed.len() as i64;
@@ -56,7 +56,7 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
         assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), &code)))));
         let mut total: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
         let mut free: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
-        let mut used: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
+        let mut used: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), code, &[]);
         assert!(ccxt::runtime::is_true(&((total != Value::Null))));
         assert!(ccxt::runtime::is_true(&((free != Value::Null))));
         assert!(ccxt::runtime::is_true(&((used != Value::Null))));

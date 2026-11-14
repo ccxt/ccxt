@@ -23,6 +23,6 @@ pub fn testImplodeParams() {
         m
     });
     let mut expected: String = "v2/watchlists/1m/BTC/USDT".to_string();
-    let mut result: String = exchange.implode_params(path.clone(), params.clone());
+    let mut result: String = exchange.implode_params(path, params);
     assert!(ccxt::runtime::is_true(&((result == expected))));
 }

@@ -525,15 +525,15 @@ impl Blofin {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut trade: Value = self.parse_ws_trade(&rawTrade, None);
-            let mut symbol: String = self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, None).into_dict();
+            let mut symbol: String = self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 stored = Some(ArrayCache::new(limit));
                 CacheStore::put(&mut self.trades, &symbol, stored.clone());
             }
-            stored.append(trade);
+            stored.append(Value::Dict(trade));
             if (channelName.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
                 client.resolve(Value::from(&stored), messageHash.as_str());
@@ -763,12 +763,12 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_165: bool = true;
             while { if !__for_first_165 { i += 1; } __for_first_165 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.parse_ws_ticker(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut ticker: crate::value::Dict = self.parse_ws_ticker(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]), None);
-            let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
+            })]), None).into_dict();
+            let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Dict(ticker)); }
             if (channelName.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
                 client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
@@ -1106,12 +1106,12 @@ impl Blofin {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() is not supported for spot markets yet".into()))));
         }
         let mut messageHash: String = format!("{}{}", marketType, Value::Str(":balance".into()));
-        let mut sub: Value = Value::Map({
+        let mut sub: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("account".into()));
             m
         });
-        let mut request: crate::value::Dict = self.get_subscription_request(Value::from(vec![sub])).into_dict();
+        let mut request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(sub)])).into_dict();
         let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1152,7 +1152,7 @@ impl Blofin {
             let mut __for_first_169: bool = true;
             while { if !__for_first_169 { i += 1; } __for_first_169 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if self.in_array(key.clone(), reserved.clone()).as_bool() == Some(true) {
+            if self.in_array(key.clone(), reserved.clone()) {
                 continue;
             }
             if let Value::Dict(__bf03d0) = &mut self.balance {
@@ -1278,13 +1278,13 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_170: bool = true;
             while { if !__for_first_170 { i += 1; } __for_first_170 = false; i < (data.len() as i64) } {
-            let mut order: Value = self.parse_ws_order(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut order: crate::value::Dict = self.parse_ws_order(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]), None);
-            orders.append(order.clone());
+            })]), None).into_dict();
+            orders.append(Value::from(&order));
             if (channelName.is_some()) {
-                client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into())));
+                client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())])).into())));
             }
             client.resolve(Value::from(&orders), channelName.as_deref());
         }
@@ -1358,14 +1358,14 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_171: bool = true;
             while { if !__for_first_171 { i += 1; } __for_first_171 = false; i < (data.len() as i64) } {
-            let mut position: Value = self.parse_ws_position(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut position: crate::value::Dict = self.parse_ws_position(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]), None);
-            newPositions.push(position.clone());
-            cache.append(position.clone());
+            })]), None).into_dict();
+            newPositions.push(Value::from(&position));
+            cache.append(Value::from(&position));
             if (channelName.is_some()) {
-                client.resolve(position.clone(), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(position, "symbol", &[Value::Str("".into())])).into())));
+                client.resolve(Value::from(&position), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
             }
         }
         }
@@ -1405,13 +1405,13 @@ impl Blofin {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), Value::from((market).symbol.clone()));
-        let mut requestParams: Value = Value::Map({
+        let mut requestParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("funding-rate".into()));
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut request: crate::value::Dict = self.get_subscription_request(Value::from(vec![requestParams])).into_dict();
+        let mut request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(requestParams)])).into_dict();
         let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1446,11 +1446,11 @@ impl Blofin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut fundingRate: Value = self.parse_funding_rate(Value::Dict(first), None);
-        let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[Value::Str("".into())]);
-        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
+        let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(first), None).into_dict();
+        let mut symbol: Value = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]);
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
         let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), symbol);
-        client.resolve(fundingRate, messageHash.as_str());
+        client.resolve(Value::Dict(fundingRate), messageHash.as_str());
 }
 
     pub async fn watch_multiple_wrapper(&mut self, isPublic: bool, channelName: &str, callerMethodName: &str, optional_args: &[Value]) -> Value {
@@ -1503,13 +1503,13 @@ impl Blofin {
                 }  else {
                     market = Some(match self.market(current.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 }
-                let mut topic: Value = Value::Map({
+                let mut topic: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("channel".to_string(), Value::from(channel.clone()));
                         m.insert("instId".to_string(), crate::value::KeyRead::key_read(&&market, "id"));
                     m
                 });
-                std::sync::Arc::make_mut(&mut rawSubscriptions).push(topic);
+                std::sync::Arc::make_mut(&mut rawSubscriptions).push(Value::Map(topic));
                 std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()));
             }
             }
@@ -1522,7 +1522,7 @@ impl Blofin {
             std::sync::Arc::make_mut(&mut messageHashes).push(channelName.clone());
         }
         // private channel are difference, they only need plural channel name for multiple symbols
-        if self.in_array(channelName.clone(), Value::from(vec![Value::Str("orders".into()), Value::Str("orders-algo".into()), Value::Str("positions".into())])).as_bool() == Some(true) {
+        if self.in_array(channelName.clone(), Value::from(vec![Value::Str("orders".into()), Value::Str("orders-algo".into()), Value::Str("positions".into())])) {
             rawSubscriptions = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), channelName);
@@ -1587,13 +1587,13 @@ impl Blofin {
                 let mut interval: Value = self.safe_string(self.timeframes.clone(), tf.clone(), &[tf.clone()]);
                 channel = Value::Str(format!("{}{}", channel, interval).into());
             }
-            let mut topic: Value = Value::Map({
+            let mut topic: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), channel.clone());
                     m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            topics.push(topic);
+            topics.push(Value::Map(topic));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone())).into()));
         }
         }

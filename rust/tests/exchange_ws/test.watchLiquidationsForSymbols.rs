@@ -13,7 +13,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
     let mut method: Value = Value::Str("watchLiquidationsForSymbols".into());
     // we have to skip some exchanges here due to the frequency of trading
     let mut skippedExchanges: Value = Value::from(vec![]);
-    if is_true(&exchange.in_array(get_value(&exchange, &Value::Str("id".into())), skippedExchanges.clone())) {
+    if exchange.in_array(get_value(&exchange, &Value::Str("id".into())), skippedExchanges) {
         let mut m1: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str("() test skipped".into())).into()));
         println_val(&m1);
         return Value::Bool(false);
@@ -31,7 +31,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_liquidations_for_symbols", vec![Value::from(vec![symbol.clone()])]).await;
             now = date_now();
             let mut isArray: Value = Value::Bool(matches!(&response, Value::Arr(_)));
-            assert!(ccxt::runtime::is_true(&(isArray.clone())));
+            assert!(ccxt::runtime::is_true(&(isArray)));
             let mut m3: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str("() returned ".into())).into()), Value::Int(response.len() as i64)).into()), Value::Str(" liquidations".into())).into()));
             println_val(&m3);
             {

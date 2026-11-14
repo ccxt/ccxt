@@ -412,9 +412,9 @@ impl Nado {
 }
 
     pub fn request_id(&mut self) -> i64 {
-        let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId.as_i64().unwrap_or_default();
+        let mut requestId: i64 = ((self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
+        return requestId;
 }
 
 /*
@@ -939,7 +939,7 @@ impl Nado {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
+        let mut symbolValue: Value = Value::from(self.symbol(symbol));
         let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         return crate::value::KeyRead::read(&&tickers, &symbolValue);
         Value::Null
@@ -2025,9 +2025,9 @@ impl Nado {
                 m.insert("expiration".to_string(), Value::from(self.number_to_string(expiration)));
             m
         });
-        let mut contracts: Value = self.parent.query_contracts(&[]).await;
-        let mut chainId: Option<String> = self.safe_string_k(contracts.clone(), "chain_id", &[]).as_str().map(str::to_owned);
-        let mut endpointAddress: Option<String> = self.safe_string_k(contracts, "endpoint_addr", &[]).as_str().map(str::to_owned);
+        let mut contracts: crate::value::Dict = self.parent.query_contracts(&[]).await.into_dict();
+        let mut chainId: Option<String> = self.safe_string_k(&contracts, "chain_id", &[]).as_str().map(str::to_owned);
+        let mut endpointAddress: Option<String> = self.safe_string_k(&contracts, "endpoint_addr", &[]).as_str().map(str::to_owned);
         if (endpointAddress.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() requires endpoint_addr from contracts query".into()))));
         }
@@ -2686,8 +2686,8 @@ impl Nado {
                         m.insert("info".to_string(), Value::Dict(bbo));
                     m
                 }), Some(&market)).as_map().cloned().unwrap_or_default();
-                let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-                result.insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker));
+                let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
             }
         }
         }

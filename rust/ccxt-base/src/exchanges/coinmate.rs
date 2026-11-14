@@ -1177,7 +1177,7 @@ impl Coinmate {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -1375,8 +1375,8 @@ impl Coinmate {
         })]).into_dict();
         let mut method: Option<String> = self.safe_string(&methods, code.clone(), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
-            let mut allowedCurrencies: Value = Value::Array(methods.keys().cloned().map(Value::from).collect());
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only allows withdrawing the following currencies: ".into())).into()), Value::Str(allowedCurrencies.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+            let mut allowedCurrencies: crate::value::List = Value::Array(methods.keys().cloned().map(Value::from).collect()).into_list();
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only allows withdrawing the following currencies: ".into())).into()), Value::Str(allowedCurrencies.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1848,7 +1848,7 @@ impl Coinmate {
         let mut type_var: Option<String> = self.parse_order_type((self.safe_string_k(order.clone(), "orderTradeType", &[])).as_str());
         let mut averageString: Option<String> = self.safe_string_k(order.clone(), "avgPrice", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "currencyPair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1933,22 +1933,22 @@ impl Coinmate {
             method.push_str(&(self.capitalize(type_var.clone())).to_string());
         }
         let mut requestParams: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (method == "privatePostBuyInstant") {
-            response = self.private_post_buy_instant(&[Value::from(&requestParams)]).await;
+            response = self.private_post_buy_instant(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method == "privatePostSellInstant") {
-            response = self.private_post_sell_instant(&[Value::from(&requestParams)]).await;
+            response = self.private_post_sell_instant(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method == "privatePostBuyLimit") {
-            response = self.private_post_buy_limit(&[Value::from(&requestParams)]).await;
+            response = self.private_post_buy_limit(&[Value::from(&requestParams)]).await.into_opt_dict();
         }  else if (method == "privatePostSellLimit") {
-            response = self.private_post_sell_limit(&[Value::Dict(requestParams)]).await;
+            response = self.private_post_sell_limit(&[Value::Dict(requestParams)]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
         }
-        let mut id: Option<String> = self.safe_string_k(response.clone(), "data", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k(&response, "data", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
     m
 }), Some(&market));

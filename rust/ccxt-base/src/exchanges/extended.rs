@@ -1511,10 +1511,10 @@ impl Extended {
         //       }
         //     }
         //
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         let mut last: Option<f64> = self.safe_number_k(ticker.clone(), "lastPrice", &[]).as_f64();
         let mut percentageRaw: Option<String> = self.safe_string_k(ticker.clone(), "dailyPriceChangePercentage", &[]).as_str().map(str::to_owned);
-        let mut percentage: Option<String> = (if (percentageRaw.is_some()) { crate::precise::Precise::stringMul(&percentageRaw.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned) } else { None });
+        let mut percentage: Option<String> = (if (percentageRaw.is_some()) { crate::precise::Precise::stringMul(&percentageRaw.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned) } else { None });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1755,7 +1755,7 @@ impl Extended {
     m
 })]);
             if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                entry = self.extend(entry.clone(), &[Value::Map({
+                entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     m
@@ -1859,7 +1859,7 @@ impl Extended {
     m
 })]);
             if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                entry = self.extend(entry.clone(), &[Value::Map({
+                entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     m
@@ -1919,7 +1919,7 @@ impl Extended {
             result.push(self.parse_funding_history(self.safe_dict(histories.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), market.clone()));
+})]), market));
         }
         }
         let mut symbol: Option<String> = (if (market.is_none()) { None } else { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) });
@@ -2176,7 +2176,7 @@ impl Extended {
     m
 })]);
             if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                entry = self.extend(entry.clone(), &[Value::Map({
+                entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     m
@@ -2245,7 +2245,7 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]).as_str().map(str::to_owned);
-        if !(self.in_array(interval.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("PT1H".into()), Value::Str("P1D".into())])).as_bool() == Some(true)) {
+        if !self.in_array(interval.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("PT1H".into()), Value::Str("P1D".into())])) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterestHistory() supports 1h and 1d timeframes only".into()))));
         }
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
@@ -2306,7 +2306,7 @@ impl Extended {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("info".to_string(), interest);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -2566,7 +2566,7 @@ impl Extended {
     m
 })]);
             if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                entry = self.extend(entry.clone(), &[Value::Map({
+                entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     m
@@ -2721,7 +2721,7 @@ impl Extended {
     m
 })]);
             if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                entry = self.extend(entry.clone(), &[Value::Map({
+                entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     m
@@ -2960,7 +2960,7 @@ impl Extended {
     m
 })]);
             if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                entry = self.extend(entry.clone(), &[Value::Map({
+                entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     m
@@ -3177,7 +3177,7 @@ impl Extended {
         let mut assetId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
         let mut code: Value = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]);
         let mut amountString: Option<String> = self.safe_string_k(transaction.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]).as_f64() });
+        let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64() });
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
@@ -3661,7 +3661,7 @@ impl Extended {
     m
 })]);
             if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                entry = self.extend(entry.clone(), &[Value::Map({
+                entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     m
@@ -3804,7 +3804,7 @@ impl Extended {
         let mut baseRoundUp: Value = isBuy.clone();
         let mut quoteRoundUp: Value = isBuy.clone();
         let mut baseAmount: Value = self.get_extended_stark_amount(amountString, syntheticResolution, &[baseRoundUp]);
-        let mut collateralAmount: Value = self.get_extended_stark_amount(quoteAmount.clone().map(Value::from).unwrap_or(Value::Null), collateralResolution.clone(), &[quoteRoundUp]);
+        let mut collateralAmount: Value = self.get_extended_stark_amount(quoteAmount.clone().map(Value::from).unwrap_or(Value::Null), collateralResolution, &[quoteRoundUp]);
         if isBuy.as_bool() == Some(true) {
             collateralAmount = crate::precise::Precise::stringNeg(&collateralAmount);
         }  else {
@@ -3959,7 +3959,7 @@ impl Extended {
         if (market).spot && (uppercaseType != "LIMIT") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports limit orders for spot markets only".into()))));
         }
-        if !(self.in_array(Value::from(uppercaseType.clone()), Value::from(vec![Value::Str("LIMIT".into()), Value::Str("MARKET".into()), Value::Str("CONDITIONAL".into()), Value::Str("TPSL".into())])).as_bool() == Some(true)) {
+        if !self.in_array(Value::from(uppercaseType.clone()), Value::from(vec![Value::Str("LIMIT".into()), Value::Str("MARKET".into()), Value::Str("CONDITIONAL".into()), Value::Str("TPSL".into())])) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports limit, market, conditional and tpsl orders only".into()))));
         }
         if (price == Value::Null) {
@@ -4422,7 +4422,7 @@ impl Extended {
             market = Some(crate::types::Market::clone(&symbolMarket));
             orderSymbol = Value::from((symbolMarket).symbol.clone());
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
@@ -4432,7 +4432,7 @@ impl Extended {
                 m
             });
             let __ws_arg_23 = self.extend(request.clone(), &[&paramsOmitted]);
-            response = self.v1_private_delete_user_order(&[__ws_arg_23]).await;
+            response = self.v1_private_delete_user_order(&[__ws_arg_23]).await.into_opt_dict();
         }  else {
             if (id == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an id argument".into()))));
@@ -4443,7 +4443,7 @@ impl Extended {
                 m
             });
             let __ws_arg_24 = self.extend(request, &[&paramsOmitted]);
-            response = self.v1_private_delete_user_order_id(&[__ws_arg_24]).await;
+            response = self.v1_private_delete_user_order_id(&[__ws_arg_24]).await.into_opt_dict();
         }
         //
         //     {
@@ -4453,7 +4453,7 @@ impl Extended {
         let mut orderId: Value = (if (clientOrderId.is_none()) { id } else { Value::Null });
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), orderId);
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
@@ -4826,7 +4826,7 @@ impl Extended {
     m
 })]);
             if (cursor.is_some()) && (i.as_f64() == (match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                entry = self.extend(entry.clone(), &[Value::Map({
+                entry = self.extend(entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     m
@@ -5046,7 +5046,7 @@ impl Extended {
 
     pub fn get_extended_decimal_to_base16(&self, value: &str) -> Value {
         let mut value: Value = value.into();
-        let mut decimalString: Value = value.clone();
+        let mut decimalString: Value = value;
         let mut hexChars: crate::value::List = std::sync::Arc::new(vec![Value::Str("0".into()), Value::Str("1".into()), Value::Str("2".into()), Value::Str("3".into()), Value::Str("4".into()), Value::Str("5".into()), Value::Str("6".into()), Value::Str("7".into()), Value::Str("8".into()), Value::Str("9".into()), Value::Str("a".into()), Value::Str("b".into()),
             Value::Str("c".into()), Value::Str("d".into()), Value::Str("e".into()), Value::Str("f".into())]);
         let mut result: String = "".to_string();

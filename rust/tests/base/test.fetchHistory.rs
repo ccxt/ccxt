@@ -36,7 +36,7 @@ if _try_result.is_err() {
         exchange.fetch2(Value::Str("sample3".into()), &[]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-        assert!(ccxt::runtime::is_true(&(trueAssertion.clone()))); // just skip
+        assert!(ccxt::runtime::is_true(&(trueAssertion))); // just skip
     }
     assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
     assert!(ccxt::runtime::is_true(&(((match (&(Value::Int(1)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),

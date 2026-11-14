@@ -850,7 +850,7 @@ impl Bitbns {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1071,7 +1071,7 @@ impl Bitbns {
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -1421,20 +1421,20 @@ impl Bitbns {
         let mut factor: Option<String> = self.safe_string_k(trade.clone(), "factor", &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = None;
         if (factor.is_some()) {
-            amountString = crate::precise::Precise::stringDiv(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &factor.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountString = crate::precise::Precise::stringDiv(&amountString.map(Value::from).unwrap_or(Value::Null), &factor.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
             amountString = self.safe_string_k(trade.clone(), "base_volume", &[]).as_str().map(str::to_owned);
             costString = self.safe_string_k(trade.clone(), "quote_volume", &[]).as_str().map(str::to_owned);
         }
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut fee: Option<crate::value::Dict> = None;
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
         if (feeCostString.is_some()) {
-            let mut feeCurrencyCode: Value = crate::value::KeyRead::key_read(&&marketResolved, "quote");
+            let mut feeCurrencyCode: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "quote").as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), feeCurrencyCode);
+                    m.insert("currency".to_string(), feeCurrencyCode.map(Value::from).unwrap_or(Value::Null));
                 m
             }));
         }
@@ -1443,7 +1443,7 @@ impl Bitbns {
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);

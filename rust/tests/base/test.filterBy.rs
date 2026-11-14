@@ -52,7 +52,7 @@ pub fn testFilterBy() {
         m.insert("foo".to_string(), Value::Str("c".into()));
     m
 })]);
-    let mut currentValue: Value = exchange.filter_by(sampleArray.clone(), Value::Str("foo".into()), Value::Str("a".into()), &[]);
+    let mut currentValue: Value = exchange.filter_by(sampleArray, Value::Str("foo".into()), Value::Str("a".into()), &[]);
     let mut storedValue: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Str("a".into()));

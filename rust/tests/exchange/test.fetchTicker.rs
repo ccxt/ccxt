@@ -12,7 +12,7 @@ use super::*;
 pub async fn testFetchTicker(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("fetchTicker".into());
     let mut ticker: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ticker", vec![symbol.clone()]).await;
-    testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), symbol.clone());
+    testTicker(exchange.clone(), skippedProperties, method, ticker, symbol);
     return Value::Bool(true);
 
     Value::Null

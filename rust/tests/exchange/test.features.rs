@@ -38,7 +38,7 @@ pub async fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> 
                 let mut subValue: Value = value.as_map().and_then(|__m| subKey.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 // sometimes it might not be available for exchange, eg. future>inverse)
                 if (subValue != Value::Null) {
-                    testFeaturesInner(exchange.clone(), skippedProperties.clone(), subValue.clone());
+                    testFeaturesInner(exchange.clone(), skippedProperties.clone(), subValue);
                 }
             }
             }

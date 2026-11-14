@@ -478,7 +478,7 @@ impl Deepcoin {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no subscription for ".into())).into()), messageHash)));
         }
         let mut subId: Option<i64> = self.safe_integer_k(&existingSubscription, "id", &[]).as_i64();
-        let mut request: crate::value::Dict = self.create_public_request(market.clone(), Value::from(subId), topicID, &[suffix, Value::Bool(true)]).into_dict(); // unsubscribe message uses the same id as the original subscribe message
+        let mut request: crate::value::Dict = self.create_public_request(market, Value::from(subId), topicID, &[suffix, Value::Bool(true)]).into_dict(); // unsubscribe message uses the same id as the original subscribe message
         let mut unsubHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), messageHash);
         let mut subscriptionExtended: crate::value::Dict = self.extend(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -758,7 +758,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("quoteVolume".to_string(), Value::from(quoteVolume));
         m.insert("info".to_string(), ticker);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -949,7 +949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("cost".to_string(), self.safe_string_k(trade, "T", &[]));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -1604,8 +1604,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = Some(ArrayCacheBySymbolById::new(limit));
             }
-            let mut parsed: Value = self.parse_ws_order(&data, Some(&market));
-            self.orders.append(parsed);
+            let mut parsed: crate::value::Dict = self.parse_ws_order(&data, Some(&market)).into_dict();
+            self.orders.append(Value::Dict(parsed));
             client.resolve(Value::from(&self.orders), messageHash.as_str());
             client.resolve(Value::from(&self.orders), symbolMessageHash.as_str());
         }
@@ -1666,7 +1666,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("info".to_string(), order);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -1781,8 +1781,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.positions.is_none()) {
                 self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
             }
-            let mut parsed: Value = self.parse_ws_position(Value::Dict(data), Some(&market));
-            self.positions.append(parsed);
+            let mut parsed: crate::value::Dict = self.parse_ws_position(Value::Dict(data), Some(&market)).into_dict();
+            self.positions.append(Value::Dict(parsed));
             client.resolve(Value::from(&self.positions), messageHash.as_str());
             client.resolve(Value::from(&self.positions), symbolMessageHash.as_str());
         }

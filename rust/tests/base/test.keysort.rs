@@ -33,7 +33,7 @@ pub fn testKeysort() {
             m.insert("c".to_string(), Value::Int(3));
         m
     });
-    let mut result1: Value = exchange.keysort(unsortedDict1.clone(), &[]);
+    let mut result1: Value = exchange.keysort(unsortedDict1, &[]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testKeysort".into()).clone(), object_keys(&result1).clone(), object_keys(&Value::Map(expectedSorted1)).clone()]);
     // Test 2: Already sorted dictionary
     let mut unsortedDict2: Value = Value::Map({
@@ -50,7 +50,7 @@ pub fn testKeysort() {
             m.insert("gamma".to_string(), Value::Str("third".into()));
         m
     });
-    let mut result2: Value = exchange.keysort(unsortedDict2.clone(), &[]);
+    let mut result2: Value = exchange.keysort(unsortedDict2, &[]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testKeysort".into()).clone(), object_keys(&result2).clone(), object_keys(&Value::Map(expectedSorted2)).clone()]);
     // Test 3: Reverse sorted input
     let mut unsortedDict3: Value = Value::Map({
@@ -67,7 +67,7 @@ pub fn testKeysort() {
             m.insert("z".to_string(), Value::Str("last".into()));
         m
     });
-    let mut result3: Value = exchange.keysort(unsortedDict3.clone(), &[]);
+    let mut result3: Value = exchange.keysort(unsortedDict3, &[]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testKeysort".into()).clone(), object_keys(&result3).clone(), object_keys(&Value::Map(expectedSorted3)).clone()]);
     // Test 4: Empty dictionary
     let mut unsortedDict4: Value = Value::Map({
@@ -78,7 +78,7 @@ pub fn testKeysort() {
         let mut m = indexmap::IndexMap::new();
         m
     });
-    let mut result4: Value = exchange.keysort(unsortedDict4.clone(), &[]);
+    let mut result4: Value = exchange.keysort(unsortedDict4, &[]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testKeysort".into()).clone(), object_keys(&result4).clone(), object_keys(&Value::Map(expectedSorted4)).clone()]);
     // Test 5: Single key dictionary
     let mut unsortedDict5: Value = Value::Map({
@@ -91,7 +91,7 @@ pub fn testKeysort() {
             m.insert("only".to_string(), Value::Str("one".into()));
         m
     });
-    let mut result5: Value = exchange.keysort(unsortedDict5.clone(), &[]);
+    let mut result5: Value = exchange.keysort(unsortedDict5, &[]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testKeysort".into()).clone(), object_keys(&result5).clone(), object_keys(&Value::Map(expectedSorted5)).clone()]);
     // Test 6: Numeric string keys
     let mut unsortedDict6: Value = Value::Map({
@@ -108,7 +108,7 @@ pub fn testKeysort() {
             m.insert("2".to_string(), Value::Str("two".into()));
         m
     });
-    let mut result6: Value = exchange.keysort(unsortedDict6.clone(), &[]);
+    let mut result6: Value = exchange.keysort(unsortedDict6, &[]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testKeysort".into()).clone(), object_keys(&result6).clone(), object_keys(&expectedSorted6).clone()]);
     // Test 7: Mixed case keys (lexicographic sort)
     let mut unsortedDict7: Value = Value::Map({
@@ -125,6 +125,6 @@ pub fn testKeysort() {
             m.insert("apple".to_string(), Value::Int(2));
         m
     });
-    let mut result7: Value = exchange.keysort(unsortedDict7.clone(), &[]);
+    let mut result7: Value = exchange.keysort(unsortedDict7, &[]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testKeysort".into()).clone(), object_keys(&result7).clone(), object_keys(&Value::Map(expectedSorted7)).clone()]);
 }

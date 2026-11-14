@@ -22,7 +22,7 @@ pub async fn testFetchLastPrices(mut exchange: Value, mut skippedProperties: Val
      #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
         response = crate::live_dispatch::dispatch(&mut exchange, "fetch_last_prices", vec![Value::from(vec![symbol.clone()])]).await;
-        checkedSymbol = symbol.clone();
+        checkedSymbol = symbol;
     }
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), response.clone(), checkedSymbol.clone()]);
     let mut values: Value = object_values(&response);
@@ -37,7 +37,7 @@ if _try_result.is_err() {
         atLeastOnePassed = Value::Bool(is_true(&atLeastOnePassed) || (exchange.safe_number(values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("price".into()), &[]).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)));
     }
     }
-    assert!(ccxt::runtime::is_true(&(atLeastOnePassed.clone())));
+    assert!(ccxt::runtime::is_true(&(atLeastOnePassed)));
     return Value::Bool(true);
 
     Value::Null

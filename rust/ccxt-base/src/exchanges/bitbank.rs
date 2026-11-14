@@ -697,7 +697,7 @@ impl Bitbank {
 
     pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
@@ -1723,14 +1723,14 @@ impl Bitbank {
                 m
             });
             if isTimeWindow {
-                requestHeaders = self.extend(requestHeaders.clone(), &[Value::Map({
+                requestHeaders = self.extend(requestHeaders, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("ACCESS-REQUEST-TIME".to_string(), Value::from(requestTime));
                         m.insert("ACCESS-TIME-WINDOW".to_string(), Value::from(timeWindow));
                     m
                 })]);
             }  else {
-                requestHeaders = self.extend(requestHeaders.clone(), &[Value::Map({
+                requestHeaders = self.extend(requestHeaders, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("ACCESS-NONCE".to_string(), nonce);
                     m

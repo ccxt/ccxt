@@ -33,7 +33,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !success {
             continue;
         }
-        testBalance(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone());
+        testBalance(exchange.clone(), skippedProperties.clone(), method.clone(), response);
         now = exchange.milliseconds();
     }
 

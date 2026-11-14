@@ -11,7 +11,7 @@ use super::*;
 
 pub async fn testAfterConstruct(mut exchange: Value, mut skippedProperties: Value) -> Value {
     if !(in_op(&skippedProperties, &Value::Str("networks".into()))) {
-        testOptionsNetworks(exchange.clone(), skippedProperties.clone());
+        testOptionsNetworks(exchange.clone(), skippedProperties);
     }
     return Value::Bool(true);
 
@@ -47,7 +47,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
             while { if !__for_first_1558 { i += 1; } __for_first_1558 = false; i < (networkCodes.len() as i64) } {
             let mut networkCode: Value = networkCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &networkCode);
-            if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
+            if !exchange.in_array(networkCode, allowedUnifiedAliases.clone()) {
                 assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkId.clone(), collectedNetworkIds.clone()))))));
             }
             append_to_array(&mut collectedNetworkIds, networkId.clone());
@@ -76,7 +76,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
             // ensure it exists in networksById
             assert!(ccxt::runtime::is_true(&((in_op(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId)))));
             // ensure networkCode matches for networksById (however, it only works if one mapping is set)
-            if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
+            if !exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone()) {
                 assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId), &networkCode)))));
                 // check networkIdToCode conversion back
                 let mut networkCodeConverted: Value = Value::from(exchange.network_id_to_code(&[networkId.clone()]));

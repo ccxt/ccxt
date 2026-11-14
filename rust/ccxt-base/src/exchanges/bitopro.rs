@@ -687,13 +687,13 @@ impl Bitopro {
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut deposit: Option<bool> = self.safe_bool_k(rawCurrency.clone(), "deposit", &[]).as_bool();
         let mut withdraw: Option<bool> = self.safe_bool_k(rawCurrency.clone(), "withdraw", &[]).as_bool();
-        let mut isFiat: Value = self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), fiatCurrencies);
+        let mut isFiat: bool = self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), fiatCurrencies);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), rawCurrency.clone());
-        m.insert("type".to_string(), (if isFiat.as_bool() == Some(true) { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
+        m.insert("type".to_string(), (if isFiat { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
         m.insert("name".to_string(), Value::Null);
         m.insert("active".to_string(), (Value::Bool((deposit == Some(true)) && (withdraw == Some(true)))));
         m.insert("deposit".to_string(), deposit.map_or(Value::Null, Value::Bool));
@@ -1289,7 +1289,7 @@ impl Bitopro {
         let mut timeframeInSeconds: i64 = self.parse_timeframe(timeframe.clone());
         let mut alignedSince: Value = Value::Null;
         if (since == Value::Null) {
-            let mut toSeconds: i64 = self.seconds().as_i64().unwrap_or_default();
+            let mut toSeconds: i64 = self.seconds();
             request.insert("to".into(), Value::from(toSeconds));
             request.insert("from".into(), Value::from((if let Some(__r) = ((if let Some(__l) = limitResolved { Some(__l * timeframeInSeconds) } else { None })) { Some(toSeconds - __r) } else { None })));
         }  else {

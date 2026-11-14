@@ -23,6 +23,6 @@ pub fn testIo() {
     let mut fileContent: Value = Value::Str("hello world".into());
     assert!(ccxt::runtime::is_true(&(exchange.write_file(filePath.clone(), fileContent.clone()))));
     assert!(ccxt::runtime::is_true(&(exchange.exists_file(filePath.clone()))));
-    let mut readContent: Value = exchange.read_file(filePath.clone());
+    let mut readContent: Value = exchange.read_file(filePath);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&readContent, &fileContent)))));
 }

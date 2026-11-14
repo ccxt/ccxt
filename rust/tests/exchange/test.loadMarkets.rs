@@ -38,7 +38,7 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
         let mut __for_first_1600: bool = true;
         while { if !__for_first_1600 { i += 1; } __for_first_1600 = false; i < (allMarkets.len() as i64) } {
         let mut market: Value = allMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-        if !is_true(&exchange.in_array(get_value(&market, &Value::Str("type".into())), collectedTypes.clone())) {
+        if !exchange.in_array(get_value(&market, &Value::Str("type".into())), collectedTypes.clone()) {
             append_to_array(&mut collectedTypes, get_value(&market, &Value::Str("type".into())));
         }
     }

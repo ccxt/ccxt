@@ -876,7 +876,7 @@ impl P2b {
         m.insert("quoteVolume".to_string(), self.safe_string_k(tickerInner.clone(), "deal", &[]));
         m.insert("info".to_string(), tickerInner);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -1094,7 +1094,7 @@ impl P2b {
     m
 }));
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -1774,7 +1774,7 @@ impl P2b {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: crate::value::List = self.parse_orders(marketOrders, market.as_ref(), &[Value::from(sinceResolved), limit.clone()]).into_list();
-            orders = self.array_concat(orders.clone(), &parsedOrders);
+            orders = self.array_concat(orders, &parsedOrders);
         }
         }
         return orders;
@@ -1884,7 +1884,7 @@ impl P2b {
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
             let __ws_arg_10 = self.incrementing_nonce();
-            paramsOmitted = self.extend(paramsOmitted.clone(), &[Value::Map({
+            paramsOmitted = self.extend(paramsOmitted, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("request".to_string(), Value::Str(format!("{}{}", Value::Str("/api/v2/".into()), path).into()));
                     m.insert("nonce".to_string(), Value::Str(format!("{}", Value::Int(__ws_arg_10)).into()));

@@ -541,7 +541,7 @@ pub fn testWsCache() {
     // test ArrayCacheBySymbolById, same order should not increase the limit
     let mut cacheSymbolId7: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Null);
     symbol = Value::Str("BTC/USDT".into());
-    let mut otherSymbol: Value = Value::Str("ETH/USDT".into());
+    let mut otherSymbol: String = "ETH/USDT".to_string();
     cacheSymbolId7.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), symbol.clone());
@@ -558,7 +558,7 @@ pub fn testWsCache() {
     }));
     cacheSymbolId7.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), otherSymbol.clone());
+            m.insert("symbol".to_string(), Value::from(otherSymbol));
             m.insert("id".to_string(), Value::Str("singleId".into()));
             m.insert("i".to_string(), Value::Int(3));
         m

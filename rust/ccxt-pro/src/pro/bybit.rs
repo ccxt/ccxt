@@ -543,10 +543,10 @@ impl Bybit {
 
     pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
-        let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
+        let mut requestId: i64 = ((self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
         self.unlock_id(&[]);
-        return requestId.as_i64().unwrap_or_default();
+        return requestId;
 }
 
     pub async fn get_url_by_market_type(&mut self, symbol: Option<&str>, optional_args: &[Value]) -> Value {
@@ -582,7 +582,7 @@ impl Bybit {
             let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             type_var = marketType;
             let mut defaultSettle: Option<String> = self.safe_string_k(self.options.clone(), "defaultSettle", &[]).as_str().map(str::to_owned);
-            defaultSettle = self.safe_string2(Value::Dict(paramsMarketType), Value::Str("settle".into()), Value::Str("defaultSettle".into()), &[Value::from(defaultSettle.as_deref())]).as_str().map(str::to_owned);
+            defaultSettle = self.safe_string2(Value::Dict(paramsMarketType), Value::Str("settle".into()), Value::Str("defaultSettle".into()), &[defaultSettle.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             isUsdcSettled = Some(defaultSettle.as_deref() == Some("USDC"));
         }
         isSpot = Some(type_var.as_str() == Some("spot"));
@@ -606,7 +606,7 @@ impl Bybit {
                 url = accessibilityUrls.get("option").cloned().unwrap_or(Value::Null);
             }
         }
-        url = self.implode_hostname(url.clone());
+        url = self.implode_hostname(url);
         return url;
 
     Value::Null
@@ -1218,7 +1218,7 @@ impl Bybit {
         m.insert("bidVolume".to_string(), self.safe_number(&bestBid, Value::Int(1), &[]));
         m.insert("info".to_string(), orderbook);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
@@ -1565,7 +1565,7 @@ impl Bybit {
                 m
             });
             let mut selectedLimits: crate::value::List = self.safe_list2(&limits, Value::from((market).market_type.clone()), Value::Str("default".into()), &[Value::from(vec![])]).into_list();
-            if !(self.in_array(limit.clone(), Value::from(&selectedLimits)).as_bool() == Some(true)) {
+            if !self.in_array(limit, Value::from(&selectedLimits)) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols(): for ".into())).into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()),
                     Value::Str(" markets limit can be one of: ".into())).into()), json_stringify(&selectedLimits))));
             }
@@ -1968,7 +1968,7 @@ impl Bybit {
         }
         let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(marketType)]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1983,7 +1983,7 @@ impl Bybit {
             stored.append(Value::Dict(parsed));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -2031,7 +2031,7 @@ impl Bybit {
         }
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("t".into()), Value::Str("T".into()), &[]).as_i64();
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "S", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
@@ -2040,7 +2040,7 @@ impl Bybit {
             side = (if ((match &(m) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }  else {
             // spot private
-            takerOrMaker = m.clone();
+            takerOrMaker = m;
         }
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "p", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string2(trade.clone(), Value::Str("q".into()), Value::Str("v".into()), &[]).as_str().map(str::to_owned);
@@ -2051,7 +2051,7 @@ impl Bybit {
         m.insert("info".to_string(), trade);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -2285,7 +2285,7 @@ impl Bybit {
         let mut executionFast: bool = topic.as_deref() == Some("execution.fast");
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         if !(matches!(&data, Value::Arr(_))) {
-            data = self.safe_list_k(data.clone(), "result", &[Value::from(vec![])]);
+            data = self.safe_list_k(data, "result", &[Value::from(vec![])]);
         }
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2329,7 +2329,7 @@ impl Bybit {
                 if executionFast {
                     execType = "Trade".to_string();
                 }
-                if (execTypes != Value::Null) && !(self.in_array(Value::from(execType), execTypes.clone()).as_bool() == Some(true)) {
+                if (execTypes != Value::Null) && !self.in_array(Value::from(execType), execTypes.clone()) {
                     continue;
                 }
                 parsed = self.parse_trade(Value::Dict(rawTrade), None);
@@ -2689,7 +2689,7 @@ impl Bybit {
                 let mut rawLiquidation: Option<crate::value::Dict> = self.safe_dict(&rawLiquidations, Value::Int(i), &[]).into_opt_dict();
                 let mut marketId: Option<String> = self.safe_string_k(&rawLiquidation, "s", &[]).as_str().map(str::to_owned);
                 let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("".into()), Value::Str("contract".into())]);
-                let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+                let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
                 let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(rawLiquidation.map_or(Value::Null, Value::Dict), Some(&market)).into_dict();
                 if (self.liquidations.is_none()) {
                     let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64();
@@ -2698,14 +2698,14 @@ impl Bybit {
                 let mut cache: Value = Value::from(&self.liquidations);
                 cache.append(Value::from(&liquidation));
                 client.resolve(Value::from(vec![Value::from(&liquidation)]), "liquidations");
-                client.resolve(Value::from(vec![Value::Dict(liquidation)]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())));
+                client.resolve(Value::from(vec![Value::Dict(liquidation)]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())));
             }
             }
         }  else {
             let mut rawLiquidation: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&rawLiquidation, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("".into()), Value::Str("contract".into())]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(rawLiquidation), Some(&market)).into_dict();
             if (self.liquidations.is_none()) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
@@ -2714,7 +2714,7 @@ impl Bybit {
             let mut cache: Value = Value::from(&self.liquidations);
             cache.append(Value::from(&liquidation));
             client.resolve(Value::from(vec![Value::from(&liquidation)]), "liquidations");
-            client.resolve(Value::from(vec![Value::Dict(liquidation)]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol).into())));
+            client.resolve(Value::from(vec![Value::Dict(liquidation)]), &(Value::Str(format!("{}{}", Value::Str("liquidations::".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())));
         }
 }
 
@@ -3270,7 +3270,7 @@ impl Bybit {
                 let mut __for_first_204: bool = true;
                 while { if !__for_first_204 { i += 1; } __for_first_204 = false; i < (data.len() as i64) } {
                 let mut B: crate::value::List = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "B", &[Value::from(vec![])]).into_list();
-                rawBalances = self.array_concat(rawBalances.clone(), &B);
+                rawBalances = self.array_concat(rawBalances, &B);
             }
             }
             info = rawBalances.clone();
@@ -3286,7 +3286,7 @@ impl Bybit {
                     m
                 })]).into_dict();
                 account = self.safe_string_lower_k(&result, "accountType", &[]);
-                rawBalances = self.array_concat(rawBalances.clone(), self.safe_list_k(&result, "coin", &[Value::from(vec![])]));
+                rawBalances = self.array_concat(rawBalances, self.safe_list_k(&result, "coin", &[Value::from(vec![])]));
             }
             }
             info = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
@@ -3308,7 +3308,7 @@ impl Bybit {
             if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), info.clone()); } }
             let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
             if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), timestamp.clone()); } }
-            { let __be_tmp = self.iso8601(timestamp.clone()); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
+            { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
             { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
             messageHash = format!("{}{}", Value::Str("balances:".into()), account);
             client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
@@ -3368,7 +3368,7 @@ impl Bybit {
         // on the unified rows the free amount and the margin are both measured
         // against the equity, which includes the unrealized pnl, so the equity
         // is the consistent total, the spot rows fall back to the wallet balance
-        account.insert("total".into(), self.safe_string2(balance.clone(), Value::Str("equity".into()), Value::Str("walletBalance".into()), &[]));
+        account.insert("total".into(), self.safe_string2(balance, Value::Str("equity".into()), Value::Str("walletBalance".into()), &[]));
         if (accountType != Value::Null) {
             if (self.safe_dict(self.balance.clone(), accountType.clone(), &[]) == Value::Null) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
@@ -3741,7 +3741,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // unified auth acknowledgement
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("AUTH_RESP")) {
-            self.handle_authenticate(client, message.clone());
+            self.handle_authenticate(client, message);
         }
 }
 

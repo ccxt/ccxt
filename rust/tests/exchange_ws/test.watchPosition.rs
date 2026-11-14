@@ -30,7 +30,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if success && (response != Value::Null) {
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
             now = Value::Int(exchange.milliseconds());
-            testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), symbol.clone(), now.clone());
+            testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), response, symbol.clone(), now.clone());
         }
     }
     return Value::Bool(true);

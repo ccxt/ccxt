@@ -427,7 +427,7 @@ impl Gemini {
             }
         }
         let mut marketId: Option<String> = self.safe_string_lower_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -781,9 +781,9 @@ impl Gemini {
                                 let mut i: i64 = 0;
                 let mut __for_first_345: bool = true;
                 while { if !__for_first_345 { i += 1; } __for_first_345 = false; i < (changes.len() as i64) } {
-                let mut delta: Value = changes.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut bidAsk: Value = Value::from(vec![self.safe_number(delta.clone(), Value::Int(1), &[]), self.safe_number(delta.clone(), Value::Int(2), &[])]);
-                if (self.safe_string(delta.clone(), Value::Int(0), &[]).as_str() == Some("buy")) {
+                let mut delta: crate::value::List = changes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+                let mut bidAsk: Value = Value::from(vec![self.safe_number(&delta, Value::Int(1), &[]), self.safe_number(&delta, Value::Int(2), &[])]);
+                if (self.safe_string(&delta, Value::Int(0), &[]).as_str() == Some("buy")) {
                     bidsSnapshot.push(bidAsk.clone());
                 }  else {
                     asksSnapshot.push(bidAsk);
@@ -804,10 +804,10 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_346: bool = true;
             while { if !__for_first_346 { i += 1; } __for_first_346 = false; i < (changes.len() as i64) } {
-            let mut delta: Value = changes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
-            let mut size: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
-            if (self.safe_string(delta, Value::Int(0), &[]).as_str() == Some("buy")) {
+            let mut delta: crate::value::List = changes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
+            let mut price: Value = self.safe_number(&delta, Value::Int(1), &[]);
+            let mut size: Value = self.safe_number(&delta, Value::Int(2), &[]);
+            if (self.safe_string(&delta, Value::Int(0), &[]).as_str() == Some("buy")) {
                 let mut bids: Value = orderbook.book_field("bids");
                 bids.store(price.clone(), size.clone());
             }  else {
@@ -1265,7 +1265,7 @@ impl Gemini {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_ws_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("type".to_string(), self.parse_ws_order_type(typeId.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::from(timeInForce));
         m.insert("postOnly".to_string(), Value::Bool(postOnly));
@@ -1397,7 +1397,7 @@ impl Gemini {
                 let mut event: Value = self.safe_value(&events, Value::Int(i), &[]);
                 let mut eventType: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
                 let mut side: Option<String> = self.safe_string_k(event.clone(), "side", &[]).as_str().map(str::to_owned);
-                let mut isOrderBook: bool = (eventType.as_deref() == Some("change")) && (side.is_some()) && self.in_array(side.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("ask".into()), Value::Str("bid".into())])).as_bool() == Some(true);
+                let mut isOrderBook: bool = (eventType.as_deref() == Some("change")) && (side.is_some()) && self.in_array(side.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("ask".into()), Value::Str("bid".into())]));
                 let mut eventReason: Option<String> = self.safe_string_k(event.clone(), "reason", &[]).as_str().map(str::to_owned);
                 let mut isBidAsk: bool = (eventReason.as_deref() == Some("top-of-book")) || (isOrderBook && (eventReason.as_deref() == Some("initial")) && (eventsLength == 2));
                 if isBidAsk {

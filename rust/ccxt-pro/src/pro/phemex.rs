@@ -363,10 +363,10 @@ impl Phemex {
 
     pub fn request_id(&mut self) -> i64 {
         self.lock_id(&[]);
-        let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
+        let mut requestId: i64 = ((self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
         self.unlock_id(&[]);
-        return requestId.as_i64().unwrap_or_default();
+        return requestId;
 }
 
     pub fn parse_swap_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
@@ -582,13 +582,13 @@ impl Phemex {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            tickers.push(self.parse_swap_ticker(ticker.clone(), None));
+            tickers.push(self.parse_swap_ticker(ticker, None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) {
             let mut ticker: Value = (match __pro_message.get("spot_market24h").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            tickers.push(self.parse_ticker(ticker.clone(), None));
+            tickers.push(self.parse_ticker(ticker, None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("data"))) {
             let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
             {
@@ -1871,8 +1871,8 @@ impl Phemex {
                 let mut __for_first_630: bool = true;
                 while { if !__for_first_630 { i += 1; } __for_first_630 = false; i < (orders.len() as i64) } {
                 let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut parsedOrder: Value = self.parse_order(rawOrder, None);
-                parsedOrders.push(parsedOrder.clone());
+                let mut parsedOrder: crate::value::Dict = self.parse_order(rawOrder, None).into_dict();
+                parsedOrders.push(Value::Dict(parsedOrder));
             }
             }
         }  else {
@@ -2254,7 +2254,7 @@ impl Phemex {
             if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) {
                 type_var = "perpetual".to_string();
             }
-            let mut accounts: crate::value::List = self.safe_list_n(message.clone(), Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]).into_list();
+            let mut accounts: crate::value::List = self.safe_list_n(message, Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]).into_list();
             self.handle_balance(Value::from(type_var), client, Value::Arr(accounts));
         }
 }
@@ -2298,7 +2298,7 @@ impl Phemex {
         }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut requestId: i64 = self.seconds().as_i64().unwrap_or_default();
+        let mut requestId: i64 = self.seconds();
         let mut settleIsUSDT: bool = self.safe_string_k(params.clone(), "settle", &[Value::Str("".into())]).as_str() == Some("USDT");
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("settle".into()), &[]).into_dict();
         let mut channel: String = "aop.subscribe".to_string();
@@ -2334,7 +2334,7 @@ impl Phemex {
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
             let mut expiryDelta: i64 = self.safe_integer_k(self.options.clone(), "expires", &[Value::Int(120)]).as_i64().unwrap_or(120);
-            let mut expiration: i64 = ((self.seconds().as_i64().unwrap_or_default()) + expiryDelta);
+            let mut expiration: i64 = ((self.seconds()) + expiryDelta);
             let mut payload: String = format!("{}{}", self.apiKey.clone(), Value::Str(format!("{}", expiration).into()));
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut method: String = "user.auth".to_string();

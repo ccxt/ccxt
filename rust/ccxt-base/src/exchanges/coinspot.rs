@@ -1059,7 +1059,7 @@ impl Coinspot {
         //         }
         //     }
         //
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1198,9 +1198,9 @@ impl Coinspot {
             let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(id.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
             if (market).spot {
-                let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-                let mut ticker: Value = prices.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, Some(&market)));
+                let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+                let mut ticker: crate::value::Dict = prices.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_ticker(&ticker, Some(&market)));
             }
         }
         }
@@ -1381,7 +1381,7 @@ impl Coinspot {
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("/".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("/".into())]).as_str().map(str::to_owned);
         let mut solddate: Option<i64> = self.safe_integer_k(trade.clone(), "solddate", &[]).as_i64();
         if (solddate.is_some()) {
             priceString = self.safe_string_k(trade.clone(), "rate", &[]).as_str().map(str::to_owned);
@@ -1467,19 +1467,19 @@ impl Coinspot {
                 m.insert("rate".to_string(), price);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (sideUpper == "BUY") {
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_post_my_buy(&[__ws_arg_3]).await;
+            response = self.private_post_my_buy(&[__ws_arg_3]).await.into_opt_dict();
         }  else if (sideUpper == "SELL") {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-            response = self.private_post_my_sell(&[__ws_arg_4]).await;
+            response = self.private_post_my_sell(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support buy/sell side".into()))));
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None);
         Value::Null
@@ -1519,17 +1519,17 @@ impl Coinspot {
                 m.insert("id".to_string(), id);
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (side.as_deref() == Some("buy")) {
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_post_my_buy_cancel(&[__ws_arg_5]).await;
+            response = self.private_post_my_buy_cancel(&[__ws_arg_5]).await.into_opt_dict();
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_my_sell_cancel(&[__ws_arg_6]).await;
+            response = self.private_post_my_sell_cancel(&[__ws_arg_6]).await.into_opt_dict();
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None);
         Value::Null

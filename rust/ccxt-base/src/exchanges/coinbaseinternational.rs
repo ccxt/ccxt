@@ -3188,7 +3188,7 @@ impl Coinbaseinternational {
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             amount = self.parse_number(crate::precise::Precise::stringAbs(&self.safe_string2(transaction.clone(), Value::Str("cashflow".into()), Value::Str("change".into()), &[])), &[]).as_f64();
             feeCost = self.safe_number_k(transaction.clone(), "commission", &[]).as_f64();
-            feeCurrency = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency.clone());
+            feeCurrency = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3234,7 +3234,7 @@ impl Coinbaseinternational {
         let mut amount: Value = amount.into();
         let mut exchangeAmount: Option<String> = self.number_to_string(amount);
         if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(&market, "contract", &[Value::Bool(false)])), Value::Bool(true)) {
-            exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
+            exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
         }
         return self.amount_to_precision(crate::value::KeyRead::key_read(&market, "symbol"), exchangeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
 }
@@ -3365,7 +3365,7 @@ impl Coinbaseinternational {
         }
         let mut paramsOrder: Value = self.omit(&paramsResolved, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("tif".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOrder = self.omit(paramsOrder.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
+            paramsOrder = self.omit(paramsOrder, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
         }
         self.authenticate_v2(&[]).await;
         let mut response: Option<crate::value::Dict> = None;
@@ -3751,7 +3751,7 @@ impl Coinbaseinternational {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate_v2(&[]).await;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3760,9 +3760,9 @@ impl Coinbaseinternational {
                 m
             });
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsResolved]);
-            response = self.private_get_cancel_all_by_instrument(&[__ws_arg_14]).await;
+            response = self.private_get_cancel_all_by_instrument(&[__ws_arg_14]).await.into_opt_dict();
         }  else {
-            response = self.private_get_cancel_all(&[Value::Dict(paramsResolved)]).await;
+            response = self.private_get_cancel_all(&[Value::Dict(paramsResolved)]).await.into_opt_dict();
         }
         //
         //     {
@@ -3773,7 +3773,7 @@ impl Coinbaseinternational {
         //
         let mut order: Value = self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response);
+                m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
             m
         }), None);
         return Value::from(vec![order]);
@@ -4647,7 +4647,7 @@ impl Coinbaseinternational {
                     m
                 }), &[requestParams.clone()]);
             }  else {
-                let __ws_arg_22 = self.create_auth_token(self.seconds(), method.as_str(), Some(url.as_str()), &[self.is_eddsa_secret()]);
+                let __ws_arg_22 = self.create_auth_token(Value::Int(self.seconds()), method.as_str(), Some(url.as_str()), &[self.is_eddsa_secret()]);
                 requestParams = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("grant_type".to_string(), Value::Str("coinbase_cdp".into()));

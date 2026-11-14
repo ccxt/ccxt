@@ -145,7 +145,7 @@ pub fn testNetworkMethods() {
     });
     helperTestNetworkCodeToId(dict1.clone());
     helperTestNetworkCodeToId(dict2.clone());
-    helperTestNetworkIdToCode(dict1.clone());
-    helperTestNetworkIdToCode(dict2.clone());
+    helperTestNetworkIdToCode(dict1);
+    helperTestNetworkIdToCode(dict2);
     helperTestNetworkAliases();
 }

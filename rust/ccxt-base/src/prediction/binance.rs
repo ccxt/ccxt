@@ -941,7 +941,7 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), topicId.map(Value::from).unwrap_or(Value::Null));
         m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("event".to_string(), (if (slug.is_some()) { self.shorten_slug(slug.clone().map(Value::from).unwrap_or(Value::Null)) } else { Value::Null }));
+        m.insert("event".to_string(), (if (slug.is_some()) { self.shorten_slug(slug.map(Value::from).unwrap_or(Value::Null)) } else { Value::Null }));
         m.insert("title".to_string(), title.map(Value::from).unwrap_or(Value::Null));
         m.insert("description".to_string(), self.safe_string_k(rawTopic.clone(), "description", &[]));
         m.insert("markets".to_string(), Value::from(marketsList));
@@ -1184,7 +1184,7 @@ impl Binance {
     m
 }));
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
+        let mut outcomeObj: Value = self.outcome(outcome);
         let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1215,7 +1215,7 @@ impl Binance {
         //
         //     { "marketId": 5567895, "lastTradePrice": "0.52" }
         //
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]), &[crate::Value::from(market)]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]), market).into_dict();
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
         // any other outcome of a binary market mirrors as 1 - price
         let mut outcomeInfo: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
@@ -1498,7 +1498,7 @@ impl Binance {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
             }
             outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())).into());
-            outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
+            outcomeObjResolved = self.safe_outcome(outcomeName, None);
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "createTime", &[]).as_i64();
@@ -1804,7 +1804,7 @@ impl Binance {
                 let mut __for_first_1223: bool = true;
                 while { if !__for_first_1223 { i += 1; } __for_first_1223 = false; i < (outcomes.len() as i64) } {
                 let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), &[]).into_dict();
+                let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), None).into_dict();
                 let mut requestedOutcome: Option<String> = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]).as_str().map(str::to_owned);
                 requestedOutcomeSymbols.insert(requestedOutcome.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -1956,7 +1956,7 @@ impl Binance {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
             }
             outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())).into());
-            outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
+            outcomeObjResolved = self.safe_outcome(outcomeName, None);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "createdTime", &[]).as_i64();
         let mut totalCost: Option<f64> = self.parse_number(self.safe_string_k(position.clone(), "totalCost", &[]), &[]).as_f64();
@@ -2157,7 +2157,7 @@ impl Binance {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
             }
             outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome.map(Value::from).unwrap_or(Value::Null)).into())).into());
-            outcomeObjResolved = self.safe_outcome(outcomeName, &[]);
+            outcomeObjResolved = self.safe_outcome(outcomeName, None);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "createTime", &[]).as_i64();
         let mut filled: Option<String> = self.safe_string_k(trade.clone(), "filledShareQty", &[]).as_str().map(str::to_owned);
@@ -2284,11 +2284,11 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("price".into()), &[Value::Float(0.0001)]);
-        let mut decimals: Value = Value::Int(4);
+        let mut decimals: i64 = 4;
         if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
             decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
-        return self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), decimals, &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
+        return self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
 
     Value::Null
 }
@@ -2299,11 +2299,11 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("amount".into()), &[Value::Float(0.01)]);
-        let mut decimals: Value = Value::Int(2);
+        let mut decimals: i64 = 2;
         if (prec != Value::Null) && (prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
             decimals = self.precision_from_string(Value::from(self.number_to_string(prec)));
         }
-        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), decimals, &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
+        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
 
     Value::Null
 }
@@ -2389,7 +2389,7 @@ impl Binance {
                 let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&Value::from(feeRateBps), &Value::Str("10000".into())).as_str().map(str::to_owned);
                 let mut minPrice: Option<String> = crate::precise::Precise::stringMin(&priceStr.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
                 let mut fee: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&feeRate.map(Value::from).unwrap_or(Value::Null), &minPrice.map(Value::from).unwrap_or(Value::Null)), &amountStr.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)), &fee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                amountStr = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)), &fee.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::from(defaultTif)]).as_str().map(str::to_owned);

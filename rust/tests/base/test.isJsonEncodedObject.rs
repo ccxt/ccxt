@@ -14,14 +14,14 @@ pub fn testIsJsonEncodedObject() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("{\"key\":\"value\"}".into())]))));
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("{}".into())]))));
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("[]".into())]))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{\"key\":\"value\"}".into())])))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{}".into())])))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("[]".into())])))));
     // todo: the belows  are not ideal, but currently valid
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("{x".into())]))));
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("[x".into())]))));
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("{".into())]))));
-    assert!(ccxt::runtime::is_true(&(exchange.is_json_encoded_object(&[Value::Str("[".into())]))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{x".into())])))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("[x".into())])))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{".into())])))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("[".into())])))));
     // invalid
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("x".into())]))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("".into())]))))));

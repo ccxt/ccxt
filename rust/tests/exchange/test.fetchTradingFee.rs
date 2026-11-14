@@ -13,7 +13,7 @@ pub async fn testFetchTradingFee(mut exchange: Value, mut skippedProperties: Val
     let mut method: Value = Value::Str("fetchTradingFee".into());
     let mut fee: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_trading_fee", vec![symbol.clone()]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), fee.clone(), symbol.clone()]);
-    testTradingFee(exchange.clone(), skippedProperties.clone(), method.clone(), symbol.clone(), fee.clone());
+    testTradingFee(exchange.clone(), skippedProperties, method, symbol, fee);
     return Value::Bool(true);
 
     Value::Null

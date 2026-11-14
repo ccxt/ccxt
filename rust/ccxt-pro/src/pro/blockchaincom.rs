@@ -448,7 +448,7 @@ impl Blockchaincom {
                 m.insert("granularity".to_string(), self.parse_number(interval.map(Value::from).unwrap_or(Value::Null), &[]));
             m
         });
-        request = self.deep_extend(request.clone(), &[params]);
+        request = self.deep_extend(request, &[params]);
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], request.clone(), &messageHash[..], request).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -542,7 +542,7 @@ impl Blockchaincom {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        request = self.deep_extend(request.clone(), &[params]);
+        request = self.deep_extend(request, &[params]);
         return self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
@@ -683,7 +683,7 @@ impl Blockchaincom {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        request = self.deep_extend(request.clone(), &[params]);
+        request = self.deep_extend(request, &[params]);
         let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], request.clone(), &messageHash[..], request).await.into();
         return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -756,7 +756,7 @@ impl Blockchaincom {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "trade_id", &[]));
         m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("-".into())]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
@@ -981,7 +981,7 @@ impl Blockchaincom {
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderID", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clOrdID", &[]));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null))));
         m.insert("status".to_string(), self.parse_ws_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "ordType", &[]));

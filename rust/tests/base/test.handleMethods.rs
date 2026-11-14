@@ -168,7 +168,7 @@ fn helperTestHandleTypedOptions() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught.clone())));
+    assert!(ccxt::runtime::is_true(&(caught)));
     assert!(ccxt::runtime::is_true(&(Value::Bool(params5 != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null)))));
 }

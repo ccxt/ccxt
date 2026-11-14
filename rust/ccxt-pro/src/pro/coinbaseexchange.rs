@@ -520,7 +520,7 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: String = self.symbol(symbol.clone());
+        let mut symbolValue: String = self.symbol(symbol);
         let mut name: String = "matches".to_string();
         let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(name.as_str()), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -605,7 +605,7 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: String = self.symbol(symbol.clone());
+        let mut symbolValue: String = self.symbol(symbol);
         let mut name: String = "user".to_string();
         let mut messageHash: String = "myTrades".to_string();
         let mut authentication: crate::value::Dict = self.authenticate().into_dict();
@@ -735,7 +735,7 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: String = self.symbol(symbol.clone());
+        let mut symbolValue: String = self.symbol(symbol);
         let mut name: String = "user".to_string();
         let mut messageHash: String = "orders".to_string();
         let mut authentication: crate::value::Dict = self.authenticate().into_dict();

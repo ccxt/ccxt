@@ -666,7 +666,7 @@ impl Btcbox {
             if (matches!((&response, &free), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 let mut used: String = format!("{}{}", currencyId, Value::Str("_lock".into()));
-                account.insert("free".into(), self.safe_string(response.clone(), free.clone(), &[]));
+                account.insert("free".into(), self.safe_string(response.clone(), free, &[]));
                 account.insert("used".into(), self.safe_string(response.clone(), Value::from(used), &[]));
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
@@ -747,7 +747,7 @@ impl Btcbox {
 
     pub fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut ticker: Value = ticker.into();
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1346,7 +1346,7 @@ impl Btcbox {
         if matches!(&response, Value::Str(_)) {
             // sometimes the exchange returns whitespace prepended to json
             let mut strippedResponse: Value = self.strip(response.clone(), &[]);
-            if self.is_json_encoded_object(&[strippedResponse.clone()]).as_bool() == Some(false) {
+            if !self.is_json_encoded_object(&[strippedResponse.clone()]) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), strippedResponse)));
             }
             response = json_parse(&strippedResponse);

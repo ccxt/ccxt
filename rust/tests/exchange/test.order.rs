@@ -66,8 +66,8 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("filled".into()).clone(), Value::Str("0".into()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("remaining".into()).clone(), Value::Str("0".into()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(entry.clone(), Value::Str("remaining".into()), &[]).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(entry.clone(), Value::Str("filled".into()), &[]).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(&entry, Value::Str("remaining".into()), &[]).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), exchange.safe_string(&entry, Value::Str("filled".into()), &[]).clone()]);
     if !(in_op(&skippedProperties, &Value::Str("trades".into()))) {
         let mut skippedNew: Value = exchange.deep_extend(skippedProperties.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();

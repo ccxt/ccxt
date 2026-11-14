@@ -2158,7 +2158,7 @@ impl Latoken {
                 m.insert("type".to_string(), Value::from(uppercaseType.clone()));
                 m.insert("clientOrderId".to_string(), Value::from(self.uuid(&[])));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
-                m.insert("timestamp".to_string(), self.seconds());
+                m.insert("timestamp".to_string(), Value::Int(self.seconds()));
             m
         });
         if (uppercaseType == "LIMIT") {
@@ -2259,30 +2259,30 @@ impl Latoken {
         let mut market: Option<crate::types::Market> = None;
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&market, "baseId"));
             request.insert("quote".into(), crate::value::KeyRead::key_read(&&market, "quoteId"));
             if (isTrigger == Some(true)) {
                 let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_auth_stop_order_cancel_all_currency_quote(&[__ws_arg_19]).await;
+                response = self.private_post_auth_stop_order_cancel_all_currency_quote(&[__ws_arg_19]).await.into_opt_dict();
             }  else {
                 let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_auth_order_cancel_all_currency_quote(&[__ws_arg_20]).await;
+                response = self.private_post_auth_order_cancel_all_currency_quote(&[__ws_arg_20]).await.into_opt_dict();
             }
         }  else {
             if (isTrigger == Some(true)) {
                 let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_post_auth_stop_order_cancel_all(&[__ws_arg_21]).await;
+                response = self.private_post_auth_stop_order_cancel_all(&[__ws_arg_21]).await.into_opt_dict();
             }  else {
                 let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_post_auth_order_cancel_all(&[__ws_arg_22]).await;
+                response = self.private_post_auth_order_cancel_all(&[__ws_arg_22]).await.into_opt_dict();
             }
         }
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 }), None)]);
         Value::Null

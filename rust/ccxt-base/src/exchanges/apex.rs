@@ -1759,7 +1759,7 @@ impl Apex {
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientId", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut orderType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -1777,7 +1777,7 @@ impl Apex {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.parse_order_type(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "postOnly", &[]));
@@ -1882,10 +1882,10 @@ impl Apex {
         if (_accountId != Value::Null) && (_accountId.as_str() != Some("")) {
             accountId = _accountId;
         }  else {
-            accountId = Value::Str(format!("{}", self.rand_number(Value::Int(12))).into());
+            accountId = Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(12)))).into());
         }
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("apexomni-".into()), accountId).into()), Value::Str("-".into())).into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), Value::Str("-".into())).into()),
-            Value::Str(format!("{}", self.rand_number(Value::Int(6))).into())).into()).as_str().map(str::to_owned);
+            Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(6)))).into())).into()).as_str().map(str::to_owned);
 }
 
     pub fn add_hyphen_before_usdt(&self, symbol: &str) -> Option<String> {
@@ -2159,7 +2159,7 @@ impl Apex {
         }
         }
         let mut tokenId: String = self.safe_string_k(currency.clone(), "tokenId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut decimalsNum: Value = self.safe_number_k(currency.clone(), "decimals", &[Value::Int(0)]);
+        let mut decimalsNum: Value = self.safe_number_k(currency, "decimals", &[Value::Int(0)]);
         let mut decimalsNumber: Value = (if (decimalsNum == Value::Null) { Value::Int(0) } else { decimalsNum });
         let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNumber));
         let mut amountNum: Value = self.parse_number(amount.clone(), &[]);
@@ -2851,20 +2851,20 @@ impl Apex {
         // }
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut quantity: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updatedTime", &[]).as_i64();
         let mut leverage: Option<i64> = Some(20);
         let mut customInitialMarginRate: String = self.safe_string2(position.clone(), Value::Str("customInitialMarginRate".into()), Value::Str("customImr".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        if (self.precision_from_string(Value::from(customInitialMarginRate.clone())).as_f64() != Some(0.0)) {
+        if (Value::Int(self.precision_from_string(Value::from(customInitialMarginRate.clone()))).as_f64() != Some(0.0)) {
             leverage = self.parse_to_int(crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &Value::from(customInitialMarginRate), &Value::Int(4)));
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("entryPrice".to_string(), self.safe_number_k(position, "entryPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), Value::Null);

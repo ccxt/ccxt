@@ -629,7 +629,7 @@ impl Hashkey {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null });
         if (data != Value::Null) {
-            data = self.sort_by(data.clone(), Value::Str("t".into()), &[]);
+            data = self.sort_by(data, Value::Str("t".into()), &[]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_358: bool = true;

@@ -417,8 +417,8 @@ impl Bingx {
         let mut subType: Option<String> = None;
         let mut url: Value = Value::Null;
         let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(methodName.clone(), market.clone(), &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(methodName, market.clone(), &[query.clone(), Value::Str("linear".into())]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(methodName.clone(), market, &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(methodName, market, &[query.clone(), Value::Str("linear".into())]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (marketType.as_deref() == Some("swap")) {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.map(Value::from).unwrap_or(Value::Null), &[]);
         }  else {
@@ -449,7 +449,7 @@ impl Bingx {
         let mut symbolsAndTimeframes: Value = self.safe_list_k(query.clone(), "symbolsAndTimeframes", &[]);
         if (symbolsAndTimeframes != Value::Null) {
             subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
-            query = self.omit(query.clone(), Value::Str("symbolsAndTimeframes".into()), &[]);
+            query = self.omit(query, Value::Str("symbolsAndTimeframes".into()), &[]);
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[query]);
         return self.watch(&url, &messageHash, __ws_arg_0, &subscribeHash, Value::Map(subscription)).await;
@@ -795,7 +795,7 @@ impl Bingx {
         if (match &(self.handle_option(Value::Str("watchTrades".into()), Value::Str("ignoreDuplicates".into()), &[Value::Bool(true)])) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
             Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut filtered: Value = self.remove_repeated_trades_from_array(result.clone());
-            filtered = self.sort_by(filtered.clone(), Value::Str("timestamp".into()), &[]);
+            filtered = self.sort_by(filtered, Value::Str("timestamp".into()), &[]);
             return filtered;
         }
         return result;
@@ -2235,7 +2235,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 client.send(&[Value::Str("Pong".into())]);
             }  else {
                 let mut ping: Option<String> = self.safe_string_k(message.clone(), "ping", &[]).as_str().map(str::to_owned);
-                let mut time: Option<String> = self.safe_string_k(message.clone(), "time", &[]).as_str().map(str::to_owned);
+                let mut time: Option<String> = self.safe_string_k(message, "time", &[]).as_str().map(str::to_owned);
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("pong".to_string(), ping.map(Value::from).unwrap_or(Value::Null));
@@ -2444,7 +2444,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut isSpot: bool = matches!(&message, Value::Dict(__d) if __d.contains_key("dataType"));
-        let mut result: crate::value::Dict = self.safe_dict2(message.clone(), Value::Str("data".into()), Value::Str("o".into()), &[Value::Map({
+        let mut result: crate::value::Dict = self.safe_dict2(message, Value::Str("data".into()), Value::Str("o".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -2515,7 +2515,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut a: crate::value::Dict = __pro_message.get("a").cloned().unwrap_or_default().into_dict();
         let mut data: Value = self.safe_list_k(&a, "B", &[Value::from(vec![])]);
-        let mut timestamp: Option<i64> = self.safe_integer2(message.clone(), Value::Str("T".into()), Value::Str("E".into()), &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer2(message, Value::Str("T".into()), Value::Str("E".into()), &[]).as_i64();
         let mut spotUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[]);
         let mut isSpot: bool = (spotUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(spotUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0));
         let mut type_var: Value = Value::Str("swap".into());
@@ -2624,7 +2624,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_ticker(client.clone(), message.clone());
         }
         if (dataType == "") && (msgEvent.is_none()) && (e.is_none()) {
-            self.handle_subscription_status(client, message.clone());
+            self.handle_subscription_status(client, message);
         }
 }
 

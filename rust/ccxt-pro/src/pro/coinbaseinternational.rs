@@ -464,9 +464,9 @@ impl Coinbaseinternational {
 }
 
     pub fn request_id(&mut self) -> i64 {
-        let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
-        return requestId.as_i64().unwrap_or_default();
+        let mut requestId: i64 = ((self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0)) + 1);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), Value::from(requestId)); }
+        return requestId;
 }
 
     pub fn get_ws_url(&self, optional_args: &[Value]) -> Value {
@@ -475,9 +475,10 @@ impl Coinbaseinternational {
             return Value::Str("wss://www.deribit.com/ws/api/v2".into());
         }
         if isPrivate {
-            return self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("wsPrivate")).cloned().unwrap_or(Value::Null);
+            return self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("wsPrivate".into()), &[Value::Str("".into())]);
+        }  else {
+            return self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]);
         }
-        return self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -502,7 +503,7 @@ impl Coinbaseinternational {
                 params = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("grant_type".to_string(), Value::Str("coinbase_cdp".into()));
-                        m.insert("token".to_string(), self.parent.create_auth_token(self.seconds(), None, None, &[self.parent.is_eddsa_secret()]));
+                        m.insert("token".to_string(), self.parent.create_auth_token(Value::Int(self.seconds()), None, None, &[self.parent.is_eddsa_secret()]));
                     m
                 });
             }
@@ -1706,7 +1707,7 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = Value::from(self.symbol(symbol.clone()));
+        let mut symbolResolved: Value = Value::from(self.symbol(symbol));
         let mut ohlcvs: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolResolved.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), paramsResolved).await);
         return get_value(&(if let (Some(__m), Some(__k)) = (ohlcvs.as_map(), symbolResolved.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe);
         Value::Null
@@ -2330,11 +2331,11 @@ impl Coinbaseinternational {
         let mut channelParts: crate::value::List = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut channelPartsLength: i64 = channelParts.len() as i64;
         let mut isPrivate: bool = self.safe_string(&channelParts, Value::Int((channelPartsLength - 1)), &[]).as_str() == Some("raw");
-        let mut url: Value = self.get_ws_url(&[Value::Bool(isPrivate.clone())]);
+        let mut url: Option<String> = self.get_ws_url(&[Value::Bool(isPrivate.clone())]).as_str().map(str::to_owned);
         if isPrivate {
             self.authenticate(&[]).await;
         }
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), (if isPrivate { Value::Str("private/unsubscribe".into()) } else { Value::Str("public/unsubscribe".into()) }));
@@ -2346,8 +2347,8 @@ impl Coinbaseinternational {
                 m.insert("id".to_string(), Value::Int(self.request_id()));
             m
         });
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
-        client.send(&[request]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
+        client.send(&[Value::Map(request)]);
         if (client.has_subscription(&channel)) {
             client.remove_subscription(&channel);
         }
@@ -2563,7 +2564,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 paramsAuth = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("grant_type".to_string(), Value::Str("coinbase_cdp".into()));
-                        m.insert("token".to_string(), self.parent.create_auth_token(self.seconds(), None, None, &[self.parent.is_eddsa_secret()]));
+                        m.insert("token".to_string(), self.parent.create_auth_token(Value::Int(self.seconds()), None, None, &[self.parent.is_eddsa_secret()]));
                     m
                 });
             }
@@ -2603,7 +2604,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let isPrivate: bool = get_arg(optional_args, 1, Value::Bool(false)).is_truthy();
         let mut paramsResolved: indexmap::IndexMap<String, Value> = self.parent.handle_route_and_params("requestWs", &[params]).as_map().cloned().unwrap_or_default();
-        let mut url: Value = self.get_ws_url(&[Value::Bool(true)]);
+        let mut url: Option<String> = self.get_ws_url(&[Value::Bool(true)]).as_str().map(str::to_owned);
         if isPrivate {
             self.authenticate(&[]).await;
         }
@@ -2617,7 +2618,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("params".to_string(), Value::Map(paramsResolved));
             m
         });
-        return self.watch(&url, &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
 
     Value::Null
 }
@@ -2711,7 +2712,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut paramsRequest: Value = self.omit(&paramsResolved, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("timeInForce".into()), Value::Str("tif".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
         if (self.parent.is_native_deribit_credentials().as_bool() == Some(true)) {
-            paramsRequest = self.omit(paramsRequest.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
+            paramsRequest = self.omit(paramsRequest, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str(format!("{}{}", Value::Str("private/".into()), side).into()), &[__ws_arg_6, Value::Bool(true)]).await;
@@ -3058,7 +3059,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_263: bool = true;
             while { if !__for_first_263 { i += 1; } __for_first_263 = false; (i as f64) < summariesLength } {
-            balance = self.deep_extend(balance.clone(), &[self.parent.parse_balance_list(summaries.get(i as usize).cloned().unwrap_or(Value::Null))]);
+            balance = self.deep_extend(balance, &[self.parent.parse_balance_list(summaries.get(i as usize).cloned().unwrap_or(Value::Null))]);
         }
         }
         return self.safe_balance(balance);
@@ -3299,9 +3300,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut paramsResolved: indexmap::IndexMap<String, Value> = self.parent.handle_route_and_params("logoutWs", &[params]).as_map().cloned().unwrap_or_default();
         self.authenticate(&[]).await;
-        let mut url: Value = self.get_ws_url(&[Value::Bool(true)]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
-        let mut request: Value = Value::Map({
+        let mut url: Option<String> = self.get_ws_url(&[Value::Bool(true)]).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.map(Value::from).unwrap_or(Value::Null)]));
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("id".to_string(), Value::Int(self.request_id()));
@@ -3309,7 +3310,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("params".to_string(), Value::Map(paramsResolved));
             m
         });
-        client.send(&[request]);
+        client.send(&[Value::Map(request)]);
         return Value::Null;
 
     Value::Null

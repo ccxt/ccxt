@@ -378,7 +378,7 @@ impl Independentreserve {
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "TradeGuid", &[]));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "orderNo", &[]));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("-".into())]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]));
         m.insert("side".to_string(), self.safe_string_lower_k(trade.clone(), "Side", &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("takerOrMaker".to_string(), Value::Null);
@@ -564,8 +564,8 @@ impl Independentreserve {
         let mut result: Value = self.decimal_to_precision(value, Value::Int(crate::runtime::ROUND), Value::Int(8), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::PAD_WITH_ZERO)]);
         result = replace_str(&result, &Value::Str(".".into()), &Value::Str("".into()));
         // remove leading zeros
-        result = self.parse_number(result.clone(), &[]);
-        result = Value::from(self.number_to_string(result.clone()));
+        result = self.parse_number(result, &[]);
+        result = Value::from(self.number_to_string(result));
         return result;
 
     Value::Null

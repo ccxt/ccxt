@@ -343,7 +343,7 @@ impl Bitopro {
         if (limit == Value::Null) {
             endPart = Some(marketIdValue.clone());
         }  else {
-            endPart = Some(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, Value::Str(":".into())).into()), Value::from(self.number_to_string(limit.clone()))));
+            endPart = Some(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, Value::Str(":".into())).into()), Value::from(self.number_to_string(limit))));
         }
         let mut orderbook: Value = self.watch_public("order-books", messageHash.as_str(), endPart.as_deref()).await;
         return orderbook.limit();
@@ -459,7 +459,7 @@ impl Bitopro {
         //
         let mut marketId: Option<String> = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into())]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut event: Option<String> = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawData: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut trades: Value = self.parse_trades(&rawData, Some(&market), &[]);
@@ -478,7 +478,7 @@ impl Bitopro {
         }
         CacheStore::put(&mut self.trades, &symbol, tradesCache.clone());
         if (event.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
             client.resolve(Value::from(&tradesCache), messageHash.as_str());
         }
 }
@@ -725,16 +725,16 @@ impl Bitopro {
         }
         // market-ids are lowercase in REST API and uppercase in WS API
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into())]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut result: crate::value::Dict = self.parse_ticker(message.clone(), Some(&market)).into_dict();
         std::sync::Arc::make_mut(&mut result).insert("symbol".into(), self.safe_string_k(&market, "symbol", &[])); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         std::sync::Arc::make_mut(&mut result).insert("timestamp".into(), Value::from(timestamp));
         std::sync::Arc::make_mut(&mut result).insert("datetime".into(), self.iso8601(Value::from(timestamp))); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&result)); }
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&result)); }
         if (event.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
             client.resolve(Value::Dict(result), messageHash.as_str());
         }
 }

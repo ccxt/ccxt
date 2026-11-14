@@ -12,7 +12,7 @@ use super::*;
 pub async fn testFetchL2OrderBook(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let mut method: Value = Value::Str("fetchL2OrderBook".into());
     let mut orderBook: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_l2_order_book", vec![symbol.clone()]).await;
-    testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), orderBook.clone(), symbol.clone());
+    testOrderBook(exchange.clone(), skippedProperties, method, orderBook, symbol);
     return Value::Bool(true);
 
     Value::Null

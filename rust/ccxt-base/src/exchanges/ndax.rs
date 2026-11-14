@@ -1676,7 +1676,7 @@ impl Ndax {
         //
         let mut candles: Value = Value::from(vec![]);
         if (matches!(&response, Value::Arr(_))) {
-            candles = response.clone();
+            candles = response;
         }
         return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
@@ -1843,7 +1843,7 @@ impl Ndax {
                 });
             }
         }
-        let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
@@ -2286,7 +2286,7 @@ impl Ndax {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer_k(order.clone(), "LastUpdatedTime", &[]));
         m.insert("status".to_string(), self.parse_order_status((self.safe_string_k(order.clone(), "OrderState", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(order.clone(), "OrderType", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
@@ -2432,7 +2432,7 @@ impl Ndax {
         let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("OrderIdToReplace".to_string(), Value::from(self.parse_to_int(id.clone())));
+                m.insert("OrderIdToReplace".to_string(), Value::from(self.parse_to_int(id)));
                 m.insert("InstrumentId".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), Value::from(accountId));
@@ -3465,7 +3465,7 @@ impl Ndax {
                             m.insert("Pending2FaToken".to_string(), pending2faToken.map(Value::from).unwrap_or(Value::Null));
                         m
                     }));
-                    query = self.omit(query.clone(), Value::Str("pending2faToken".into()), &[]);
+                    query = self.omit(query, Value::Str("pending2faToken".into()), &[]);
                 }
             }
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {

@@ -19,7 +19,7 @@ pub fn testNumberToBE() {
     // BE: 00 00 00 00 49 96 02 D2
     let mut num1: Value = Value::Int(1234567890);
     let mut padding1: Value = Value::Int(8);
-    let mut result1: ccxt::value::Bytes = exchange.number_to_be(num1.clone(), &[padding1.clone()]);
+    let mut result1: ccxt::value::Bytes = exchange.number_to_be(num1, &[padding1.clone()]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(&result1, &[]))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(&result1, &[]).as_f64() == padding1.as_f64()))));
     let mut expectedBinary1: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("00000000499602d2".into()), &[]);

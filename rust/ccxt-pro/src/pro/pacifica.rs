@@ -774,7 +774,7 @@ impl Pacifica {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs() requires a symbol argument".into()))));
         }
-        let mut request: Value = self.parent.cancel_order_request(id.clone(), symbol.as_str(), &[params]);
+        let mut request: Value = self.parent.cancel_order_request(id, symbol.as_str(), &[params]);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -1174,7 +1174,7 @@ impl Pacifica {
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut tickers: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_0, &messageHash[..], Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
-            return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+            return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         }
         return self.tickers.clone();
         Value::Null
@@ -1274,7 +1274,7 @@ impl Pacifica {
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
-            symbolResolved = Some(self.symbol(symbol.clone()));
+            symbolResolved = Some(self.symbol(symbol));
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -1413,10 +1413,10 @@ impl Pacifica {
             let mut info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&info, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-            let mut ticker: Value = self.parse_ws_ticker(Value::Dict(info), Some(&market));
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-            parsedTickers.push(ticker);
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+            let mut ticker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(info), Some(&market)).into_dict();
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+            parsedTickers.push(Value::Dict(ticker));
         }
         }
         let mut tickers: crate::value::Dict = self.index_by(Value::from(parsedTickers), Value::Str("symbol".into())).into_dict();
@@ -1721,7 +1721,7 @@ impl Pacifica {
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "a", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&marketResolved, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "h", &[]).as_str().map(str::to_owned);
         let mut fee: Option<String> = self.safe_string_k(trade.clone(), "f", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string2(trade.clone(), Value::Str("ts".into()), Value::Str("d".into()), &[]).as_str().map(str::to_owned);
@@ -1749,7 +1749,7 @@ impl Pacifica {
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "i", &[]));
         m.insert("type".to_string(), Value::Null);
@@ -2191,7 +2191,7 @@ impl Pacifica {
             m
         })]).into_dict();
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(Value::Int(0), Value::from(error), Value::Str("".into()), Value::from(postType), Value::Dict(wsHeadersFinal), json_stringify(&data), message.clone(), Value::Map({
+            self.handle_errors(Value::Int(0), Value::from(error), Value::Str("".into()), Value::from(postType), Value::Dict(wsHeadersFinal), json_stringify(&data), message, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));
@@ -2421,7 +2421,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn request_id(&self) -> i64 {
         // millisecond timestamp plus 3 random digits stays a safe integer
         let mut ts: String = format!("{}", self.milliseconds());
-        let mut randomPart: Value = Value::Str(format!("{}", self.rand_number(Value::Int(3))).into());
+        let mut randomPart: Value = Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(3)))).into());
         return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into())).unwrap_or_default();
 }
 

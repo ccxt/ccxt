@@ -64,7 +64,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1602: bool = true;
                 while { if !__for_first_1602 { i += 1; } __for_first_1602 = false; i < (values.len() as i64) } {
                 let mut ticker: Value = values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());
+                testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker, checkedSymbol.clone());
             }
             }
             if ((now - startTime)) > maxIdleTime {

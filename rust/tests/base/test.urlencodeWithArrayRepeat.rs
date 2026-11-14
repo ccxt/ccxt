@@ -22,6 +22,6 @@ pub fn testUrlencodeWithArrayRepeat() {
     });
     let mut expected2a: String = "a=1&product_ids=AA&product_ids=BB".to_string();
     let mut expected2b: String = "product_ids=AA&product_ids=BB&a=1".to_string();
-    let mut result2: String = exchange.urlencode_with_array_repeat(dict2.clone());
+    let mut result2: String = exchange.urlencode_with_array_repeat(dict2);
     assert!(ccxt::runtime::is_true(&(((result2 == expected2a) || (result2 == expected2b)))));
 }

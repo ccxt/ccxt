@@ -1178,13 +1178,13 @@ impl Onetrading {
 })]).into_dict();
         let mut spotMakerFee: Option<String> = self.safe_string_k(&spotFees, "maker_fee", &[]).as_str().map(str::to_owned);
         let mut spotTakerFee: Option<String> = self.safe_string_k(&spotFees, "taker_fee", &[]).as_str().map(str::to_owned);
-        spotMakerFee = crate::precise::Precise::stringDiv(&spotMakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-        spotTakerFee = crate::precise::Precise::stringDiv(&spotTakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        spotMakerFee = crate::precise::Precise::stringDiv(&spotMakerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        spotTakerFee = crate::precise::Precise::stringDiv(&spotTakerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         // const feeTiers = this.safeValue (response, 'fee_tiers');
         let mut futuresMakerFee: Option<String> = self.safe_string_k(&futuresFees, "maker_fee", &[]).as_str().map(str::to_owned);
         let mut futuresTakerFee: Option<String> = self.safe_string_k(&futuresFees, "taker_fee", &[]).as_str().map(str::to_owned);
-        futuresMakerFee = crate::precise::Precise::stringDiv(&futuresMakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-        futuresTakerFee = crate::precise::Precise::stringDiv(&futuresTakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        futuresMakerFee = crate::precise::Precise::stringDiv(&futuresMakerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        futuresTakerFee = crate::precise::Precise::stringDiv(&futuresTakerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1228,8 +1228,8 @@ impl Onetrading {
             let mut volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
             let mut taker: Option<String> = self.safe_string_k(&tier, "taker_fee", &[]).as_str().map(str::to_owned);
             let mut maker: Option<String> = self.safe_string_k(&tier, "maker_fee", &[]).as_str().map(str::to_owned);
-            maker = crate::precise::Precise::stringDiv(&maker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-            taker = crate::precise::Precise::stringDiv(&taker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            maker = crate::precise::Precise::stringDiv(&maker.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            taker = crate::precise::Precise::stringDiv(&taker.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
             makerFees.push(Value::from(vec![Value::from(volume), self.parse_number(maker.map(Value::from).unwrap_or(Value::Null), &[])]));
             takerFees.push(Value::from(vec![Value::from(volume), self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[])]));
         }
@@ -1268,7 +1268,7 @@ impl Onetrading {
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "time", &[]));
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instrument_code", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last_price", &[]).as_str().map(str::to_owned);
         let mut percentage: Option<String> = self.safe_string_k(ticker.clone(), "price_change_percentage", &[]).as_str().map(str::to_owned);
         let mut change: Option<String> = self.safe_string_k(ticker.clone(), "price_change", &[]).as_str().map(str::to_owned);
@@ -1675,7 +1675,7 @@ impl Onetrading {
         let mut amountString: Option<String> = self.safe_string_k(tradeValue.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = self.safe_string_k(tradeValue.clone(), "volume", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(tradeValue.clone(), "instrument_code", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut feeCostString: Option<String> = self.safe_string_k(&feeInfo, "fee_amount", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
@@ -1862,7 +1862,7 @@ impl Onetrading {
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&rawOrder, "time", &[]));
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(&rawOrder, "status", &[])).as_str());
         let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "instrument_code", &[]).as_str().map(str::to_owned);
-        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(&rawOrder, "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(&rawOrder, "amount", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(&rawOrder, "filled_amount", &[]).as_str().map(str::to_owned);

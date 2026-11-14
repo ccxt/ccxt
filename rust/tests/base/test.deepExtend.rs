@@ -75,7 +75,7 @@ pub fn testDeepExtend() {
         m
     });
     // deepExtend
-    let mut deepExtended: Value = exchange.deep_extend(obj1.clone(), &[obj2.clone()]);
+    let mut deepExtended: Value = exchange.deep_extend(obj1, &[obj2.clone()]);
     let mut compareTo: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));

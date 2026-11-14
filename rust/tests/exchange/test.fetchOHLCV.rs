@@ -18,7 +18,7 @@ pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
     }));
     assert!(ccxt::runtime::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))))); // prefer 1m timeframe if available, otherwise return the first one
     let mut chosenTimeframeKey: Value = Value::Str("1m".into());
-    if !is_true(&exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone())) {
+    if !exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone()) {
         chosenTimeframeKey = timeframeKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     }
     let mut durationMs: Value = (match (&(Value::Int(exchange.parse_timeframe(chosenTimeframeKey.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -41,7 +41,7 @@ pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
             let mut ohlcvs: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![symbol.clone(), chosenTimeframeKey.clone(), sinceCurrent.clone(), limit.clone()]).await;
             // we can't expect array to have values, because requested period might have zero bars for valid reason
             // testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
-            helperFetchOHLCVChecker(exchange.clone(), skippedProperties.clone(), symbol.clone(), ohlcvs.clone(), chosenTimeframeKey.clone(), sinceCurrent.clone(), limit.clone());
+            helperFetchOHLCVChecker(exchange.clone(), skippedProperties.clone(), symbol.clone(), ohlcvs, chosenTimeframeKey.clone(), sinceCurrent.clone(), limit);
         }
         }
     }
@@ -65,7 +65,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
         testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }
-    let mut durationMs: Value = (match (&(Value::Int(exchange.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+    let mut durationMs: Value = (match (&(Value::Int(exchange.parse_timeframe(timeframe))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
     let mut barsLength: Value = Value::Int(ohlcvs.len() as i64);
     // check bars amounts, to be between 0 and limit
     // less then limit
@@ -127,7 +127,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
                 assert!(ccxt::runtime::is_true(&((diffBetweenCurrentAndPrevious.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
                 // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
                 let mut isRoundNumber: Value = exchange.is_round_number((match ((diffBetweenCurrentAndPrevious).as_f64(), (durationMs).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-                assert!(ccxt::runtime::is_true(&(isRoundNumber.clone())));
+                assert!(ccxt::runtime::is_true(&(isRoundNumber)));
             }
         }
     }

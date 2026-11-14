@@ -181,8 +181,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             result = filtered;
         }
-        result = self.filter_events_by_status(result.clone(), &[(match params.get("status") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
-        result = self.filter_events_by_tags(result.clone(), &[(match params.get("tags") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null })]);
+        result = self.filter_events_by_status(result, &[(match params.get("status") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
+        result = self.filter_events_by_tags(result, &[(match params.get("tags") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null })]);
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         let mut queriesLength: i64 = 0;
@@ -190,7 +190,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             queriesLength = queries.len() as i64;
         }
         if queriesLength > 0 {
-            result = self.filter_events_by_search_in(result.clone(), queries, &[(match params.get("searchIn") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
+            result = self.filter_events_by_search_in(result, queries, &[(match params.get("searchIn") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         }
         let mut sort: Option<String> = (match params.get("sort") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (sort.is_some()) {
@@ -210,7 +210,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     { let __be_tmp = self.safe_number(get_value(&result, &Value::Int(i)), sortKey.clone(), &[Value::Int(0)]); add_element_to_object(get_value_mut(&mut result, &Value::Int(i)), &sortKey, __be_tmp); };
                 }
                 }
-                result = self.sort_by(result.clone(), sortKey, &[Value::Bool(true), Value::Int(0)]);
+                result = self.sort_by(result, sortKey, &[Value::Bool(true), Value::Int(0)]);
             }
         }
         let mut limit: Option<i64> = (match params.get("limit") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
@@ -222,7 +222,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if sliceEnd > Some(resultLength) {
                 sliceEnd = Some(resultLength);
             }
-            result = self.array_slice(result.clone(), Value::Int(0), &[Value::from(sliceEnd)]);
+            result = self.array_slice(result, Value::Int(0), &[Value::from(sliceEnd)]);
         }
         return result;
 
@@ -596,8 +596,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 }
 
-    fn safe_outcome(&self, mut outcomeIdOrSymbol: Value, optional_args: &[Value]) -> Value {
-        let mut market = get_arg(optional_args, 0, Value::Null);
+    fn safe_outcome(&self, mut outcomeIdOrSymbol: Value, market: Option<&crate::types::Market>) -> Value {
         if (outcomeIdOrSymbol != Value::Null) {
             if (self.pred().outcomes.clone() != Value::Null) && (matches!((&self.pred().outcomes, &outcomeIdOrSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 return self.safe_value(self.pred().outcomes.clone(), outcomeIdOrSymbol.clone(), &[]);
@@ -606,8 +605,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 return self.safe_value(self.pred().outcomes_by_id.clone(), outcomeIdOrSymbol.clone(), &[]);
             }
         }
-        if (market != Value::Null) {
-            return market;
+        if (market.is_some()) {
+            return crate::Value::from(market);
         }
         // stub for an unknown handle; it only carries the identity keys, not the market fields
         let mut outcomeObjValue: indexmap::IndexMap<String, Value> = ({
@@ -635,7 +634,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if !(self.has_outcome(outcomeIdOrSymbol.clone()).as_bool() == Some(true)) && (outcomeObj != Value::Null) {
             return self.safe_string_k(outcomeObj, "outcome", &[]);
         }
-        let mut outcomeObjValue: crate::value::Dict = self.safe_outcome(outcomeIdOrSymbol, &[]).into_dict();
+        let mut outcomeObjValue: crate::value::Dict = self.safe_outcome(outcomeIdOrSymbol, None).into_dict();
         return crate::value::KeyRead::key_read(&&outcomeObjValue, "outcome");
 
     Value::Null
@@ -712,7 +711,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_201: bool = true;
             while { if !__for_first_201 { i += 1; } __for_first_201 = false; i < (rawParts.len() as i64) } {
             let mut w: Option<String> = rawParts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if ((w.as_deref().unwrap_or_default().chars().count() as i64)) > 0 && !(self.in_array(w.clone().map(Value::from).unwrap_or(Value::Null), stopWords.clone()).as_bool() == Some(true)) {
+            if ((w.as_deref().unwrap_or_default().chars().count() as i64)) > 0 && !self.in_array(w.clone().map(Value::from).unwrap_or(Value::Null), stopWords.clone()) {
                 parts.push(w.map(Value::from).unwrap_or(Value::Null));
             }
         }
@@ -1041,7 +1040,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         if !(reload.as_bool() == Some(true)) {
             if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                return self.safe_outcome(outcomeSymbol.clone(), &[]);
+                return self.safe_outcome(outcomeSymbol.clone(), None);
             }
             let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
@@ -1050,7 +1049,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if !wasWarm && (self.markets.clone() != Value::Null) && !(self.is_empty(self.markets.clone()).as_bool() == Some(true)) {
                 self.populate_outcomes();
                 if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                    return self.safe_outcome(outcomeSymbol.clone(), &[]);
+                    return self.safe_outcome(outcomeSymbol.clone(), None);
                 }
             }
             let mut loadAll: bool = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -1061,7 +1060,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 // the whole listing (which would mask typos and clobber offline-injected markets)
                 self.load_outcomes(&[]).await;
                 if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                    return self.safe_outcome(outcomeSymbol.clone(), &[]);
+                    return self.safe_outcome(outcomeSymbol.clone(), None);
                 }
             }
         }
@@ -1164,7 +1163,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                return self.safe_outcome(outcomeSymbol.clone(), &[]);
+                return self.safe_outcome(outcomeSymbol.clone(), None);
             }
         }
         panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" could not resolve outcome ".into())).into()), outcomeSymbol).into()), Value::Str(" — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId".into()))));
@@ -2027,11 +2026,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeAmount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
                 if (tradeAmount.is_some()) {
-                    filled = crate::precise::Precise::stringAdd(&filled.clone().map(Value::from).unwrap_or(Value::Null), &tradeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    filled = crate::precise::Precise::stringAdd(&filled.map(Value::from).unwrap_or(Value::Null), &tradeAmount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 let mut tradeCost: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
                 if (tradeCost.is_some()) {
-                    cost = crate::precise::Precise::stringAdd(&cost.clone().map(Value::from).unwrap_or(Value::Null), &tradeCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    cost = crate::precise::Precise::stringAdd(&cost.map(Value::from).unwrap_or(Value::Null), &tradeCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 if (side.is_none()) {
                     side = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -2364,7 +2363,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(Value::Dict(trade)); }
         }
         }
-        results = self.sort_by2(results.clone(), Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
+        results = self.sort_by2(results, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let mut outcomeHandle: Option<String> = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         return self.filter_by_value_since_limit(results, Value::Str("outcome".into()), &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit, Value::Str("timestamp".into()), Value::Bool(false)]);
 
@@ -2403,7 +2402,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Arr(__a) = &mut results { std::sync::Arc::make_mut(__a).push(Value::Dict(order)); }
         }
         }
-        results = self.sort_by(results.clone(), Value::Str("timestamp".into()), &[]);
+        results = self.sort_by(results, Value::Str("timestamp".into()), &[]);
         let mut outcomeHandle: Option<String> = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         return self.filter_by_outcome_since_limit(results, &[outcomeHandle.map(Value::from).unwrap_or(Value::Null), since, limit]);
 
@@ -2466,7 +2465,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     fn amount_to_prediction_precision(&self, mut outcome: Value, mut amount: Value) -> Value {
-        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
         return self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amount);
 
@@ -2474,7 +2473,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     fn price_to_prediction_precision(&self, mut outcome: Value, mut price: Value) -> Value {
-        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
         return self.price_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), price);
 
@@ -2482,7 +2481,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     fn cost_to_prediction_precision(&self, mut outcome: Value, mut cost: Value) -> Value {
-        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "market", &[]).as_str().map(str::to_owned);
         return self.cost_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), cost);
 
@@ -2537,7 +2536,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = byteLength { Some(128 + __r) } else { None })), &[]), hex).into());
         }
         let mut lengthHex: Option<String> = Some(self.int_to_base16(Value::from(byteLength), &[]));
-        lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        lengthHex = self.pad_hex_to_even(lengthHex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(183 + __r) } else { None })), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), hex).into());
 
@@ -2558,7 +2557,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = byteLength { Some(192 + __r) } else { None })), &[]), concatenated).into());
         }
         let mut lengthHex: Option<String> = Some(self.int_to_base16(Value::from(byteLength), &[]));
-        lengthHex = self.pad_hex_to_even(lengthHex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        lengthHex = self.pad_hex_to_even(lengthHex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(247 + __r) } else { None })), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), concatenated).into());
 
@@ -2574,7 +2573,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Str("".into());
         }
         let mut hex: Option<String> = Some(self.int_to_base16(value, &[]));
-        hex = self.pad_hex_to_even(hex.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        hex = self.pad_hex_to_even(hex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         return hex.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
@@ -2745,7 +2744,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             "require_event_query" => <Self as crate::prediction_exchange_generated::PredictionBase>::require_event_query(self, &args[..]),
             "rlp_encode_bytes" => <Self as crate::prediction_exchange_generated::PredictionBase>::rlp_encode_bytes(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "rlp_encode_list" => <Self as crate::prediction_exchange_generated::PredictionBase>::rlp_encode_list(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "safe_outcome" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "safe_outcome" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
             "safe_outcome_symbol" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_outcome_symbol(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_prediction_order" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "safe_prediction_order_book" => <Self as crate::prediction_exchange_generated::PredictionBase>::safe_prediction_order_book(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),

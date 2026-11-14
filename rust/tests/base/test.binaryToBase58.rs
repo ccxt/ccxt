@@ -9,7 +9,7 @@ use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbol
 use ccxt::exchange_generated::ExchangeBase;
 
 fn helperStrToBinary5(mut exchange: ccxt::exchange::Exchange, mut str_val: Value) -> Value {
-    return Value::from(exchange.base64_to_binary(Value::from(exchange.string_to_base64(str_val.clone(), &[])), &[]));
+    return Value::from(exchange.base64_to_binary(Value::from(exchange.string_to_base64(str_val, &[])), &[]));
 
     Value::Null
 }
@@ -23,23 +23,23 @@ pub fn testBinaryToBase58() {
     // @SKIP_START_GO
     // Test 1: Simple string
     let mut binary1: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("hello".into()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary1.clone(), &[])).as_str() == Some("Cn8eVZg")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary1, &[])).as_str() == Some("Cn8eVZg")))));
     // Test 2: String with space
     let mut binary2: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("hello world".into()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary2.clone(), &[])).as_str() == Some("StV1DL6CwTryKyV")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary2, &[])).as_str() == Some("StV1DL6CwTryKyV")))));
     // Test 3: Short string
     let mut binary3: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("test".into()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary3.clone(), &[])).as_str() == Some("3yZe7d")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary3, &[])).as_str() == Some("3yZe7d")))));
     // Test 4: Single byte
     let mut binary4: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("a".into()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary4.clone(), &[])).as_str() == Some("2g")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary4, &[])).as_str() == Some("2g")))));
     // Test 5: Two bytes
     let mut binary5: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("ab".into()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary5.clone(), &[])).as_str() == Some("8Qq")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary5, &[])).as_str() == Some("8Qq")))));
     // Test 6: Three bytes
     let mut binary6: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("abc".into()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary6.clone(), &[])).as_str() == Some("ZiCa")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary6, &[])).as_str() == Some("ZiCa")))));
     // Test 7: JSON-like binary
     let mut binary7: Value = helperStrToBinary5(exchange.clone_self(), Value::Str("{\"key\":\"value\"}".into()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary7.clone(), &[])).as_str() == Some("4SoiMiEYtTt5tPdi81Fik")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base58(binary7, &[])).as_str() == Some("4SoiMiEYtTt5tPdi81Fik")))));
 }

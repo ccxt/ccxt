@@ -437,7 +437,7 @@ impl Grvt {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
+        let mut symbolValue: Value = Value::from(self.symbol(symbol));
         let __ws_arg_1 = self.extend(params, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("callerMethodName".to_string(), Value::Str("watchTicker".into()));
@@ -606,9 +606,9 @@ impl Grvt {
         let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut ticker: Value = self.parse_ws_ticker(data, Some(&market));
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }
-        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into())));
+        let mut ticker: crate::value::Dict = self.parse_ws_ticker(data, Some(&market)).into_dict();
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
+        client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into())));
 }
 
     pub fn parse_ws_ticker(&self, mut message: Value, market: Option<&crate::types::Market>) -> Value {
@@ -742,9 +742,9 @@ impl Grvt {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(limit));
         }
-        let mut parsed: Value = self.parse_ws_trade(&data, None);
+        let mut parsed: crate::value::Dict = self.parse_ws_trade(&data, None).into_dict();
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
-        stored.append(parsed);
+        stored.append(Value::Dict(parsed));
         client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into())));
 }
 
@@ -784,7 +784,7 @@ impl Grvt {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: Value = Value::from(self.symbol(symbol.clone()));
+        let mut symbolValue: Value = Value::from(self.symbol(symbol));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
         let mut result: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await);
         return get_value(&(if let (Some(__m), Some(__k)) = (result.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe);
@@ -938,7 +938,7 @@ impl Grvt {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolValue: String = self.symbol(symbol.clone());
+        let mut symbolValue: String = self.symbol(symbol);
         return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols((Value::from(vec![Value::from(symbolValue)])).to_str_vec(), limit.as_i64(), params).await);
         Value::Null
         }).await?))
@@ -984,7 +984,7 @@ impl Grvt {
         let mut limitResolved: Value = limitOption;
         let mut paramsLimit: Value = Value::Dict(paramsLimitOption);
         if (limit != Value::Null) {
-            limitResolved = limit.clone();
+            limitResolved = limit;
             paramsLimit = Value::Dict(paramsChannel);
         }
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
@@ -1238,9 +1238,9 @@ impl Grvt {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
-        let mut trade: Value = self.parse_ws_my_trade(data, None);
-        self.myTrades.append(trade.clone());
-        client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), self.safe_string_k(trade, "symbol", &[Value::Str("".into())])).into())));
+        let mut trade: crate::value::Dict = self.parse_ws_my_trade(data, None).into_dict();
+        self.myTrades.append(Value::from(&trade));
+        client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())])).into())));
         client.resolve(Value::from(&self.myTrades), "myTrades");
 }
 
@@ -1348,11 +1348,11 @@ impl Grvt {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut data: Option<crate::value::Dict> = message.get("feed").cloned().unwrap_or_default().into_opt_dict();
-        let mut position: Value = self.parse_ws_position(data.map_or(Value::Null, Value::Dict), None);
-        self.positions.append(position.clone());
+        let mut position: crate::value::Dict = self.parse_ws_position(data.map_or(Value::Null, Value::Dict), None).into_dict();
+        self.positions.append(Value::from(&position));
         let mut newPositions: Value = Value::from(vec![]);
-        if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
-        client.resolve(newPositions.clone(), &(Value::Str(format!("{}{}", Value::Str("positions::".into()), self.safe_string_k(position, "symbol", &[Value::Str("".into())])).into())));
+        if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+        client.resolve(newPositions.clone(), &(Value::Str(format!("{}{}", Value::Str("positions::".into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
         client.resolve(newPositions, "positions");
 }
 
@@ -1490,10 +1490,10 @@ impl Grvt {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(limit));
         }
-        let mut order: Value = self.parse_ws_order(&data, None);
-        self.orders.append(order.clone());
+        let mut order: crate::value::Dict = self.parse_ws_order(&data, None).into_dict();
+        self.orders.append(Value::from(&order));
         client.resolve(Value::from(&self.orders), "orders");
-        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str("order::".into()), self.safe_string_k(order, "symbol", &[Value::Str("".into())])).into())));
+        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str("order::".into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())])).into())));
 }
 
     pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {

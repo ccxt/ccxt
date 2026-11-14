@@ -444,7 +444,7 @@ impl Dydx {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), market.clone());
+}), market);
 
     Value::Null
 }
