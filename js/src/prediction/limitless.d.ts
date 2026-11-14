@@ -361,7 +361,7 @@ export default class limitless extends Exchange {
      * @param {string} [categoryId] a limitless category id — pages only that category's listing
      * @returns {object[]} raw limitless market objects
      */
-    fetchRawActiveMarkets(params?: Dict, categoryId?: Str): Promise<any[]>;
+    fetchRawActiveMarkets(params?: Dict, categoryId?: Str): Promise<Dict[]>;
     /**
      * @ignore
      * @method

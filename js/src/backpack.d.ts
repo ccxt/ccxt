@@ -136,7 +136,7 @@ export default class backpack extends Exchange {
      * @param {Array} entries parsed trades or orders
      * @returns {Array} tokenized stock structures
      */
-    filterStockStructures(entries: List): List;
+    filterStockStructures(entries: Dict[]): List;
     parseMarketType(type: Str): Str;
     /**
      * @method
