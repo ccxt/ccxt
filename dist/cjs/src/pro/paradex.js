@@ -80,12 +80,14 @@ class paradex extends paradex$1["default"] {
         });
     }
     getWsUrl() {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         if (!this.safeBool(this.options, 'sbe', true)) {
             return url;
         }
-        const schemaVersion = this.safeString(this.options, 'sbeSchemaVersion', '3');
-        return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
+        else {
+            const schemaVersion = this.safeString(this.options, 'sbeSchemaVersion', '3');
+            return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
+        }
     }
     getOrderBookChannel(marketId, deltas = false) {
         if (deltas) {

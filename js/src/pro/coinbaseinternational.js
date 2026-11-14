@@ -108,9 +108,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             return 'wss://www.deribit.com/ws/api/v2';
         }
         if (isPrivate) {
-            return this.urls['api']['wsPrivate'];
+            return this.safeString(this.urls['api'], 'wsPrivate', '');
         }
-        return this.urls['api']['ws'];
+        else {
+            return this.safeString(this.urls['api'], 'ws', '');
+        }
     }
     ping(client) {
         const refreshAt = this.safeInteger(this.options, 'wsAuthRefreshAt');

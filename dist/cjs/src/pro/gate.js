@@ -2290,12 +2290,12 @@ class gate extends gate$1["default"] {
         }
     }
     getUrlByMarket(market) {
-        const baseUrl = this.urls['api'][market['type']];
         if (this.safeBool(market, 'contract', false)) {
-            return (this.safeBool(market, 'linear', false)) ? baseUrl['usdt'] : baseUrl['btc'];
+            const settleKey = (this.safeBool(market, 'linear', false)) ? 'usdt' : 'btc';
+            return this.safeString(this.urls['api'][market['type']], settleKey, '');
         }
         else {
-            return baseUrl;
+            return this.safeString(this.urls['api'], market['type'], '');
         }
     }
     getTypeByMarket(market) {
@@ -2313,13 +2313,12 @@ class gate extends gate$1["default"] {
         }
     }
     getUrlByMarketType(type, isInverse = false) {
-        const api = this.urls['api'];
-        const url = this.safeValue(api, type);
         if ((type === 'swap') || (type === 'future')) {
-            return isInverse ? url['btc'] : url['usdt'];
+            const settleKey = isInverse ? 'btc' : 'usdt';
+            return this.safeString(this.safeDict(this.urls['api'], type), settleKey);
         }
         else {
-            return url;
+            return this.safeString(this.urls['api'], type);
         }
     }
     getMarketTypeByUrl(url) {

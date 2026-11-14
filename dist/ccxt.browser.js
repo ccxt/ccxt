@@ -556416,9 +556416,10 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
             return 'wss://www.deribit.com/ws/api/v2';
         }
         if (isPrivate) {
-            return this.urls['api']['wsPrivate'];
+            return this.safeString(this.urls['api'], 'wsPrivate', '');
+        } else {
+            return this.safeString(this.urls['api'], 'ws', '');
         }
-        return this.urls['api']['ws'];
     }
     ping(client) {
         const refreshAt = this.safeInteger(this.options, 'wsAuthRefreshAt');
@@ -567708,11 +567709,11 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         }
     }
     getUrlByMarket(market) {
-        const baseUrl = this.urls['api'][market['type']];
         if (this.safeBool(market, 'contract', false)) {
-            return this.safeBool(market, 'linear', false) ? baseUrl['usdt'] : baseUrl['btc'];
+            const settleKey = this.safeBool(market, 'linear', false) ? 'usdt' : 'btc';
+            return this.safeString(this.urls['api'][market['type']], settleKey, '');
         } else {
-            return baseUrl;
+            return this.safeString(this.urls['api'], market['type'], '');
         }
     }
     getTypeByMarket(market) {
@@ -567728,12 +567729,11 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         }
     }
     getUrlByMarketType(type, isInverse = false) {
-        const api = this.urls['api'];
-        const url = this.safeValue(api, type);
         if (type === 'swap' || type === 'future') {
-            return isInverse ? url['btc'] : url['usdt'];
+            const settleKey = isInverse ? 'btc' : 'usdt';
+            return this.safeString(this.safeDict(this.urls['api'], type), settleKey);
         } else {
-            return url;
+            return this.safeString(this.urls['api'], type);
         }
     }
     getMarketTypeByUrl(url) {
@@ -602133,12 +602133,13 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         });
     }
     getWsUrl() {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         if (!this.safeBool(this.options, 'sbe', true)) {
             return url;
+        } else {
+            const schemaVersion = this.safeString(this.options, 'sbeSchemaVersion', '3');
+            return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
         }
-        const schemaVersion = this.safeString(this.options, 'sbeSchemaVersion', '3');
-        return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion;
     }
     getOrderBookChannel(marketId, deltas = false) {
         if (deltas) {
