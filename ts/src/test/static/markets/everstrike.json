@@ -1,0 +1,368 @@
+{
+    "BTC/USD:USD": {
+        "active": true,
+        "base": "BTC",
+        "baseId": "BTC",
+        "contract": true,
+        "contractSize": 1,
+        "created": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "future": false,
+        "id": "USD_BTC_PERP",
+        "index": null,
+        "info": {
+            "active": true,
+            "base": "USD",
+            "category": "future",
+            "commission_maker": 0,
+            "commission_taker": 0,
+            "contract": "PERP",
+            "description": "BTC Perpetual Future",
+            "filters": {
+                "leverage": {
+                    "filter_type": "LEVERAGE",
+                    "max_qty": 100,
+                    "min_qty": 0.0001,
+                    "tick_size": 0.0001
+                },
+                "price": {
+                    "display": 0.5,
+                    "filter_type": "PRICE_FILTER",
+                    "max_price": 10000000,
+                    "min_price": 1e-10,
+                    "tick_size": 1e-10
+                },
+                "qty": {
+                    "filter_type": "LOT_SIZE",
+                    "max_qty": 10000000000,
+                    "min_qty": 0.0001,
+                    "tick_size": 0.0001
+                }
+            },
+            "funding_interval": 3600000,
+            "key": "USD_BTC_PERP",
+            "quote": "BTC",
+            "status": "TRADING"
+        },
+        "inverse": false,
+        "limits": {
+            "amount": {
+                "max": 10000000000,
+                "min": 0.0001
+            },
+            "cost": {
+                "max": null,
+                "min": null
+            },
+            "leverage": {
+                "max": 100,
+                "min": null
+            },
+            "price": {
+                "max": 10000000,
+                "min": 1e-10
+            }
+        },
+        "linear": true,
+        "lowercaseId": null,
+        "maker": 0,
+        "margin": false,
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "option": false,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 1e-10
+        },
+        "quote": "USD",
+        "quoteId": "USD",
+        "settle": "USD",
+        "settleId": "USD",
+        "spot": false,
+        "strike": null,
+        "subType": null,
+        "swap": true,
+        "symbol": "BTC/USD:USD",
+        "taker": 0,
+        "type": "swap"
+    },
+    "BTC/USD:USD-PERP-0.95-C": {
+        "active": true,
+        "base": "BTC",
+        "baseId": "BTC",
+        "contract": true,
+        "contractSize": 1,
+        "created": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "future": false,
+        "id": "USD_BTCCALL5_PERP",
+        "index": null,
+        "info": {
+            "active": true,
+            "base": "USD",
+            "category": "call",
+            "commission_maker": 0,
+            "commission_taker": 0,
+            "contract": "PERP",
+            "description": "BTC Perpetual Call Option (-5%)",
+            "filters": {
+                "leverage": {
+                    "filter_type": "LEVERAGE",
+                    "max_qty": 5,
+                    "min_qty": 1e-12,
+                    "tick_size": 1e-12
+                },
+                "price": {
+                    "display": 0.01,
+                    "filter_type": "PRICE_FILTER",
+                    "max_price": 10000000,
+                    "min_price": 1e-10,
+                    "tick_size": 1e-09
+                },
+                "qty": {
+                    "filter_type": "LOT_SIZE",
+                    "max_qty": 10000000000,
+                    "min_qty": 0.0001,
+                    "tick_size": 0.0001
+                }
+            },
+            "funding_interval": 3600000,
+            "key": "USD_BTCCALL5_PERP",
+            "price_multiplier": 0.95,
+            "quote": "BTC",
+            "status": "TRADING",
+            "underlier": "BTC"
+        },
+        "inverse": false,
+        "limits": {
+            "amount": {
+                "max": 10000000000,
+                "min": 0.0001
+            },
+            "cost": {
+                "max": null,
+                "min": null
+            },
+            "leverage": {
+                "max": 5,
+                "min": null
+            },
+            "price": {
+                "max": 10000000,
+                "min": 1e-10
+            }
+        },
+        "linear": true,
+        "lowercaseId": null,
+        "maker": 0,
+        "margin": false,
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "option": true,
+        "optionType": "call",
+        "precision": {
+            "amount": 0.0001,
+            "price": 1e-09
+        },
+        "quote": "USD",
+        "quoteId": "USD",
+        "settle": "USD",
+        "settleId": "USD",
+        "spot": false,
+        "strike": null,
+        "subType": null,
+        "swap": false,
+        "symbol": "BTC/USD:USD-PERP-0.95-C",
+        "taker": 0,
+        "type": "option"
+    },
+    "BTC/USD:USD-PERP-1-P": {
+        "active": true,
+        "base": "BTC",
+        "baseId": "BTC",
+        "contract": true,
+        "contractSize": 1,
+        "created": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "future": false,
+        "id": "USD_BTCPUT_PERP",
+        "index": null,
+        "info": {
+            "active": true,
+            "base": "USD",
+            "category": "put",
+            "commission_maker": 0,
+            "commission_taker": 0,
+            "contract": "PERP",
+            "description": "BTC Perpetual Put Option",
+            "filters": {
+                "leverage": {
+                    "filter_type": "LEVERAGE",
+                    "max_qty": 5,
+                    "min_qty": 1e-12,
+                    "tick_size": 1e-12
+                },
+                "price": {
+                    "display": 0.01,
+                    "filter_type": "PRICE_FILTER",
+                    "max_price": 10000000,
+                    "min_price": 1e-10,
+                    "tick_size": 1e-09
+                },
+                "qty": {
+                    "filter_type": "LOT_SIZE",
+                    "max_qty": 10000000000,
+                    "min_qty": 0.0001,
+                    "tick_size": 0.0001
+                }
+            },
+            "funding_interval": 3600000,
+            "key": "USD_BTCPUT_PERP",
+            "quote": "BTC",
+            "status": "TRADING",
+            "underlier": "BTC"
+        },
+        "inverse": false,
+        "limits": {
+            "amount": {
+                "max": 10000000000,
+                "min": 0.0001
+            },
+            "cost": {
+                "max": null,
+                "min": null
+            },
+            "leverage": {
+                "max": 5,
+                "min": null
+            },
+            "price": {
+                "max": 10000000,
+                "min": 1e-10
+            }
+        },
+        "linear": true,
+        "lowercaseId": null,
+        "maker": 0,
+        "margin": false,
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "option": true,
+        "optionType": "put",
+        "precision": {
+            "amount": 0.0001,
+            "price": 1e-09
+        },
+        "quote": "USD",
+        "quoteId": "USD",
+        "settle": "USD",
+        "settleId": "USD",
+        "spot": false,
+        "strike": null,
+        "subType": null,
+        "swap": false,
+        "symbol": "BTC/USD:USD-PERP-1-P",
+        "taker": 0,
+        "type": "option"
+    },
+    "ETH/USD": {
+        "active": true,
+        "base": "ETH",
+        "baseId": "ETH",
+        "contract": false,
+        "contractSize": null,
+        "created": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "future": false,
+        "id": "ETH_USD",
+        "index": false,
+        "info": {
+            "active": true,
+            "base": "ETH",
+            "category": "spot",
+            "commission_maker": 0,
+            "commission_taker": 0,
+            "contract": "NONE",
+            "description": "Ether (Spot)",
+            "filters": {
+                "leverage": {
+                    "filter_type": "LEVERAGE",
+                    "max_qty": 100,
+                    "min_qty": 0.0001,
+                    "tick_size": 0.0001
+                },
+                "price": {
+                    "filter_type": "PRICE_FILTER",
+                    "max_price": 100000000,
+                    "min_price": 0.01,
+                    "tick_size": 0.01
+                },
+                "qty": {
+                    "filter_type": "LOT_SIZE",
+                    "max_qty": 100000000000,
+                    "min_qty": 0.001,
+                    "tick_size": 0.001
+                }
+            },
+            "funding_interval": 3600000,
+            "key": "ETH_USD",
+            "quote": "USD",
+            "status": "TRADING"
+        },
+        "inverse": null,
+        "limits": {
+            "amount": {
+                "max": 100000000000,
+                "min": 0.001
+            },
+            "cost": {
+                "max": null,
+                "min": null
+            },
+            "leverage": {
+                "max": 100,
+                "min": null
+            },
+            "price": {
+                "max": 100000000,
+                "min": 0.01
+            }
+        },
+        "linear": null,
+        "lowercaseId": null,
+        "maker": 0,
+        "margin": false,
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "option": false,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "quote": "USD",
+        "quoteId": "USD",
+        "settle": null,
+        "settleId": null,
+        "spot": true,
+        "strike": null,
+        "subType": null,
+        "swap": false,
+        "symbol": "ETH/USD",
+        "taker": 0,
+        "type": "spot"
+    }
+}

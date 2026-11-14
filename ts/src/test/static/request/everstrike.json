@@ -1,0 +1,233 @@
+{
+    "exchange": "everstrike",
+    "methods": {
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "headers": {
+                    "x-api-key": "key"
+                },
+                "input": [
+                    "781a8e80393f11e98e2643f8c5a993ce"
+                ],
+                "method": "cancelOrder",
+                "output": "timestamp=1794240000000&id=781a8e80393f11e98e2643f8c5a993ce",
+                "url": "https://api.everstrike.io/auth/cancel"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "bulk cancel: ids are sent as indexed keys (the server verifies the HMAC against that form)",
+                "headers": {
+                    "x-api-key": "key"
+                },
+                "input": [
+                    [
+                        "aaa111",
+                        "bbb222"
+                    ]
+                ],
+                "method": "cancelOrders",
+                "output": "timestamp=1794240000000&ids%5B0%5D=aaa111&ids%5B1%5D=bbb222",
+                "url": "https://api.everstrike.io/auth/cancel/bulk"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "limit buy: signed form body",
+                "headers": {
+                    "x-api-key": "key"
+                },
+                "input": [
+                    "BTC/USD:USD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    70000
+                ],
+                "method": "createOrder",
+                "output": "timestamp=1794240000000&pair=USD_BTC_PERP&side=BUY&qty=0.001&price=70000",
+                "url": "https://api.everstrike.io/auth/order"
+            },
+            {
+                "description": "market sell reduceOnly",
+                "headers": {
+                    "x-api-key": "key"
+                },
+                "input": [
+                    "BTC/USD:USD",
+                    "market",
+                    "sell",
+                    0.002,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "method": "createOrder",
+                "output": "timestamp=1794240000000&pair=USD_BTC_PERP&side=SELL&qty=0.002&reduce_only=true",
+                "url": "https://api.everstrike.io/auth/order"
+            },
+            {
+                "description": "postOnly limit sell on an option",
+                "headers": {
+                    "x-api-key": "key"
+                },
+                "input": [
+                    "BTC/USD:USD-PERP-0.95-C",
+                    "limit",
+                    "sell",
+                    0.01,
+                    3500,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "method": "createOrder",
+                "output": "timestamp=1794240000000&pair=USD_BTCCALL5_PERP&side=SELL&qty=0.01&price=3500&post_only=true",
+                "url": "https://api.everstrike.io/auth/order"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "balance: GET authenticated by the api key header only",
+                "headers": {
+                    "x-api-key": "key"
+                },
+                "input": [],
+                "method": "fetchBalance",
+                "url": "https://api.everstrike.io/personal"
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "funding rate reads the ticker",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "method": "fetchFundingRate",
+                "url": "https://api.everstrike.io/ticker?pair=USD_BTC_PERP"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "5m candles with since and limit",
+                "input": [
+                    "BTC/USD:USD",
+                    "5m",
+                    1794079500000,
+                    2
+                ],
+                "method": "fetchOHLCV",
+                "url": "https://api.everstrike.io/ohlcv?pair=USD_BTC_PERP&start=1794079500000&limit=2"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders for one market",
+                "headers": {
+                    "x-api-key": "key"
+                },
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "method": "fetchOpenOrders",
+                "url": "https://api.everstrike.io/active_orders?pair=USD_BTC_PERP"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "headers": {
+                    "x-api-key": "key"
+                },
+                "input": [
+                    "781a8e80393f11e98e2643f8c5a993ce"
+                ],
+                "method": "fetchOrder",
+                "url": "https://api.everstrike.io/order?id=781a8e80393f11e98e2643f8c5a993ce"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "order book with limit",
+                "input": [
+                    "BTC/USD:USD",
+                    10
+                ],
+                "method": "fetchOrderBook",
+                "url": "https://api.everstrike.io/depth?pair=USD_BTC_PERP&limit=10"
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "perpetual ticker",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "method": "fetchTicker",
+                "url": "https://api.everstrike.io/ticker?pair=USD_BTC_PERP"
+            },
+            {
+                "description": "option ticker uses the quote-first market id",
+                "input": [
+                    "BTC/USD:USD-PERP-0.95-C"
+                ],
+                "method": "fetchTicker",
+                "url": "https://api.everstrike.io/ticker?pair=USD_BTCCALL5_PERP"
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "all tickers",
+                "input": [],
+                "method": "fetchTickers",
+                "url": "https://api.everstrike.io/ticker"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "input": [],
+                "method": "fetchTime",
+                "url": "https://api.everstrike.io/time"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "trades with since, limit and until",
+                "input": [
+                    "BTC/USD:USD",
+                    1792936800000,
+                    50,
+                    {
+                        "until": 1793920000000
+                    }
+                ],
+                "method": "fetchTrades",
+                "url": "https://api.everstrike.io/trades?pair=USD_BTC_PERP&start=1792936800000&limit=50&end=1793920000000"
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "leverage is signed but has no timestamp, so the signature is fixed",
+                "disabledJava": true,
+                "headers": {
+                    "x-api-key": "key",
+                    "x-signature": "8Hy/fZ6XzmdVuN0R8gdGlRl1LvPjWePxgXJEr6zpTEY="
+                },
+                "input": [
+                    10,
+                    "BTC/USD:USD"
+                ],
+                "method": "setLeverage",
+                "output": "pair=USD_BTC_PERP&leverage=10",
+                "url": "https://api.everstrike.io/leverage"
+            }
+        ]
+    },
+    "outputType": "urlencoded",
+    "skipKeys": [
+        "timestamp"
+    ]
+}
