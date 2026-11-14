@@ -754,8 +754,8 @@ export default class bitpandafusion extends Exchange {
         if (until !== undefined) {
             request['endTime'] = this.parseToInt (Precise.stringDiv (this.numberToString (until), '1000'));
         }
-        params = this.omit (params, 'until');
-        const response = await this.privateGetV1AccountOrders (this.extend (request, params));
+        const query = this.omit (params, 'until');
+        const response = await this.privateGetV1AccountOrders (this.extend (request, query));
         const data = this.addPaginationCursorToResult (response);
         return this.parseOrders (data, market, since, limit);
     }
@@ -896,8 +896,8 @@ export default class bitpandafusion extends Exchange {
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
-        params = this.omit (params, [ 'clientOrderId', 'client_order_id', 'triggerPrice', 'stopPrice', 'timeInForce', 'cost', 'amount' ]);
-        const response = await this.privatePostV1AccountOrders (this.extend (request, params));
+        const query = this.omit (params, [ 'clientOrderId', 'client_order_id', 'triggerPrice', 'stopPrice', 'timeInForce', 'cost', 'amount' ]);
+        const response = await this.privatePostV1AccountOrders (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -976,10 +976,9 @@ export default class bitpandafusion extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'nextCursor', 'cursor', undefined, 1000) as Trade[];
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, paramsPaginate, 'nextCursor', 'cursor', undefined, 1000) as Trade[];
         }
         const request: Dict = {};
         let market: Market = undefined;
@@ -993,12 +992,12 @@ export default class bitpandafusion extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        const until = this.safeInteger (params, 'until');
+        const until = this.safeInteger (paramsPaginate, 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt (Precise.stringDiv (this.numberToString (until), '1000'));
         }
-        params = this.omit (params, 'until');
-        const response = await this.privateGetV1AccountTrades (this.extend (request, params));
+        const query = this.omit (paramsPaginate, 'until');
+        const response = await this.privateGetV1AccountTrades (this.extend (request, query));
         const data = this.addPaginationCursorToResult (response);
         return this.parseTrades (data, market, since, limit);
     }
@@ -1010,18 +1009,17 @@ export default class bitpandafusion extends Exchange {
      * @description signs an API request using the required x-api-key header
      * @returns {object} signed request
      */
-    override sign (path: string, api: string = 'public', method: string = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         this.checkRequiredCredentials ();
-        const baseUrl = this.urls['api'][api];
+        const apiName = api[0];
+        const baseUrl = this.urls['api'][apiName];
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let requestHeaders: Dict = {
+        const requestHeaders: Dict = {
             'Accept': 'application/json',
             'x-api-key': this.apiKey,
         };
-        if (headers !== undefined) {
-            requestHeaders = this.extend (requestHeaders, headers);
-        }
+        let body: Str = undefined;
         if (method === 'POST') {
             requestHeaders['Content-Type'] = 'application/json';
             body = this.json (query);
@@ -1038,20 +1036,20 @@ export default class bitpandafusion extends Exchange {
      * @description handles HTTP errors returned by Bitpanda Fusion
      * @returns {void}
      */
-    override handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
-        if (statusCode < 400) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
+        if (code < 400) {
             return undefined;
         }
-        if (statusCode === 422) {
+        if (code === 422) {
             if ((method === 'POST') && (url.indexOf ('/v1/account/orders') >= 0)) {
-                throw new InvalidOrder (this.id + ' ' + responseBody);
+                throw new InvalidOrder (this.id + ' ' + body);
             }
-        } else if (statusCode === 404) {
+        } else if (code === 404) {
             if (url.indexOf ('/v1/account/orders/') >= 0) {
-                throw new OrderNotFound (this.id + ' ' + responseBody);
+                throw new OrderNotFound (this.id + ' ' + body);
             }
             if ((url.indexOf ('/v1/orderbook/') >= 0) || (url.indexOf ('/v1/candles/') >= 0)) {
-                throw new BadSymbol (this.id + ' ' + responseBody);
+                throw new BadSymbol (this.id + ' ' + body);
             }
         }
         return undefined;

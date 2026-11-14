@@ -8,22 +8,62 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetV1Time (params?: {}): Promise<Dict>;
-    publicGetV1Tickers (params?: {}): Promise<List>;
-    publicGetV1Pairs (params?: {}): Promise<List>;
-    publicGetV1OrderbookPair (params?: {}): Promise<Dict>;
-    publicGetV1CandlesPair (params?: {}): Promise<List>;
-    publicGetV1Assets (params?: {}): Promise<List>;
-    privateGetV1Account (params?: {}): Promise<Dict>;
-    privateGetV1AccountBalances (params?: {}): Promise<List>;
-    privateGetV1AccountOrders (params?: {}): Promise<Dict>;
-    privateGetV1AccountOrdersOrderId (params?: {}): Promise<Dict>;
-    privateGetV1AccountTrades (params?: {}): Promise<Dict>;
-    privateGetV1AccountTradesTradeId (params?: {}): Promise<Dict>;
-    privatePostV1AccountOrders (params?: {}): Promise<Dict>;
-    privateDeleteV1AccountOrdersOrderId (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetV1Time (params = {}): Promise<Dict> {
+        return this.request ('v1/time', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetV1Tickers (params = {}): Promise<List> {
+        return this.request ('v1/tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetV1Pairs (params = {}): Promise<List> {
+        return this.request ('v1/pairs', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetV1OrderbookPair (params = {}): Promise<Dict> {
+        return this.request ('v1/orderbook/{pair}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetV1CandlesPair (params = {}): Promise<List> {
+        return this.request ('v1/candles/{pair}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetV1Assets (params = {}): Promise<List> {
+        return this.request ('v1/assets', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetV1Account (params = {}): Promise<Dict> {
+        return this.request ('v1/account', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetV1AccountBalances (params = {}): Promise<List> {
+        return this.request ('v1/account/balances', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetV1AccountOrders (params = {}): Promise<Dict> {
+        return this.request ('v1/account/orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetV1AccountOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ('v1/account/orders/{orderId}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetV1AccountTrades (params = {}): Promise<Dict> {
+        return this.request ('v1/account/trades', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetV1AccountTradesTradeId (params = {}): Promise<Dict> {
+        return this.request ('v1/account/trades/{tradeId}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostV1AccountOrders (params = {}): Promise<Dict> {
+        return this.request ('v1/account/orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privateDeleteV1AccountOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ('v1/account/orders/{orderId}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;
