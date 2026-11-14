@@ -297,9 +297,9 @@ impl Bitopro {
         let mut marketId: Value = marketId.into();
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPublic() has no public websocket url".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchPublic() has no public websocket url")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path).into()), Value::Str("/".into())).into()), marketId);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), path).into()), "/").into()), marketId);
         return self.watch(url.as_str(), &messageHash, Value::Null, &messageHash, Value::Null).await;
 
     Value::Null
@@ -329,7 +329,7 @@ impl Bitopro {
 }));
         if (limit != Value::Null) {
             if (limit.as_f64() != Some(5.0)) && (limit.as_f64() != Some(10.0)) && (limit.as_f64() != Some(20.0)) && (limit.as_f64() != Some(50.0)) && (limit.as_f64() != Some(100.0)) && (limit.as_f64() != Some(500.0)) && (limit.as_f64() != Some(1000.0)) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")));
             }
         }
         if (self.markets.clone() == Value::Null) {
@@ -337,13 +337,13 @@ impl Bitopro {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ORDER_BOOK".into()), Value::Str(":".into())).into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "ORDER_BOOK", ":").into()), symbolValue);
         let mut marketIdValue: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut endPart: Option<String> = None;
         if (limit == Value::Null) {
             endPart = Some(marketIdValue.clone());
         }  else {
-            endPart = Some(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, Value::Str(":".into())).into()), Value::from(self.number_to_string(limit))));
+            endPart = Some(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, ":").into()), Value::from(self.number_to_string(limit))));
         }
         let mut orderbook: Value = self.watch_public("order-books", messageHash.as_str(), endPart.as_deref()).await;
         return orderbook.limit();
@@ -390,7 +390,7 @@ impl Bitopro {
         let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("amount".into())]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
         if (event.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
 }
@@ -424,7 +424,7 @@ impl Bitopro {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("TRADE".into()), Value::Str(":".into())).into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "TRADE", ":").into()), symbolValue);
         let mut trades: Value = self.watch_public("trades", messageHash.as_str(), (Value::from((market).id.as_deref())).as_str()).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -478,7 +478,7 @@ impl Bitopro {
         }
         CacheStore::put(&mut self.trades, &symbol, tradesCache.clone());
         if (event.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&tradesCache), messageHash.as_str());
         }
 }
@@ -515,13 +515,13 @@ impl Bitopro {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolValue: String = (market).symbol.clone();
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolValue);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbolValue);
         }
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() has no private websocket url".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchMyTrades() has no private websocket url")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), Value::Str("user-trades".into()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), "user-trades");
         self.authenticate(Value::from(url.clone()));
         let mut trades: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -567,7 +567,7 @@ impl Bitopro {
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
-        let mut symbol: String = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        let mut symbol: String = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         let mut messageHash: Option<String> = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -578,7 +578,7 @@ impl Bitopro {
         trades.append(Value::Dict(parsed));
         client.resolve(Value::from(&trades), messageHash.as_deref());
         if (messageHash.is_some()) {
-            client.resolve(Value::from(&trades), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol).into())));
+            client.resolve(Value::from(&trades), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.as_deref().unwrap_or("null"), ":").into()), symbol).into())));
         }
 }
 
@@ -611,7 +611,7 @@ impl Bitopro {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Value = Value::Null;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into())));
+            symbol = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into())));
         }
         let mut marketResolved: crate::types::Market = self.safe_market(symbol.clone(), market, &[]);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -692,7 +692,7 @@ impl Bitopro {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("TICKER".into()), Value::Str(":".into())).into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "TICKER", ":").into()), symbolValue);
         return self.watch_public("tickers", messageHash.as_str(), (Value::from((market).id.as_deref())).as_str()).await;
         Value::Null
         }).await?))
@@ -734,7 +734,7 @@ impl Bitopro {
         std::sync::Arc::make_mut(&mut result).insert("datetime".into(), self.iso8601(Value::from(timestamp))); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&result)); }
         if (event.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::Dict(result), messageHash.as_str());
         }
 }
@@ -819,9 +819,9 @@ impl Bitopro {
         let mut messageHash: String = "ACCOUNT_BALANCE".to_string();
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() has no private websocket url".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchBalance() has no private websocket url")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), Value::Str("account-balance".into()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/").into()), "account-balance");
         self.authenticate(Value::from(url.clone()));
         return self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
         Value::Null

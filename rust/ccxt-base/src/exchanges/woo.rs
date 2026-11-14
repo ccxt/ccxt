@@ -1695,7 +1695,7 @@ impl Woo {
         }
         let mut settleId: Option<String> = None;
         let mut settle: Option<String> = None;
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut contractSize: Option<f64> = None;
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
@@ -1705,7 +1705,7 @@ impl Woo {
             margin = false;
             settleId = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
             settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             contractSize = Some(1_f64);
             linear = Some(true);
             inverse = Some(false);
@@ -2353,7 +2353,7 @@ impl Woo {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).spot {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createMarketBuyOrderWithCost() supports spot orders only")));
         }
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         Value::Null
@@ -2387,7 +2387,7 @@ impl Woo {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).spot {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports spot orders only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createMarketSellOrderWithCost() supports spot orders only")));
         }
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), Some(1.0), params).await);
         Value::Null
@@ -2427,10 +2427,10 @@ impl Woo {
     m
 }));
         if (trailingAmount == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createTrailingAmountOrder() requires a trailingAmount argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createTrailingAmountOrder() requires a trailingAmount argument")));
         }
         if (trailingTriggerPrice == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createTrailingAmountOrder() requires a trailingTriggerPrice argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createTrailingAmountOrder() requires a trailingTriggerPrice argument")));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingAmount".into(), trailingAmount); }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
@@ -2472,10 +2472,10 @@ impl Woo {
     m
 }));
         if (trailingPercent == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createTrailingPercentOrder() requires a trailingPercent argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createTrailingPercentOrder() requires a trailingPercent argument")));
         }
         if (trailingTriggerPrice == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createTrailingPercentOrder() requires a trailingTriggerPrice argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createTrailingPercentOrder() requires a trailingTriggerPrice argument")));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingPercent".into(), trailingPercent); }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("trailingTriggerPrice".into(), trailingTriggerPrice); }
@@ -2613,7 +2613,7 @@ impl Woo {
         }
         if isTrailing {
             if (trailingTriggerPrice.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a trailingTriggerPrice parameter for trailing orders".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a trailingTriggerPrice parameter for trailing orders")));
             }
             request.insert("activatedPrice".into(), self.price_to_precision(symbol.clone(), trailingTriggerPrice.map(Value::from).unwrap_or(Value::Null)));
             request.insert("algoType".into(), Value::Str("TRAILING_STOP".into()));
@@ -2857,7 +2857,7 @@ impl Woo {
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
         if (!isTrigger) && (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3584,7 +3584,7 @@ impl Woo {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() supports swap markets only, there is no spot ticker endpoint".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTicker() supports swap markets only, there is no spot ticker endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3625,7 +3625,7 @@ impl Woo {
         let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
         let mut first: Value = self.safe_dict(&rows, Value::Int(0), &[]);
         if (first == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find ticker data for ".into())).into()), symbol)));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTicker() could not find ticker data for ").into()), symbol)));
         }
         let __ws_arg_17 = self.safe_integer_k(&response, "timestamp", &[]);
         let mut ticker: crate::value::Dict = self.extend(Value::Map({
@@ -3671,7 +3671,7 @@ impl Woo {
                 // rest of the list matches
                 let mut firstMarket: crate::types::Market = (match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 if !(firstMarket).swap {
-                    panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() supports swap markets only".into()))));
+                    panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTickers() supports swap markets only")));
                 }
             }
         }
@@ -3682,7 +3682,7 @@ impl Woo {
             let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if (marketType.as_deref() != Some("swap")) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() supports swap markets only".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTickers() supports swap markets only")));
             }
             paramsRequest = Value::Dict(paramsMarketType);
         }
@@ -4222,7 +4222,7 @@ impl Woo {
         let mut networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(&networks, networkCode.map(Value::from).unwrap_or(Value::Null), &[]) });
         if (networkEntry == Value::Null) {
             let mut supportedNetworks: Value = Value::Array(networks.keys().cloned().map(Value::from).collect());
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".into())).into()), json_stringify(&supportedNetworks))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), "  can not determine a network code, please provide unified \"network\" param, one from the following: ").into()), json_stringify(&supportedNetworks))));
         }
         let mut currentyNetworkId: Option<String> = self.safe_string_k(networkEntry, "currencyNetworkId", &[]).as_str().map(str::to_owned);
         return Value::from(vec![currentyNetworkId.map(Value::from).unwrap_or(Value::Null), paramsNetworkCode]);
@@ -4920,7 +4920,7 @@ impl Woo {
         }
         let mut network: Option<String> = self.safe_string_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
         if (network.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter for ".into())).into()), code)));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() requires a network parameter for ").into()), code)));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict();
         request.insert("token".into(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -5050,21 +5050,21 @@ impl Woo {
         let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut urlPrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into()));
+        let mut urlPrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), version.as_deref().unwrap_or("null")).into()), "/");
         let mut paramsSorted: indexmap::IndexMap<String, Value> = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]).as_map().cloned().unwrap_or_default();
         let mut url: String = urlPrefix.clone();
         if (access.as_deref() == Some("public")) {
-            let mut publicUrl: String = format!("{}{}", Value::Str(format!("{}{}", urlPrefix, Value::Str("public/".into())).into()), pathWithParams);
+            let mut publicUrl: String = format!("{}{}", Value::Str(format!("{}{}", urlPrefix, "public/").into()), pathWithParams);
             url = publicUrl.clone();
             if ((Value::Array(paramsSorted.keys().map(|__k| Value::Str(__k.clone().into())).collect()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", publicUrl, Value::Str("?".into())).into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", publicUrl, "?").into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
             }
         }  else if (access.as_deref() == Some("pub")) {
             url = format!("{}{}", urlPrefix, pathWithParams);
             if ((Value::Array(paramsSorted.keys().map(|__k| Value::Str(__k.clone().into())).collect()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), Value::Str("?".into())).into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), "?").into()), self.urlencode(Value::Map(paramsSorted.clone()), &[]));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -5084,7 +5084,7 @@ impl Woo {
             let mut paramsSigned: Value = self.keysort(Value::Map(paramsSorted), &[]);
             let mut auth: String = "".to_string();
             let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
-            let mut authBase: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), Value::Str("/".into())).into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into()), pathWithParams);
+            let mut authBase: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), pathWithParams);
             url = format!("{}{}", urlPrefix, pathWithParams);
             let mut signedHeaders: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5102,8 +5102,8 @@ impl Woo {
                 }  else {
                     if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                         let mut query: String = self.urlencode(paramsSigned.clone(), &[]);
-                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), Value::Str("?".into())).into()), query);
-                        auth = format!("{}{}", Value::Str(format!("{}{}", authBase, Value::Str("?".into())).into()), query);
+                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), "?").into()), query);
+                        auth = format!("{}{}", Value::Str(format!("{}{}", authBase, "?").into()), query);
                     }
                 }
             }  else {
@@ -5113,10 +5113,10 @@ impl Woo {
                     requestBody = Some(encodedParams.clone());
                 }  else {
                     if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), Value::Str("?".into())).into()), encodedParams);
+                        url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", urlPrefix, pathWithParams).into()), "?").into()), encodedParams);
                     }
                 }
-                auth = format!("{}{}", Value::Str(format!("{}{}", encodedParams, Value::Str("|".into())).into()), ts);
+                auth = format!("{}{}", Value::Str(format!("{}{}", encodedParams, "|").into()), ts);
                 if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into())); }
             }
             if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("x-api-signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]))); }
@@ -5145,7 +5145,7 @@ impl Woo {
         let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         if !success {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
         }
@@ -5318,7 +5318,7 @@ impl Woo {
         let mut intervalString: Option<String> = self.safe_string_k(fundingRate.clone(), "estFundingIntervalHours", &[]).as_str().map(str::to_owned);
         let mut interval: Option<String> = None;
         if (intervalString.is_some()) {
-            interval = Some(format!("{}{}", intervalString.as_deref().unwrap_or("null"), Value::Str("h".into())));
+            interval = Some(format!("{}{}", intervalString.as_deref().unwrap_or("null"), "h"));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5527,7 +5527,7 @@ impl Woo {
             return self.fetch_paginated_call_incremental(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("page".into()), Value::Int(25)]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
@@ -5674,7 +5674,7 @@ impl Woo {
             response = self.v3_private_get_futures_leverage(&[__ws_arg_38]).await.into_opt_dict();
         }  else {
             let mut marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchLeverage() is not supported for ").into()), marketType).into()), " markets")));
         }
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5708,10 +5708,10 @@ impl Woo {
             let mut positionLeverage: Option<i64> = self.safe_integer_k(&position, "leverage", &[]).as_i64();
             let mut side: Option<String> = self.safe_string_k(&position, "positionSide", &[]).as_str().map(str::to_owned);
             if (side.as_deref() == Some("BOTH")) {
-                longLeverage = positionLeverage.clone();
-                shortLeverage = positionLeverage.clone();
+                longLeverage = positionLeverage;
+                shortLeverage = positionLeverage;
             }  else if (side.as_deref() == Some("LONG")) {
-                longLeverage = positionLeverage.clone();
+                longLeverage = positionLeverage;
             }  else if (side.as_deref() == Some("SHORT")) {
                 shortLeverage = positionLeverage;
             }
@@ -5780,7 +5780,7 @@ impl Woo {
             return self.v3_private_put_futures_leverage(&[__ws_arg_40]).await;
         }  else {
             let mut marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchLeverage() is not supported for ").into()), marketType).into()), " markets")));
         }
         Value::Null
         }).await?))

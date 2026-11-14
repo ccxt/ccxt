@@ -440,7 +440,7 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolResolved);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbolResolved);
         let mut request: crate::value::Dict = self.send_subscription(Value::Str("sub".into()), Value::from(vec![Value::Str(format!("{}{}", Value::Str("book::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -475,8 +475,8 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolResolved);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "orderbook:", symbolResolved);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut channel: String = format!("{}{}", Value::Str("book::".into()), Value::from((market).id.as_deref().unwrap_or("")));
         let mut context: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -523,7 +523,7 @@ impl Polymarket {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         orderbook.reset(snapshot);
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -550,7 +550,7 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolResolved);
+        let mut messageHash: String = format!("{}{}", "ticker:", symbolResolved);
         let mut request: crate::value::Dict = self.send_subscription(Value::Str("sub".into()), Value::from(vec![Value::Str(format!("{}{}", Value::Str("tickers::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -584,8 +584,8 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut subMessageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolResolved);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "ticker:", symbolResolved);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut channel: String = format!("{}{}", Value::Str("tickers::".into()), Value::from((market).id.as_deref().unwrap_or("")));
         let mut context: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -696,7 +696,7 @@ impl Polymarket {
             m
         }), Some(&market));
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-        client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())));
+        client.resolve(ticker.clone(), &(Value::Str(format!("{}{}", "ticker:", symbol).into())));
         client.resolve(ticker, "tickers");
 }
 
@@ -788,7 +788,7 @@ impl Polymarket {
             m
         }), Some(&market));
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
-        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())));
+        client.resolve(ticker, &(Value::Str(format!("{}{}", "bidask:", symbol).into())));
 }
 
 /*
@@ -818,7 +818,7 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolResolved);
+        let mut messageHash: String = format!("{}{}", "trade:", symbolResolved);
         let mut request: crate::value::Dict = self.send_subscription(Value::Str("sub".into()), Value::from(vec![Value::Str(format!("{}{}", Value::Str("trades::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -857,8 +857,8 @@ impl Polymarket {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolResolved);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "trade:", symbolResolved);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut channel: String = format!("{}{}", Value::Str("trades::".into()), Value::from((market).id.as_deref().unwrap_or("")));
         let mut context: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -932,7 +932,7 @@ impl Polymarket {
             trades.append(Value::Dict(trade));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "trade:", symbol);
         client.resolve(Value::from(&trades), messageHash.as_str());
 }
 
@@ -1014,10 +1014,10 @@ impl Polymarket {
         })]).into_dict();
         let mut interval: Option<String> = self.safe_string(&wsTimeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
         if (interval.is_none()) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() does not support the ".into())).into()), timeframe).into()), Value::Str(" timeframe over the websocket".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOHLCV() does not support the ").into()), timeframe).into()), " timeframe over the websocket")));
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolResolved);
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("::".into())).into()), interval.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbolResolved);
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "::").into()), interval.as_deref().unwrap_or("null"));
         let mut request: crate::value::Dict = self.send_subscription(Value::Str("sub".into()), Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1063,9 +1063,9 @@ impl Polymarket {
             m
         })]).into_dict();
         let mut interval: Option<String> = self.safe_string(&wsTimeframes, timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
-        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolResolved);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("::".into())).into()), interval.as_deref().unwrap_or("null"));
+        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbolResolved);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "::").into()), interval.as_deref().unwrap_or("null"));
         let mut context: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
@@ -1128,7 +1128,7 @@ impl Polymarket {
             ohlcv.append(Value::Arr(parsed));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe.as_deref().unwrap_or("null")).into()), ":").into()), symbol);
         client.resolve(Value::from(&ohlcv), messageHash.as_str());
 }
 
@@ -1218,7 +1218,7 @@ impl Polymarket {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut resolvedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             symbolResolved = Some(resolvedSymbol.clone());
-            messageHash = format!("{}{}", Value::Str("orders:".into()), resolvedSymbol);
+            messageHash = format!("{}{}", "orders:", resolvedSymbol);
         }
         let mut subscribeHashes: Value = Value::from(vec![Value::Str("orders".into())]);
         let mut request: crate::value::Dict = self.send_subscription(Value::Str("sub".into()), Value::from(vec![Value::Str("orders".into())]), Value::from(vec![Value::from(messageHash.clone())]), subscribeHashes.clone(), &[Value::Map({
@@ -1304,7 +1304,7 @@ impl Polymarket {
             let mut __for_first_655: bool = true;
             while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (symbolKeys.len() as i64) } {
             let mut symbol: String = self.safe_string(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())));
+            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", "orders:", symbol).into())));
         }
         }
 }
@@ -1341,7 +1341,7 @@ impl Polymarket {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut resolvedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             symbolResolved = Some(resolvedSymbol.clone());
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), resolvedSymbol);
+            messageHash = format!("{}{}", "myTrades:", resolvedSymbol);
         }
         let mut subscribeHashes: Value = Value::from(vec![Value::Str("fills".into())]);
         let mut request: crate::value::Dict = self.send_subscription(Value::Str("sub".into()), Value::from(vec![Value::Str("fills".into())]), Value::from(vec![Value::from(messageHash.clone())]), subscribeHashes.clone(), &[Value::Map({
@@ -1431,7 +1431,7 @@ impl Polymarket {
             let mut __for_first_657: bool = true;
             while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (symbolKeys.len() as i64) } {
             let mut symbol: String = self.safe_string(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())));
+            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", "myTrades:", symbol).into())));
         }
         }
 }
@@ -1704,7 +1704,7 @@ impl Polymarket {
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if (id.is_some()) {
-                let mut postKey: String = format!("{}{}", Value::Str("req:".into()), id.as_deref().unwrap_or("null"));
+                let mut postKey: String = format!("{}{}", "req:", id.as_deref().unwrap_or("null"));
                 let mut postPending: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), Value::from(postKey.clone()), &[]).into_opt_dict();
                 if (postPending.is_some()) {
                     __ch.remove_subscription(postKey.as_str());
@@ -1719,7 +1719,7 @@ impl Polymarket {
                                 future.resolve(Value::Bool(true), None);
                             }
                         }  else {
-                            let mut authError = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authentication failed ".into())).into()), json_stringify(&data))));
+                            let mut authError = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " authentication failed ").into()), json_stringify(&data))));
                             client.reject(authError, "authenticated");
                             if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
                                 __ch.remove_subscription("authenticated");
@@ -1736,7 +1736,7 @@ impl Polymarket {
         if (id.is_none()) {
             return;
         }
-        let mut key: String = format!("{}{}", Value::Str("req:".into()), id.as_deref().unwrap_or("null"));
+        let mut key: String = format!("{}{}", "req:", id.as_deref().unwrap_or("null"));
         let mut pending: Option<crate::value::Dict> = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(key.clone()), &[]).into_opt_dict();
         if (pending.is_none()) {
             return;
@@ -1761,7 +1761,7 @@ impl Polymarket {
         }
         }
         if (errorMessage.is_some()) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), errorMessage.as_deref().unwrap_or("null"))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorMessage.as_deref().unwrap_or("null"))));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_661: bool = true;

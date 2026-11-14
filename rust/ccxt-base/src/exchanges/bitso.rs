@@ -966,7 +966,7 @@ impl Bitso {
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -1691,7 +1691,7 @@ impl Bitso {
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since != Value::Null) && !markerInParams {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")));
         }
         // convert it to an integer unconditionally
         let mut paramsMarker: Value = params.clone();
@@ -1850,7 +1850,7 @@ impl Bitso {
     m
 }));
         if !(matches!(&ids, Value::Arr(_))) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() ids argument should be an array".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() ids argument should be an array")));
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
@@ -1906,7 +1906,7 @@ impl Bitso {
     m
 }));
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")));
         }
         let mut response: crate::value::Dict = self.private_delete_orders_all(&[params]).await.into_dict();
         //
@@ -2030,7 +2030,7 @@ impl Bitso {
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if (since != Value::Null) && !markerInParams {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")));
         }
         // convert it to an integer unconditionally
         let mut paramsMarker: Value = params.clone();
@@ -2091,7 +2091,7 @@ impl Bitso {
         if (numOrders == 1) {
             return self.parse_order(payload.get(0).cloned().unwrap_or(Value::Null), None);
         }
-        panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(": The order ".into())).into()), id).into()), Value::Str(" not found.".into()))));
+        panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), ": The order ").into()), id).into()), " not found.")));
         Value::Null
         }).await?))
     }
@@ -2677,7 +2677,7 @@ impl Bitso {
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut method: Option<String> = self.safe_string(&methods, code.clone(), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" not valid withdraw coin: ".into())).into()), code)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " not valid withdraw coin: ").into()), code)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2686,7 +2686,7 @@ impl Bitso {
                 m.insert("destination_tag".to_string(), tagWithdrawTag);
             m
         });
-        let mut classMethod: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("privatePost".into()), method.as_deref().unwrap_or("null")).into()), Value::Str("Withdrawal".into())).into());
+        let mut classMethod: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", "privatePost", method.as_deref().unwrap_or("null")).into()), "Withdrawal").into());
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.call_dynamic_checked(classMethod, vec![(__ws_arg_16).clone()]).await;
         //
@@ -2825,7 +2825,7 @@ impl Bitso {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Value = Value::Null;
-        let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -2834,14 +2834,14 @@ impl Bitso {
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // bitso rejects a nonce that is not higher than the previous one (error 104)
             let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
-            endpoint = format!("{}{}", Value::Str("/api".into()), endpoint);
+            endpoint = format!("{}{}", "/api", endpoint);
             let mut request: String = format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), endpoint);
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -2851,10 +2851,10 @@ impl Bitso {
                 }
             }
             let mut signature: String = self.hmac(self.encode(Value::from(request)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), nonce).into()), Value::Str(":".into())).into()), signature);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), ":").into()), nonce).into()), ":").into()), signature);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Bitso ".into()), auth).into()));
+                    m.insert("Authorization".to_string(), Value::Str(format!("{}{}", "Bitso ", auth).into()));
                 m
             }));
         }
@@ -2880,7 +2880,7 @@ impl Bitso {
             //
             let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if !success {
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
                 let mut error: Option<crate::value::Dict> = self.safe_dict_k(response, "error", &[]).into_opt_dict();
                 if (error.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));

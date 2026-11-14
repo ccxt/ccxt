@@ -687,7 +687,7 @@ impl Bitopro {
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut deposit: Option<bool> = self.safe_bool_k(rawCurrency.clone(), "deposit", &[]).as_bool();
         let mut withdraw: Option<bool> = self.safe_bool_k(rawCurrency.clone(), "withdraw", &[]).as_bool();
-        let mut isFiat: bool = self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), fiatCurrencies);
+        let mut isFiat: bool = self.in_array(&code, fiatCurrencies);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
@@ -753,7 +753,7 @@ impl Bitopro {
         let mut active: Value = Value::Bool(!(self.safe_bool_k(market.clone(), "maintain", &[Value::Bool(false)]).as_bool() == Some(true)));
         let mut id: Option<String> = self.safe_string_k(market.clone(), "pair", &[]).as_str().map(str::to_owned);
         if (id.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseMarket() missing id")));
         }
         let mut uppercaseId: Option<String> = id.as_deref().map(str::to_uppercase);
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
@@ -763,7 +763,7 @@ impl Bitopro {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut limits: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), Value::Map({
@@ -1486,7 +1486,7 @@ impl Bitopro {
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("timestamp".into()), Value::Str("createdTimestamp".into()), &[]).as_i64();
         let mut side: Option<String> = self.safe_string_k(order.clone(), "action", &[]).as_str().map(str::to_owned);
         if (side.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOrder() returned no side".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseOrder() returned no side")));
         }
         side = side.as_deref().map(str::to_lowercase);
         let mut amount: Option<String> = self.safe_string2(order.clone(), Value::Str("amount".into()), Value::Str("originalAmount".into()), &[]).as_str().map(str::to_owned);
@@ -1595,13 +1595,13 @@ impl Bitopro {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
             let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
             if (triggerPrice.is_none()) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter for ").into()), orderType).into()), " orders")));
             }  else {
                 request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             }
             let mut condition: Option<String> = self.safe_string_k(params.clone(), "condition", &[]).as_str().map(str::to_owned);
             if (condition.is_none()) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a condition parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a condition parameter for ").into()), orderType).into()), " orders")));
             }  else {
                 request.insert("condition".into(), condition.map(Value::from).unwrap_or(Value::Null));
             }
@@ -1641,7 +1641,7 @@ impl Bitopro {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1712,7 +1712,7 @@ impl Bitopro {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1816,7 +1816,7 @@ impl Bitopro {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1860,7 +1860,7 @@ impl Bitopro {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1992,7 +1992,7 @@ impl Bitopro {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2144,7 +2144,7 @@ impl Bitopro {
     m
 }));
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits() requires the code argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDeposits() requires the code argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2198,7 +2198,7 @@ impl Bitopro {
     m
 }));
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawals() requires the code argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchWithdrawals() requires the code argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2245,7 +2245,7 @@ impl Bitopro {
     m
 }));
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawal() requires the code argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchWithdrawal() requires the code argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2321,7 +2321,7 @@ impl Bitopro {
             let mut requestedNetwork: Option<String> = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
             let mut networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string(&networks, self.safe_string(self.networkAliases.clone(), requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null)]), &[]).as_str().map(str::to_owned) });
             if (networkId.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork.as_deref().unwrap_or("null"))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " invalid network ").into()), requestedNetwork.as_deref().unwrap_or("null"))));
             }
             request.insert("protocol".into(), networkId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -2470,7 +2470,7 @@ impl Bitopro {
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut fullUrl: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), url);
         return Value::Map({
@@ -2493,7 +2493,7 @@ impl Bitopro {
         if statusCode >= Some(200) && (statusCode.is_some() && statusCode < Some(300)) {
             return Value::Null;
         }
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
         let mut error: Option<String> = self.safe_string_k(response, "error", &[]).as_str().map(str::to_owned);
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

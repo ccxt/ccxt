@@ -380,7 +380,7 @@ impl Deribit {
             let mut __for_first_287: bool = true;
             while { if !__for_first_287 { i += 1; } __for_first_287 = false; i < (currencies.len() as i64) } {
             let mut currencyCode: String = self.safe_string(&currencies, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            channels.push(Value::Str(format!("{}{}", Value::Str("user.portfolio.".into()), currencyCode).into()));
+            channels.push(Value::Str(format!("{}{}", "user.portfolio.", currencyCode).into()));
         }
         }
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -498,14 +498,14 @@ impl Deribit {
             self.authenticate(&[]).await;
         }
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), marketId).into()), Value::Str(".".into())).into()), interval);
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ticker.", marketId).into()), ".").into()), interval);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("method".to_string(), Value::Str("public/subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), marketId).into()), Value::Str(".".into())).into()), interval).into())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ticker.", marketId).into()), ".").into()), interval).into())]));
     m
 }));
                 m.insert("id".to_string(), Value::Int(self.request_id()));
@@ -557,7 +557,7 @@ impl Deribit {
             let mut __for_first_288: bool = true;
             while { if !__for_first_288 { i += 1; } __for_first_288 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str(".".into())).into()), interval).into())); };
+            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval).into())); };
         }
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -872,7 +872,7 @@ impl Deribit {
         }
         CacheStore::put(&mut self.trades, &symbol, stored);
         let mut interval: String = self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades|".into()), symbol.as_deref().unwrap_or("null")).into()), Value::Str("|".into())).into()), interval);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "trades|", symbol.as_deref().unwrap_or("null")).into()), "|").into()), interval);
         client.resolve(Value::from(self.trades.at(&symbol)), messageHash.as_str());
 }
 
@@ -909,7 +909,7 @@ impl Deribit {
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("interval".into()), &[]).into_dict();
-        let mut channel: String = format!("{}{}", Value::Str("user.trades.any.any.".into()), interval);
+        let mut channel: String = format!("{}{}", "user.trades.any.any.", interval);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -1059,7 +1059,7 @@ impl Deribit {
         let mut paramsGroup: crate::value::Dict = groupparamsGroupVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut descriptor: Value = interval.clone();
         if useDepthEndpoint {
-            descriptor = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", group.as_deref().unwrap_or("null"), Value::Str(".".into())).into()), depth.as_deref().unwrap_or("null")).into()), Value::Str(".".into())).into()), interval).into());
+            descriptor = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", group.as_deref().unwrap_or("null"), ".").into()), depth.as_deref().unwrap_or("null")).into()), ".").into()), interval).into());
         }
         let mut paramsResolved: Value = Value::Dict(paramsUseDepthEndpoint);
         if useDepthEndpoint {
@@ -1131,7 +1131,7 @@ impl Deribit {
         let mut isDetailed: bool = partsLength == 5;
         if isDetailed {
             let mut interval: String = self.safe_string(&parts, Value::Int(4), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            descriptor = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())]), Value::Str(".".into())).into()), self.safe_string(&parts, Value::Int(3), &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval);
+            descriptor = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())]), Value::Str(".".into())).into()), self.safe_string(&parts, Value::Int(3), &[Value::Str("".into())])).into()), ".").into()), interval);
         }  else {
             descriptor = self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }
@@ -1151,7 +1151,7 @@ impl Deribit {
         storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         storedOrderBook.set_book_meta("symbol", symbol.clone());
         CacheStore::put(&mut self.orderbooks, &symbol, storedOrderBook.clone());
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book|".into()), symbol).into()), Value::Str("|".into())).into()), descriptor);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "book|", symbol).into()), "|").into()), descriptor);
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
@@ -1240,7 +1240,7 @@ impl Deribit {
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("raw".into())]).as_str().unwrap_or("raw").to_string();
         let mut kind: String = self.safe_string_k(params.clone(), "kind", &[Value::Str("any".into())]).as_str().unwrap_or("any").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("interval".into()), &[Value::Str("currency".into()), Value::Str("kind".into())]).into_dict();
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), kind).into()), Value::Str(".".into())).into()), currency).into()), Value::Str(".".into())).into()), interval);
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "user.orders.", kind).into()), ".").into()), currency).into()), ".").into()), interval);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -1391,7 +1391,7 @@ impl Deribit {
 }));
         let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")));
         }
         let mut symboltimeframecandlesVariable = self.watch_multiple_wrapper("chart.trades", None, &[symbolsAndTimeframes, params]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
@@ -1401,8 +1401,8 @@ impl Deribit {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
-        return self.create_ohlcv_object(symbol, timeframe, filtered);
+        let mut filtered: crate::value::List = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
     }
@@ -1459,7 +1459,7 @@ impl Deribit {
         stored.append(Value::Arr(parsed));
         CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, stored.clone());
         let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades|".into()), symbol).into()), Value::Str("|".into())).into()), self.safe_string(&parts, Value::Int(3), &[Value::Str("".into())]));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "chart.trades|", symbol).into()), "|").into()), self.safe_string(&parts, Value::Int(3), &[Value::Str("".into())]));
         client.resolve(resolveData, messageHash.as_str());
 }
 
@@ -1487,14 +1487,14 @@ impl Deribit {
         let mut symbols: Value = (if isOHLCV { self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)) } else { symbolsArray.clone() });
         self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
         if (symbolsArray == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchMultipleWrapper() symbolsArray is required")));
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_296: bool = true;
             while { if !__for_first_296 { i += 1; } __for_first_296 = false; (i as f64) < Value::Int(symbolsArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if (symbolsArray == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchMultipleWrapper() symbolsArray is required")));
             }
             let mut market: Option<crate::types::Market> = None;
             let mut currentDescriptor: Value = Value::Null;
@@ -1507,9 +1507,9 @@ impl Deribit {
                 market = Some(match self.market((self.safe_string(symbolsArray.clone(), Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 currentDescriptor = channelDescriptor.clone();
             }
-            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str(".".into())).into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), currentDescriptor);
+            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, ".").into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), ".").into()), currentDescriptor);
             rawSubscriptions.push(Value::from(message));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str("|".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()), Value::Str("|".into())).into()), currentDescriptor).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, "|").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()), "|").into()), currentDescriptor).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1528,7 +1528,7 @@ impl Deribit {
         let mut maxMessageByteLimit: i64 = 32767; // 'Message Too Big: limit 32768B'
         let mut jsonedText: Option<String> = json_stringify(&extendedRequest).as_str().map(str::to_owned);
         if ((jsonedText.as_deref().unwrap_or_default().chars().count() as i64)) >= maxMessageByteLimit {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" requested subscription length over limit, try to reduce symbols amount".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " requested subscription length over limit, try to reduce symbols amount")));
         }
         return self.watch_multiple(url.as_deref(), Value::from(messageHashes), extendedRequest, Value::from(rawSubscriptions), Value::Null).await;
 
@@ -1599,7 +1599,7 @@ impl Deribit {
         //
         let mut error: Value = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
         if (error != Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&error))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&error))));
         }
         let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
         let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
@@ -1628,7 +1628,7 @@ impl Deribit {
                 self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
                 return;
             }
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no handler found for this message ".into())).into()), json_stringify(&message))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " no handler found for this message ").into()), json_stringify(&message))));
         }
         let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
         let mut accessToken: Option<String> = self.safe_string_k(&result, "access_token", &[]).as_str().map(str::to_owned);

@@ -643,7 +643,7 @@ impl Blockchaincom {
                     m.insert("info".to_string(), market.map_or(Value::Null, Value::Dict));
                     m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("numericId".to_string(), Value::from(numericId));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -1037,7 +1037,7 @@ impl Blockchaincom {
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
         if (uppercaseOrderType.as_deref() == Some("STOP")) || (uppercaseOrderType.as_deref() == Some("STOPLIMIT")) {
             if (triggerPrice == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a stopPx or triggerPrice param for a ".into())).into()), uppercaseOrderType.as_deref().unwrap_or("null")).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a stopPx or triggerPrice param for a ").into()), uppercaseOrderType.as_deref().unwrap_or("null")).into()), " order")));
             }
         }
         if (triggerPrice != Value::Null) {
@@ -1827,7 +1827,7 @@ impl Blockchaincom {
         //
         let mut balances: Option<crate::value::List> = self.safe_list(response.clone(), Value::from(accountName.clone()), &[]).into_opt_list();
         if (balances.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() could not find the \"".into())).into()), accountName).into()), Value::Str("\" account".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchBalance() could not find the \"").into()), accountName).into()), "\" account")));
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1904,7 +1904,7 @@ impl Blockchaincom {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
@@ -1957,13 +1957,13 @@ impl Blockchaincom {
         let mut text: Option<String> = self.safe_string_k(response.clone(), "text", &[]).as_str().map(str::to_owned);
         if (text.is_some()) {
             if (text.as_deref() == Some("Insufficient Balance")) {
-                panic!("{}", crate::exchange_errors::insufficient_funds(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::insufficient_funds(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body)));
             }
         }
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut errorMessage: Option<String> = self.safe_string_k(response.clone(), "error", &[]).as_str().map(str::to_owned);
         // code is an int: it is never undefined, the guard was dead
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
         return Value::Null;

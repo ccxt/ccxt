@@ -14,12 +14,12 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
     // we have to skip some exchanges here due to the frequency of trading
     let mut skippedExchanges: Value = Value::from(vec![]);
     if exchange.in_array(get_value(&exchange, &Value::Str("id".into())), skippedExchanges) {
-        let mut m1: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str("() test skipped".into())).into()));
+        let mut m1: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), "() test skipped").into()));
         println_val(&m1);
         return Value::Bool(false);
     }
     if (get_value(&get_value(&exchange, &Value::Str("has".into())), &method) == Value::Null) || (get_value(&get_value(&exchange, &Value::Str("has".into())), &method).as_bool() == Some(false)) {
-        let mut m2: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" does not support ".into())).into()), method).into()), Value::Str("() method".into())).into()));
+        let mut m2: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " does not support ").into()), method).into()), "() method").into()));
         println_val(&m2);
         return Value::Bool(false);
     }
@@ -32,7 +32,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
             now = date_now();
             let mut isArray: Value = Value::Bool(matches!(&response, Value::Arr(_)));
             assert!(ccxt::runtime::is_true(&(isArray)));
-            let mut m3: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str("() returned ".into())).into()), Value::Int(response.len() as i64)).into()), Value::Str(" liquidations".into())).into()));
+            let mut m3: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), "() returned ").into()), Value::Int(response.len() as i64)).into()), " liquidations").into()));
             println_val(&m3);
             {
                                 let mut i: i64 = 0;

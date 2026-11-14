@@ -626,7 +626,7 @@ impl Btcturk {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -1124,7 +1124,7 @@ impl Btcturk {
         }
         if (limit != Value::Null) || (since == Value::Null) {
             if (timeframe.as_str() == Some("1y")) {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"".into()))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")));
             }
             let mut seconds: i64 = self.parse_timeframe(timeframe.clone());
             let mut limitCount: i64 = i64::min(limit.as_i64().unwrap_or(100), 11000);
@@ -1607,18 +1607,18 @@ impl Btcturk {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         if (self.id.as_str() == Some("btctrader")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" is an abstract base API for BTCExchange, BTCTurk".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " is an abstract base API for BTCExchange, BTCTurk")));
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path);
         let mut isQueryMethod: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"));
         if isQueryMethod {
             let mut query: String = self.urlencode(params.clone(), &[]);
             if ((query.chars().count() as i64)) > 0 {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
+                url.push_str(&format!("{}{}", "?", query));
             }
         }
         let mut requestBody: Value = Value::Null;
@@ -1630,13 +1630,13 @@ impl Btcturk {
         let mut privateHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
             let mut auth: String = format!("{}{}", self.apiKey.clone(), nonce);
             privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-PCK".to_string(), self.apiKey.clone());
-                    m.insert("X-Stamp".to_string(), nonce);
+                    m.insert("X-Stamp".to_string(), Value::from(nonce));
                     m.insert("X-Signature".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), &secret, Value::Str("sha256".into()), &[Value::Str("base64".into())])));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
@@ -1657,9 +1657,9 @@ impl Btcturk {
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[Value::Str("0".into())]).as_str().map(str::to_owned);
         let mut message: Option<String> = self.safe_string_k(response, "message", &[]).as_str().map(str::to_owned);
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
         if (message.is_some()) {
-            feedback = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message.as_deref().unwrap_or("null"));
+            feedback = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null"));
         }
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         if (errorCode.as_deref() != Some("0")) && (errorCode.as_deref() != Some("SUCCESS")) {

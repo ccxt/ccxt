@@ -646,7 +646,7 @@ impl Hibachi {
         if (base.is_none()) || (quote.is_none()) || (settle.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
         let mut created: Option<i64> = self.safe_integer_product_k(market.clone(), "marketCreationTimestamp", Value::Int(1000), &[]).as_i64();
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1399,10 +1399,10 @@ impl Hibachi {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a type argument")));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a side argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut takerFee: Value = self.safe_number_k(&market, "taker", &[self.safe_number_k(self.options.clone(), "defaultTakerFee", &[Value::Float(0.00045)])]);
@@ -1589,10 +1589,10 @@ impl Hibachi {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a type argument")));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a side argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut takerFee: Value = self.safe_number_k(&market, "taker", &[Value::Int(0)]);
@@ -2579,7 +2579,7 @@ impl Hibachi {
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
@@ -2591,7 +2591,7 @@ impl Hibachi {
             let mut request: Value = self.omit(params.clone(), self.extract_params(path), &[]);
             let mut query: String = self.urlencode(request, &[]);
             if (((query.chars().count() as i64)) != 0) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
+                url.push_str(&format!("{}{}", "?", query));
             }
         }
         let mut hasJsonBody: bool = (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE"));
@@ -2629,7 +2629,7 @@ impl Hibachi {
         if (status.is_some()) {
             if (status.as_deref() == Some("failed")) {
                 let mut codeError: Option<String> = self.safe_string_k(response.clone(), "errorCode", &[]).as_str().map(str::to_owned);
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 let mut message: Option<String> = self.safe_string_k(response, "message", &[]).as_str().map(str::to_owned);
@@ -3176,8 +3176,8 @@ impl Hibachi {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "settlements", &[Value::from(vec![])]).into_list();
         let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(data), market.as_ref()).into_list();
-        let mut sorted: Value = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }

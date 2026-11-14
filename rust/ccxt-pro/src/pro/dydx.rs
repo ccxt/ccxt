@@ -410,7 +410,7 @@ impl Dydx {
             stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trade", ":").into()), symbol);
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -570,7 +570,7 @@ impl Dydx {
         self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
         self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
         orderbook.set_book_meta("nonce", (match message.get("message_id") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
@@ -743,7 +743,7 @@ impl Dydx {
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut content: Option<crate::value::Dict> = message.get("contents").cloned().unwrap_or_default().into_opt_dict();
         let mut candles: crate::value::List = self.safe_list_k(&content, "candles", &[]).into_list();
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "ohlcv:", symbol);
         let mut ohlcv: Value = self.safe_dict(&candles, Value::Int(0), &[content.map_or(Value::Null, Value::Dict)]);
         let mut parsed: crate::value::List = self.parse_ohlcv(ohlcv, Some(&market)).into_list();
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
@@ -762,7 +762,7 @@ impl Dydx {
         let message = message.as_map().unwrap_or(&__message_empty);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut msg: String = (match message.get("message") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), msg)));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             client.reject(e, None);

@@ -573,7 +573,7 @@ impl Zaif {
         let mut id: Option<String> = self.safe_string_k(market.clone(), "currency_pair", &[]).as_str().map(str::to_owned);
         let mut name: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
         if (name.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing name".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseMarket() missing name")));
         }
         let mut nameParts: crate::value::List = Value::Array(if let Some(__s) = name.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut baseId: Option<String> = self.safe_string(&nameParts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -583,7 +583,7 @@ impl Zaif {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -980,7 +980,7 @@ impl Zaif {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (type_var.as_str() != Some("limit")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() allows limit orders only")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1254,7 +1254,7 @@ impl Zaif {
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
         if (code.as_str() == Some("JPY")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not allow ".into())).into()), code).into()), Value::Str(" withdrawals".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() does not allow ").into()), code).into()), " withdrawals")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1364,14 +1364,14 @@ impl Zaif {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut baseUrl: Option<String> = baseApiUrl;
-        let mut url: String = format!("{}{}", baseUrl.as_deref().unwrap_or("null"), Value::Str("/".into()));
+        let mut url: String = format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/");
         if (apiName.as_deref() == Some("public")) {
-            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("api/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())));
+            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "api/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone())));
         }  else if (apiName.as_deref() == Some("fapi")) {
-            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("fapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())));
+            url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "fapi/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone())));
         }  else {
             self.check_required_credentials(&[]);
             if (apiName.as_deref() == Some("ecapi")) {
@@ -1424,7 +1424,7 @@ impl Zaif {
         //
         //     {"error": "unsupported currency_pair"}
         //
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
         let mut error: Option<String> = self.safe_string_k(response.clone(), "error", &[]).as_str().map(str::to_owned);
         if (error.is_some()) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

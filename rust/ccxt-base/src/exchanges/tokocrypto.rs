@@ -1166,7 +1166,7 @@ impl Tokocrypto {
                 continue;
             }
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             let mut filters: crate::value::List = self.safe_list_k(&market, "filters", &[Value::from(vec![])]).into_list();
             let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
             let mut status: Option<String> = self.safe_string_k(&market, "spotTradingEnable", &[]).as_str().map(str::to_owned);
@@ -1859,7 +1859,7 @@ impl Tokocrypto {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if self.is_native_market(Some(&market)).as_bool() == Some(true) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() does not support ".into())).into()), symbol).into()), Value::Str(" yet, the venue serves 24hr ticker statistics only for its binance backed markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTicker() does not support ").into()), symbol).into()), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2372,9 +2372,9 @@ impl Tokocrypto {
             typeResolved = "LIMIT_MAKER".to_string();
         }
         // post only is expressed by the order type here, not by a time force
-        let mut timeInForceResolved: Value = requestedTimeInForce.map(Value::from).unwrap_or(Value::Null);
+        let mut timeInForceResolved: Option<String> = requestedTimeInForce;
         if postOnly {
-            timeInForceResolved = Value::Null;
+            timeInForceResolved = None.clone();
         }
         let mut initialUppercaseType: String = typeResolved.to_uppercase();
         let mut uppercaseType: String = initialUppercaseType.clone();
@@ -2383,7 +2383,7 @@ impl Tokocrypto {
         if (triggerPrice != Value::Null) {
             paramsRequest = self.omit(paramsRequest, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
             if postOnly {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post only trigger orders, the venue has no post only trigger order type".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")));
             }
             if (uppercaseType == "MARKET") {
                 uppercaseType = "STOP_LOSS".to_string();
@@ -2394,9 +2394,9 @@ impl Tokocrypto {
         let mut validOrderTypes: Value = self.safe_value_k(crate::value::KeyRead::key_read(&&market, "info"), "orderTypes", &[]);
         if !self.in_array(Value::from(uppercaseType.clone()), validOrderTypes) {
             if (initialUppercaseType != uppercaseType) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" triggerPrice parameter is not allowed for ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), typeResolved).into()), Value::Str(" orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " triggerPrice parameter is not allowed for ").into()), symbol).into()), " ").into()), typeResolved).into()), " orders")));
             }  else {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), typeResolved).into()), Value::Str(" is not a valid order type for the ".into())).into()), symbol).into()), Value::Str(" market".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), typeResolved).into()), " is not a valid order type for the ").into()), symbol).into()), " market")));
             }
         }
         let mut reverseOrderTypeMapping: indexmap::IndexMap<String, Value> = ({
@@ -2414,7 +2414,7 @@ impl Tokocrypto {
         let mut quoteId: String = self.safe_string_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("_".into())).into()), quoteId).into()));
+                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, "_").into()), quoteId).into()));
                 m.insert("type".to_string(), self.safe_string(&reverseOrderTypeMapping, Value::from(uppercaseType.clone()), &[]));
             m
         });
@@ -2467,7 +2467,7 @@ impl Tokocrypto {
                     quoteAmount = Value::from(cost);
                 }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
                     }  else {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
@@ -2504,21 +2504,21 @@ impl Tokocrypto {
         }
         if priceIsRequired {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), typeResolved).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), typeResolved).into()), " order")));
             }
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         if triggerPriceIsRequired {
             if (triggerPrice == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice extra param for a ".into())).into()), typeResolved).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice extra param for a ").into()), typeResolved).into()), " order")));
             }  else {
                 request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice));
             }
         }
         if timeInForceIsRequired {
             let mut defaultTimeInForce: String = self.safe_string_k(self.options.clone(), "defaultTimeInForce", &[Value::Str("GTC".into())]).as_str().unwrap_or("GTC").to_string();
-            let mut timeInForce: Value = Value::from(defaultTimeInForce);
-            if (timeInForceResolved != Value::Null) {
+            let mut timeInForce: Option<String> = Some(defaultTimeInForce);
+            if (timeInForceResolved.is_some()) {
                 timeInForce = timeInForceResolved.clone();
             }
             // the endpoint takes the time force as a numeric code, post only is
@@ -2530,19 +2530,18 @@ impl Tokocrypto {
                     m.insert("FOK".to_string(), Value::Str("3".into()));
                 m
             });
-            let mut timeInForceCode: Option<String> = self.safe_string(&timeInForceCodes, timeInForce.clone(), &[]).as_str().map(str::to_owned);
+            let mut timeInForceCode: Option<String> = self.safe_string(&timeInForceCodes, timeInForce.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (timeInForceCode.is_none()) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the ".into())).into()), timeInForce).into()), Value::Str(" timeInForce, use GTC, IOC, FOK or the postOnly parameter".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support the ").into()), timeInForce.as_deref().unwrap_or("null")).into()), " timeInForce, use GTC, IOC, FOK or the postOnly parameter")));
             }
             request.insert("timeInForce".into(), timeInForceCode.map(Value::from).unwrap_or(Value::Null));
-        }  else if (timeInForceResolved != Value::Null) {
+        }  else if (timeInForceResolved.is_some()) {
             // a market order fills immediately or not at all, so an IOC asks for
             // what the order type already does and gets accepted as a no-op, while
             // any other time force would be a promise the venue cannot keep here
-            let mut isRedundantImmediateOrCancel: bool = (isMarketOrder && (timeInForceResolved.as_str() == Some("IOC")));
+            let mut isRedundantImmediateOrCancel: bool = (isMarketOrder && (timeInForceResolved.as_deref() == Some("IOC")));
             if !isRedundantImmediateOrCancel {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support the ".into())).into()), timeInForceResolved).into()), Value::Str(" timeInForce for ".into())).into()),
-                    type_var).into()), Value::Str(" orders".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support the ").into()), timeInForceResolved.as_deref().unwrap_or("null")).into()), " timeInForce for ").into()), type_var).into()), " orders")));
             }
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[paramsRequest]);
@@ -2682,7 +2681,7 @@ impl Tokocrypto {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2904,7 +2903,7 @@ impl Tokocrypto {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3307,7 +3306,7 @@ impl Tokocrypto {
         if (type_var.is_none()) {
             if (insertTime.is_some()) && (createTime.is_none()) {
                 type_var = Some("deposit".to_string());
-                timestamp = insertTime.clone();
+                timestamp = insertTime;
             }  else if (insertTime.is_none()) && (createTime.is_some()) {
                 type_var = Some("withdrawal".to_string());
                 timestamp = createTime;
@@ -3435,18 +3434,18 @@ impl Tokocrypto {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
         let __ws_arg_20 = crate::value::get_value_k(&self.urls, "api");
-        let mut restUrls: Value = self.extend(Value::Map({
+        let mut restUrls: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        }), &[crate::value::get_value_k(&__ws_arg_20, "rest")]);
-        if !(matches!((&restUrls, &apiName), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet/sandbox URL for ".into())).into()), apiName).into()), Value::Str(" endpoints".into()))));
+        }), &[crate::value::get_value_k(&__ws_arg_20, "rest")]).into_dict();
+        if !(matches!(&apiName, Value::Str(__k) if restUrls.contains_key(__k.as_ref()))) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not have a testnet/sandbox URL for ").into()), apiName).into()), " endpoints")));
         }
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), "/").into()), path);
         if (apiName.as_str() == Some("wapi")) {
             url.push_str(".html");
         }
@@ -3470,7 +3469,7 @@ impl Tokocrypto {
     m
 });
             }  else {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" userDataStream endpoint requires `apiKey` credential".into()))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " userDataStream endpoint requires `apiKey` credential")));
             }
         }  else if (apiName.as_str() == Some("private")) || ((apiName.as_str() == Some("sapi")) && (path.as_str() != Some("system/status"))) || (apiName.as_str() == Some("sapiV3")) || ((apiName.as_str() == Some("wapi")) && (path.as_str() != Some("systemStatus"))) || (apiName.as_str() == Some("dapiPrivate")) || (apiName.as_str() == Some("dapiPrivateV2")) ||
             (apiName.as_str() == Some("fapiPrivate")) || (apiName.as_str() == Some("fapiPrivateV2")) {
@@ -3498,25 +3497,25 @@ impl Tokocrypto {
                 query = self.urlencode(&extendedParams, &[]);
             }
             let mut signature: String = self.hmac(self.encode(Value::from(query.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            query.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str("&".into()), Value::Str("signature=".into())).into()), signature));
+            query.push_str(&format!("{}{}", Value::Str(format!("{}{}", "&", "signature=").into()), signature));
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                 m
             });
             let mut queryInUrl: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || (apiName.as_str() == Some("wapi"));
-            let mut bodySigned: Value = Value::Null;
+            let mut bodySigned: Option<String> = None;
             if queryInUrl {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
+                url.push_str(&format!("{}{}", "?", query));
             }  else {
-                bodySigned = Value::from(query);
+                bodySigned = Some(query);
                 headersSigned.insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into()));
             }
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
         m.insert("method".to_string(), method.clone());
-        m.insert("body".to_string(), bodySigned);
+        m.insert("body".to_string(), bodySigned.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
 });
@@ -3539,21 +3538,20 @@ impl Tokocrypto {
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (code.as_f64() == Some(418.0)) || (code.as_f64() == Some(429.0)) {
-            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), Value::Str(format!("{}", code).into())).into()), Value::Str(" ".into())).into()),
-                reason).into()), Value::Str(" ".into())).into()), body)));
+            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), Value::Str(format!("{}", code).into())).into()), " ").into()), reason).into()), " ").into()), body)));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
             if body.as_str().unwrap_or("").contains("Price * QTY is zero or less") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order cost = amount * price is zero or less ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " order cost = amount * price is zero or less ").into()), body)));
             }
             if body.as_str().unwrap_or("").contains("LOT_SIZE") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order amount should be evenly divisible by lot size ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " order amount should be evenly divisible by lot size ").into()), body)));
             }
             if body.as_str().unwrap_or("").contains("PRICE_FILTER") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ").into()), body)));
             }
         }
         if (response == Value::Null) {
@@ -3577,8 +3575,8 @@ if _try_result.is_err() {
         }
         let mut message: Option<String> = self.safe_string_k(responseParsed.clone(), "msg", &[]).as_str().map(str::to_owned);
         if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message.as_deref().unwrap_or("null")).into()));
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message.as_deref().unwrap_or("null")).into()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into()));
         }
         // checks against error codes
         let mut error: Option<String> = self.safe_string_k(responseParsed, "code", &[]).as_str().map(str::to_owned);
@@ -3592,9 +3590,9 @@ if _try_result.is_err() {
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if (error.as_deref() == Some("-2015")) && matches!((self.safe_bool_k(self.options.clone(), "hasAlreadyAuthenticatedSuccessfully", &[Value::Bool(false)])), Value::Bool(true)) {
-                panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body)));
             }
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             if (message.as_deref() == Some("No need to change margin type.")) {
                 panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback.clone()));
             }
@@ -3602,7 +3600,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         if !success {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body)));
         }
         return Value::Null;
 

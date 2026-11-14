@@ -991,7 +991,7 @@ impl Dydx {
         let mut quoteId: String = "USDC".to_string();
         let mut marketId: Option<String> = self.safe_string_k(market.clone(), "ticker", &[]).as_str().map(str::to_owned);
         if (marketId.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseMarket() missing marketId")));
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut baseName: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -1006,7 +1006,7 @@ impl Dydx {
         if (settle.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
         let mut contract: bool = true;
         let mut swap: bool = true;
         let mut amountPrecisionStr: Option<String> = self.safe_string_k(market.clone(), "stepSize", &[]).as_str().map(str::to_owned);
@@ -1358,7 +1358,7 @@ impl Dydx {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1431,7 +1431,7 @@ impl Dydx {
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
             return Value::from(vec![self.walletAddress.clone(), paramsAddress]);
         }
-        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a user parameter inside 'params' or the walletAddress set".into()))));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires a user parameter inside 'params' or the walletAddress set")));
 
     Value::Null
 }
@@ -1925,7 +1925,7 @@ impl Dydx {
         });
         let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
         if (self.privateKey.clone() == Value::Null) || (self.privateKey.as_str() == Some("")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" signOnboardingAction() requires a privateKey to be set.".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " signOnboardingAction() requires a privateKey to be set.")));
         }
         let mut signature: crate::value::Dict = self.sign_message(msg, self.privateKey.clone()).into_dict();
         return Value::Dict(signature);
@@ -1982,10 +1982,10 @@ impl Dydx {
 })]);
         }
         if (self.walletAddress.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz")));
         }
         if !(self.walletAddress.as_str().unwrap_or("").starts_with("dydx")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2054,16 +2054,16 @@ impl Dydx {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a type argument")));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a side argument")));
         }
         let mut reduceOnly: bool = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrderRequest() requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrderRequest() requires a side argument")));
         }
         let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut subaccountId: i64 = 0;
@@ -2095,7 +2095,7 @@ impl Dydx {
         let mut orderFlag: Option<i64> = None;
         let mut timeInForceNumber: Option<i64> = None;
         if (timeInForce.as_deref() == Some("FOK")) {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" timeInForce fok has been deprecated".into()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " timeInForce fok has been deprecated")));
         }
         if (orderType == "MARKET") {
             // short-term
@@ -2147,7 +2147,7 @@ impl Dydx {
             if (goodTillBlock.is_none()) {
                 // short term order
                 if (latestBlockHeight.is_none()) {
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing latestBlockHeight".into()))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " method() missing latestBlockHeight")));
                 }
                 goodTillBlock = (if let Some(__l) = latestBlockHeight { Some(__l + 20) } else { None });
             }
@@ -2222,9 +2222,8 @@ impl Dydx {
         let mut clientOrderIdString: Option<String> = self.number_to_string(clientOrderId);
         let mut clobPairIdString: Option<String> = self.number_to_string(clobPairId);
         let mut orderFlagsString: Option<String> = self.number_to_string(orderFlags);
-        return self.uuid5(Value::from(nameSp.clone()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.uuid5(Value::from(nameSp), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("-".into())).into()),
-            Value::from(self.number_to_string(subAccountNumber))).into())), Value::Str("-".into())).into()), clientOrderIdString.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), clobPairIdString.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()),
-            orderFlagsString.map(Value::from).unwrap_or(Value::Null)).into())).as_str().map(str::to_owned);
+        return self.uuid5(Value::from(nameSp.clone()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.uuid5(Value::from(nameSp), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, "-").into()),
+            Value::from(self.number_to_string(subAccountNumber))).into())), Value::Str("-".into())).into()), clientOrderIdString.map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), clobPairIdString.map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), orderFlagsString.map(Value::from).unwrap_or(Value::Null)).into())).as_str().map(str::to_owned);
 }
 
     pub async fn fetch_latest_block_height(&mut self, optional_args: &[Value]) -> Value {
@@ -2251,7 +2250,7 @@ impl Dydx {
         let mut info: crate::value::Dict = self.safe_dict_k(&result, "response", &[]).into_dict();
         let mut height: Option<i64> = self.safe_integer_k(&info, "last_block_height", &[]).as_i64();
         if (height.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLatestBlockHeight() could not parse last_block_height".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchLatestBlockHeight() could not parse last_block_height")));
         }
         return Value::from(height);
 
@@ -2387,7 +2386,7 @@ impl Dydx {
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]);
         if (!isTrigger) && (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2395,11 +2394,11 @@ impl Dydx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("clientId".into()), &[id.clone()]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")));
         }
         let mut idString: Option<String> = self.number_to_string(id);
         if idString.as_deref().unwrap_or_default().contains("-") {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")));
         }
         let mut goodTillBlockOption: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "goodTillBlock", &[]).as_i64();
         let mut goodTillBlock: Option<i64> = goodTillBlockOption;
@@ -2415,14 +2414,14 @@ impl Dydx {
         let subAccountIdOptionVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsGoodTillBlockTimeInSeconds, Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]).as_array().cloned().unwrap_or_default();
         let mut subAccountIdOption: Option<i64> = subAccountIdOptionVariable.get(0).and_then(Value::as_i64);
         if (orderFlags != Some(0)) && (orderFlags != Some(64)) && (orderFlags != Some(32)) {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" invalid orderFlags, allowed values are (0, 64, 32).".into()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " invalid orderFlags, allowed values are (0, 64, 32).")));
         }
         if orderFlags > Some(0) {
             if (goodTillBlockTimeInSecondsOption.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" goodTillBlockTimeInSeconds is required in params for long term or conditional order.".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " goodTillBlockTimeInSeconds is required in params for long term or conditional order.")));
             }
             if (goodTillBlockOption.is_some()) && goodTillBlockOption > Some(0) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" goodTillBlock should be 0 for long term or conditional order.".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " goodTillBlock should be 0 for long term or conditional order.")));
             }
             goodTillBlockTime = (if let Some(__r) = goodTillBlockTimeInSecondsOption { Some((self.seconds()) + __r) } else { None });
         }  else {
@@ -2523,7 +2522,7 @@ impl Dydx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut clientOrderIds: Option<crate::value::List> = self.safe_list_k(params.clone(), "clientOrderIds", &[]).into_opt_list();
         if (clientOrderIds.is_none()) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders only support clientOrderIds.".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrders only support clientOrderIds.")));
         }
         let mut subAccountId: i64 = 0;
         let subAccountIdOptionparamsSubAccountIdVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("cancelOrders".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]).as_array().cloned().unwrap_or_default();
@@ -2771,11 +2770,11 @@ impl Dydx {
         //
         let mut gasInfo: Option<crate::value::Dict> = self.safe_dict_k(&response, "gas_info", &[]).into_opt_dict();
         if (gasInfo.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to simulate transaction.".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " failed to simulate transaction.")));
         }
         let mut gasUsed: Option<String> = self.safe_string_k(&gasInfo, "gas_used", &[]).as_str().map(str::to_owned);
         if (gasUsed.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to simulate transaction.".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " failed to simulate transaction.")));
         }
         let mut defaultFeeDenom: Option<String> = self.safe_string_k(self.options.clone(), "defaultFeeDenom", &[]).as_str().map(str::to_owned);
         let mut defaultFeeMultiplier: Option<String> = self.safe_string_k(self.options.clone(), "defaultFeeMultiplier", &[]).as_str().map(str::to_owned);
@@ -2795,7 +2794,7 @@ impl Dydx {
         let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed.map(Value::from).unwrap_or(Value::Null), &defaultFeeMultiplier.map(Value::from).unwrap_or(Value::Null)))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
         let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(gasLimit.clone())), &gasPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (feeAmount.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" estimateTxFee() missing feeAmount".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " estimateTxFee() missing feeAmount")));
         }
         if feeAmount.as_deref().unwrap_or_default().contains(".") {
             feeAmount = self.number_to_string((self.parse_to_numeric(feeAmount.map(Value::from).unwrap_or(Value::Null))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
@@ -2845,7 +2844,7 @@ impl Dydx {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         if (code.as_str() != Some("USDC")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" transfer() only support USDC".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " transfer() only support USDC")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2857,10 +2856,10 @@ impl Dydx {
         if (fromAccount.as_str() != Some("main")) {
             // throw error if from subaccount id is undefined
             if (fromAccount == Value::Null) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" transfer only support main > subaccount and subaccount <> subaccount.".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " transfer only support main > subaccount and subaccount <> subaccount.")));
             }
             if (fromSubaccountId.is_none()) || (toSubaccountId.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer requires fromSubaccountId and toSubaccountId.".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " transfer requires fromSubaccountId and toSubaccountId.")));
             }
         }
         let mut credentials: Value = self.retrieve_credentials();
@@ -2871,7 +2870,7 @@ impl Dydx {
         if (fromAccount.as_str() == Some("main")) {
             // deposit to subaccount
             if (toSubaccountId.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requeire toSubaccoutnId.".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " transfer() requeire toSubaccoutnId.")));
             }
             payload = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -3113,7 +3112,7 @@ impl Dydx {
         let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (code.as_str() != Some("USDC")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " withdraw() only support USDC")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3121,7 +3120,7 @@ impl Dydx {
         self.check_address(&[address.clone()]);
         let mut subaccountId: Option<i64> = self.safe_integer_k(&paramsWithdrawTag, "subaccountId", &[]).as_i64();
         if (subaccountId.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw requires subaccountId.".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw requires subaccountId.")));
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let mut credentials: Value = self.retrieve_credentials();
@@ -3571,7 +3570,7 @@ impl Dydx {
     pub fn nonce(&self) -> Value {
         let mut timeDifference: Option<i64> = self.safe_integer_k(self.options.clone(), "timeDifference", &[]).as_i64();
         if (timeDifference.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " nonce() requires a numeric options[\"timeDifference\"]")));
         }
         return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
 
@@ -3590,7 +3589,7 @@ impl Dydx {
                 return wallet.map(Value::from).unwrap_or(Value::Null);
             }
         }
-        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.".into()))));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.")));
 
     Value::Null
 }
@@ -3605,21 +3604,21 @@ impl Dydx {
         let __section_empty = Vec::new();
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut requestHeaders: Option<crate::value::Dict> = None;
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut pathWithParams: String = self.implode_params(path.clone(), params.clone());
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), section.get(0).cloned().unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), pathWithParams);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathWithParams);
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
         let mut paramsSorted: Value = self.keysort(paramsOmitted, &[]);
         if (method.as_str() == Some("GET")) {
             if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), pathWithParams).into()), Value::Str("?".into())).into()), self.urlencode(paramsSorted.clone(), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathWithParams).into()), "?").into()), self.urlencode(paramsSorted.clone(), &[]));
             }
         }  else {
-            requestBody = json_stringify(&paramsSorted);
+            requestBody = json_stringify(&paramsSorted).as_str().map(str::to_owned);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-type".to_string(), Value::Str("application/json".into()));
@@ -3627,12 +3626,12 @@ impl Dydx {
             }));
         }
         let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
-        let mut bodyResult: Value = requestBody;
+        let mut bodyResult: Option<String> = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult);
     m
 });
@@ -3659,7 +3658,7 @@ impl Dydx {
         if (errorCode.is_some()) && (errorCode.as_deref() != Some("")) {
             let mut errorCodeNum: Option<i64> = self.parse_to_int(errorCode.clone().map(Value::from).unwrap_or(Value::Null));
             if errorCodeNum > Some(0) {
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));

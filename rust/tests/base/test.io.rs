@@ -15,7 +15,7 @@ pub fn testIo() {
         m
     }));
     let mut ms: i64 = exchange.milliseconds();
-    let mut fileName: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt-test-io-".into()), Value::Str(format!("{}", ms).into())).into()), Value::Str(".ccxtfile".into()));
+    let mut fileName: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt-test-io-".into()), Value::Str(format!("{}", ms).into())).into()), ".ccxtfile");
     // upper tmp dir
     let mut tempDir: Option<String> = exchange.get_temp_dir().as_str().map(str::to_owned);
     assert!(ccxt::runtime::is_true(&(((tempDir.is_some()) && (tempDir.as_deref() != Some(""))))));

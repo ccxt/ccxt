@@ -467,7 +467,7 @@ impl Hitbtc {
                 let mut __for_first_360: bool = true;
                 while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut symbolId: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbolId.as_deref().unwrap_or("null")).into()));
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, "::").into()), symbolId.as_deref().unwrap_or("null")).into()));
             }
             }
         }  else {
@@ -517,9 +517,9 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_361: bool = true;
             while { if !__for_first_361 { i += 1; } __for_first_361 = false; i < (symbols.len() as i64) } {
-            let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, Value::Str("::".into())).into()), symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHashPrefix, "::").into()), symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             subMessageHashes.push(Value::from(subMessageHash.clone()));
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into())); };
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into())); };
         }
         }
         let mut requestId: i64 = self.incrementing_nonce();
@@ -572,7 +572,7 @@ impl Hitbtc {
         let mut messageHashBase: String = self.safe_string(&splitName, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = messageHashBase.clone();
         if (symbol != Value::Null) {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHashBase, Value::Str("::".into())).into()), symbol);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHashBase, "::").into()), symbol);
         }
         let mut requestId: i64 = self.incrementing_nonce();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -660,9 +660,9 @@ impl Hitbtc {
         let mut speedValue: String = self.safe_string_k(params.clone(), "speed", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string(); // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("defaultMethod".into()), Value::Str("depth".into()), Value::Str("speed".into())]), &[]).into_dict();
         if (name.as_deref() == Some("orderbook/{depth}/{speed}")) {
-            name = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook/D".into()), depthValue).into()), Value::Str("/".into())).into()), speedValue).into()), Value::Str("ms".into())));
+            name = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook/D", depthValue).into()), "/").into()), speedValue).into()), "ms"));
         }  else if (name.as_deref() == Some("orderbook/{depth}/{speed}/batch")) {
-            name = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook/D".into()), depthValue).into()), Value::Str("/".into())).into()), speedValue).into()), Value::Str("ms/batch".into())));
+            name = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook/D", depthValue).into()), "/").into()), speedValue).into()), "ms/batch"));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -742,7 +742,7 @@ impl Hitbtc {
             let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), Some(&market), &[]);
             let mut item: Value = get_value(&data, &marketId);
-            let mut messageHash: String = format!("{}{}", Value::Str("orderbooks::".into()), symbol);
+            let mut messageHash: String = format!("{}{}", "orderbooks::", symbol);
             if !(self.orderbooks.has(&symbol)) {
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -961,7 +961,7 @@ impl Hitbtc {
             let mut ticker: crate::value::Dict = self.parse_ws_ticker(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             result.push(Value::from(&ticker));
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic, "::").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
         }
@@ -1127,7 +1127,7 @@ impl Hitbtc {
             let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             result.push(Value::from(&ticker));
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic, "::").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
         }
@@ -1306,7 +1306,7 @@ impl Hitbtc {
                 stored.append(trades.get(j as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", "trades::", symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&stored), messageHash.as_str());
         }
         }
@@ -1401,7 +1401,7 @@ impl Hitbtc {
     m
 }));
         let mut period: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
-        let mut name: String = format!("{}{}", Value::Str("candles/".into()), period.as_deref().unwrap_or("null"));
+        let mut name: String = format!("{}{}", "candles/", period.as_deref().unwrap_or("null"));
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut subscribeParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1451,7 +1451,7 @@ impl Hitbtc {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut period: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
-        let mut name: String = format!("{}{}", Value::Str("candles/".into()), period.as_deref().unwrap_or("null"));
+        let mut name: String = format!("{}{}", "candles/", period.as_deref().unwrap_or("null"));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
@@ -1535,7 +1535,7 @@ impl Hitbtc {
                 stored.append(Value::Arr(parsed));
             }
             }
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, "::").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&stored), messageHash.as_str());
         }
         }
@@ -1706,7 +1706,7 @@ impl Hitbtc {
         orders.append(Value::Dict(parsed));
         client.resolve(Value::from(&orders), messageHash.as_deref());
         if (messageHash.is_some()) {
-            client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.as_deref().unwrap_or("null"), Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null")).into())));
+            client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash.as_deref().unwrap_or("null"), "::").into()), symbol.as_deref().unwrap_or("null")).into())));
         }
 }
 
@@ -2045,7 +2045,7 @@ impl Hitbtc {
         if (marketType.as_deref() == Some("swap")) {
             return self.trade_request("futures_cancel_orders", &[Value::from(&paramsMarginMode)]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is not supported for margin orders".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelAllOrdersWs is not supported for margin orders")));
         }  else {
             return self.trade_request("spot_cancel_orders", &[Value::Dict(paramsMarginMode)]).await;
         }
@@ -2277,12 +2277,12 @@ impl Hitbtc {
             }
             if (matches!(&result, Value::Arr(_))) {
                 // to do improve this, not very reliable right now
-                let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
+                let mut first: crate::value::Dict = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
-                })]);
+                })]).into_dict();
                 let mut arrayLength: i64 = result.len() as i64;
-                if (arrayLength == 0) || (matches!(&first, Value::Dict(__d) if __d.contains_key("client_order_id"))) {
+                if (arrayLength == 0) || (first.contains_key("client_order_id")) {
                     self.handle_order_request(client, message);
                 }
             }
@@ -2348,7 +2348,7 @@ impl Hitbtc {
             let mut future: Value = self.safe_value(__ch.futures.clone(), Value::from(messageHash.clone()), &[]);
             future.resolve(Value::Bool(true), None);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
             client.reject(error, messageHash.as_str());
             if (__ch.has_subscription(messageHash.as_str())) {
                 __ch.remove_subscription(messageHash.as_str());
@@ -2380,7 +2380,7 @@ impl Hitbtc {
                 let mut code: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
                 let mut errorMessage: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
                 let mut description: Option<String> = self.safe_string_k(&error, "description", &[]).as_str().map(str::to_owned);
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), description.as_deref().unwrap_or("null"));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), description.as_deref().unwrap_or("null"));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));

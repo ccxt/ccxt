@@ -1156,7 +1156,7 @@ pub fn testWsCache() {
         while { if !__for_first_1545 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1545 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
         cacheEvictBuckets.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".into()), Value::Str(format!("{}", i).into())).into()), Value::Str("/USDT".into())).into()));
+                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".into()), Value::Str(format!("{}", i).into())).into()), "/USDT").into()));
                 m.insert("id".to_string(), Value::Str("x".into()));
                 m.insert("i".to_string(), i.clone());
             m

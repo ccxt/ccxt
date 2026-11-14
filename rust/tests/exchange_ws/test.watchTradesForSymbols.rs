@@ -11,7 +11,7 @@ use super::*;
 
 pub async fn testWatchTradesForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbols: Value) -> Value {
     let mut method: Value = Value::Str("watchTradesForSymbols".into());
-    let mut logText: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str(" [symbols: ".into())).into()), exchange.json(symbols.clone())).into()), Value::Str("] ".into()));
+    let mut logText: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), " [symbols: ").into()), exchange.json(symbols.clone())).into()), "] ");
     let mut now: Value = Value::Int(exchange.milliseconds());
     let mut ends: Value = (match (&(now), &(Value::Int(30000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let mut symbolsLength: i64 = symbols.len() as i64;
@@ -56,7 +56,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     assert!(ccxt::runtime::is_true(&((receivedLength > 0))));
     if !allReceived {
         // an illiquid symbol may not trade inside the window, that is the market and not a bug
-        println_val(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", logText, Value::Str("warning: only received part of symbols before the deadline: ".into())).into()), exchange.json(returnedSymbols)).into()));
+        println_val(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", logText, "warning: only received part of symbols before the deadline: ").into()), exchange.json(returnedSymbols)).into()));
     }
     return Value::Bool(true);
 

@@ -393,7 +393,7 @@ impl Derive {
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(10);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), marketId).into()), Value::Str(".10.".into())).into()), Value::from(self.number_to_string(Value::from(limitResolved))));
+        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook.", marketId).into()), ".10.").into()), Value::from(self.number_to_string(Value::from(limitResolved))));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -487,7 +487,7 @@ impl Derive {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".into()), marketId).into()), Value::Str(".100".into())); // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
+        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", "ticker_slim.", marketId).into()), ".100"); // v3 removed the fat ticker channel, ticker_slim is the only ticker feed
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -535,8 +535,8 @@ impl Derive {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".into()), marketId).into()), Value::Str(".100".into()));
-        let mut messageHash: String = format!("{}{}", Value::Str("unwatch".into()), topic);
+        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", "ticker_slim.", marketId).into()), ".100");
+        let mut messageHash: String = format!("{}{}", "unwatch", topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -590,8 +590,8 @@ impl Derive {
             let mut market: crate::types::Market = (match self.market((symbolsResolved.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".into()), marketId).into()), Value::Str(".100".into())).into()));
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), marketSymbol).into()));
+            topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ticker_slim.", marketId).into()), ".100").into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "bidask:", marketSymbol).into()));
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -694,7 +694,7 @@ impl Derive {
                 m
             }), Some(&market));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), bidAsk.clone()); }
-            client.resolve(bidAsk, &(Value::Str(format!("{}{}", Value::Str("bidask:".into()), tickerSymbol.map(Value::from).unwrap_or(Value::Null)).into())));
+            client.resolve(bidAsk, &(Value::Str(format!("{}{}", "bidask:", tickerSymbol.map(Value::from).unwrap_or(Value::Null)).into())));
         }
         client.resolve(Value::Dict(ticker), topic.as_str());
         return message;
@@ -731,8 +731,8 @@ impl Derive {
         let mut limit: Value = (if (limitRaw.is_none()) { Value::Int(10) } else { Value::from(limitRaw) });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".into()), marketId).into()), Value::Str(".10.".into())).into()), Value::Str(format!("{}", limit).into()));
-        let mut messageHash: String = format!("{}{}", Value::Str("unwatch".into()), topic);
+        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook.", marketId).into()), ".10.").into()), Value::Str(format!("{}", limit).into()));
+        let mut messageHash: String = format!("{}{}", "unwatch", topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -777,8 +777,8 @@ impl Derive {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topic: String = format!("{}{}", Value::Str("trades.".into()), marketId);
-        let mut messageHah: String = format!("{}{}", Value::Str("unwatch".into()), topic);
+        let mut topic: String = format!("{}{}", "trades.", marketId);
+        let mut messageHah: String = format!("{}{}", "unwatch", topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -827,7 +827,7 @@ impl Derive {
         if (self.orderbooks.has(&symbol)) {
             CacheStore::forget(&mut self.orderbooks, &symbol);
         }
-        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into()), &[]);
+        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", "unwatch", topic).into()), &[]);
 }
 
     pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut topic: Value) {
@@ -838,7 +838,7 @@ impl Derive {
         if (self.trades.has(&symbol)) {
             CacheStore::forget(&mut self.trades, &symbol);
         }
-        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into()), &[]);
+        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", "unwatch", topic).into()), &[]);
 }
 
     pub fn handle_ticker_un_subscription(&mut self, mut client: Value, mut topic: Value) {
@@ -854,22 +854,22 @@ impl Derive {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
         // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
-        let mut bidAskHash: String = format!("{}{}", Value::Str("bidask:".into()), symbol);
+        let mut bidAskHash: String = format!("{}{}", "bidask:", symbol);
         if (__ch.has_future(bidAskHash.as_str())) {
-            let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), bidAskHash)));
+            let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), bidAskHash)));
             client.reject(error, bidAskHash.as_str());
         }
-        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into()), &[]);
+        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", "unwatch", topic).into()), &[]);
 }
 
     pub fn handle_orders_un_subscription(&mut self, mut client: Value, mut topic: Value) {
         self.orders = None;
-        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into()), &[Value::Bool(true)]);
+        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", "unwatch", topic).into()), &[Value::Bool(true)]);
 }
 
     pub fn handle_my_trades_un_subscription(&mut self, mut client: Value, mut topic: Value) {
         self.myTrades = None;
-        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", Value::Str("unwatch".into()), topic).into()), &[Value::Bool(true)]);
+        self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", "unwatch", topic).into()), &[Value::Bool(true)]);
 }
 
     pub fn handle_un_subscribe(&mut self, mut client: Value, mut message: Value) -> Value {
@@ -943,7 +943,7 @@ impl Derive {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topic: String = format!("{}{}", Value::Str("trades.".into()), marketId);
+        let mut topic: String = format!("{}{}", "trades.", marketId);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1100,12 +1100,12 @@ impl Derive {
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
-        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".orders".into()));
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), ".orders");
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             symbolResolved = Some(self.symbol(symbol));
-            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.as_deref().unwrap_or("null")));
+            messageHash.push_str(&format!("{}{}", ":", symbolResolved.as_deref().unwrap_or("null")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1215,7 +1215,7 @@ impl Derive {
                 }
                 cachedOrders.append(parsed);
                 if (topic.is_some()) {
-                    let mut messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", topic.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+                    let mut messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", topic.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null"));
                     client.resolve(Value::from(&self.orders), messageHashSymbol.as_str());
                 }
             }
@@ -1252,8 +1252,8 @@ impl Derive {
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
-        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".orders".into()));
-        let mut messageHash: String = format!("{}{}", Value::Str("unwatch".into()), topic);
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), ".orders");
+        let mut messageHash: String = format!("{}{}", "unwatch", topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1307,12 +1307,12 @@ impl Derive {
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
-        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".trades".into()));
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), ".trades");
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             symbolResolved = Some(self.symbol(symbol));
-            messageHash.push_str(&format!("{}{}", Value::Str(":".into()), symbolResolved.as_deref().unwrap_or("null")));
+            messageHash.push_str(&format!("{}{}", ":", symbolResolved.as_deref().unwrap_or("null")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1363,7 +1363,7 @@ impl Derive {
             myTrades.append(Value::from(&trade));
             client.resolve(Value::from(&myTrades), topic.as_deref());
             if (topic.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic.as_deref().unwrap_or("null"), ":").into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]));
                 client.resolve(Value::from(&myTrades), messageHash.as_str());
             }
         }
@@ -1398,8 +1398,8 @@ impl Derive {
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
-        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".trades".into()));
-        let mut messageHash: String = format!("{}{}", Value::Str("unwatch".into()), topic);
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), ".trades");
+        let mut messageHash: String = format!("{}{}", "unwatch", topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -1460,7 +1460,7 @@ impl Derive {
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         let mut subaccountIdKey: Option<String> = self.number_to_string(Value::from(subaccountId));
         if (subaccountIdKey.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() could not resolve the subaccount id".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchBalance() could not resolve the subaccount id")));
         }
         if fetchSnapshot && !(matches!((&self.balance, subaccountIdKey.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
@@ -1478,7 +1478,7 @@ impl Derive {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), Value::Dict(seeded)); }
         }
         let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
-        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".balances".into()));
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), ".balances");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1574,8 +1574,8 @@ impl Derive {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("loadedPositionsSnapshots".into(), loadedSnapshots.clone()); }
         }
         let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
-        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".balances".into()));
-        let mut messageHash: String = format!("{}{}", Value::Str("positions:".into()), topic);
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), ".balances");
+        let mut messageHash: String = format!("{}{}", "positions:", topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1726,7 +1726,7 @@ impl Derive {
         }
         let mut positionUpdatesLength: i64 = positionUpdates.len() as i64;
         if positionUpdatesLength > 0 {
-            client.resolve(Value::Array(positionUpdates), &(Value::Str(format!("{}{}", Value::Str("positions:".into()), topic).into())));
+            client.resolve(Value::Array(positionUpdates), &(Value::Str(format!("{}{}", "positions:", topic).into())));
         }
 }
 
@@ -1747,7 +1747,7 @@ impl Derive {
         let mut errorCode: Option<String> = self.safe_string_k(&errorMessage, "code", &[]).as_str().map(str::to_owned);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errorCode.is_some()) {
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
             }

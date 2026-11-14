@@ -371,12 +371,12 @@ impl Lighter {
         let mut extra = get_arg(optional_args, 1, Value::Null);
         let mut hash: Value = unifiedChannel;
         if (symbol != Value::Null) {
-            hash = Value::Str(format!("{}{}", hash, Value::Str(format!("{}{}", Value::Str("::".into()), symbol).into())).into());
+            hash = Value::Str(format!("{}{}", hash, Value::Str(format!("{}{}", "::", symbol).into())).into());
         }  else {
-            hash = Value::Str(format!("{}{}", hash, Value::Str("s".into())).into()); // tickers, orderbooks, ohlcvs ...
+            hash = Value::Str(format!("{}{}", hash, "s").into()); // tickers, orderbooks, ohlcvs ...
         }
         if (extra != Value::Null) {
-            hash = Value::Str(format!("{}{}", hash, Value::Str(format!("{}{}", Value::Str("::".into()), extra).into())).into());
+            hash = Value::Str(format!("{}{}", hash, Value::Str(format!("{}{}", "::", extra).into())).into());
         }
         return hash.as_str().map(str::to_owned);
 }
@@ -620,7 +620,7 @@ impl Lighter {
             m
         });
         let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::from(symbolValue)]);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         return self.unsubscribe(messageHash.as_str(), &[__ws_arg_4]).await;
         Value::Null
@@ -737,7 +737,7 @@ impl Lighter {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
         if !(market).swap {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() is only supported for swap markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchTicker() is only supported for swap markets")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -777,7 +777,7 @@ impl Lighter {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
         if !(market).swap {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTicker() is only supported for swap markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchTicker() is only supported for swap markets")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -785,7 +785,7 @@ impl Lighter {
             m
         });
         let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[Value::from(symbolValue)]);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         return self.unsubscribe(messageHash.as_str(), &[__ws_arg_6]).await;
         Value::Null
@@ -818,7 +818,7 @@ impl Lighter {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         if (firstMarket.is_some()) && (!matches!(self.safe_bool_k(&firstMarket, "swap", &[Value::Bool(false)]), Value::Bool(true))) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() is only supported for swap markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchTickers() is only supported for swap markets")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -886,7 +886,7 @@ impl Lighter {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut firstMarket: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         if (firstMarket.is_some()) && (!matches!(self.safe_bool_k(&firstMarket, "swap", &[Value::Bool(false)]), Value::Bool(true))) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTickers() is only supported for swap markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchTickers() is only supported for swap markets")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -894,7 +894,7 @@ impl Lighter {
             m
         });
         let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[]);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         return self.unsubscribe(messageHash.as_str(), &[__ws_arg_8]).await;
         Value::Null
@@ -1203,7 +1203,7 @@ impl Lighter {
             m
         });
         let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("trade".into()), &[Value::from((market).symbol.clone())]);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         return self.unsubscribe(messageHash.as_str(), &[__ws_arg_10]).await;
         Value::Null
@@ -1470,13 +1470,13 @@ impl Lighter {
     m
 }));
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only")));
         }
         let accountIndexparamsAccountIndexVariable: Vec<Value> = self.parent.handle_account_index(params, "unWatchMyTrades", "accountIndex", "account_index", &[]).await.as_array().cloned().unwrap_or_default();
         let mut accountIndex: Option<i64> = accountIndexparamsAccountIndexVariable.get(0).and_then(Value::as_i64);
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("myTrades".into()), &[]);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_trades/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
@@ -1846,7 +1846,7 @@ impl Lighter {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash = self.get_message_hash(Value::Str("orders".into()), &[Value::from((market).symbol.clone())]).map(Value::from).unwrap_or(Value::Null);
-            request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("/".into())).into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
+            request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "/").into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
         }  else {
             messageHash = self.get_message_hash(Value::Str("orders".into()), &[]).map(Value::from).unwrap_or(Value::Null);
             request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
@@ -1896,12 +1896,12 @@ impl Lighter {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             subMessageHash = self.get_message_hash(Value::Str("orders".into()), &[Value::from((market).symbol.clone())]).map(Value::from).unwrap_or(Value::Null);
-            request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("/".into())).into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
+            request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("account_orders/".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "/").into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
         }  else {
             subMessageHash = self.get_message_hash(Value::Str("orders".into()), &[]).map(Value::from).unwrap_or(Value::Null);
             request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
         return self.unsubscribe(messageHash.as_str(), &[__ws_arg_17]).await;
         Value::Null
@@ -1956,7 +1956,7 @@ impl Lighter {
         let mut nextId: i64 = self.request_id(url.clone());
         // the venue takes a string request id
         let mut requestId: Value = Value::Str(format!("{}", nextId).into());
-        let mut messageHash: String = format!("{}{}", Value::Str("jsonapi/sendtx:".into()), requestId);
+        let mut messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
         let txTypetxInfoorderVariable: Vec<Value> = self.parent.sign_and_create_order("createOrderWs", symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).await.as_array().cloned().unwrap_or_default();
         let mut txType: Value = txTypetxInfoorderVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut txInfo: Value = txTypetxInfoorderVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2014,7 +2014,7 @@ impl Lighter {
         let mut nextId: i64 = self.request_id(url.clone());
         // the venue takes a string request id
         let mut requestId: Value = Value::Str(format!("{}", nextId).into());
-        let mut messageHash: String = format!("{}{}", Value::Str("jsonapi/sendtx:".into()), requestId);
+        let mut messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
         let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_order("cancelOrderWs", id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).await.as_array().cloned().unwrap_or_default();
         let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2069,7 +2069,7 @@ impl Lighter {
         let mut nextId: i64 = self.request_id(url.clone());
         // the venue takes a string request id
         let mut requestId: Value = Value::Str(format!("{}", nextId).into());
-        let mut messageHash: String = format!("{}{}", Value::Str("jsonapi/sendtx:".into()), requestId);
+        let mut messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
         let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_all_orders("cancelAllOrdersWs", symbol.as_str(), &[params]).await.as_array().cloned().unwrap_or_default();
         let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2104,7 +2104,7 @@ impl Lighter {
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
         //
         let mut id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        client.resolve(message, &(Value::Str(format!("{}{}", Value::Str("jsonapi/sendtx:".into()), id.as_deref().unwrap_or("null")).into())));
+        client.resolve(message, &(Value::Str(format!("{}{}", "jsonapi/sendtx:", id.as_deref().unwrap_or("null")).into())));
 }
 
     pub fn handle_orders(&mut self, mut client: Value, mut message: Value) -> Value {
@@ -2154,9 +2154,9 @@ impl Lighter {
                 while { if !__for_first_475 { j += 1; } __for_first_475 = false; j < (orders.len() as i64) } {
                 let mut order: crate::value::Dict = self.parse_order(orders.get(j as usize).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
                 stored.append(Value::from(&order));
-                let mut symbol: Value = crate::value::KeyRead::key_read(&&order, "symbol");
-                if (symbol != Value::Null) {
-                    let mut symbolSpecificMessageHash: Option<String> = self.get_message_hash(Value::Str("orders".into()), &[symbol]);
+                let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&order, "symbol").as_str().map(str::to_owned);
+                if (symbol.is_some()) {
+                    let mut symbolSpecificMessageHash: Option<String> = self.get_message_hash(Value::Str("orders".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]);
                     client.resolve(Value::from(&stored), symbolSpecificMessageHash.as_deref());
                 }
             }
@@ -2222,7 +2222,7 @@ impl Lighter {
             if (error.is_some()) {
                 let mut code: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
                 let mut errorMessage: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
@@ -2357,7 +2357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_order_book_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
         let mut symbol: Option<String> = self.safe_symbol(marketId, None, &[]).as_str().map(str::to_owned);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[Value::from(symbol.as_deref())]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
         if (self.orderbooks.has(&symbol)) {
             CacheStore::forget(&mut self.orderbooks, &symbol);
@@ -2386,7 +2386,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     if (subscribedChannel.as_deref() == Some("market_stats/all")) {
                         __ch.remove_subscription(subscriptionHash.as_deref());
                         if (__ch.has_future(subscriptionHash.as_deref())) {
-                            let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), subscriptionHash.as_deref().unwrap_or("null"))));
+                            let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), subscriptionHash.as_deref().unwrap_or("null"))));
                             client.reject(error.clone(), subscriptionHash.as_deref());
                         }
                     }
@@ -2408,7 +2408,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbol: Value = self.safe_symbol(marketId, None, &[]);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[symbol.clone()]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
         if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
@@ -2418,7 +2418,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
         let mut symbol: Option<String> = self.safe_symbol(marketId, None, &[]).as_str().map(str::to_owned);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[Value::from(symbol.as_deref())]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
         if (self.trades.has(&symbol)) {
             CacheStore::forget(&mut self.trades, &symbol);
@@ -2440,7 +2440,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_orders_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
         let mut symbol: Option<String> = self.safe_symbol(marketId, None, &[]).as_str().map(str::to_owned);
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("orders".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
 }
 
@@ -2448,7 +2448,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // only the plural hash is awaited on this channel, per-symbol order hashes
         // belong to the account_orders/<marketId> channels and stay untouched here
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("orders".into()), &[]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
         let mut ordersStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

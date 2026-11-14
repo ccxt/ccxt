@@ -1085,7 +1085,7 @@ impl Alpaca {
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&response, "timestamp", &[]));
         if (timestamp.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTime() missing timestamp".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchTime() missing timestamp")));
         }
         return Value::from(timestamp);
         Value::Null
@@ -1147,7 +1147,7 @@ impl Alpaca {
         //
         let mut marketId: Option<String> = self.safe_string_k(asset.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (marketId.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseMarket() missing marketId")));
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut assetClass: Option<String> = self.safe_string_k(asset.clone(), "class", &[]).as_str().map(str::to_owned);
@@ -1163,7 +1163,7 @@ impl Alpaca {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut status: Option<String> = self.safe_string_k(asset.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: bool = status.as_deref() == Some("active");
         let mut minAmount: Option<f64> = self.safe_number_k(asset.clone(), "min_order_size", &[]).as_f64();
@@ -1340,7 +1340,7 @@ impl Alpaca {
 })]).into_dict();
             symbolTrades = Value::from(vec![Value::Dict(symbolTrade)]);
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() does not support ".into())).into()), method).into()), Value::Str(", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTrades() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")));
         }
         let mut symbolTradesList: Value = Value::from(vec![]);
         if (symbolTrades != Value::Null) {
@@ -1599,7 +1599,7 @@ impl Alpaca {
 })]).into_dict();
             ohlcvs = Value::from(vec![Value::Dict(bar)]);
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() does not support ".into())).into()), method).into()), Value::Str(", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOHLCV() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")));
         }
         return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
@@ -1986,7 +1986,7 @@ impl Alpaca {
             if type_var.as_str().unwrap_or("").contains("limit") {
                 newType = Some("stop_limit".to_string());
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support stop orders for ".into())).into()), type_var).into()), Value::Str(" orders, only stop_limit orders are supported".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support stop orders for ").into()), type_var).into()), " orders, only stop_limit orders are supported")));
             }
             request.insert("stop_price".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
             request.insert("type".into(), newType.map(Value::from).unwrap_or(Value::Null));
@@ -2688,7 +2688,7 @@ impl Alpaca {
         let mut addressValue: Value = address.clone();
         let mut tagSuffix: String = self.safe_string_k(params, "tag", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (tagSuffix != "") {
-            addressValue = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), tagSuffix).into());
+            addressValue = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagSuffix).into());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2957,7 +2957,7 @@ impl Alpaca {
             let mut netAmount: Option<String> = self.safe_string_k(transaction.clone(), "net_amount", &[]).as_str().map(str::to_owned);
             let mut isIncoming: bool = (activityType.as_deref() == Some("CSD")) || ((activityType.as_deref() == Some("TRANS")) && !(crate::precise::Precise::stringLt(&netAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)));
             let mut date: String = self.safe_string_k(transaction.clone(), "date", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            timestamp = self.parse8601(Value::Str(format!("{}{}", date, Value::Str("T00:00:00Z".into())).into()));
+            timestamp = self.parse8601(Value::Str(format!("{}{}", date, "T00:00:00Z").into()));
             datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
             type_var = (if isIncoming { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
             amount = self.parse_number(crate::precise::Precise::stringAbs(&netAmount.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
@@ -3209,12 +3209,12 @@ impl Alpaca {
             if (baseId == Value::Null) {
                 continue;
             }
-            let mut positionCode: Value = self.safe_currency_code(baseId, None).map(Value::from).unwrap_or(Value::Null);
-            if (positionCode != Value::Null) && !(matches!(&positionCode, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+            let mut positionCode: Option<String> = self.safe_currency_code(baseId, None);
+            if (positionCode.is_some()) && !(matches!(positionCode.as_deref(), Some(__k) if result.contains_key(__k))) {
                 let mut positionAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 positionAccount.insert("free".into(), self.safe_string_k(&position, "qty_available", &[]));
                 positionAccount.insert("total".into(), self.safe_string_k(&position, "qty", &[]));
-                result.insert(crate::runtime::stringify_param(&positionCode), Value::Map(positionAccount));
+                result.insert(positionCode.as_deref().unwrap_or("null").to_string(), Value::Map(positionAccount));
             }
         }
         }
@@ -3235,7 +3235,7 @@ impl Alpaca {
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.get(0).cloned().unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3247,22 +3247,22 @@ impl Alpaca {
             headersValue.insert("APCA-API-SECRET-KEY".into(), self.secret.clone());
         }
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut bodyJson: Value = Value::Null;
+        let mut bodyJson: Option<String> = None;
         if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
             }  else {
-                bodyJson = json_stringify(&query);
+                bodyJson = json_stringify(&query).as_str().map(str::to_owned);
                 headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));
             }
         }
         let mut url: String = format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), endpoint);
-        let mut bodyResolved: Value = bodyJson;
+        let mut bodyResolved: Option<String> = bodyJson;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersValue));
     m
 });
@@ -3278,7 +3278,7 @@ impl Alpaca {
         //     "code": 40110000,
         //     "message": "request is not authorized"
         // }
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         // code is an int: it is never undefined, the guard was dead
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

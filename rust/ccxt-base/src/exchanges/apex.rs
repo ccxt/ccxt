@@ -1072,7 +1072,7 @@ impl Apex {
         if (baseId.is_none()) || (quote.is_none()) || (settle.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
         let mut expiry: i64 = 0;
         let mut takerFee: Option<f64> = Some(0.0002_f64);
         let mut makerFee: Option<f64> = Some(0.0005_f64);
@@ -1627,7 +1627,7 @@ impl Apex {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1884,8 +1884,8 @@ impl Apex {
         }  else {
             accountId = Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(12)))).into());
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("apexomni-".into()), accountId).into()), Value::Str("-".into())).into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), Value::Str("-".into())).into()),
-            Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(6)))).into())).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "apexomni-", accountId).into()), "-").into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), "-").into()), Value::Str(format!("{}",
+            Value::Int(self.rand_number(Value::Int(6)))).into())).into()).as_str().map(str::to_owned);
 }
 
     pub fn add_hyphen_before_usdt(&self, symbol: &str) -> Option<String> {
@@ -1910,7 +1910,7 @@ impl Apex {
     pub fn get_seeds(&self) -> Value {
         let mut seeds: Option<String> = self.safe_string_k(self.options.clone(), "seeds", &[]).as_str().map(str::to_owned);
         if (seeds.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")));
         }
         return seeds.map(Value::from).unwrap_or(Value::Null);
 
@@ -1996,7 +1996,7 @@ impl Apex {
         }
         let mut isMarket: bool = orderType == "MARKET";
         if isMarket && (price == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for market orders")));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]).as_bool() == Some(true);
@@ -2773,7 +2773,7 @@ impl Apex {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setLeverage() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2903,7 +2903,7 @@ impl Apex {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
@@ -2913,7 +2913,7 @@ impl Apex {
                 m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
             m
         });
-        let mut signPath: String = format!("{}{}", Value::Str("/api/".into()), path);
+        let mut signPath: String = format!("{}{}", "/api/", path);
         let mut signBody: Option<String> = None;
         if ((if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() != Some("POST")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -2959,7 +2959,7 @@ impl Apex {
         }
         let mut errorCode: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
         if (errorCode.is_some()) && (errorCode != Some(0)) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             let mut message: Option<String> = self.safe_string2(response, Value::Str("key".into()), Value::Str("msg".into()), &[]).as_str().map(str::to_owned);
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             let mut status: Value = Value::Str(format!("{}", code).into());

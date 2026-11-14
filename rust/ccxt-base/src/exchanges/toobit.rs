@@ -1706,11 +1706,11 @@ impl Toobit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut isContract: Value = (Value::Bool(self.safe_string_k(market.clone(), "contractMultiplier", &[]) != Value::Null));
         let mut inverse: Option<bool> = self.safe_bool2(market.clone(), Value::Str("isInverse".into()), Value::Str("inverse".into()), &[]).as_bool();
         if matches!(&isContract, Value::Bool(true)) {
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2478,7 +2478,7 @@ impl Toobit {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), Value::from(&paramsPaginate)]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2641,11 +2641,11 @@ impl Toobit {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a type argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a side argument")));
         }
         let mut id: Option<String> = (market).id.as_deref().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2662,7 +2662,7 @@ impl Toobit {
         let mut paramsCost: crate::value::Dict = costparamsCostVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy")) {
             if (cost.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires params[\"cost\"] for market buy order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires params[\"cost\"] for market buy order")));
             }
             request.insert("quantity".into(), self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)));
         }  else {
@@ -2691,10 +2691,10 @@ impl Toobit {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a type argument")));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a side argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2967,7 +2967,7 @@ impl Toobit {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("none")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")));
         }
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2983,7 +2983,7 @@ impl Toobit {
         // response same as in `createOrder`
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(response.clone(), "status", &[])).as_str());
         if (status.as_deref() != Some("open")) {
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".into())).into()), id).into()), Value::Str(" can not be canceled, ".into())).into()), json_stringify(&response))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " order ").into()), id).into()), " can not be canceled, ").into()), json_stringify(&response))));
         }
         return self.parse_order(response, market.as_ref());
         Value::Null
@@ -3027,7 +3027,7 @@ impl Toobit {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("none")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")));
         }
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
@@ -3085,7 +3085,7 @@ impl Toobit {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("none")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")));
         }
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
@@ -3125,7 +3125,7 @@ impl Toobit {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3258,7 +3258,7 @@ impl Toobit {
         if (marketType.as_str() == Some("spot")) {
             response = self.private_get_api_v1_spot_trade_orders(&[requestUntil]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() is not supported for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrders() is not supported for ").into()), marketType).into()), " markets")));
         }
         return self.parse_orders(response, market.as_ref(), &[since, limit]);
         Value::Null
@@ -3311,7 +3311,7 @@ impl Toobit {
         let mut marketType: Value = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsUntil)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::from(vec![]);
         if (marketType.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() is not supported for ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrders() is not supported for ").into()), marketType).into()), " markets")));
         }  else {
             response = self.private_get_api_v1_futures_history_orders(&[requestUntil]).await;
         }
@@ -3363,7 +3363,7 @@ impl Toobit {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3604,13 +3604,13 @@ impl Toobit {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees(): does not support ".into())).into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTradingFees(): does not support ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets")));
         }  else if self.in_array(marketType.map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("swap".into()), Value::Str("future".into())])) {
             let symbolparamsSymbolVariable: Vec<Value> = self.handle_param_string(&paramsMarketType, Value::Str("symbol".into()), &[]).as_array().cloned().unwrap_or_default();
             let mut symbol: Value = symbolparamsSymbolVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsSymbol: crate::value::Dict = symbolparamsSymbolVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if (symbol == Value::Null) {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees requires a params[\"symbol\"]".into()))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchTradingFees requires a params[\"symbol\"]")));
             }
             let mut symbolMarket: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             market = Some(crate::types::Market::clone(&symbolMarket));
@@ -3946,7 +3946,7 @@ impl Toobit {
         let mut networkCode: Option<String> = networkCodeparamsOmittedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = networkCodeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : param[\"network\"] is required".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDepositAddress() : param[\"network\"] is required")));
         }
         request.insert("chainType".into(), self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]));
         let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -4007,7 +4007,7 @@ impl Toobit {
         let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() : param[\"network\"] is required".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw() : param[\"network\"] is required")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4055,14 +4055,14 @@ impl Toobit {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMarginMode() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (Value::from((market).market_type.clone()).as_str() != Some("swap")) {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".into()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " setMarginMode() supports swap contracts only")));
         }
         let mut marginModeValue: String = marginMode.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4101,7 +4101,7 @@ impl Toobit {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setLeverage() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4219,7 +4219,7 @@ impl Toobit {
         if (symbols != Value::Null) {
             let mut length: i64 = symbols.len() as i64;
             if length > 1 {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() only accepts an array with a single symbol or without symbols argument".into()))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchPositions() only accepts an array with a single symbol or without symbols argument")));
             }
             let mut firstSymbol: Option<String> = self.safe_string(symbols.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
             if (firstSymbol.is_some()) {
@@ -4285,10 +4285,10 @@ impl Toobit {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut baseUrl: Option<String> = baseApiUrl;
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut isPost: bool = method.as_str() == Some("POST");
         let mut isDelete: bool = method.as_str() == Some("DELETE");
         let mut extraQuery: indexmap::IndexMap<String, Value> = ({
@@ -4329,10 +4329,10 @@ impl Toobit {
             }
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             if (queryString != "") {
-                queryString.push_str(&format!("{}{}", Value::Str("&signature=".into()), signature));
-                url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
+                queryString.push_str(&format!("{}{}", "&signature=", signature));
+                url.push_str(&format!("{}{}", "?", queryString));
             }  else {
-                privateBody = Value::Str(format!("{}{}", privateBody, Value::Str(format!("{}{}", Value::Str("&signature=".into()), signature).into())).into());
+                privateBody = Value::Str(format!("{}{}", privateBody, Value::Str(format!("{}{}", "&signature=", signature).into())).into());
             }
             let mut privateHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -4374,7 +4374,7 @@ impl Toobit {
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut message: Option<String> = self.safe_string_k(response, "msg", &[]).as_str().map(str::to_owned);
         if ((errorCode.is_some()) && (errorCode.as_deref() != Some(""))) && (errorCode.as_deref() != Some("200")) && (errorCode.as_deref() != Some("0")) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

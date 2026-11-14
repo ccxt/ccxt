@@ -487,7 +487,7 @@ impl Onetrading {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subscriptionHash: String = "MARKET_TICKER".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker.".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "ticker.", symbolValue);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -581,7 +581,7 @@ impl Onetrading {
             std::sync::Arc::make_mut(&mut parsedTicker).insert("timestamp".into(), Value::from(timestamp));
             std::sync::Arc::make_mut(&mut parsedTicker).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
-            client.resolve(Value::Dict(parsedTicker), &(Value::Str(format!("{}{}", Value::Str("ticker.".into()), symbol.as_deref().unwrap_or("null")).into())));
+            client.resolve(Value::Dict(parsedTicker), &(Value::Str(format!("{}{}", "ticker.", symbol.as_deref().unwrap_or("null")).into())));
         }
         }
         client.resolve(self.tickers.clone(), "tickers");
@@ -656,12 +656,12 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            symbolResolved = Value::from(symbolValue.clone());
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolValue);
+            symbolResolved = Some(symbolValue.clone());
+            messageHash = format!("{}{}", "myTrades:", symbolValue);
         }
         self.authenticate(&[params.clone()]).await;
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
@@ -682,12 +682,12 @@ impl Onetrading {
         let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        trades = self.filter_by_symbol_since_limit(trades.clone(), symbolResolved.as_str(), since.as_i64(), limitResolved.clone(), &[]);
+        trades = self.filter_by_symbol_since_limit(trades.clone(), symbolResolved.as_deref(), since.as_i64(), limitResolved.clone(), &[]);
         let mut numTrades: i64 = get_array_length(&trades).as_i64().unwrap_or_default();
         if (numTrades == 0) {
-            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_my_trades(symbolResolved.as_str(), since.as_i64(), limitResolved, params)).await);
+            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_my_trades(symbolResolved.as_deref(), since.as_i64(), limitResolved, params)).await);
         }
         return trades;
         Value::Null
@@ -721,7 +721,7 @@ impl Onetrading {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("book:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "book:", symbolValue);
         let mut subscriptionHash: String = "ORDER_BOOK".to_string();
         let mut depth: Option<i64> = Some(0);
         if (limit != Value::Null) {
@@ -780,7 +780,7 @@ impl Onetrading {
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut dateTime: Option<String> = (match __pro_message.get("time").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null));
-        let mut channel: String = format!("{}{}", Value::Str("book:".into()), symbol.as_deref().unwrap_or("null"));
+        let mut channel: String = format!("{}{}", "book:", symbol.as_deref().unwrap_or("null"));
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
         if (orderbook.is_none()) {
             orderbook = Some(self.order_book(&[Value::Map({
@@ -795,7 +795,7 @@ impl Onetrading {
             let mut changes: Value = (match __pro_message.get("changes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
             self.handle_book_deltas(Value::from(&orderbook), changes);
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() did not recognize message type ".into())).into()), type_var)));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOrderBook() did not recognize message type ").into()), type_var)));
         }
         orderbook.set_book_meta("nonce", Value::from(timestamp));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
@@ -819,7 +819,7 @@ impl Onetrading {
             let mut asks: Value = orderbook.get("asks").cloned().unwrap_or(Value::Null);
             asks.store_array(Value::Arr(bidAsk));
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook () received unknown change type ".into())).into()), json_stringify(&delta))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOrderBook () received unknown change type ").into()), json_stringify(&delta))));
         }
 }
 
@@ -862,12 +862,12 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHash: String = "orders".to_string();
-        let mut symbolResolved: Value = Value::Null;
+        let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            symbolResolved = Value::from(symbolValue.clone());
-            messageHash = format!("{}{}", Value::Str("orders:".into()), symbolValue);
+            symbolResolved = Some(symbolValue.clone());
+            messageHash = format!("{}{}", "orders:", symbolValue);
         }
         self.authenticate(&[params.clone()]).await;
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
@@ -888,12 +888,12 @@ impl Onetrading {
         let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        orders = self.filter_by_symbol_since_limit(orders.clone(), symbolResolved.as_str(), since.as_i64(), limitResolved.clone(), &[]);
+        orders = self.filter_by_symbol_since_limit(orders.clone(), symbolResolved.as_deref(), since.as_i64(), limitResolved.clone(), &[]);
         let mut numOrders: i64 = get_array_length(&orders).as_i64().unwrap_or_default();
         if (numOrders == 0) {
-            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_orders(symbolResolved.as_str(), since.as_i64(), limitResolved, params)).await);
+            return crate::types::IntoRaw::into_raw(Box::pin(self.watch_orders(symbolResolved.as_deref(), since.as_i64(), limitResolved, params)).await);
         }
         return orders;
         Value::Null
@@ -953,7 +953,7 @@ impl Onetrading {
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         orders.append(Value::from(&order));
         let mut orderSymbol: String = self.safe_string_k(&order, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), orderSymbol).into())));
+        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", "orders:", orderSymbol).into())));
         client.resolve(Value::from(&self.orders), "orders");
 }
 
@@ -1168,7 +1168,7 @@ impl Onetrading {
             let mut order: crate::value::Dict = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&order, "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
             orders.append(Value::Dict(order));
-            client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol.as_deref().unwrap_or("null")).into())));
+            client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", "orders:", symbol.as_deref().unwrap_or("null")).into())));
             let mut rawTrades: crate::value::List = self.safe_list_k(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), "trades", &[Value::from(vec![])]).into_list();
             {
                                 let mut ii: i64 = 0;
@@ -1177,7 +1177,7 @@ impl Onetrading {
                 let mut trade: crate::value::Dict = self.parse_trade(rawTrades.get(ii as usize).cloned().unwrap_or(Value::Null), None).into_dict();
                 symbol = self.safe_string_k(&trade, "symbol", &[symbol.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                 self.myTrades.append(Value::Dict(trade));
-                client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol.as_deref().unwrap_or("null")).into())));
+                client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", "myTrades:", symbol.as_deref().unwrap_or("null")).into())));
             }
             }
         }
@@ -1425,8 +1425,8 @@ impl Onetrading {
         if (updateType.as_deref() == Some("ORDER_REJECTED")) || (updateType.as_deref() == Some("ORDER_CLOSED")) || (updateType.as_deref() == Some("STOP_ORDER_TRIGGERED")) {
             let mut orderId: Option<String> = self.safe_string_k(&update, "order_id", &[]).as_str().map(str::to_owned);
             let mut datetime: Option<String> = self.safe_string2(&update, Value::Str("time".into()), Value::Str("timestamp".into()), &[]).as_str().map(str::to_owned);
-            let mut previousOrderArray: Value = self.filter_by_array(&self.orders, Value::Str("id".into()), orderId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]);
-            let mut previousOrder: crate::value::Dict = self.safe_dict(previousOrderArray, Value::Int(0), &[Value::Map({
+            let mut previousOrderArray: crate::value::List = self.filter_by_array(&self.orders, Value::Str("id".into()), orderId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).into_list();
+            let mut previousOrder: crate::value::Dict = self.safe_dict(&previousOrderArray, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -1451,7 +1451,7 @@ impl Onetrading {
             symbol = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
             orders.append(Value::Dict(parsed));
         }
-        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol.as_deref().unwrap_or("null")).into())));
+        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", "orders:", symbol.as_deref().unwrap_or("null")).into())));
         client.resolve(Value::from(&self.orders), "orders");
         // update balance
         let mut balanceKeys: crate::value::List = std::sync::Arc::new(vec![Value::Str("locked".into()), Value::Str("unlocked".into()), Value::Str("spent".into()), Value::Str("spent_on_fees".into()), Value::Str("credited".into()), Value::Str("deducted".into())]);
@@ -1472,7 +1472,7 @@ impl Onetrading {
             symbol = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().map(str::to_owned);
             let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
             myTrades.append(Value::Dict(parsed));
-            client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol.as_deref().unwrap_or("null")).into())));
+            client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", "myTrades:", symbol.as_deref().unwrap_or("null")).into())));
             client.resolve(Value::from(&self.myTrades), "myTrades");
         }
 }
@@ -1547,9 +1547,9 @@ impl Onetrading {
         })]).into_dict();
         let mut timeframeId: Option<crate::value::Dict> = self.safe_dict(&timeframes, timeframe.clone(), &[]).into_opt_dict();
         if (timeframeId.is_none()) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" this interval is not supported, please provide one of the supported timeframes".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " this interval is not supported, please provide one of the supported timeframes")));
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv.".into()), symbolValue).into()), Value::Str(".".into())).into()), timeframe);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv.", symbolValue).into()), ".").into()), timeframe);
         let mut subscriptionHash: Value = Value::Str("CANDLESTICKS".into());
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
@@ -1684,7 +1684,7 @@ impl Onetrading {
             m
         })]).into_dict();
         let mut timeframe: Option<String> = self.find_timeframe(timeframeId.map_or(Value::Null, Value::Dict), &[Value::Dict(timeframes)]);
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv.".into()), symbol.as_deref().unwrap_or("null")).into()), Value::Str(".".into())).into()), timeframe.as_deref().unwrap_or("null"));
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv.", symbol.as_deref().unwrap_or("null")).into()), ".").into()), timeframe.as_deref().unwrap_or("null"));
         let mut parsed: Value = Value::from(vec![Value::from(self.parse8601(dateTime.map(Value::from).unwrap_or(Value::Null))), (match message.get("open") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n),
             Err(_) => Value::Null }, _ => Value::Null }), (match message.get("high") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }),
             (match message.get("low") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }), (match message.get("close") { Some(Value::Float(__f)) => Value::Float(*__f),
@@ -1707,7 +1707,7 @@ impl Onetrading {
         let mut timeframes = get_arg(optional_args, 0, Value::Null);
         let mut timeframesResolved: Value = (if (timeframes == Value::Null) { self.timeframes.clone() } else { timeframes });
         if (timeframesResolved == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" findTimeframe() timeframes is required".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " findTimeframe() timeframes is required")));
         }
         let mut keys: Vec<Value> = object_keys(&timeframesResolved).as_array().cloned().unwrap_or_default();
         {
@@ -1740,7 +1740,7 @@ impl Onetrading {
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
-        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
+        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
 
     Value::Null
 }

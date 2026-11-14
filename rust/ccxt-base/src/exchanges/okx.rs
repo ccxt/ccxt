@@ -3798,10 +3798,9 @@ impl Okx {
         let mut timestamp: Option<i64> = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".into())).into()), quote).into()), Value::Str("-".into())).into()), expiry).into()),
-            Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()),
-            quote).into()), Value::Str(":".into())).into()), base).into()), Value::Str("-".into())).into()), expiry).into()), Value::Str("-".into())).into()), strike).into()), Value::Str("-".into())).into()), optionType).into()));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "-").into()), quote).into()), "-").into()), expiry).into()), "-").into()), strike).into()), "-").into()), optionType).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote).into()), ":").into()),
+            base).into()), "-").into()), expiry).into()), "-").into()), strike).into()), "-").into()), optionType).into()));
         m.insert("base".to_string(), Value::from(base.clone()));
         m.insert("quote".to_string(), Value::from(quote.clone()));
         m.insert("settle".to_string(), Value::from(base.clone()));
@@ -4076,7 +4075,7 @@ impl Okx {
     pub fn nonce(&self) -> Value {
         let mut timeDifference: Option<i64> = self.safe_integer_k(self.options.clone(), "timeDifference", &[]).as_i64();
         if (timeDifference.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " nonce() requires a numeric options[\"timeDifference\"]")));
         }
         return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
 
@@ -4222,33 +4221,33 @@ impl Okx {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut baseSymbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut baseSymbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         // handle preopen empty markets
         if (base.as_deref() == Some("")) || (quote.as_deref() == Some("")) {
-            baseSymbol = format!("{}{}", id, Value::Str("".into()));
+            baseSymbol = format!("{}{}", id, "");
         }
         let mut symbol: String = baseSymbol.clone();
         let mut expiry: Option<i64> = None;
-        let mut strikePrice: Value = Value::Null;
-        let mut optionType: Value = Value::Null;
+        let mut strikePrice: Option<String> = None;
+        let mut optionType: Option<String> = None;
         if contract {
             let mut settledSymbol: String = baseSymbol.clone();
             if (settle.is_some()) {
-                settledSymbol = format!("{}{}", Value::Str(format!("{}{}", baseSymbol, Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+                settledSymbol = format!("{}{}", Value::Str(format!("{}{}", baseSymbol, ":").into()), settle.as_deref().unwrap_or("null"));
             }
             symbol = settledSymbol.clone();
             if future {
                 expiry = self.safe_integer_k(market.clone(), "expTime", &[]).as_i64();
                 if (expiry.is_some()) {
-                    symbol = format!("{}{}", Value::Str(format!("{}{}", settledSymbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[]));
+                    symbol = format!("{}{}", Value::Str(format!("{}{}", settledSymbol, "-").into()), self.yymmdd(Value::from(expiry), &[]));
                 }
             }  else if option {
                 expiry = self.safe_integer_k(market.clone(), "expTime", &[]).as_i64();
-                strikePrice = self.safe_string_k(market.clone(), "stk", &[]);
-                optionType = self.safe_string_k(market.clone(), "optType", &[]);
+                strikePrice = self.safe_string_k(market.clone(), "stk", &[]).as_str().map(str::to_owned);
+                optionType = self.safe_string_k(market.clone(), "optType", &[]).as_str().map(str::to_owned);
                 if (expiry.is_some()) {
-                    symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", settledSymbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[])).into()), Value::Str("-".into())).into()), strikePrice).into()), Value::Str("-".into())).into()), optionType);
-                    optionType = (if (optionType.as_str() == Some("P")) { Value::Str("put".into()) } else { Value::Str("call".into()) });
+                    symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", settledSymbol, "-").into()), self.yymmdd(Value::from(expiry), &[])).into()), "-").into()), strikePrice.as_deref().unwrap_or("null")).into()), "-").into()), optionType.as_deref().unwrap_or("null"));
+                    optionType = (if (optionType.as_deref() == Some("P")) { Some("put".to_string()) } else { Some("call".to_string()) });
                 }
             }
         }
@@ -4267,7 +4266,7 @@ impl Okx {
         let mut instIdCode: Option<i64> = self.safe_integer_k(market.clone(), "instIdCode", &[]).as_i64();
         let __ws_arg_0 = self.safe_number_k(market.clone(), "ctVal", &[]);
         let __ws_arg_1 = self.iso8601(Value::from(expiry));
-        let __ws_arg_2 = self.parse_number(strikePrice, &[]);
+        let __ws_arg_2 = self.parse_number(strikePrice.map(Value::from).unwrap_or(Value::Null), &[]);
         let __ws_arg_3 = self.safe_integer2(market.clone(), Value::Str("contTdSwTime".into()), Value::Str("listTime".into()), &[]);
         let __ws_arg_4 = self.safe_number_k(market.clone(), "lotSz", &[]);
         let __ws_arg_5 = self.safe_number_k(market.clone(), "tickSz", &[]);
@@ -4300,7 +4299,7 @@ impl Okx {
         m.insert("expiry".to_string(), Value::from(expiry));
         m.insert("expiryDatetime".to_string(), __ws_arg_1);
         m.insert("strike".to_string(), __ws_arg_2);
-        m.insert("optionType".to_string(), optionType);
+        m.insert("optionType".to_string(), optionType.map(Value::from).unwrap_or(Value::Null));
         m.insert("created".to_string(), __ws_arg_3);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4894,7 +4893,7 @@ impl Okx {
             let mut defaultUnderlying: String = self.safe_string_k(self.options.clone(), "defaultUnderlying", &[Value::Str("BTC-USD".into())]).as_str().unwrap_or("BTC-USD").to_string();
             let mut currencyId: Option<String> = self.safe_string2(Value::from(&paramsMarketType), Value::Str("uly".into()), Value::Str("marketId".into()), &[Value::from(defaultUnderlying)]).as_str().map(str::to_owned);
             if (currencyId.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires an underlying uly or marketId parameter for options markets".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchTickers() requires an underlying uly or marketId parameter for options markets")));
             }  else {
                 request.insert("uly".into(), currencyId.map(Value::from).unwrap_or(Value::Null));
             }
@@ -5021,7 +5020,7 @@ impl Okx {
             let mut defaultUnderlying: String = self.safe_string_k(self.options.clone(), "defaultUnderlying", &[Value::Str("BTC-USD".into())]).as_str().unwrap_or("BTC-USD").to_string();
             let mut currencyId: Option<String> = self.safe_string2(Value::from(&paramsMarketType), Value::Str("uly".into()), Value::Str("marketId".into()), &[Value::from(defaultUnderlying)]).as_str().map(str::to_owned);
             if (currencyId.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkPrices() requires an underlying uly or marketId parameter for options markets".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMarkPrices() requires an underlying uly or marketId parameter for options markets")));
             }  else {
                 request.insert("uly".into(), currencyId.map(Value::from).unwrap_or(Value::Null));
             }
@@ -5304,7 +5303,7 @@ impl Okx {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(200)]).await;
         }
         let mut priceType: Option<String> = self.safe_string_k(&paramsPaginate, "price", &[]).as_str().map(str::to_owned);
-        let mut isMarkOrIndex: bool = self.in_array(priceType.clone().map(Value::from).unwrap_or(Value::Null), Value::from(vec![Value::Str("mark".into()), Value::Str("index".into())]));
+        let mut isMarkOrIndex: bool = self.in_array(&priceType, Value::from(vec![Value::Str("mark".into()), Value::Str("index".into())]));
         let mut paramsPrice: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("price".into()), &[]).into_dict();
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchOHLCV", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5436,7 +5435,7 @@ impl Okx {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -5640,7 +5639,7 @@ impl Okx {
         }  else if (market).swap || (market).future || (market).option {
             request.insert("uly".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).base_id.as_deref().unwrap_or("")), Value::Str("-".into())).into()), Value::from((market).quote_id.as_deref().unwrap_or(""))).into()));
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() supports spot, swap, future or option markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTradingFee() supports spot, swap, future or option markets only")));
         }
         let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_account_trade_fee(&[__ws_arg_29]).await.into_dict();
@@ -5742,7 +5741,7 @@ impl Okx {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).spot {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createMarketBuyOrderWithCost() supports spot markets only")));
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5783,7 +5782,7 @@ impl Okx {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).spot {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports spot markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createMarketSellOrderWithCost() supports spot markets only")));
         }
         let mut req: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5807,10 +5806,10 @@ impl Okx {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a type argument")));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a side argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut takeProfitPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("takeProfitPrice".into()), Value::Str("tpTriggerPx".into()), &[]).as_str().map(str::to_owned);
@@ -5946,8 +5945,8 @@ impl Okx {
                             }
                         }  else if (notional == Value::Null) {
                             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(),
-                                Value::Str(" createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add \
-                                .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)".into()))));
+                                " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] \
+                                = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")));
                         }
                     }  else {
                         notional = (if (notional == Value::Null) { amount } else { notional.clone() });
@@ -5985,7 +5984,7 @@ impl Okx {
             if hasStopLoss {
                 let mut stopLossTriggerPrice: Value = self.safe_value_n(&stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("slTriggerPx".into())]), &[]);
                 if (stopLossTriggerPrice == Value::Null) {
-                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order".into()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")));
                 }
                 let mut slTriggerPx: Option<String> = self.price_to_precision(symbol.clone(), stopLossTriggerPrice).as_str().map(str::to_owned);
                 let mut slOrder: indexmap::IndexMap<String, Value> = ({
@@ -5999,10 +5998,10 @@ impl Okx {
                     let mut stopLossLimitOrderType: bool = stopLossOrderType.as_deref() == Some("limit");
                     let mut stopLossMarketOrderType: bool = stopLossOrderType.as_deref() == Some("market");
                     if (!stopLossLimitOrderType) && (!stopLossMarketOrderType) {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"".into()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"")));
                     }  else if stopLossLimitOrderType {
                         if (stopLossLimitPrice == Value::Null) {
-                            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order".into()))));
+                            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")));
                         }  else {
                             slOrder.insert("slOrdPx".into(), self.price_to_precision(symbol.clone(), stopLossLimitPrice.clone()));
                         }
@@ -6017,7 +6016,7 @@ impl Okx {
                 let mut stopLossTriggerPriceType: String = self.safe_string2(&stopLoss, Value::Str("triggerPriceType".into()), Value::Str("slTriggerPxType".into()), &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                 if (true) {
                     if (stopLossTriggerPriceType != "last") && (stopLossTriggerPriceType != "index") && (stopLossTriggerPriceType != "mark") {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"".into()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"")));
                     }
                     slOrder.insert("slTriggerPxType".into(), Value::from(stopLossTriggerPriceType));
                 }
@@ -6026,7 +6025,7 @@ impl Okx {
             if hasTakeProfit {
                 let mut takeProfitTriggerPrice: Value = self.safe_value_n(&takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("tpTriggerPx".into())]), &[]);
                 if (takeProfitTriggerPrice == Value::Null) {
-                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order".into()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")));
                 }
                 let mut tpOrder: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -6039,10 +6038,10 @@ impl Okx {
                     let mut takeProfitLimitOrderType: bool = takeProfitOrderType.as_deref() == Some("limit");
                     let mut takeProfitMarketOrderType: bool = takeProfitOrderType.as_deref() == Some("market");
                     if (!takeProfitLimitOrderType) && (!takeProfitMarketOrderType) {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"".into()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"")));
                     }  else if takeProfitLimitOrderType {
                         if (takeProfitLimitPrice == Value::Null) {
-                            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order".into()))));
+                            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")));
                         }  else {
                             tpOrder.insert("tpOrdKind".into(), takeProfitOrderType.clone().map(Value::from).unwrap_or(Value::Null));
                             tpOrder.insert("tpOrdPx".into(), self.price_to_precision(symbol.clone(), takeProfitLimitPrice.clone()));
@@ -6059,7 +6058,7 @@ impl Okx {
                 let mut takeProfitTriggerPriceType: String = self.safe_string2(&takeProfit, Value::Str("triggerPriceType".into()), Value::Str("tpTriggerPxType".into()), &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                 if (true) {
                     if (takeProfitTriggerPriceType != "last") && (takeProfitTriggerPriceType != "index") && (takeProfitTriggerPriceType != "mark") {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"".into()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"")));
                     }
                     tpOrder.insert("tpTriggerPxType".into(), Value::from(takeProfitTriggerPriceType));
                 }
@@ -6122,19 +6121,19 @@ impl Okx {
             });
             let mut selfTradePreventionUpper: Option<String> = selfTradePrevention.as_str().map(str::to_uppercase);
             if (selfTradePreventionUpper.as_deref() == Some("NONE")) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order")));
             }
             let mut stpMode: Value = self.safe_string(&stpModes, selfTradePreventionUpper.map(Value::from).unwrap_or(Value::Null), &[(if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })]);
-            let mut algoOrderTypes: Value = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
+            let mut algoOrderTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut requestOrdType: Option<String> = self.safe_string(Value::Map(request.clone()), Value::Str("ordType".into()), &[]).as_str().map(str::to_owned);
-            if (requestOrdType.is_some()) && (matches!((&algoOrderTypes, requestOrdType.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint".into()))));
+            if (requestOrdType.is_some()) && (matches!(requestOrdType.as_deref(), Some(__k) if algoOrderTypes.contains_key(__k))) {
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint")));
             }
             if (stpMode.as_str() == Some("cancel_both")) && (requestOrdType.as_deref() == Some("fok")) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders")));
             }
             request.insert("stpMode".into(), stpMode);
         }
@@ -6212,7 +6211,7 @@ impl Okx {
             method = "privatePostTradeOrderAlgo".to_string();
         }
         if (method != "privatePostTradeOrder") && (method != "privatePostTradeOrderAlgo") && (method != "privatePostTradeBatchOrders") {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo")));
         }
         if (method == "privatePostTradeBatchOrders") {
             // keep the request body the same
@@ -6272,7 +6271,7 @@ impl Okx {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             if (marketId.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a symbol for each order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrders() requires a symbol for each order")));
             }
             let mut type_var: String = self.safe_string_k(&rawOrder, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
@@ -6369,11 +6368,11 @@ impl Okx {
                 request.insert("newTriggerPxType".into(), self.safe_string_k(params.clone(), "newTriggerPxType", &[Value::Str("last".into())]));
             }
             if (stopLossTriggerPrice.is_none()) && (takeProfitTriggerPrice.is_none()) && (triggerPrice.is_none()) && (amount == Value::Null) {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a triggerPrice, stopLossPrice, takeProfitPrice or amount for editing an algo order".into()))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " editOrder() requires a triggerPrice, stopLossPrice, takeProfitPrice or amount for editing an algo order")));
             }
             if (stopLossTriggerPrice.is_some()) {
                 if (stopLossPrice.is_none()) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a newSlOrdPx parameter for editing an algo order".into()))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " editOrder() requires a newSlOrdPx parameter for editing an algo order")));
                 }
                 request.insert("newSlTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPrice)));
                 request.insert("newSlOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), Value::from(stopLossPrice)) }));
@@ -6381,7 +6380,7 @@ impl Okx {
             }
             if (takeProfitTriggerPrice.is_some()) {
                 if (takeProfitPrice.is_none()) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a newTpOrdPx parameter for editing an algo order".into()))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " editOrder() requires a newTpOrdPx parameter for editing an algo order")));
                 }
                 request.insert("newTpTriggerPx".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPrice)));
                 request.insert("newTpOrdPx".into(), (if (type_var.as_str() == Some("market")) { Value::Str("-1".into()) } else { self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice)) }));
@@ -6553,7 +6552,7 @@ impl Okx {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrders() requires a symbol for each order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrders() requires a symbol for each order")));
             }
             let mut id: Option<String> = self.safe_string_k(&rawOrder, "id", &[]).as_str().map(str::to_owned);
             let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
@@ -6562,11 +6561,11 @@ impl Okx {
             })]).into_dict();
             let mut clientOrderId: Option<String> = self.safe_string2(&orderParams, Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[]).as_str().map(str::to_owned);
             if (id.is_none()) && (clientOrderId.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrders() requires an id or params.clientOrderId for each order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrders() requires an id or params.clientOrderId for each order")));
             }
             let mut type_var: String = self.safe_string_k(&rawOrder, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (type_var == "trigger") || (type_var == "conditional") || (type_var == "move_order_stop") || (type_var == "oco") || (type_var == "iceberg") || (type_var == "twap") {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" editOrders() does not support algo orders, use editOrder() instead".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " editOrders() does not support algo orders, use editOrder() instead")));
             }
             let mut side: String = self.safe_string_k(&rawOrder, "side", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
@@ -6627,7 +6626,7 @@ impl Okx {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -6706,7 +6705,7 @@ impl Okx {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -6879,7 +6878,7 @@ impl Okx {
             let mut clientOrderId: Option<String> = self.safe_string2(&order, Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
             let mut symbol: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol for each order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a symbol for each order")));
             }
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut idKey: String = "ordId".to_string();
@@ -7327,7 +7326,7 @@ impl Okx {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -7529,17 +7528,17 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut algoOrderTypes: Value = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
+        let mut algoOrderTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privateGetTradeOrdersPending".into())]).as_str().unwrap_or("privateGetTradeOrdersPending").to_string();
         let mut method: Option<String> = self.safe_string_k(&paramsPaginate, "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut ordType: Option<String> = self.safe_string_k(&paramsPaginate, "ordType", &[]).as_str().map(str::to_owned);
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(&paramsPaginate, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isTrigger: bool = trigger == Some(true);
-        if trailing || isTrigger || ((ordType.is_some()) && (matches!((&algoOrderTypes, ordType.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k)))) {
+        if trailing || isTrigger || ((ordType.is_some()) && (matches!(ordType.as_deref(), Some(__k) if algoOrderTypes.contains_key(__k)))) {
             method = Some("privateGetTradeOrdersAlgoPending".to_string());
         }
         if trailing {
@@ -7700,8 +7699,8 @@ impl Okx {
             request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut type_var: Option<String> = None;
-        let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchCanceledOrders".into()), market.as_ref(), &[params.clone()]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut query: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchCanceledOrders".into()), market.as_ref(), &[params.clone()]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         request.insert("instType".into(), self.convert_to_instrument_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100, max 100
@@ -7711,10 +7710,10 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut algoOrderTypes: Value = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
+        let mut algoOrderTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privateGetTradeOrdersHistory".into())]).as_str().unwrap_or("privateGetTradeOrdersHistory").to_string();
         let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut ordType: Option<String> = self.safe_string_k(params.clone(), "ordType", &[]).as_str().map(str::to_owned);
@@ -7724,7 +7723,7 @@ impl Okx {
         if trailing {
             method = Some("privateGetTradeOrdersAlgoHistory".to_string());
             request.insert("ordType".into(), Value::Str("move_order_stop".into()));
-        }  else if isTrigger || ((ordType.is_some()) && (matches!((&algoOrderTypes, ordType.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k)))) {
+        }  else if isTrigger || ((ordType.is_some()) && (matches!(ordType.as_deref(), Some(__k) if algoOrderTypes.contains_key(__k)))) {
             method = Some("privateGetTradeOrdersAlgoHistory".to_string());
             let mut algoId: Option<String> = self.safe_string_k(params, "algoId", &[]).as_str().map(str::to_owned);
             if (algoId.is_some()) {
@@ -7732,20 +7731,20 @@ impl Okx {
             }
             if isTrigger {
                 if (ordType.is_none()) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchCanceledOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"".into()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchCanceledOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"")));
                 }
             }
         }  else {
             if (since != Value::Null) {
                 request.insert("begin".into(), since.clone());
             }
-            let mut until: Option<i64> = self.safe_integer_k(query.clone(), "until", &[]).as_i64();
+            let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
             if (until.is_some()) {
                 request.insert("end".into(), Value::from(until));
-                query = self.omit(query, Value::from(vec![Value::Str("until".into())]), &[]);
+                query = self.omit(&query, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
             }
         }
-        let mut send: crate::value::Dict = self.omit(query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
+        let mut send: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&send]);
@@ -7912,8 +7911,8 @@ impl Okx {
             request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let mut type_var: Option<String> = None;
-        let mut query: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsPaginate)]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut query: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsPaginate)]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         request.insert("instType".into(), self.convert_to_instrument_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit)); // default 100, max 100
@@ -7922,16 +7921,16 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut algoOrderTypes: Value = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
+        let mut algoOrderTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privateGetTradeOrdersHistory".into())]).as_str().unwrap_or("privateGetTradeOrdersHistory").to_string();
         let mut method: Option<String> = self.safe_string_k(&paramsPaginate, "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut ordType: Option<String> = self.safe_string_k(&paramsPaginate, "ordType", &[]).as_str().map(str::to_owned);
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(&paramsPaginate, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        if trailing || (trigger == Some(true)) || ((ordType.is_some()) && (matches!((&algoOrderTypes, ordType.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k)))) {
+        if trailing || (trigger == Some(true)) || ((ordType.is_some()) && (matches!(ordType.as_deref(), Some(__k) if algoOrderTypes.contains_key(__k)))) {
             method = Some("privateGetTradeOrdersAlgoHistory".to_string());
             request.insert("state".into(), Value::Str("effective".into()));
         }
@@ -7945,14 +7944,14 @@ impl Okx {
             if (since != Value::Null) {
                 request.insert("begin".into(), since.clone());
             }
-            let mut until: Option<i64> = self.safe_integer_k(query.clone(), "until", &[]).as_i64();
+            let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
             if (until.is_some()) {
                 request.insert("end".into(), Value::from(until));
-                query = self.omit(query, Value::from(vec![Value::Str("until".into())]), &[]);
+                query = self.omit(&query, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
             }
             request.insert("state".into(), Value::Str("filled".into()));
         }
-        let mut send: crate::value::Dict = self.omit(query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
+        let mut send: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_44 = self.extend(Value::Map(request.clone()), &[&send]);
@@ -8632,7 +8631,7 @@ impl Okx {
         if (network.is_some()) {
             let mut result: Option<crate::value::Dict> = self.safe_dict(response.clone(), network.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
             if (result.is_none()) {
-                panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() cannot find ".into())).into()), network.as_deref().unwrap_or("null")).into()), Value::Str(" deposit address for ".into())).into()), codeValue)));
+                panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchDepositAddress() cannot find ").into()), network.as_deref().unwrap_or("null")).into()), " deposit address for ").into()), codeValue)));
             }
             return result.map_or(Value::Null, Value::Dict);
         }
@@ -8684,7 +8683,7 @@ impl Okx {
         let mut hasTag: bool = (tagWithdrawTag.is_some()) && (((tagWithdrawTag.as_deref().unwrap_or_default().chars().count() as i64)) > 0);
         let mut addressWithTag: Value = address.clone();
         if hasTag {
-            addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), tagWithdrawTag.as_deref().unwrap_or("null")).into());
+            addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagWithdrawTag.as_deref().unwrap_or("null")).into());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -8703,7 +8702,7 @@ impl Okx {
             let mut networkUpper: Option<String> = network.as_deref().map(str::to_uppercase);
             let mut networkKey: Option<String> = self.safe_string(self.networkAliases.clone(), networkUpper.clone().map(Value::from).unwrap_or(Value::Null), &[networkUpper.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             network = self.safe_string(&networks, networkKey.map(Value::from).unwrap_or(Value::Null), &[network.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned); // resolve aliases to the unified key
-            request.insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", crate::value::KeyRead::key_read(&&currency, "id"), Value::Str("-".into())).into()), network.as_deref().unwrap_or("null")).into()));
+            request.insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", crate::value::KeyRead::key_read(&&currency, "id"), "-").into()), network.as_deref().unwrap_or("null")).into()));
         }
         let mut omitKeys: Vec<Value> = vec![Value::Str("fee".into())];
         if (network.is_some()) {
@@ -9242,7 +9241,7 @@ impl Okx {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marginMode.as_deref() != Some("cross")) && (marginMode.as_deref() != Some("isolated")) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a marginMode parameter that must be either cross or isolated".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -9397,7 +9396,7 @@ impl Okx {
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut position: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(0), &[]).into_opt_dict();
         if (position.is_none()) {
-            panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() could not find a position for ".into())).into()), symbol)));
+            panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchPosition() could not find a position for ").into()), symbol)));
         }
         return self.parse_position(&position, Some(&market));
         Value::Null
@@ -9620,10 +9619,10 @@ impl Okx {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Null, Value::Str("contract".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut pos: Option<String> = self.safe_string_k(position.clone(), "pos", &[]).as_str().map(str::to_owned); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
-        let mut contractsAbs: Value = crate::precise::Precise::stringAbs(&pos.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&pos.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string2(position.clone(), Value::Str("posSide".into()), Value::Str("direction".into()), &[]).as_str().map(str::to_owned);
         let mut hedged: bool = side.as_deref() != Some("net");
-        let mut contracts: Value = self.parse_number(contractsAbs.clone(), &[]);
+        let mut contracts: Option<f64> = self.parse_number(contractsAbs.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if ((marketResolved).margin == Some(true)) {
             // margin position
             if (side.as_deref() == Some("net")) {
@@ -9654,7 +9653,7 @@ impl Okx {
         let mut markPriceString: Option<String> = self.safe_string_k(position.clone(), "markPx", &[]).as_str().map(str::to_owned);
         let mut notionalString: Option<String> = self.safe_string_k(position.clone(), "notionalUsd", &[]).as_str().map(str::to_owned);
         if ((marketResolved).inverse == Some(true)) {
-            notionalString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)), &markPriceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            notionalString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractsAbs.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)), &markPriceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut notional: Option<f64> = self.parse_number(notionalString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut marginMode: Option<String> = self.safe_string_k(position.clone(), "mgnMode", &[]).as_str().map(str::to_owned);
@@ -9687,7 +9686,7 @@ impl Okx {
                 let mut initialMarginPercentageString: Option<String> = self.number_to_string(initialMarginPercentage.clone());
                 initialMarginString = crate::precise::Precise::stringMul(&initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &notionalString.map(Value::from).unwrap_or(Value::Null));
             }  else {
-                initialMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString.map(Value::from).unwrap_or(Value::Null)), &entryPriceString.clone().map(Value::from).unwrap_or(Value::Null)), &leverageString.clone().map(Value::from).unwrap_or(Value::Null));
+                initialMarginString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractsAbs.map(Value::from).unwrap_or(Value::Null), &contractSizeString.map(Value::from).unwrap_or(Value::Null)), &entryPriceString.clone().map(Value::from).unwrap_or(Value::Null)), &leverageString.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
         let mut rounder: String = "0.00005".to_string(); // round to closest 0.01%
@@ -9711,7 +9710,7 @@ impl Okx {
         m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnlString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_k(position.clone(), "realizedPnl", &[]));
         m.insert("percentage".to_string(), Value::from(percentage));
-        m.insert("contracts".to_string(), contracts);
+        m.insert("contracts".to_string(), Value::from(contracts));
         m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("markPrice".to_string(), self.parse_number(markPriceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closeAvgPx", &[]));
@@ -10071,11 +10070,11 @@ impl Okx {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut isArray: bool = matches!(&params, Value::Arr(_));
-        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/api/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/api/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), request);
         let mut privateHeaders: Value = Value::Null;
@@ -10291,7 +10290,7 @@ impl Okx {
         let mut ruleType: Option<String> = self.safe_string_k(&marketInfo, "ruleType", &[]).as_str().map(str::to_owned);
         let mut isExtendedPerpetual: bool = ruleType.as_deref() == Some("xperp"); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
         if !(market).swap && !isExtendedPerpetual {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() is only valid for swap markets or XPERP futures".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchFundingRate() is only valid for swap markets or XPERP futures")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -10363,7 +10362,7 @@ impl Okx {
                 let mut ruleType: Option<String> = self.safe_string_k(&marketInfo, "ruleType", &[]).as_str().map(str::to_owned);
                 let mut isExtendedPerpetual: bool = ruleType.as_deref() == Some("xperp"); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if !(market).swap && !isExtendedPerpetual {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() symbols must be swap markets or XPERP futures, ".into())).into()), self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())])).into()), Value::Str(" is not".into()))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchFundingRates() symbols must be swap markets or XPERP futures, ").into()), self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())])).into()), " is not")));
                 }
             }
             }
@@ -10503,7 +10502,7 @@ impl Okx {
             let mut positionBalanceChange: Option<String> = self.safe_string_k(&entry, "posBalChg", &[]).as_str().map(str::to_owned);
             let mut amount: Option<String> = None;
             if (balanceChange.is_some()) && (!(crate::precise::Precise::stringEq(&balanceChange.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true))) {
-                amount = balanceChange.clone();
+                amount = balanceChange;
             }  else {
                 amount = positionBalanceChange;
             }
@@ -10551,12 +10550,12 @@ impl Okx {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setLeverage() requires a symbol argument")));
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_f64().unwrap_or(f64::NAN) > ((125i64) as f64)) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() leverage should be between 1 and 125".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " setLeverage() leverage should be between 1 and 125")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -10568,7 +10567,7 @@ impl Okx {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marginMode.as_deref() != Some("cross")) && (marginMode.as_deref() != Some("isolated")) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a marginMode parameter that must be either cross or isolated".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " setLeverage() requires a marginMode parameter that must be either cross or isolated")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -10580,7 +10579,7 @@ impl Okx {
         let mut posSide: String = self.safe_string_k(&paramsMarginMode, "posSide", &[Value::Str("net".into())]).as_str().unwrap_or("net").to_string();
         if (marginMode.as_deref() == Some("isolated")) {
             if (posSide != "long") && (posSide != "short") && (posSide != "net") {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"".into()))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"")));
             }
             request.insert("posSide".into(), Value::from(posSide));
         }
@@ -10621,7 +10620,7 @@ impl Okx {
             let mut accountId: Option<String> = (match params.get("accountId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (accountId.is_none()) {
                 let mut accountIds: Value = self.get_list_from_object_values(accounts.clone(), Value::Str("id".into()));
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ".into())).into()),
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ").into()),
                     Value::Str(accountIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
             }  else {
                 let mut accountsById: crate::value::Dict = self.index_by(accounts.clone(), Value::Str("id".into())).into_dict();
@@ -10701,13 +10700,13 @@ impl Okx {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMarginMode() requires a symbol argument")));
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         let mut marginModeValue: String = marginMode.as_str().unwrap_or_default().to_string().to_lowercase();
         if (marginModeValue != "cross") && (marginModeValue != "isolated") {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " setMarginMode() marginMode must be either cross or isolated")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -10715,7 +10714,7 @@ impl Okx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut lever: Option<i64> = self.safe_integer2(params.clone(), Value::Str("lever".into()), Value::Str("leverage".into()), &[]).as_i64();
         if (lever.is_none()) || ((lever.is_some() && lever < Some(1))) || (lever > Some(125)) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() params[\"lever\"] should be between 1 and 125".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " setMarginMode() params[\"lever\"] should be between 1 and 125")));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("leverage".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -11245,7 +11244,7 @@ impl Okx {
         let mut instFamily: Option<String> = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "instFamily", &[]).as_str().map(str::to_owned);
         if (instFamily.is_none()) || (instFamily.as_deref() == Some("")) {
             if (type_var.as_str() != Some("MARGIN")) {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() cannot fetch leverage tiers for ".into())).into()), symbol)));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchMarketLeverageTiers() cannot fetch leverage tiers for ").into()), symbol)));
             }
         }
         // cross as default marginMode
@@ -11539,7 +11538,7 @@ impl Okx {
         let mut id: Option<String> = self.safe_string2(params.clone(), Value::Str("id".into()), Value::Str("ordId".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("id".into()), &[]).into_dict();
         if (id.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" repayCrossMargin() requires an id parameter".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " repayCrossMargin() requires an id parameter")));
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -11630,7 +11629,7 @@ impl Okx {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).contract {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOpenInterest() supports contract markets only")));
         }
         let mut type_var: Option<String> = self.convert_to_instrument_type((Value::from((market).market_type.clone())).as_str());
         let mut uly: Option<String> = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "uly", &[]).as_str().map(str::to_owned);
@@ -11721,7 +11720,7 @@ impl Okx {
             request.insert("instFamily".into(), instFamily.clone().map(Value::from).unwrap_or(Value::Null));
         }
         if (instType == "OPTION") && (uly.is_none()) && (instFamily.is_none()) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")));
         }
         let __ws_arg_81 = self.extend(Value::Map(request), &[paramsSubType]);
         let mut response: crate::value::Dict = self.public_get_public_open_interest(&[__ws_arg_81]).await.into_dict();
@@ -11785,7 +11784,7 @@ impl Okx {
         })]).into_dict();
         let mut timeframeValue: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         if (timeframeValue.as_deref() != Some("5m")) && (timeframeValue.as_deref() != Some("1H")) && (timeframeValue.as_deref() != Some("1D")) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -12231,7 +12230,7 @@ impl Okx {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchSettlementHistory() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchSettlementHistory() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -12241,7 +12240,7 @@ impl Okx {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_deref() != Some("future")) && (type_var.as_deref() != Some("option")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchSettlementHistory() supports futures and options markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchSettlementHistory() supports futures and options markets only")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -12278,8 +12277,8 @@ impl Okx {
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         // rows cover every contract of the instrument family, including expired ids missing from markets
         let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(data), None).into_list();
-        let mut sorted: Value = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_since_limit(sorted, since.as_i64(), limit.as_i64(), &[]);
+        let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
+        return self.filter_by_since_limit(&sorted, since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -12467,7 +12466,7 @@ impl Okx {
             marketType = Value::Str("option".into());
         }
         if (marketType.as_str() != Some("option")) && (marketType.as_str() != Some("swap")) && (marketType.as_str() != Some("future")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchUnderlyingAssets() supports contract markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchUnderlyingAssets() supports contract markets only")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -12574,7 +12573,7 @@ impl Okx {
             }
         }
         }
-        panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchGreeks() could not find greeks for ".into())).into()), symbol)));
+        panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchGreeks() could not find greeks for ").into()), symbol)));
         Value::Null
         }).await?))
     }
@@ -12620,7 +12619,7 @@ impl Okx {
                 request.insert("instFamily".into(), instFamily.clone().map(Value::from).unwrap_or(Value::Null));
             }
             if (uly.is_none()) && (instFamily.is_none()) {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchAllGreeks() requires either a uly or instFamily parameter".into()))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchAllGreeks() requires either a uly or instFamily parameter")));
             }
         }
         let mut market: Option<crate::types::Market> = None;
@@ -12911,7 +12910,7 @@ impl Okx {
         let mut currency: crate::types::Currency = self.currency(code);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("uly".to_string(), Value::Str(format!("{}{}", crate::value::KeyRead::key_read(&&currency, "code"), Value::Str("-USD".into())).into()));
+                m.insert("uly".to_string(), Value::Str(format!("{}{}", crate::value::KeyRead::key_read(&&currency, "code"), "-USD").into()));
                 m.insert("instType".to_string(), Value::Str("OPTION".into()));
             m
         });
@@ -13492,7 +13491,7 @@ impl Okx {
         //
         let mut codeError: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         if (codeError.as_deref() != Some("0")) && (codeError.as_deref() != Some("2")) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
@@ -13546,7 +13545,7 @@ impl Okx {
         }
         let mut auto: bool = self.safe_bool_k(params.clone(), "auto", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory () requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMarginAdjustmentHistory () requires a type argument")));
         }
         let mut isAdd: bool = type_var.as_str() == Some("add");
         let mut subType: String = (if isAdd { "160".to_string() } else { "161".to_string() });
@@ -13554,7 +13553,7 @@ impl Okx {
             if isAdd {
                 subType = "162".to_string();
             }  else {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cannot fetch margin adjustments for type ".into())).into()), type_var)));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cannot fetch margin adjustments for type ").into()), type_var)));
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -13585,7 +13584,7 @@ impl Okx {
             let __ws_arg_101 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_account_bills_archive(&[__ws_arg_101]).await.into_opt_dict();
         }  else {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")));
         }
         //
         //    {
@@ -13766,7 +13765,7 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLongShortRatioHistory() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchLongShortRatioHistory() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({

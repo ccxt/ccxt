@@ -308,12 +308,12 @@ impl Independentreserve {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchTrades() has no websocket url")));
         }
         let mut baseId: String = self.safe_string_k(&market, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteId: String = self.safe_string_k(&market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::Str("?subscribe=ticker-".into())).into()), baseId).into()), Value::Str("-".into())).into()), quoteId);
-        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "?subscribe=ticker-").into()), baseId).into()), "-").into()), quoteId);
+        let mut messageHash: String = format!("{}{}", "trades:", symbolValue);
         let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await.into();
         return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -344,7 +344,7 @@ impl Independentreserve {
         let mut data: crate::value::Dict = message.get("Data").cloned().unwrap_or_default().into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "Pair", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -424,13 +424,12 @@ impl Independentreserve {
         let mut limitString: Option<String> = self.number_to_string(Value::from(limitResolved));
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook() has no websocket url")));
         }
         let mut baseId: String = self.safe_string_k(&market, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteId: String = self.safe_string_k(&market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/orderbook/".into())).into()), limitString.as_deref().unwrap_or("null")).into()),
-            Value::Str("?subscribe=".into())).into()), baseId).into()), Value::Str("-".into())).into()), quoteId);
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbolValue).into()), Value::Str(":".into())).into()), limitString.as_deref().unwrap_or("null"));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/orderbook/").into()), limitString.as_deref().unwrap_or("null")).into()), "?subscribe=").into()), baseId).into()), "-").into()), quoteId);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook:", symbolValue).into()), ":").into()), limitString.as_deref().unwrap_or("null"));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("receivedSnapshot".to_string(), Value::Bool(false));
@@ -482,9 +481,9 @@ impl Independentreserve {
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut orderBook: crate::value::Dict = message.get("Data").cloned().unwrap_or_default().into_dict();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()), Value::Str(":".into())).into()), depth).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook:", symbol).into()), ":").into()), depth).into());
         let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -545,7 +544,7 @@ impl Independentreserve {
             let mut calculatedChecksum: Value = self.crc32(&[Value::from(payload), Value::Bool(false)]);
             let mut responseChecksum: Value = self.safe_integer_k(&orderBook, "Crc32", &[]);
             if (calculatedChecksum.as_f64() != responseChecksum.as_f64()) {
-                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), self.orderbook_checksum_message(Value::from(symbol.as_str())))));
+                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(Value::from(symbol.as_str())))));
                 __ch.remove_subscription(&messageHash);
                 CacheStore::forget(&mut self.orderbooks, &symbol);
                 client.reject(error, &messageHash);
@@ -618,6 +617,6 @@ impl Independentreserve {
             self.dispatch_ws_handler(&handler, &[client, message.clone()]);
             return;
         }
-        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".into())).into()), json_stringify(&message))));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " received an unsupported message: ").into()), json_stringify(&message))));
 }
 }

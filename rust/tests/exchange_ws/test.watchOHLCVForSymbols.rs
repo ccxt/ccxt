@@ -35,7 +35,7 @@ pub async fn testWatchOHLCVForSymbols(mut exchange: Value, mut skippedProperties
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_ohlcv_for_symbols", vec![Value::from(vec![Value::from(vec![symbol.clone(), chosenTimeframeKey.clone()])]), since.clone(), limit.clone()]).await;
             if (response == Value::Null) {
-                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
+                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " watch returned undefined response").into()));
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -46,8 +46,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         now = Value::Int(exchange.milliseconds());
         if success && (response != Value::Null) {
-            let mut assertionMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()),
-                Value::Str(" ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), chosenTimeframeKey).into()), Value::Str(" | ".into())).into()), exchange.json(response.clone()));
+            let mut assertionMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), " ").into()),
+                symbol).into()), " ").into()), chosenTimeframeKey).into()), " | ").into()), exchange.json(response.clone()));
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
             assert!(ccxt::runtime::is_true(&((in_op(&response, &symbol)))));
             let mut symbolObj: Value = get_value(&response, &symbol);

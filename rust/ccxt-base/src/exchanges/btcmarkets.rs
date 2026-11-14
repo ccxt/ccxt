@@ -932,7 +932,7 @@ impl Btcmarkets {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut fees: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -941,9 +941,9 @@ impl Btcmarkets {
         let mut minAmount: Option<f64> = self.safe_number_k(market.clone(), "minOrderAmount", &[]).as_f64();
         let mut maxAmount: Option<f64> = self.safe_number_k(market.clone(), "maxOrderAmount", &[]).as_f64();
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut minPrice: Value = Value::Null;
+        let mut minPrice: Option<f64> = None;
         if (quote.as_deref() == Some("AUD")) {
-            minPrice = Value::from(pricePrecision);
+            minPrice = pricePrecision;
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -994,7 +994,7 @@ impl Btcmarkets {
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minPrice);
+        m.insert("min".to_string(), Value::from(minPrice));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1500,7 +1500,7 @@ impl Btcmarkets {
         }
         if priceIsRequired {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), type_var).into()), Value::Str("order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), type_var).into()), "order")));
             }  else {
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
             }
@@ -1508,7 +1508,7 @@ impl Btcmarkets {
         if triggerPriceIsRequired {
             let mut triggerPrice: Option<f64> = self.safe_number_k(params.clone(), "triggerPrice", &[]).as_f64();
             if (triggerPrice.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for a ".into())).into()), type_var).into()), Value::Str("order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter for a ").into()), type_var).into()), "order")));
             }  else {
                 request.insert("triggerPrice".into(), self.price_to_precision(symbol, Value::from(triggerPrice)));
             }
@@ -2009,7 +2009,7 @@ impl Btcmarkets {
             request.insert("toAddress".into(), address.clone());
         }
         if (tagWithdrawTag.is_some()) {
-            request.insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("?dt=".into())).into()), tagWithdrawTag.as_deref().unwrap_or("null")).into()));
+            request.insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, "?dt=").into()), tagWithdrawTag.as_deref().unwrap_or("null")).into()));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: crate::value::Dict = self.private_post_withdrawals(&[__ws_arg_15]).await.into_dict();
@@ -2035,12 +2035,12 @@ impl Btcmarkets {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestHeaders: Option<crate::value::Dict> = None;
-        let mut requestBody: Value = Value::Null;
-        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut requestBody: Option<String> = None;
+        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.keysort(self.omit(params, self.extract_params(path), &[]), &[]);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), nonce);
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
@@ -2049,7 +2049,7 @@ impl Btcmarkets {
                 }
             }  else {
                 let mut jsonBody: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
-                requestBody = jsonBody.clone().map(Value::from).unwrap_or(Value::Null);
+                requestBody = jsonBody.clone();
                 auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, request).into()), nonce).into()), jsonBody.as_deref().unwrap_or("null"));
             }
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), &secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]);
@@ -2059,7 +2059,7 @@ impl Btcmarkets {
                     m.insert("Accept-Charset".to_string(), Value::Str("UTF-8".into()));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("BM-AUTH-APIKEY".to_string(), self.apiKey.clone());
-                    m.insert("BM-AUTH-TIMESTAMP".to_string(), nonce);
+                    m.insert("BM-AUTH-TIMESTAMP".to_string(), Value::from(nonce));
                     m.insert("BM-AUTH-SIGNATURE".to_string(), Value::from(signature));
                 m
             }));
@@ -2070,16 +2070,16 @@ impl Btcmarkets {
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), request);
         let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
-        let mut bodyResult: Value = requestBody;
+        let mut bodyResult: Option<String> = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult);
     m
 });
@@ -2098,7 +2098,7 @@ impl Btcmarkets {
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut message: Option<String> = self.safe_string_k(response, "message", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

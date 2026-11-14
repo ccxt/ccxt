@@ -714,7 +714,7 @@ impl Hollaex {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(&market, "name", &[]));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseCode.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quoteCode.as_deref().unwrap_or("null")).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseCode.as_deref().unwrap_or("null"), "/").into()), quoteCode.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), baseCode.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quoteCode.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -1525,7 +1525,7 @@ impl Hollaex {
             m
         });
         if (self.currencies_by_id.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " currencies not loaded")));
         }
         let mut currenciesById: Value = self.currencies_by_id.clone();
         let mut currencyIds: Vec<Value> = Value::Array(currenciesById.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
@@ -1536,8 +1536,8 @@ impl Hollaex {
             let mut currencyId: String = self.safe_string(&currencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.clone()), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".into())).into()), &[]));
-            account.insert("total".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_balance".into())).into()), &[]));
+            account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, "_available").into()), &[]));
+            account.insert("total".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, "_balance").into()), &[]));
             if (code.is_some()) {
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
@@ -1737,7 +1737,7 @@ impl Hollaex {
         //                 }
         //             }
         if (response == Value::Null) {
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".into())).into()), id)));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrder() could not find order id ").into()), id)));
         }
         return self.parse_order(response, None);
         Value::Null
@@ -2039,7 +2039,7 @@ impl Hollaex {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelAllOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2495,13 +2495,13 @@ impl Hollaex {
         let mut address: Option<String> = self.safe_string_k(transaction.clone(), "address", &[]).as_str().map(str::to_owned);
         let mut addressTo: Option<String> = None;
         let mut addressFrom: Option<String> = None;
-        let mut tag: Value = Value::Null;
-        let mut tagTo: Value = Value::Null;
+        let mut tag: Option<String> = None;
+        let mut tagTo: Option<String> = None;
         let mut tagFrom: Option<String> = None;
         if (address.is_some()) {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = address.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
             address = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-            tag = self.safe_string(&parts, Value::Int(1), &[]);
+            tag = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             addressTo = address.clone();
             tagTo = tag.clone();
         }
@@ -2544,8 +2544,8 @@ impl Hollaex {
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::from(tagFrom.as_deref()));
-        m.insert("tag".to_string(), tag);
-        m.insert("tagTo".to_string(), tagTo);
+        m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
+        m.insert("tagTo".to_string(), tagTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currencyResolved, "code"));
@@ -2595,11 +2595,11 @@ impl Hollaex {
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut addressWithTag: Value = address.clone();
         if (tagWithdrawTag.is_some()) {
-            addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), tagWithdrawTag.as_deref().unwrap_or("null")).into());
+            addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagWithdrawTag.as_deref().unwrap_or("null")).into());
         }
         let mut network: Option<String> = self.safe_string_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
         if (network.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw() requires a network parameter")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2692,7 +2692,7 @@ impl Hollaex {
                 let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut networkCode: Option<String> = self.network_id_to_code(&[key.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]);
                 if (networkCode.is_none()) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a networkCode argument".into()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a networkCode argument")));
                 }
                 let mut networkCodeUpper: Option<String> = networkCode.as_deref().map(str::to_uppercase); // default to the upper case network code
                 let mut withdrawalFee: Option<f64> = self.safe_number_k(&value, "value", &[]).as_f64();
@@ -2786,7 +2786,7 @@ impl Hollaex {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut requestPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path, params));
+        let mut requestPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path, params));
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 requestPath.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
@@ -2794,7 +2794,7 @@ impl Hollaex {
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath);
         let mut requestBody: Value = Value::Null;
@@ -2852,7 +2852,7 @@ impl Hollaex {
             //
             //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             //
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             let mut message: Option<String> = self.safe_string_k(response, "message", &[]).as_str().map(str::to_owned);
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             let mut status: Value = Value::Str(format!("{}", code).into());

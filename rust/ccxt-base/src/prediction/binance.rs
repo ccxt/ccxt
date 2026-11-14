@@ -1022,7 +1022,7 @@ impl Binance {
         let mut liquidity: Option<f64> = self.safe_number_k(rawMarket.clone(), "liquidity", &[]).as_f64();
         let mut rawOutcomes: crate::value::List = self.safe_list_k(rawMarket.clone(), "outcomes", &[Value::from(vec![])]).into_list();
         let mut outcomes: Vec<Value> = Vec::new();
-        let mut resolvedOutcomeRaw: Value = Value::Null;
+        let mut resolvedOutcomeRaw: Option<String> = None;
         let mut rawOutcomesLength: f64 = ((rawOutcomes.len() as i64) as f64);
         {
                         let mut oi: i64 = 0;
@@ -1031,7 +1031,7 @@ impl Binance {
             let mut rawOutcome: crate::value::Dict = self.safe_dict(&rawOutcomes, Value::Int(oi), &[]).into_dict();
             let mut label: Option<String> = self.safe_string_upper_k(&rawOutcome, "name", &[]).as_str().map(str::to_owned);
             let mut tokenId: Option<String> = self.safe_string_k(&rawOutcome, "tokenId", &[]).as_str().map(str::to_owned);
-            let mut outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), label.as_deref().unwrap_or("null"));
+            let mut outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol.as_deref().unwrap_or("null"), ":").into()), label.as_deref().unwrap_or("null"));
             let mut price: Option<String> = self.safe_string_k(&rawOutcome, "price", &[]).as_str().map(str::to_owned);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Option<i64> = None;
@@ -1039,7 +1039,7 @@ impl Binance {
                 winnerRaw = crate::precise::Precise::stringEq(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into()));
                 settleFractionRaw = (if (winnerRaw).as_bool() == Some(true) { Some(1) } else { Some(0) });
                 if winnerRaw.as_bool() == Some(true) {
-                    resolvedOutcomeRaw = Value::from(outcomeHandle.clone());
+                    resolvedOutcomeRaw = Some(outcomeHandle.clone());
                 }
             }
             let mut winner: Value = winnerRaw;
@@ -1080,7 +1080,7 @@ impl Binance {
             }));
         }
         }
-        let mut resolvedOutcome: Value = resolvedOutcomeRaw;
+        let mut resolvedOutcome: Option<String> = resolvedOutcomeRaw;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1103,7 +1103,7 @@ impl Binance {
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("resolved".to_string(), Value::Bool(resolved));
-        m.insert("resolvedOutcome".to_string(), resolvedOutcome);
+        m.insert("resolvedOutcome".to_string(), resolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -1291,7 +1291,7 @@ impl Binance {
     m
 }));
         if (outcomes == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")));
         }
         self.load_outcomes(&[outcomes.clone()]).await;
         let mut responsesByMarketId: indexmap::IndexMap<String, Value> = ({
@@ -1497,7 +1497,7 @@ impl Binance {
             if (outcomeName == Value::Null) {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
             }
-            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome.as_deref().unwrap_or("null")).into())).into());
+            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", ":", outcome.as_deref().unwrap_or("null")).into())).into());
             outcomeObjResolved = self.safe_outcome(outcomeName, None);
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -1955,7 +1955,7 @@ impl Binance {
             if (outcomeName == Value::Null) {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
             }
-            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome.as_deref().unwrap_or("null")).into())).into());
+            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", ":", outcome.as_deref().unwrap_or("null")).into())).into());
             outcomeObjResolved = self.safe_outcome(outcomeName, None);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "createdTime", &[]).as_i64();
@@ -2156,7 +2156,7 @@ impl Binance {
             if (outcomeName == Value::Null) {
                 outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
             }
-            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".into()), outcome.as_deref().unwrap_or("null")).into())).into());
+            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", ":", outcome.as_deref().unwrap_or("null")).into())).into());
             outcomeObjResolved = self.safe_outcome(outcomeName, None);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "createTime", &[]).as_i64();
@@ -2248,7 +2248,7 @@ impl Binance {
             }
         }
         }
-        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("fetchWallet could'n find wallet ".into())).into()), walletAddress)));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), "fetchWallet could'n find wallet ").into()), walletAddress)));
 
     Value::Null
 }
@@ -2368,7 +2368,7 @@ impl Binance {
         let mut defaultTif: String = "FOK".to_string();
         if (typeUpper == "LIMIT") {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("createOrder requires price for limit order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), "createOrder requires price for limit order")));
             }
             commonRequest.insert("priceLimit".into(), self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price.clone()));
             defaultTif = "GTC".to_string();
@@ -2383,7 +2383,7 @@ impl Binance {
                     feeRateBps = "0".to_string();
                 }  else {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires price for ".into())).into()), side).into()), Value::Str(" order".into()))));
+                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder requires price for ").into()), side).into()), " order")));
                     }
                 }
                 let mut feeRate: Option<String> = crate::precise::Precise::stringDiv(&Value::from(feeRateBps), &Value::Str("10000".into())).as_str().map(str::to_owned);
@@ -2395,7 +2395,7 @@ impl Binance {
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[Value::from(defaultTif)]).as_str().map(str::to_owned);
         let mut accountType: Option<String> = self.safe_string_k(params.clone(), "accountType", &[]).as_str().map(str::to_owned);
         if (accountType.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires accountType (SPOT, FUNDING)".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder requires accountType (SPOT, FUNDING)")));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("accountType".into()), Value::Str("cost".into())]), &[]);
         let __ws_arg_14 = self.amount_to_precision(marketSymbol.map(Value::from).unwrap_or(Value::Null), amountStr.map(Value::from).unwrap_or(Value::Null));
@@ -2553,7 +2553,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1226: bool = true;
             while { if !__for_first_1226 { i += 1; } __for_first_1226 = false; i < (ids.len() as i64) } {
-            let mut key: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("cancelInfoList[".into()), Value::from(self.number_to_string(Value::Int(i)))).into()), Value::Str("].orderId".into()));
+            let mut key: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("cancelInfoList[".into()), Value::from(self.number_to_string(Value::Int(i)))).into()), "].orderId");
             request.insert(key, ids.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -2585,10 +2585,10 @@ impl Binance {
                 let mut failedOrder: crate::value::Dict = self.safe_dict(&failedOrders, Value::Int(i), &[]).into_dict();
                 let mut failedOrderId: String = self.safe_string_k(&failedOrder, "orderId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut failedReason: String = self.safe_string_k(&failedOrder, "reason", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                failedDetails.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", failedOrderId, Value::Str(": ".into())).into()), failedReason).into()));
+                failedDetails.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", failedOrderId, ": ").into()), failedReason).into()));
             }
             }
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".into())).into()), Value::Str(failedDetails.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ").into()))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cancelOrders() failed for ").into()), Value::Str(failedDetails.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut orders: Vec<Value> = Vec::new();
         let mut canceledOrdersLength: f64 = ((canceledOrders.len() as i64) as f64);
@@ -2626,7 +2626,7 @@ impl Binance {
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) && crate::precise::Precise::stringLt(&errorCode.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
             let mut message: String = self.safe_string_k(response, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(message), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -2659,7 +2659,7 @@ impl Binance {
         let mut apiGroup: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.map(Value::from).unwrap_or(Value::Null), &[baseUrls.as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null)]);
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         self.check_required_credentials(&[]);
         let __ws_arg_19 = self.nonce();
@@ -2676,7 +2676,7 @@ impl Binance {
         querystring = querystring.as_str().map(|__s| Value::Str(__s.replace("%5B", "[").into())).unwrap_or_else(|| querystring.clone());
         querystring = querystring.as_str().map(|__s| Value::Str(__s.replace("%5D", "]").into())).unwrap_or_else(|| querystring.clone());
         let mut signature: String = self.hmac(self.encode(querystring.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-        querystring = Value::Str(format!("{}{}", Value::Str(format!("{}{}", querystring, Value::Str("&signature=".into())).into()), signature).into());
+        querystring = Value::Str(format!("{}{}", Value::Str(format!("{}{}", querystring, "&signature=").into()), signature).into());
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
@@ -2684,7 +2684,7 @@ impl Binance {
         });
         let mut bodyValue: Value = Value::Null;
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-            url = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), querystring);
+            url = format!("{}{}", Value::Str(format!("{}{}", url, "?").into()), querystring);
         }  else {
             bodyValue = querystring;
             headersValue.insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into()));

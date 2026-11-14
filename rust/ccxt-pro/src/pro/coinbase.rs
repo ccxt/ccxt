@@ -353,7 +353,7 @@ impl Coinbase {
         let mut productIds: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", name, "::").into()), symbol);
             productIds = Value::from(vec![self.safe_string_k(&market, "id", &[])]);
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -393,17 +393,17 @@ impl Coinbase {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if matches!(self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)]), Value::Bool(true)) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")));
         }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".into(), Value::Bool(true)); }
         let mut market: Option<crate::types::Market> = None;
         let mut watchMessageHash: Value = name.clone();
-        let mut unWatchMessageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), name);
+        let mut unWatchMessageHash: String = format!("{}{}", "unsubscribe:", name);
         let mut productIds: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            watchMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol).into());
-            unWatchMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbol);
+            watchMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "::").into()), symbol).into());
+            unWatchMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", name).into()), "::").into()), symbol);
             productIds = Value::from(vec![self.safe_string_k(&market, "id", &[])]);
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -470,7 +470,7 @@ impl Coinbase {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
             productIds.push(marketId.map(Value::from).unwrap_or(Value::Null));
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null")).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "::").into()), symbol.as_deref().unwrap_or("null")).into()));
         }
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -512,7 +512,7 @@ impl Coinbase {
     m
 }));
         if matches!(self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)]), Value::Bool(true)) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")));
         }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".into(), Value::Bool(true)); }
         if (self.markets.clone() == Value::Null) {
@@ -530,8 +530,8 @@ impl Coinbase {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
             productIds.push(marketId.map(Value::from).unwrap_or(Value::Null));
-            watchMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null")).into()));
-            if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null")).into())); };
+            watchMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "::").into()), symbol.as_deref().unwrap_or("null")).into()));
+            if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", name).into()), "::").into()), symbol.as_deref().unwrap_or("null")).into())); };
         }
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -580,7 +580,7 @@ impl Coinbase {
             subscribe.insert("signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
         }  else {
             if isCloudAPiKey && (self.apiKey.as_str().unwrap_or("").starts_with("-----BEGIN")) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")));
             }
             let mut currentToken: Option<String> = self.safe_string_k(self.options.clone(), "wsToken", &[]).as_str().map(str::to_owned);
             let mut tokenTimestamp: Option<i64> = self.parse_to_int(self.safe_integer_k(self.options.clone(), "wsTokenTimestamp", &[Value::Int(0)]));
@@ -852,7 +852,7 @@ impl Coinbase {
                 }
                 newTickers.push(Value::from(&result));
                 if (channel.is_some()) {
-                    let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str("::".into())).into()), symbol);
+                    let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), "::").into()), symbol);
                     client.resolve(Value::from(&result), messageHash.as_str());
                     self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::Dict(result));
                 }
@@ -939,7 +939,7 @@ impl Coinbase {
     m
 }));
         if (timeframe.as_str() != Some("5m")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() only supports the 5m timeframe".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchOHLCV() only supports the 5m timeframe")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1005,7 +1005,7 @@ impl Coinbase {
                     CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
                 }
                 stored.append(parsed);
-                let mut messageHash: String = format!("{}{}", Value::Str("candles::".into()), symbol.as_deref().unwrap_or("null"));
+                let mut messageHash: String = format!("{}{}", "candles::", symbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&stored), messageHash.as_str());
                 self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::from(&stored));
             }
@@ -1349,7 +1349,7 @@ impl Coinbase {
         let mut trade: crate::value::Dict = self.safe_dict(&trades, Value::Int(0), &[]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&trade, "product_id", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("market_trades::".into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "market_trades::", symbol.as_deref().unwrap_or("null"));
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesArray.is_none()) {
             let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1455,7 +1455,7 @@ impl Coinbase {
             while { if !__for_first_232 { i += 1; } __for_first_232 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<String> = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-            let mut messageHash: String = format!("{}{}", Value::Str("user::".into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", "user::", symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.orders), messageHash.as_str());
             self.try_resolve_usdc(client.clone(), Value::from(messageHash), Value::from(&self.orders));
         }
@@ -1584,7 +1584,7 @@ impl Coinbase {
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut messageHash: String = format!("{}{}", Value::Str("level2::".into()), symbol);
+            let mut messageHash: String = format!("{}{}", "level2::", symbol);
             let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1621,7 +1621,7 @@ impl Coinbase {
 
     pub fn try_resolve_usdc(&self, mut client: Value, mut messageHash: Value, mut result: Value) {
         if (messageHash.as_str().unwrap_or("").ends_with("/USD")) || (messageHash.as_str().unwrap_or("").ends_with("-USD")) {
-            client.resolve(result, &(Value::Str(format!("{}{}", messageHash, Value::Str("C".into())).into()))); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
+            client.resolve(result, &(Value::Str(format!("{}{}", messageHash, "C").into()))); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
 }
 

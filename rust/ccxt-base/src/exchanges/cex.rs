@@ -854,8 +854,8 @@ impl Cex {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut id: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("-".into())).into()), quote.as_deref().unwrap_or("null")); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut id: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "-").into()), quote.as_deref().unwrap_or("null")); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(id));
@@ -1293,7 +1293,7 @@ impl Cex {
         let mut dataType: Option<String> = dataTypeparamsDataTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDataType: crate::value::Dict = dataTypeparamsDataTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (dataType.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1319,9 +1319,9 @@ impl Cex {
             request.insert("toISO".into(), self.iso8601(Value::Int(self.milliseconds())));
         }
         if (since != Value::Null) && (until.is_some()) && (limit != Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV does not support fetching candles with both a limit and since/until".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOHLCV does not support fetching candles with both a limit and since/until")));
         }  else if ((since != Value::Null) || (until.is_some())) && (limit == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a limit parameter when fetching candles with since or until".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOHLCV requires a limit parameter when fetching candles with since or until")));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -1430,10 +1430,10 @@ impl Cex {
                         let mut i: i64 = 0;
             let mut __for_first_529: bool = true;
             while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-            if !(matches!(&symbol, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
-                let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), Some(&market)));
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if !(matches!(symbol.as_deref(), Some(__k) if result.contains_key(__k))) {
+                let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(response.clone(), Some(&market)));
             }
         }
         }
@@ -1925,7 +1925,7 @@ impl Cex {
         let mut currency2: Option<String> = self.safe_string_k(order.clone(), "currency2", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = None;
         if (currency1.is_some()) && (currency2.is_some()) {
-            marketId = Some(format!("{}{}", Value::Str(format!("{}{}", currency1.as_deref().unwrap_or("null"), Value::Str("-".into())).into()), currency2.as_deref().unwrap_or("null")));
+            marketId = Some(format!("{}{}", Value::Str(format!("{}{}", currency1.as_deref().unwrap_or("null"), "-").into()), currency2.as_deref().unwrap_or("null")));
         }
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
@@ -2010,7 +2010,7 @@ impl Cex {
         let mut accountId: Option<String> = accountIdparamsAccountIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (accountId.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2666,7 +2666,7 @@ impl Cex {
         let mut accountId: Option<String> = accountIdparamsAccountIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (accountId.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2735,9 +2735,9 @@ impl Cex {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (apiName.as_deref() == Some("public")) {
             if (method.as_str() == Some("GET")) {
@@ -2802,18 +2802,18 @@ impl Cex {
         let mut responseFixed: Value = Value::Null;
         if (response == Value::Null) {
             if (body == Value::Null) {
-                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".into()))));
+                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " returned empty response")));
             }  else if (body.as_str().unwrap_or("").starts_with("{")) {
                 let mut fixed: Option<String> = self.fix_stringified_json_members(body.clone()).as_str().map(str::to_owned);
                 responseFixed = self.parse_json_value(fixed.map(Value::from).unwrap_or(Value::Null));
             }  else {
-                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" returned unparsed response: ".into())).into()), body)));
+                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " returned unparsed response: ").into()), body)));
             }
         }
         let mut responseParsed: Value = (if (response == Value::Null) { responseFixed } else { response });
         let mut error: Option<String> = self.safe_string_k(responseParsed.clone(), "error", &[]).as_str().map(str::to_owned);
         if (error.is_some()) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -2827,7 +2827,7 @@ impl Cex {
             let mut rejectReason: Option<String> = self.safe_string_k(&data, "rejectReason", &[]).as_str().map(str::to_owned);
             if (rejectReason.is_some()) {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), rejectReason.clone().map(Value::from).unwrap_or(Value::Null), rejectReason.clone().map(Value::from).unwrap_or(Value::Null));
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() ".into())).into()), rejectReason.as_deref().unwrap_or("null"))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() ").into()), rejectReason.as_deref().unwrap_or("null"))));
             }
         }
         return Value::Null;

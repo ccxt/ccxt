@@ -1442,7 +1442,7 @@ impl Modetrade {
         if (base.is_none()) || (quote.is_none()) || (settle.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(marketId));
@@ -3008,10 +3008,10 @@ impl Modetrade {
     m
 }));
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a side argument")));
         }
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a type argument")));
         }
         /*
          * @method
@@ -3030,7 +3030,7 @@ impl Modetrade {
         let mut orderType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a side argument")));
         }
         let mut orderSide: Option<String> = side.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3240,7 +3240,7 @@ impl Modetrade {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             if (marketId.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a symbol for each order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrders() requires a symbol for each order")));
             }
             let mut type_var: String = self.safe_string_k(&rawOrder, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut side: Option<String> = self.safe_string_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
@@ -3256,7 +3256,7 @@ impl Modetrade {
             let mut childOrders: Option<crate::value::List> = self.safe_list_k(&orderParams, "childOrders", &[]).into_opt_list();
             let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss.is_some()) || (takeProfit.is_some()) || (childOrders.is_some());
             if isConditional {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrders() only support non-stop order")));
             }
             let mut orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), Some(type_var.as_str()), side.as_deref(), amount, &[price, Value::Dict(orderParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
@@ -3441,7 +3441,7 @@ impl Modetrade {
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
         if (!trigger) && (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4599,7 +4599,7 @@ impl Modetrade {
         self.check_address(&[address.clone()]);
         let mut codeUpper: String = code.as_str().unwrap_or_default().to_string().to_uppercase();
         if (codeUpper != "USDC") {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " withdraw() only support USDC")));
         }
         let mut currency: crate::types::Currency = self.currency(Value::from(codeUpper.clone()));
         let mut verifyingContractAddress: Option<String> = self.safe_string_k(self.options.clone(), "verifyingContractAddress", &[]).as_str().map(str::to_owned);
@@ -4617,7 +4617,7 @@ impl Modetrade {
 })]) });
         let mut coinNetworkId: Option<f64> = self.safe_number_k(coinNetwork, "id", &[]).as_f64();
         if (coinNetworkId.is_none()) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require chainId parameter".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " withdraw() require chainId parameter")));
         }
         let mut withdrawNonce: Value = self.get_withdraw_nonce(&[params.clone()]).await;
         let mut nonce: i64 = self.nonce().as_i64().unwrap_or_default();
@@ -4816,7 +4816,7 @@ impl Modetrade {
         let mut isMinLeverage: bool = leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64);
         let mut isMaxLeverage: bool = leverage.as_f64().unwrap_or(f64::NAN) > ((50i64) as f64);
         if isMinLeverage || isMaxLeverage {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 50".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " leverage should be between 1 and 50")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4928,7 +4928,7 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchPosition() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5065,9 +5065,9 @@ impl Modetrade {
         let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into());
         let mut paramsSorted: Value = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]);
         if (access.as_deref() == Some("public")) {
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
@@ -5114,7 +5114,7 @@ impl Modetrade {
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
             let mut apiKey: Value = self.apiKey.clone();
             if !self.apiKey.as_str().unwrap_or("").contains("ed25519:") {
-                apiKey = Value::Str(format!("{}{}", Value::Str("ed25519:".into()), self.apiKey.clone()).into());
+                apiKey = Value::Str(format!("{}{}", "ed25519:", self.apiKey.clone()).into());
             }
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -5123,7 +5123,7 @@ impl Modetrade {
                     m.insert("orderly-timestamp".to_string(), ts.clone());
                 m
             });
-            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), Value::Str("/".into())).into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into()), pathWithParams).into());
+            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), pathWithParams).into());
             let mut signedBody: Value = Value::Null;
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 signedBody = json_stringify(&paramsSigned);
@@ -5176,7 +5176,7 @@ impl Modetrade {
         let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         if !success {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

@@ -319,7 +319,7 @@ impl Upbit {
             while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut marketId: String = self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut symbol: String = self.safe_string(&symbolsNormalized, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol).into());
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), symbol).into());
             std::sync::Arc::make_mut(&mut messageHashes).push(messageHash.clone());
             if !(matches!((&subscriptions, &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 add_element_to_object(&mut subscriptions, &messageHash, Value::Map({
@@ -533,9 +533,9 @@ impl Upbit {
     m
 }));
         if (timeframe.as_str() != Some("1s")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support".into())).into()), timeframe).into()), Value::Str(" candle.".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOHLCV does not support").into()), timeframe).into()), " candle.")));
         }
-        let mut timeFrameOHLCV: String = format!("{}{}", Value::Str("candle.".into()), timeframe);
+        let mut timeFrameOHLCV: String = format!("{}{}", "candle.", timeframe);
         return self.watch_public_multiple(Value::from(vec![symbol]), Some(timeFrameOHLCV.as_str()), &[]).await;
         Value::Null
         }).await?))
@@ -583,7 +583,7 @@ impl Upbit {
         if (symbol != Value::Null) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "ticker:", symbol);
         client.resolve(Value::Dict(ticker), messageHash.as_str());
 }
 
@@ -656,7 +656,7 @@ impl Upbit {
             m
         }), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -687,7 +687,7 @@ impl Upbit {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         stored.append(Value::Dict(trade));
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "trade:", symbol);
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -710,7 +710,7 @@ impl Upbit {
         //   }
         let mut marketId: Option<String> = (match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("candle.1s:".into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "candle.1s:", symbol.as_deref().unwrap_or("null"));
         let mut ohlcv: crate::value::List = self.parse_ohlcv(message, None).into_list();
         client.resolve(Value::Arr(ohlcv), messageHash.as_str());
 }
@@ -739,7 +739,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
         m.insert("headers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into()));
+        m.insert("authorization".to_string(), Value::Str(format!("{}{}", "Bearer ", token).into()));
     m
 }));
     m
@@ -769,8 +769,8 @@ impl Upbit {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             request.insert("codes".into(), self.market_ids(&[Value::from(vec![Value::from(symbolResolved.clone())])]));
-            messageHashResolved = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved);
-            channelKey = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbolResolved).into());
+            messageHashResolved = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbolResolved);
+            channelKey = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), symbolResolved).into());
         }
         let mut url: String = format!("{}{}", self.implode_params(self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1137,7 +1137,7 @@ impl Upbit {
         cachedOrders.append(Value::from(&parsed));
         let mut messageHash: String = "myOrder".to_string();
         client.resolve(Value::from(&self.orders), messageHash.as_str());
-        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())])).into())));
+        client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())])).into())));
 }
 
 /*

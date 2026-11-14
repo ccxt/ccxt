@@ -439,8 +439,8 @@ impl Blofin {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(firstSymbol.as_deref(), limit.as_i64());
         }
-        let mut result: Value = self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
-        return self.sort_by(result, Value::Str("timestamp".into()), &[]);
+        let mut result: crate::value::List = self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]).into_list();
+        return self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]);
         Value::Null
         }).await?))
     }
@@ -535,7 +535,7 @@ impl Blofin {
             }
             stored.append(Value::Dict(trade));
             if (channelName.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), symbol);
                 client.resolve(Value::from(&stored), messageHash.as_str());
             }
         }
@@ -611,8 +611,8 @@ impl Blofin {
         let mut paramsChannel: crate::value::Dict = channelNameparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // due to some problem, temporarily disable other channels
         if (channelName.as_deref() != Some("books")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodName.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("() at this moment ".into())).into()),
-                channelName.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" is not supported, coming soon".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), callerMethodName.map(Value::from).unwrap_or(Value::Null)).into()), "() at this moment ").into()),
+                channelName.map(Value::from).unwrap_or(Value::Null)).into()), " is not supported, coming soon")));
         }
         let mut orderbook: Value = self.watch_multiple_wrapper(true, channelName.as_deref().unwrap_or_default(), callerMethodName.as_deref().unwrap_or_default(), &[symbols, Value::Dict(paramsChannel)]).await;
         return orderbook.limit();
@@ -665,7 +665,7 @@ impl Blofin {
         }
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         if (channelName.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
 }
@@ -720,7 +720,7 @@ impl Blofin {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires a list of symbols".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchTickers() requires a list of symbols")));
         }
         let mut ticker: Value = self.watch_multiple_wrapper(true, "tickers", "watchTickers", &[symbols.clone(), params]).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -770,7 +770,7 @@ impl Blofin {
             let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Dict(ticker)); }
             if (channelName.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), symbol);
                 client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
             }
         }
@@ -825,7 +825,7 @@ impl Blofin {
             let mut __for_first_166: bool = true;
             while { if !__for_first_166 { i += 1; } __for_first_166 = false; i < (symbolsList.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from((market).symbol.clone())).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "bidask:", Value::from((market).symbol.clone())).into()));
             args.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("channel".to_string(), Value::from(channel.clone()));
@@ -866,7 +866,7 @@ impl Blofin {
                 m
             })]), None).into_dict();
             let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
-            let mut messageHash: String = format!("{}{}", Value::Str("bidask:".into()), symbol);
+            let mut messageHash: String = format!("{}{}", "bidask:", symbol);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
             client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
@@ -956,7 +956,7 @@ impl Blofin {
 }));
         let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         if (symbolsLength == 0) || (self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[]) == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -969,8 +969,8 @@ impl Blofin {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = candles.get_limit(Some(symbol.as_str()), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
-        return self.create_ohlcv_object(Value::from(symbol), Value::from(timeframe), filtered);
+        let mut filtered: crate::value::List = self.filter_by_since_limit(candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        return self.create_ohlcv_object(Value::from(symbol), Value::from(timeframe), Value::Arr(filtered));
         Value::Null
         }).await?))
     }
@@ -1025,7 +1025,7 @@ impl Blofin {
 }));
         let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")));
         }
         return self.unsubscribe_multiple_wrapper("candle", "unWatchOHLCVForSymbols", symbolsAndTimeframes, &[params]).await;
         Value::Null
@@ -1073,7 +1073,7 @@ impl Blofin {
         }
         }
         let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candle".into()), interval).into()), Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candle", interval).into()), ":").into()), symbol);
         client.resolve(resolveData, messageHash.as_str());
 }
 
@@ -1103,9 +1103,9 @@ impl Blofin {
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() is not supported for spot markets yet".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchBalance() is not supported for spot markets yet")));
         }
-        let mut messageHash: String = format!("{}{}", marketType, Value::Str(":balance".into()));
+        let mut messageHash: String = format!("{}{}", marketType, ":balance");
         let mut sub: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("account".into()));
@@ -1163,7 +1163,7 @@ impl Blofin {
         }
         }
         { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(marketType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
-        let mut messageHash: String = format!("{}{}", marketType, Value::Str(":balance".into()));
+        let mut messageHash: String = format!("{}{}", marketType, ":balance");
         client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(marketType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
@@ -1284,7 +1284,7 @@ impl Blofin {
             })]), None).into_dict();
             orders.append(Value::from(&order));
             if (channelName.is_some()) {
-                client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())])).into())));
+                client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())])).into())));
             }
             client.resolve(Value::from(&orders), channelName.as_deref());
         }
@@ -1365,7 +1365,7 @@ impl Blofin {
             newPositions.push(Value::from(&position));
             cache.append(Value::from(&position));
             if (channelName.is_some()) {
-                client.resolve(Value::from(&position), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
+                client.resolve(Value::from(&position), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
             }
         }
         }
@@ -1404,7 +1404,7 @@ impl Blofin {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchFundingRate".into()), Some(&market), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", "fundingRate:", Value::from((market).symbol.clone()));
         let mut requestParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("funding-rate".into()));
@@ -1449,7 +1449,7 @@ impl Blofin {
         let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(first), None).into_dict();
         let mut symbol: Value = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
-        let mut messageHash: String = format!("{}{}", Value::Str("fundingRate:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "fundingRate:", symbol);
         client.resolve(Value::Dict(fundingRate), messageHash.as_str());
 }
 
@@ -1482,8 +1482,7 @@ impl Blofin {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() != Some("swap")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodNameOption).into()), Value::Str("() does not support ".into())).into()),
-                marketType.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets yet".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), callerMethodNameOption).into()), "() does not support ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets yet")));
         }
         let mut rawSubscriptions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1510,7 +1509,7 @@ impl Blofin {
                     m
                 });
                 std::sync::Arc::make_mut(&mut rawSubscriptions).push(Value::Map(topic));
-                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()));
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()));
             }
             }
         }  else {
@@ -1571,7 +1570,7 @@ impl Blofin {
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_str() != Some("swap")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodNameOption).into()), Value::Str("() does not support ".into())).into()), marketType).into()), Value::Str(" markets yet".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), callerMethodNameOption).into()), "() does not support ").into()), marketType).into()), " markets yet")));
         }
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1594,7 +1593,7 @@ impl Blofin {
                 m
             });
             topics.push(Value::Map(topic));
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone())).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", channel).into()), ":").into()), Value::from((market).symbol.clone())).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1627,7 +1626,7 @@ impl Blofin {
         let mut marketId: Option<String> = self.safe_string_k(&arg, "instId", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), symbol.as_deref().unwrap_or("null"));
         if (channel == "trades") {
             self.clean_cache(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1635,7 +1634,7 @@ impl Blofin {
                     m.insert("symbols".to_string(), Value::from(vec![Value::from(symbol.as_deref())]));
                 m
             }));
-            self.clean_unsubscription(client.clone(), Value::from(subMessageHash.clone()), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
+            self.clean_unsubscription(client.clone(), Value::from(subMessageHash.clone()), Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into()), &[]);
         }  else if (channel.starts_with("candle")) {
             let mut timeframe: Option<String> = self.find_timeframe(Value::from(channel.replace("candle", "")), &[]);
             if (timeframe.is_some()) {
@@ -1646,7 +1645,7 @@ impl Blofin {
                     m
                 }));
             }
-            self.clean_unsubscription(client, Value::from(subMessageHash.clone()), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
+            self.clean_unsubscription(client, Value::from(subMessageHash.clone()), Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into()), &[]);
         }
 }
 
@@ -1709,7 +1708,7 @@ impl Blofin {
             future.resolve(Value::Bool(true), None);
             return;
         }  else if (event.as_deref() == Some("error")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" error: ".into())).into()), json_stringify(&message))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " error: ").into()), json_stringify(&message))));
         }
         let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
         let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
@@ -1731,8 +1730,8 @@ impl Blofin {
         let mut milliseconds: i64 = self.milliseconds();
         let mut messageHash: String = "authenticate_hash".to_string();
         let mut timestamp: String = format!("{}", milliseconds);
-        let mut nonce: String = format!("{}{}", Value::Str("n_".into()), timestamp);
-        let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/users/self/verify".into()), Value::Str("GET".into())).into()), timestamp).into()), Value::Str("".into())).into()), nonce);
+        let mut nonce: String = format!("{}{}", "n_", timestamp);
+        let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/users/self/verify", "GET").into()), timestamp).into()), "").into()), nonce);
         let mut signature: String = self.string_to_base64(Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

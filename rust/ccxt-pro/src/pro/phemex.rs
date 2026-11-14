@@ -605,7 +605,7 @@ impl Phemex {
             while { if !__for_first_621 { i += 1; } __for_first_621 = false; i < (tickers.len() as i64) } {
             let mut ticker: Value = tickers.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: String = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
+            let mut messageHash: String = format!("{}{}", "ticker:", symbol);
             let mut timestamp: Option<i64> = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
             add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), Value::from(timestamp));
             add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(Value::from(timestamp)));
@@ -645,7 +645,7 @@ impl Phemex {
         let mut usePerpetualApi: bool = self.safe_string_k(&paramsMarketType, "settle", &[]).as_str() == Some("USDT");
         let mut messageHash: String = "perpetual:balance".to_string();
         if !usePerpetualApi {
-            messageHash = format!("{}{}", type_var, Value::Str(":balance".into()));
+            messageHash = format!("{}{}", type_var, ":balance");
         }
         return self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsMarketType)]).await;
         Value::Null
@@ -732,7 +732,7 @@ impl Phemex {
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         }
         }
-        let mut messageHash: String = format!("{}{}", type_var, Value::Str(":balance".into()));
+        let mut messageHash: String = format!("{}{}", type_var, ":balance");
         client.resolve(self.balance.clone(), messageHash.as_str());
 }
 
@@ -767,7 +767,7 @@ impl Phemex {
         let mut marketId: Option<String> = self.safe_string_k(message.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), symbol.as_deref().unwrap_or("null"));
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -826,7 +826,7 @@ impl Phemex {
         let mut interval: Option<String> = self.safe_string(&first, Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         if (timeframe.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
             let mut ohlcvs: Vec<Value> = self.parse_ohlc_vs(&candles, Some(&market), &[]).as_array().cloned().unwrap_or_default();
             CacheShelves::ensure(&mut self.ohlcvs, &symbol);
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
@@ -877,13 +877,13 @@ impl Phemex {
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
         let mut name: String = "spot_market24h".to_string();
-        if (isSwap) {
+        if (isSwap == true) {
             name = (if settleIsUSDT { "perp_market24h_pack_p".to_string() } else { "market24h".to_string() });
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
-        let mut subscriptionHash: String = format!("{}{}", name, Value::Str(".subscribe".into()));
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
+        let mut subscriptionHash: String = format!("{}{}", name, ".subscribe");
+        let mut messageHash: String = format!("{}{}", "ticker:", symbolValue);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(subscriptionHash.clone()));
@@ -929,18 +929,18 @@ impl Phemex {
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
         let mut name: String = "spot_market24h".to_string();
-        if (isSwap) {
+        if (isSwap == true) {
             name = (if settleIsUSDT { "perp_market24h_pack_p".to_string() } else { "market24h".to_string() });
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
-        let mut subscriptionHash: String = format!("{}{}", name, Value::Str(".subscribe".into()));
+        let mut subscriptionHash: String = format!("{}{}", name, ".subscribe");
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_625: bool = true;
             while { if !__for_first_625 { i += 1; } __for_first_625 = false; i < (symbolsNormalized.len() as i64) } {
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "ticker:", symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
         }
         }
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -1003,13 +1003,13 @@ impl Phemex {
         let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
-        let mut isUsdtSwap: bool = (isSwap) && settleIsUSDT;
+        let mut isUsdtSwap: bool = (isSwap == true) && settleIsUSDT;
         let mut name: String = "trade".to_string();
         if isUsdtSwap {
             name = "trade_p".to_string();
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
-        let mut method: String = format!("{}{}", name, Value::Str(".subscribe".into()));
+        let mut messageHash: String = format!("{}{}", "trade:", symbolValue);
+        let mut method: String = format!("{}{}", name, ".subscribe");
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
@@ -1062,13 +1062,13 @@ impl Phemex {
         let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
-        let mut isUsdtSwap: bool = (isSwap) && settleIsUSDT;
+        let mut isUsdtSwap: bool = (isSwap == true) && settleIsUSDT;
         let mut name: String = "orderbook".to_string();
         if isUsdtSwap {
             name = "orderbook_p".to_string();
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
-        let mut method: String = format!("{}{}", name, Value::Str(".subscribe".into()));
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbolValue);
+        let mut method: String = format!("{}{}", name, ".subscribe");
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
@@ -1120,13 +1120,13 @@ impl Phemex {
         let mut requestId: i64 = self.request_id();
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
-        let mut isUsdtSwap: bool = (isSwap) && settleIsUSDT;
+        let mut isUsdtSwap: bool = (isSwap == true) && settleIsUSDT;
         let mut name: String = "kline".to_string();
         if isUsdtSwap {
             name = "kline_p".to_string();
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue);
-        let mut method: String = format!("{}{}", name, Value::Str(".subscribe".into()));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe).into()), ":").into()), symbolValue);
+        let mut method: String = format!("{}{}", name, ".subscribe");
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(method));
@@ -1152,7 +1152,7 @@ impl Phemex {
 }));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), method);
@@ -1210,7 +1210,7 @@ impl Phemex {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_str())]));
             m
         });
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str("trade:".into()), symbolValue).into()), Value::from(vec![Value::from((market).id.as_deref())]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", "trade:", symbolValue).into()), Value::from(vec![Value::from((market).id.as_deref())]), Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1255,7 +1255,7 @@ impl Phemex {
         });
         // phemex drops only the given interval when it is sent along with the symbol
         let mut marketParams: Value = Value::from(vec![Value::from((market).id.as_deref()), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[])]);
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into()), marketParams, Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe).into()), ":").into()), symbolValue).into()), marketParams, Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1287,7 +1287,7 @@ impl Phemex {
                 if (error.is_some()) {
                     // the stream stays subscribed, so drop only the pending unsubscribe
                     __ch.remove_subscription(subscriptionHash.as_deref());
-                    client.reject(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&error))), subscriptionHash.as_deref());
+                    client.reject(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&error))), subscriptionHash.as_deref());
                     return;
                 }
                 self.clean_unsubscription(client.clone(), subMessageHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1370,7 +1370,7 @@ impl Phemex {
         let mut depth: Option<i64> = (match __pro_message.get("depth").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut name: String = "orderbook".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), symbol);
         let mut nonce: Option<i64> = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut timestamp: Option<i64> = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
@@ -1467,7 +1467,7 @@ impl Phemex {
             if (settle.as_deref() == Some("USDT")) {
                 messageHash = "trades:perpetual".to_string();
             }  else {
-                messageHash = format!("{}{}", Value::Str("trades:".into()), type_var);
+                messageHash = format!("{}{}", "trades:", type_var);
             }
         }
         let mut trades: Value = self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsType)]).await;
@@ -1616,12 +1616,12 @@ impl Phemex {
             let mut __for_first_629: bool = true;
             while { if !__for_first_629 { i += 1; } __for_first_629 = false; i < (keys.len() as i64) } {
             let mut market: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut hash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), market.as_deref().unwrap_or("null"));
+            let mut hash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), market.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&cachedTrades), hash.as_str());
         }
         }
         // generic subscription
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), type_var);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), type_var);
         client.resolve(Value::from(&cachedTrades), messageHash.as_str());
 }
 
@@ -1679,7 +1679,7 @@ impl Phemex {
             if isUSDTSettled {
                 messageHash = "orders:perpetual".to_string();
             }  else {
-                messageHash = format!("{}{}", Value::Str("orders:".into()), type_var);
+                messageHash = format!("{}{}", "orders:", type_var);
             }
         }
         let mut orders: Value = self.subscribe_private(type_var.as_str(), messageHash.as_str(), &[Value::Dict(paramsType)]).await;
@@ -1922,12 +1922,12 @@ impl Phemex {
                         let mut i: i64 = 0;
             let mut __for_first_633: bool = true;
             while { if !__for_first_633 { i += 1; } __for_first_633 = false; i < (keys.len() as i64) } {
-            let mut currentMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), keys.get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut currentMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orders", ":").into()), keys.get(i as usize).cloned().unwrap_or(Value::Null));
             client.resolve(Value::from(&self.orders), currentMessageHash.as_str());
         }
         }
         // resolve generic subscription (spot or swap)
-        let mut messageHash: String = format!("{}{}", Value::Str("orders:".into()), type_var);
+        let mut messageHash: String = format!("{}{}", "orders:", type_var);
         client.resolve(Value::from(&self.orders), messageHash.as_str());
 }
 
@@ -2274,7 +2274,7 @@ impl Phemex {
         if (status.as_deref() == Some("success")) {
             client.resolve(message.clone(), messageHash.as_str());
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
             client.reject(error, messageHash.as_str());
             if (__ch.has_subscription(messageHash.as_str())) {
                 __ch.remove_subscription(messageHash.as_str());

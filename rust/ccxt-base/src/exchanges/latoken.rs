@@ -811,7 +811,7 @@ impl Latoken {
     pub fn nonce(&self) -> Value {
         let mut timeDifference: Option<i64> = self.safe_integer_k(self.options.clone(), "timeDifference", &[]).as_i64();
         if (timeDifference.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" nonce() requires a numeric options[\"timeDifference\"]".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " nonce() requires a numeric options[\"timeDifference\"]")));
         }
         return Value::from((if let Some(__r) = timeDifference { Some((self.milliseconds()) - __r) } else { None }));
 
@@ -916,7 +916,7 @@ impl Latoken {
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("settle".to_string(), Value::Null);
@@ -966,8 +966,8 @@ impl Latoken {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", Value::Str("minOrderCost".into()), capitalizedQuote.as_deref().unwrap_or("null")).into()), &[]));
-        m.insert("max".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", Value::Str("maxOrderCost".into()), capitalizedQuote.as_deref().unwrap_or("null")).into()), &[]));
+        m.insert("min".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", "minOrderCost", capitalizedQuote.as_deref().unwrap_or("null")).into()), &[]));
+        m.insert("max".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", "maxOrderCost", capitalizedQuote.as_deref().unwrap_or("null")).into()), &[]));
     m
 }));
     m
@@ -1246,7 +1246,7 @@ impl Latoken {
             let mut timestamp: Option<i64> = self.safe_integer_k(&balance, "timestamp", &[]).as_i64();
             if (timestamp.is_some()) {
                 if (maxTimestamp.is_none()) || ((timestamp.is_some() && maxTimestamp.is_some() && timestamp > maxTimestamp)) {
-                    maxTimestamp = timestamp.clone();
+                    maxTimestamp = timestamp;
                 }
             }
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1395,7 +1395,7 @@ impl Latoken {
         let mut symbol: Value = Value::Null;
         let mut marketResolved: Value = crate::Value::from(market);
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into());
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             }
@@ -1556,7 +1556,7 @@ impl Latoken {
         let mut symbol: Value = Value::Null;
         let mut marketResolved: Value = crate::Value::from(market);
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into());
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             }
@@ -1671,7 +1671,7 @@ impl Latoken {
         }  else if (method.as_deref() == Some("fetchPublicTradingFee")) {
             return self.fetch_public_trading_fee(symbol.as_str().unwrap_or_default(), &[paramsOmitted]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" not support this method".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " not support this method")));
         }
         Value::Null
         }).await?))
@@ -1881,7 +1881,7 @@ impl Latoken {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Value = Value::Null;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into());
         }
         let mut symbolKnown: bool = (symbol != Value::Null) && (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())));
         let mut marketResolved: Value = crate::Value::from(market);
@@ -1967,7 +1967,7 @@ impl Latoken {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOpenOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2647,13 +2647,13 @@ impl Latoken {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
-        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut requestString: String = request.clone();
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut urlencodedQuery: String = self.urlencode(query.clone(), &[]);
         if (method.as_str() == Some("GET")) {
             if (urlencodedQuery != "") {
-                requestString.push_str(&format!("{}{}", Value::Str("?".into()), urlencodedQuery));
+                requestString.push_str(&format!("{}{}", "?", urlencodedQuery));
             }
         }
         if (apiName.as_deref() == Some("private")) {
@@ -2674,7 +2674,7 @@ impl Latoken {
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestString);
         return Value::Map({
@@ -2700,7 +2700,7 @@ impl Latoken {
         // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
         //
         let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
         if (message.is_some()) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

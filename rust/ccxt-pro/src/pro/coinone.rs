@@ -319,7 +319,7 @@ impl Coinone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", "orderbook:", Value::from((market).symbol.clone()));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -375,7 +375,7 @@ impl Coinone {
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
-        let mut symbol: Value = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into())));
+        let mut symbol: Value = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into())));
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
         if (orderbook.is_none()) {
@@ -390,7 +390,7 @@ impl Coinone {
         self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
@@ -424,7 +424,7 @@ impl Coinone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", "ticker:", Value::from((market).symbol.clone()));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -481,13 +481,13 @@ impl Coinone {
     m
 }) });
         let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(data, None).as_map().cloned().unwrap_or_default();
-        let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
-        if (symbol == Value::Null) {
+        let mut symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
+        if (symbol.is_none()) {
             return;
         }
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker)); }
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
-        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker)); }
+        let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
+        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
@@ -524,7 +524,7 @@ impl Coinone {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Value = Value::Null;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into())));
+            symbol = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into())));
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -582,7 +582,7 @@ impl Coinone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", "trade:", Value::from((market).symbol.clone()));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -635,7 +635,7 @@ impl Coinone {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         stored.append(Value::Dict(trade));
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "trade:", symbol);
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -658,7 +658,7 @@ impl Coinone {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut marketResolved: crate::types::Market = self.safe_market(symbol.map(Value::from).unwrap_or(Value::Null), market, &[]);

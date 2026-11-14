@@ -635,7 +635,7 @@ impl P2b {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -985,7 +985,7 @@ impl P2b {
         }
         let mut lastId: Option<i64> = self.safe_integer_k(params.clone(), "lastId", &[]).as_i64();
         if (lastId.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades () requires an extra parameter params[\"lastId\"]".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchTrades () requires an extra parameter params[\"lastId\"]")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1298,7 +1298,7 @@ impl P2b {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (type_var.as_str() == Some("market")) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder () can only accept orders with type \"limit\"".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder () can only accept orders with type \"limit\"")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1362,7 +1362,7 @@ impl P2b {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1432,7 +1432,7 @@ impl P2b {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders () requires the symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOpenOrders () requires the symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1584,7 +1584,7 @@ impl P2b {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1597,7 +1597,7 @@ impl P2b {
             until = self.parse_to_int(Value::from(untilParam));
             if (since != Value::Null) {
                 if ((match (&(Value::from(untilParam)), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours".into()))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")));
                 }
                 sinceResolved = self.parse_to_int(since.clone());
             }  else {
@@ -1705,7 +1705,7 @@ impl P2b {
             until = self.parse_to_int(Value::from(untilParam));
             if (since != Value::Null) {
                 if ((match (&(Value::from(untilParam)), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours".into()))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")));
                 }
                 sinceResolved = self.parse_to_int(since.clone());
             }  else {
@@ -1870,10 +1870,10 @@ impl P2b {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut baseUrl: Option<String> = baseApiUrl;
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (method.as_str() == Some("GET")) {
             if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -1886,7 +1886,7 @@ impl P2b {
             let __ws_arg_10 = self.incrementing_nonce();
             paramsOmitted = self.extend(paramsOmitted, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("request".to_string(), Value::Str(format!("{}{}", Value::Str("/api/v2/".into()), path).into()));
+                    m.insert("request".to_string(), Value::Str(format!("{}{}", "/api/v2/", path).into()));
                     m.insert("nonce".to_string(), Value::Str(format!("{}", Value::Int(__ws_arg_10)).into()));
                 m
             })]);
@@ -1933,7 +1933,7 @@ impl P2b {
         let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if !success {
             let mut errorCode: Option<String> = self.safe_string_k(response, "errorCode", &[]).as_str().map(str::to_owned);
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             let mut codeAsString: Value = Value::Str(format!("{}", code).into());
             let mut statusCode: Option<i64> = self.parse_to_int(code);

@@ -219,7 +219,7 @@ fn helperTestProperties() {
     // common props
     //
     // @SKIP_START_GO
-    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("id".into())).as_str() == Value::Str(format!("{}{}", Value::Str("Exch".into()), Value::Str("ange".into())).into()).as_str()))));
+    assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("id".into())).as_str() == Value::Str(format!("{}{}", "Exch", "ange").into()).as_str()))));
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("has".into())) != Value::Null))));
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("api".into())) == Value::Null))));
     assert!(ccxt::runtime::is_true(&((exchange.prop(&&Value::Str("features".into())) == Value::Null))));

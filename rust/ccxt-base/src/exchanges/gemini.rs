@@ -1300,7 +1300,7 @@ impl Gemini {
     m
 }));
         let mut data: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webGetRestApi".into()), Value::Bool(false), &[Value::Str("<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>".into())]).await;
-        let mut error: String = format!("{}{}", self.id.clone(), Value::Str(" fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.".into()));
+        let mut error: String = format!("{}{}", self.id.clone(), " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
         let mut tables: Value = split(&data, &Value::Str("tbody>".into()));
         let mut numTables: Value = tables.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64));
         if numTables.as_f64().unwrap_or(f64::NAN) < ((2i64) as f64) {
@@ -1359,7 +1359,7 @@ impl Gemini {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), marketId);
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -1552,7 +1552,7 @@ impl Gemini {
                     while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut pairInfo: Option<crate::value::List> = self.safe_list(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), &[]).into_opt_list();
-                    if (pairInfo.is_some()) && !self.in_array(marketId.map(Value::from).unwrap_or(Value::Null), Value::from(&brokenPairs)) {
+                    if (pairInfo.is_some()) && !self.in_array(&marketId, Value::from(&brokenPairs)) {
                         let mut parsed: Value = self.parse_market(pairInfo.map_or(Value::Null, Value::Arr));
                         if (parsed != Value::Null) {
                             result.push(parsed.clone());
@@ -1623,7 +1623,7 @@ impl Gemini {
         let mut minSize: Option<f64> = None;
         let mut status: Value = Value::Null;
         let mut swap: bool = false;
-        let mut contractSize: Value = Value::Null;
+        let mut contractSize: Option<f64> = None;
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
         let mut isString: bool = matches!(&response, Value::Str(_));
@@ -1692,11 +1692,11 @@ impl Gemini {
             return Value::Null;
         }
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone(), None);
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         if (settle.is_some()) {
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             swap = true;
-            contractSize = Value::from(tickSize); // always same
+            contractSize = tickSize; // always same
             linear = Some(true); // always linear
             inverse = Some(false);
         }
@@ -1725,7 +1725,7 @@ impl Gemini {
         m.insert("contract".to_string(), Value::Bool(swap));
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -1980,7 +1980,7 @@ impl Gemini {
             base = self.safe_currency_code(baseId.clone(), None);
             quote = self.safe_currency_code(quoteId.clone(), None);
             if (base.is_some()) && (quote.is_some()) {
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into());
             }
         }
         if (symbol == Value::Null) && (true) {
@@ -2621,7 +2621,7 @@ impl Gemini {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (type_var.as_str() != Some("limit")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() allows limit orders only")));
         }
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
@@ -2650,7 +2650,7 @@ impl Gemini {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), self.array_concat(omitKeys, optionKeys), &[]).into_dict();
         if (typeValue.as_deref() == Some("stopLimit")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter or a stop_price parameter for ".into())).into()), typeValue.as_deref().unwrap_or("null")).into()), Value::Str(" orders".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter or a stop_price parameter for ").into()), typeValue.as_deref().unwrap_or("null")).into()), " orders")));
         }
         if (triggerPrice.is_some()) {
             request.insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
@@ -2746,7 +2746,7 @@ impl Gemini {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2837,7 +2837,7 @@ impl Gemini {
         //
         let mut result: Option<String> = self.safe_string_k(&response, "result", &[]).as_str().map(str::to_owned);
         if (result.as_deref() == Some("error")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() failed: ".into())).into()), json_stringify(&response))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() failed: ").into()), json_stringify(&response))));
         }
         return self.parse_transaction(&response, Some(&currency));
         Value::Null
@@ -3059,7 +3059,7 @@ impl Gemini {
         let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() requires a network parameter".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDepositAddresses() requires a network parameter")));
         }
         let mut networkId: Option<String> = self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_string_k(&currency, "code", &[])]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3096,7 +3096,7 @@ impl Gemini {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             if !self.apiKey.as_str().unwrap_or("").contains("account") {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" sign() requires an account-key, master-keys are not-supported".into()))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " sign() requires an account-key, master-keys are not-supported")));
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
             let mut nonceValue: i64 = self.incrementing_nonce();
@@ -3126,7 +3126,7 @@ impl Gemini {
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut fullUrl: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), url);
         let mut bodyResolved: Option<String> = None;
@@ -3148,7 +3148,7 @@ impl Gemini {
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
             if matches!(&body, Value::Str(_)) {
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback));
             }
             return Value::Null;
@@ -3164,7 +3164,7 @@ impl Gemini {
         if (result.as_deref() == Some("error")) {
             let mut reasonInner: Option<String> = self.safe_string_k(response.clone(), "reason", &[]).as_str().map(str::to_owned);
             let mut message: Option<String> = self.safe_string_k(response, "message", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message.as_deref().unwrap_or("null")).into());
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), reasonInner.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());

@@ -486,7 +486,7 @@ impl Btcbox {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".into())).into()), quote);
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", baseCurr, "/").into()), quote);
             let mut fee: Option<f64> = (if (id == "BTC") { Some(0.0005_f64) } else { Some(0.0010_f64) });
             let mut details: crate::value::Dict = self.safe_dict(&result2Data, Value::from(id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -578,7 +578,7 @@ impl Btcbox {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
@@ -662,10 +662,10 @@ impl Btcbox {
             let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut free: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_balance".into())).into());
+            let mut free: Value = Value::Str(format!("{}{}", currencyId, "_balance").into());
             if (matches!((&response, &free), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-                let mut used: String = format!("{}{}", currencyId, Value::Str("_lock".into()));
+                let mut used: String = format!("{}{}", currencyId, "_lock");
                 account.insert("free".into(), self.safe_string(response.clone(), free, &[]));
                 account.insert("used".into(), self.safe_string(response.clone(), Value::from(used), &[]));
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
@@ -1051,7 +1051,7 @@ impl Btcbox {
         let mut datetimeString: Option<String> = self.safe_string_k(order.clone(), "datetime", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = None;
         if (datetimeString.is_some()) {
-            timestamp = self.parse8601(Value::Str(format!("{}{}", datetimeString.as_deref().unwrap_or("null"), Value::Str("+09:00".into())).into())); // Tokyo time
+            timestamp = self.parse8601(Value::Str(format!("{}{}", datetimeString.as_deref().unwrap_or("null"), "+09:00").into())); // Tokyo time
         }
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount_original", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "amount_outstanding", &[]).as_str().map(str::to_owned);
@@ -1262,12 +1262,12 @@ impl Btcbox {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), path);
         if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), self.urlencode(params.clone(), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), path).into()), "?").into()), self.urlencode(params.clone(), &[]));
             }
         }  else if (apiName.as_deref() == Some("webApi")) {
             url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(self.urls.clone(), "www", &[Value::Str("".into())]), Value::Str("/".into())).into()), path);
@@ -1323,7 +1323,7 @@ impl Btcbox {
             return Value::Null;
         }
         let mut codeError: Option<String> = self.safe_string_k(response, "code", &[]).as_str().map(str::to_owned);
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
         self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
@@ -1346,7 +1346,7 @@ impl Btcbox {
             // sometimes the exchange returns whitespace prepended to json
             let mut strippedResponse: Value = self.strip(response.clone(), &[]);
             if !self.is_json_encoded_object(&[strippedResponse.clone()]) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), strippedResponse)));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), strippedResponse)));
             }
             response = json_parse(&strippedResponse);
         }

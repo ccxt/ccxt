@@ -904,13 +904,13 @@ impl Onetrading {
         let mut expiry: Option<i64> = None;
         let mut expiryDate: Option<String> = self.safe_string_k(market.clone(), "contract_expiry_date", &[]).as_str().map(str::to_owned);
         if (expiryDate.is_some()) {
-            expiry = self.parse8601(Value::Str(format!("{}{}", expiryDate.as_deref().unwrap_or("null"), Value::Str("T00:00:00Z".into())).into()));
+            expiry = self.parse8601(Value::Str(format!("{}{}", expiryDate.as_deref().unwrap_or("null"), "T00:00:00Z").into()));
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         if matches!(&isContract, Value::Bool(true)) {
-            symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote.as_deref().unwrap_or("null"));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), quote.as_deref().unwrap_or("null"));
             if matches!(&isFuture, Value::Bool(true)) && (expiry.is_some()) {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[]));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[]));
             }
         }
         let mut marketType: String = "spot".to_string();
@@ -1020,7 +1020,7 @@ impl Onetrading {
         }  else if (method.as_deref() == Some("fetchPublicTradingFees")) {
             return self.fetch_public_trading_fees(&[paramsOmitted]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() does not support ".into())).into()), method.as_deref().unwrap_or("null")).into()), Value::Str(", fetchPrivateTradingFees and fetchPublicTradingFees are supported".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTradingFees() does not support ").into()), method.as_deref().unwrap_or("null")).into()), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")));
         }
         Value::Null
         }).await?))
@@ -1393,9 +1393,9 @@ impl Onetrading {
             let mut __for_first_1039: bool = true;
             while { if !__for_first_1039 { i += 1; } __for_first_1039 = false; i < (rawTickers.len() as i64) } {
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(rawTickers.get(i as usize).cloned().unwrap_or(Value::Null), None).as_map().cloned().unwrap_or_default();
-            let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
-            if (symbol != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&symbol), Value::Map(ticker));
+            let mut symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
+            if (symbol.is_some()) {
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
             }
         }
         }
@@ -1530,14 +1530,14 @@ impl Onetrading {
         });
         let mut lowercaseUnit: Option<String> = self.safe_string(&units, unit.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (period.is_none()) || (lowercaseUnit.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing period/unit".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseOHLCV() missing period/unit")));
         }
         let mut timeframe: String = format!("{}{}", period.as_deref().unwrap_or("null"), lowercaseUnit.as_deref().unwrap_or("null"));
         let mut durationInSeconds: i64 = self.parse_timeframe(Value::from(timeframe));
         let mut duration: i64 = (durationInSeconds * 1000);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[]));
         if (timestamp.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing timestamp".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseOHLCV() missing timestamp")));
         }
         let mut periods: Option<i64> = self.parse_to_int((match ((Value::from(timestamp)).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut alignedTimestamp: Option<i64> = (if let Some(__r) = periods { Some(duration * __r) } else { None });
@@ -1583,7 +1583,7 @@ impl Onetrading {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut periodUnit: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]).as_str().map(str::to_owned);
         if (periodUnit.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing periodUnit".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOHLCV() missing periodUnit")));
         }
         let mut periodUnitParts: Vec<Value> = Value::Array(if let Some(__s) = periodUnit.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut period: Option<String> = periodUnitParts.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1963,12 +1963,12 @@ impl Onetrading {
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("trigger_price".into()), Value::Str("stopPrice".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {
             if (uppercaseType == "MARKET") {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot place stop market orders, only stop limit".into()))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() cannot place stop market orders, only stop limit")));
             }
             request.insert("trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
             request.insert("type".into(), Value::Str("STOP".into()));
         }  else if (uppercaseType == "STOP") {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice param for ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice param for ").into()), type_var).into()), " orders")));
         }
         if priceIsRequired {
             request.insert("price".into(), self.price_to_precision(symbol, price));
@@ -2515,9 +2515,9 @@ impl Onetrading {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -2528,7 +2528,7 @@ impl Onetrading {
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Accept".to_string(), Value::Str("application/json".into()));
-                    m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), self.apiKey.clone()).into()));
+                    m.insert("Authorization".to_string(), Value::Str(format!("{}{}", "Bearer ", self.apiKey.clone()).into()));
                 m
             });
             let mut bodyJson: Option<String> = (if (method.as_str() == Some("POST")) { json_stringify(&query).as_str().map(str::to_owned) } else { None });
@@ -2571,7 +2571,7 @@ impl Onetrading {
         //
         let mut message: Option<String> = self.safe_string_k(response, "error", &[]).as_str().map(str::to_owned);
         if (message.is_some()) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

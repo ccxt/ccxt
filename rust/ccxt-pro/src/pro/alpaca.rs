@@ -361,7 +361,7 @@ impl Alpaca {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", "ticker:", Value::from((market).symbol.clone()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
@@ -389,7 +389,7 @@ impl Alpaca {
         let mut ticker: crate::value::Dict = self.parse_ticker(message, None).into_dict();
         let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
         let mut tickerSymbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), tickerSymbol);
+        let mut messageHash: String = format!("{}{}", "ticker:", tickerSymbol);
         if (symbol != Value::Null) {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
         }
@@ -478,7 +478,7 @@ impl Alpaca {
                 m.insert("bars".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
             m
         });
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "ohlcv:", symbolValue);
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -518,7 +518,7 @@ impl Alpaca {
         }
         let mut parsed: crate::value::List = self.parse_ohlcv(message, None).into_list();
         stored.append(Value::Arr(parsed));
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "ohlcv:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -551,7 +551,7 @@ impl Alpaca {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbolValue);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
@@ -609,7 +609,7 @@ impl Alpaca {
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbol.as_deref().unwrap_or("null"));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
@@ -650,7 +650,7 @@ impl Alpaca {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "trade:", symbolValue);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
@@ -692,7 +692,7 @@ impl Alpaca {
         }
         let mut parsed: crate::value::Dict = self.parse_trade(message, None).into_dict();
         stored.append(Value::Dict(parsed));
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trade", ":").into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -732,7 +732,7 @@ impl Alpaca {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             symbolResolved = Some(marketSymbol.clone());
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), marketSymbol);
+            messageHash = format!("{}{}", "myTrades:", marketSymbol);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -789,7 +789,7 @@ impl Alpaca {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             symbolResolved = Some(marketSymbol.clone());
-            messageHash = format!("{}{}", Value::Str("orders:".into()), marketSymbol);
+            messageHash = format!("{}{}", "orders:", marketSymbol);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -880,7 +880,7 @@ impl Alpaca {
         let mut messageHash: String = "orders".to_string();
         client.resolve(Value::from(&orders), messageHash.as_str());
         let mut orderSymbol: String = self.safe_string_k(&order, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        messageHash = format!("{}{}", Value::Str("orders:".into()), orderSymbol);
+        messageHash = format!("{}{}", "orders:", orderSymbol);
         client.resolve(Value::from(&orders), messageHash.as_str());
 }
 
@@ -952,7 +952,7 @@ impl Alpaca {
         }
         myTrades.append(trade.clone());
         let mut tradeSymbol: String = self.safe_string_k(trade, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), tradeSymbol);
+        let mut messageHash: String = format!("{}{}", "myTrades:", tradeSymbol);
         client.resolve(Value::from(&myTrades), messageHash.as_str());
         messageHash = "myTrades".to_string();
         client.resolve(Value::from(&myTrades), messageHash.as_str());
@@ -1079,10 +1079,10 @@ impl Alpaca {
         //
         let mut code: String = (match message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut msg: Option<String> = (match message.get("msg") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut header: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".into())).into()), code);
+        let mut header: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " code: ").into()), code);
         let mut errorMessage: String = header.clone();
         if (msg.is_some()) {
-            errorMessage = format!("{}{}", Value::Str(format!("{}{}", header, Value::Str(" message: ".into())).into()), msg.as_deref().unwrap_or("null"));
+            errorMessage = format!("{}{}", Value::Str(format!("{}{}", header, " message: ").into()), msg.as_deref().unwrap_or("null"));
         }
         panic!("{}", crate::exchange_errors::exchange_error(errorMessage));
 
@@ -1196,7 +1196,7 @@ impl Alpaca {
             promise.resolve(message, None);
             return;
         }
-        panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" failed to authenticate.".into()))));
+        panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " failed to authenticate.")));
 }
 
     pub fn handle_subscription(&self, mut client: Value, mut message: Value) -> Value {

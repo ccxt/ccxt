@@ -19,7 +19,7 @@ pub async fn testWatchPositions(mut exchange: Value, mut skippedProperties: Valu
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::from(vec![symbol.clone()])]).await;
             if (response == Value::Null) {
-                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
+                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " watch returned undefined response").into()));
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -32,7 +32,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if success {
             if (response == Value::Null) {
-                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
+                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " watch returned undefined response").into()));
             }
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), symbol.clone()]);
             now = Value::Int(exchange.milliseconds());

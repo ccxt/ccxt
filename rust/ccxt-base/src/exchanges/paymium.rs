@@ -435,11 +435,11 @@ impl Paymium {
             let mut code: Option<String> = currencies.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
             let mut currencyId: Value = crate::value::KeyRead::key_read(&&currency, "id");
-            let mut freeAmount: Option<String> = self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("balance_".into()), currencyId).into()), &[]).as_str().map(str::to_owned);
+            let mut freeAmount: Option<String> = self.safe_string(response.clone(), Value::Str(format!("{}{}", "balance_", currencyId).into()), &[]).as_str().map(str::to_owned);
             if (freeAmount.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("free".into(), freeAmount.map(Value::from).unwrap_or(Value::Null));
-                account.insert("used".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("locked_".into()), currencyId).into()), &[]));
+                account.insert("used".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", "locked_", currencyId).into()), &[]));
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
@@ -917,10 +917,10 @@ impl Paymium {
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
         if !toAccount.as_str().unwrap_or("").contains("@") {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows transfers to an email address".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " transfer() only allows transfers to an email address")));
         }
         if (code.as_str() != Some("BTC")) && (code.as_str() != Some("EUR")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows BTC or EUR".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " transfer() only allows BTC or EUR")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1023,10 +1023,10 @@ impl Paymium {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut baseUrl: Option<String> = baseApiUrl;
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut hasQuery: bool = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64);
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
@@ -1057,7 +1057,7 @@ impl Paymium {
                 if hasQuery {
                     let mut queryString: String = self.urlencode(query, &[]);
                     auth = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
+                    url.push_str(&format!("{}{}", "?", queryString));
                 }
             }
             signedHeaders.insert("Api-Signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
@@ -1088,7 +1088,7 @@ impl Paymium {
         }
         let mut errors: Value = self.safe_value_k(response.clone(), "errors", &[]);
         if (errors != Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response))));
         }
         return Value::Null;
 

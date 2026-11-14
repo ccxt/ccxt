@@ -671,7 +671,7 @@ impl Bitrue {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         let mut wsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -682,13 +682,13 @@ impl Bitrue {
         if (market).swap {
             let mut baseIdLower: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteIdLower: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
-            channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_depth_step0".into())));
+            let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", "e_", baseIdLower).into()), quoteIdLower);
+            channel = Some(format!("{}{}", Value::Str(format!("{}{}", "market_", wsId).into()), "_depth_step0"));
             cbId = Some(wsId);
             url = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
         }  else {
             let mut marketIdLowercase: String = self.safe_string_lower_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), marketIdLowercase).into()), Value::Str("_simple_depth_step0".into())));
+            channel = Some(format!("{}{}", Value::Str(format!("{}{}", "market_", marketIdLowercase).into()), "_simple_depth_step0"));
             cbId = Some(marketIdLowercase);
             url = wsUrls.get("public").cloned().unwrap_or(Value::Null);
         }
@@ -782,7 +782,7 @@ impl Bitrue {
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
         let mut snapshot: crate::value::Dict = self.parse_order_book(parseable, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("buys".into()), Value::Str("asks".into())]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol.map(Value::from).unwrap_or(Value::Null));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -804,7 +804,7 @@ impl Bitrue {
             let mut baseId: Option<String> = self.safe_string_lower_k(candidate.clone(), "baseId", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_lower_k(candidate.clone(), "quoteId", &[]).as_str().map(str::to_owned);
             if (baseId.is_none()) || (quoteId.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" findSwapMarketByWsBaseQuote() market ".into())).into()), symbolId.as_deref().unwrap_or("null")).into()), Value::Str(" has no baseId or quoteId".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " findSwapMarketByWsBaseQuote() market ").into()), symbolId.as_deref().unwrap_or("null")).into()), " has no baseId or quoteId")));
             }
             if (Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), quoteId.as_deref().unwrap_or("null")).into()).as_str() == wsBaseQuote.as_str()) {
                 return candidate;
@@ -881,13 +881,13 @@ impl Bitrue {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if !(market).swap {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTrades is only supported for swap markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchTrades is only supported for swap markets")));
         }
         let mut baseIdLower: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteIdLower: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_trade_ticker".into()));
-        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
+        let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", "e_", baseIdLower).into()), quoteIdLower);
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", "market_", wsId).into()), "_trade_ticker");
+        let mut messageHash: String = format!("{}{}", "trades:", symbolValue);
         let mut wsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -965,7 +965,7 @@ impl Bitrue {
         }
         }
         if appended {
-            let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol.as_deref().unwrap_or("null"));
+            let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&stored), messageHash.as_str());
         }
 }
@@ -1030,7 +1030,7 @@ impl Bitrue {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV is only supported for swap markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchOHLCV is only supported for swap markets")));
         }
         let mut futuresTimeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1038,13 +1038,13 @@ impl Bitrue {
         })]).into_dict();
         let mut interval: Option<String> = self.safe_string(&futuresTimeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
         if (interval.is_none()) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support timeframe ".into())).into()), timeframe)));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOHLCV does not support timeframe ").into()), timeframe)));
         }
         let mut baseIdLower: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteIdLower: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_kline_".into())).into()), interval.as_deref().unwrap_or("null"));
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol).into()), Value::Str(":".into())).into()), timeframe);
+        let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", "e_", baseIdLower).into()), quoteIdLower);
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market_", wsId).into()), "_kline_").into()), interval.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbol).into()), ":").into()), timeframe);
         let mut wsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1124,7 +1124,7 @@ impl Bitrue {
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         stored.append(Value::Arr(parsed));
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), timeframe.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbol.as_deref().unwrap_or("null")).into()), ":").into()), timeframe.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -1167,13 +1167,13 @@ impl Bitrue {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTicker is only supported for swap markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchTicker is only supported for swap markets")));
         }
         let mut baseIdLower: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteIdLower: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_ticker".into()));
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
+        let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", "e_", baseIdLower).into()), quoteIdLower);
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", "market_", wsId).into()), "_ticker");
+        let mut messageHash: String = format!("{}{}", "ticker:", symbol);
         let mut wsUrls: indexmap::IndexMap<String, Value> = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1230,7 +1230,7 @@ impl Bitrue {
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut parsed: crate::value::Dict = self.parse_ws_ticker(tick.map_or(Value::Null, Value::Dict), market, &[Value::from(timestamp)]).into_dict();
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsed)); }
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(parsed), messageHash.as_str());
 }
 
@@ -1394,7 +1394,7 @@ impl Bitrue {
                 })]).into_dict();
                 let mut key: Option<String> = self.safe_string_k_opt(&data, "listenKey", &[]);
                 if (key.is_none()) {
-                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
+                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() received an empty listenKey")));
                 }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), key.clone().map(Value::from).unwrap_or(Value::Null)); }
                 let mut wsUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Map({
@@ -1403,9 +1403,9 @@ impl Bitrue {
                 })]).into_dict();
                 let mut wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
                 if (wsUrl.is_none()) {
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() has no private websocket url".into()))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " authenticate() has no private websocket url")));
                 }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/stream?listenKey=".into())).into()), key.clone().map(Value::from).unwrap_or(Value::Null)).into())); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), "/stream?listenKey=").into()), key.clone().map(Value::from).unwrap_or(Value::Null)).into())); }
                 client.resolve(key.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);

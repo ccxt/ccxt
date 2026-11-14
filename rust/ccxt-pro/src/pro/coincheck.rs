@@ -301,7 +301,7 @@ impl Coincheck {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", "orderbook:", Value::from((market).symbol.clone()));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -346,7 +346,7 @@ impl Coincheck {
         let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp)]).into_dict();
         let mut orderbook: crate::pro::order_book::Book = self.order_book(&[Value::Dict(snapshot)]);
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -378,7 +378,7 @@ impl Coincheck {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), Value::from((market).symbol.clone()));
+        let mut messageHash: String = format!("{}{}", "trade:", Value::from((market).symbol.clone()));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -429,7 +429,7 @@ impl Coincheck {
             stored.append(Value::Dict(trade));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "trade:", symbol);
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 

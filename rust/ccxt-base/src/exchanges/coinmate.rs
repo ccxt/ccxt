@@ -840,7 +840,7 @@ impl Coinmate {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1376,7 +1376,7 @@ impl Coinmate {
         let mut method: Option<String> = self.safe_string(&methods, code.clone(), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
             let mut allowedCurrencies: crate::value::List = Value::Array(methods.keys().cloned().map(Value::from).collect()).into_list();
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only allows withdrawing the following currencies: ".into())).into()), Value::Str(allowedCurrencies.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() only allows withdrawing the following currencies: ").into()), Value::Str(allowedCurrencies.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1408,7 +1408,7 @@ impl Coinmate {
         }  else if (method.as_deref() == Some("privatePostSolWithdrawal")) {
             response = self.private_post_sol_withdrawal(&[Value::Dict(requestParams)]).await.into_opt_dict();
         }  else {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not support the ".into())).into()), method.as_deref().unwrap_or("null")).into()), Value::Str(" method".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() does not support the ").into()), method.as_deref().unwrap_or("null")).into()), " method")));
         }
         //
         //     {
@@ -1740,7 +1740,7 @@ impl Coinmate {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1943,7 +1943,7 @@ impl Coinmate {
         }  else if (method == "privatePostSellLimit") {
             response = self.private_post_sell_limit(&[Value::Dict(requestParams)]).await.into_opt_dict();
         }  else {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support order type ").into()), type_var)));
         }
         let mut id: Option<String> = self.safe_string_k(&response, "data", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
@@ -2061,13 +2061,13 @@ impl Coinmate {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut bodySigned: Value = Value::Null;
+        let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path);
         if (apiName.as_deref() == Some("public")) {
             let mut publicQuery: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2083,14 +2083,14 @@ impl Coinmate {
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone()).into()), self.apiKey.clone());
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let __ws_arg_10 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("clientId".to_string(), self.uid.clone());
-                    m.insert("nonce".to_string(), nonce);
-                    m.insert("publicKey".to_string(), self.apiKey.clone());
-                    m.insert("signature".to_string(), Value::from(signature.to_uppercase()));
-                m
-            }), &[params]);
-            bodySigned = Value::from(self.urlencode(__ws_arg_10, &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("clientId".to_string(), self.uid.clone());
+        m.insert("nonce".to_string(), nonce);
+        m.insert("publicKey".to_string(), self.apiKey.clone());
+        m.insert("signature".to_string(), Value::from(signature.to_uppercase()));
+    m
+}), &[params]);
+            bodySigned = Some(self.urlencode(__ws_arg_10, &[]));
             headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -2098,12 +2098,12 @@ impl Coinmate {
             }));
         }
         let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
-        let mut bodyResolved: Value = bodySigned;
+        let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });
@@ -2121,7 +2121,7 @@ impl Coinmate {
         //
         let mut errorMessage: Option<String> = self.safe_string_k(response, "errorMessage", &[]).as_str().map(str::to_owned);
         if (errorMessage.is_some()) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorMessage.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

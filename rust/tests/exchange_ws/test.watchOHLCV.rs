@@ -35,7 +35,7 @@ pub async fn testWatchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_ohlcv", vec![symbol.clone(), chosenTimeframeKey.clone(), since.clone(), limit.clone()]).await;
             if (response == Value::Null) {
-                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
+                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " watch returned undefined response").into()));
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);

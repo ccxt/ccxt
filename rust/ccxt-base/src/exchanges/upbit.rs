@@ -953,7 +953,7 @@ impl Upbit {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -1047,7 +1047,7 @@ impl Upbit {
         let mut market: Value = market.into();
         let mut id: Option<String> = self.safe_string_k(market.clone(), "market", &[]).as_str().map(str::to_owned);
         if (id.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseMarket() missing id")));
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut quoteId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -1068,7 +1068,7 @@ impl Upbit {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -1427,7 +1427,7 @@ impl Upbit {
                 while { if !__for_first_1139 { i += 1; } __for_first_1139 = false; i < (marketSymbols.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((marketSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut quoteId: Option<String> = (market).quote_id.as_deref().map(str::to_owned);
-                if !self.in_array(Value::from(quoteId.as_deref()), Value::Arr(quoteIds.clone())) {
+                if !self.in_array(&quoteId, Value::Arr(quoteIds.clone())) {
                     std::sync::Arc::make_mut(&mut quoteIds).push(quoteId.map(Value::from).unwrap_or(Value::Null));
                 }
             }
@@ -1439,7 +1439,7 @@ impl Upbit {
                 let mut __for_first_1140: bool = true;
                 while { if !__for_first_1140 { i += 1; } __for_first_1140 = false; i < (sortedQuoteIds.len() as i64) } {
                 if (quoteCurrencies != "") {
-                    quoteCurrencies = format!("{}{}", quoteCurrencies, Value::Str(",".into()));
+                    quoteCurrencies = format!("{}{}", quoteCurrencies, ",");
                 }
                 quoteCurrencies = format!("{}{}", quoteCurrencies, self.safe_string(sortedQuoteIds.clone(), Value::Int(i), &[Value::Str("".into())]));
             }
@@ -1483,7 +1483,7 @@ impl Upbit {
             let mut __for_first_1142: bool = true;
             while { if !__for_first_1142 { i += 1; } __for_first_1142 = false; i < (ids.len() as i64) } {
             if (idsString != "") {
-                idsString = format!("{}{}", idsString, Value::Str(",".into()));
+                idsString = format!("{}{}", idsString, ",");
             }
             idsString = format!("{}{}", idsString, self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())]));
             if ((idsString.chars().count() as i64)) >= 4000 {
@@ -1577,7 +1577,7 @@ impl Upbit {
         let mut marketId: Option<String> = self.safe_string2(trade.clone(), Value::Str("market".into()), Value::Str("code".into()), &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]);
         let mut fee: Option<crate::value::Dict> = None;
-        let mut feeCost: Option<String> = self.safe_string(trade.clone(), Value::Str(format!("{}{}", askOrBid, Value::Str("_fee".into())).into()), &[]).as_str().map(str::to_owned);
+        let mut feeCost: Option<String> = self.safe_string(trade.clone(), Value::Str(format!("{}{}", askOrBid, "_fee").into()), &[]).as_str().map(str::to_owned);
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -1902,8 +1902,7 @@ impl Upbit {
             quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else if createMarketBuyOrderRequiresPrice {
             if (price == Value::Null) || (amount == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(),
-                    Value::Str(" createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
             }
             let mut amountString: Option<String> = self.number_to_string(amount.clone());
             let mut priceString: Option<String> = self.number_to_string(price);
@@ -1911,12 +1910,12 @@ impl Upbit {
             quoteAmount = self.cost_to_precision(symbol.clone(), costRequest.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
             if (amount == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")));
             }
             quoteAmount = self.cost_to_precision(symbol, amount).as_str().map(str::to_owned);
         }
         if (quoteAmount.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" calcOrderPrice() could not determine quote amount".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " calcOrderPrice() could not determine quote amount")));
         }
         return quoteAmount.map(Value::from).unwrap_or(Value::Null);
 
@@ -1970,7 +1969,7 @@ impl Upbit {
         let mut selfTradePrevention: Option<String> = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), &[]).as_str().map(str::to_owned);
         let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if postOnly && (selfTradePrevention.is_some()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post_only and selfTradePrevention simultaneously.".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() does not support post_only and selfTradePrevention simultaneously.")));
         }
         let mut orderSide: Option<String> = None;
         if (side.as_str() == Some("buy")) {
@@ -1978,7 +1977,7 @@ impl Upbit {
         }  else if (side.as_str() == Some("sell")) {
             orderSide = Some("ask".to_string());
         }  else {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports only buy or sell in the side argument.".into()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() supports only buy or sell in the side argument.")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1988,7 +1987,7 @@ impl Upbit {
         });
         if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) || (amount == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" the limit type order in createOrder() is required price and amount.".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " the limit type order in createOrder() is required price and amount.")));
             }
             request.insert("ord_type".into(), Value::Str("limit".into()));
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
@@ -2000,13 +1999,13 @@ impl Upbit {
                 request.insert("price".into(), orderPrice.clone());
             }  else {
                 if (amount == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" the market sell type order in createOrder() is required amount.".into()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " the market sell type order in createOrder() is required amount.")));
                 }
                 request.insert("ord_type".into(), Value::Str("market".into()));
                 request.insert("volume".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }
         }  else {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports only limit or market types in the type argument.".into()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() supports only limit or market types in the type argument.")));
         }
         let mut paramsOrdType: crate::value::Dict = (if (customType.as_deref() == Some("best")) { self.omit(params.clone(), Value::from(vec![Value::Str("ordType".into()), Value::Str("ord_type".into())]), &[]) } else { params }).into_dict();
         if (customType.as_deref() == Some("best")) {
@@ -2016,7 +2015,7 @@ impl Upbit {
                 request.insert("price".into(), orderPrice.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 if (amount == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" the best sell type order in createOrder() is required amount.".into()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " the best sell type order in createOrder() is required amount.")));
                 }
                 request.insert("volume".into(), self.amount_to_precision(symbol, amount));
             }
@@ -2026,7 +2025,7 @@ impl Upbit {
         }
         if postOnly {
             if (self.safe_string(Value::Map(request.clone()), Value::Str("ord_type".into()), &[]).as_str() != Some("limit")) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" postOnly orders are only supported for limit orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " postOnly orders are only supported for limit orders")));
             }
             request.insert("time_in_force".into(), Value::Str("post_only".into()));
         }
@@ -2036,7 +2035,7 @@ impl Upbit {
             }
         }
         if (self.safe_string(Value::Map(request.clone()), Value::Str("ord_type".into()), &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a timeInForce parameter for best type orders".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a timeInForce parameter for best type orders")));
         }
         let mut response: Option<crate::value::Dict> = None;
         let mut paramsRequest: crate::value::Dict = self.omit(&paramsOrdType, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), Value::Str("test".into())]), &[]).into_dict();
@@ -2141,7 +2140,7 @@ impl Upbit {
         let mut timeInForce: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), &[]).as_str().map(str::to_owned);
         let mut selfTradePrevention: Option<String> = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".into()), Value::Str("new_smp_type".into()), &[]).as_str().map(str::to_owned);
         if postOnly && (selfTradePrevention.is_some()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support post_only and selfTradePrevention simultaneously.".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " editOrder() does not support post_only and selfTradePrevention simultaneously.")));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("clientOrderId".into()), &[]);
         if (id != Value::Null) {
@@ -2149,11 +2148,11 @@ impl Upbit {
         }  else if (prevClientOrderId.is_some()) {
             request.insert("prev_order_identifier".into(), prevClientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is required id or clientOrderId.".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() is required id or clientOrderId.")));
         }
         if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) || (amount == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is required price and amount to create limit type order.".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() is required price and amount to create limit type order.")));
             }
             request.insert("new_ord_type".into(), Value::Str("limit".into()));
             request.insert("new_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
@@ -2165,13 +2164,13 @@ impl Upbit {
                 request.insert("new_price".into(), orderPrice.clone());
             }  else {
                 if (amount == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is required amount to create market sell type order.".into()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() is required amount to create market sell type order.")));
                 }
                 request.insert("new_ord_type".into(), Value::Str("market".into()));
                 request.insert("new_volume".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
             }
         }  else {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" editOrder() supports only limit or market types in the type argument.".into()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " editOrder() supports only limit or market types in the type argument.")));
         }
         let mut paramsOrdType: crate::value::Dict = (if (customType.as_deref() == Some("best")) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("newOrdType".into()), Value::Str("new_ord_type".into())]), &[]) } else { paramsOmitted }).into_dict();
         if (customType.as_deref() == Some("best")) {
@@ -2181,7 +2180,7 @@ impl Upbit {
                 request.insert("new_price".into(), orderPrice.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 if (amount == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is required amount to create best sell order.".into()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() is required amount to create best sell order.")));
                 }
                 request.insert("new_volume".into(), self.amount_to_precision(symbol, amount));
             }
@@ -2194,7 +2193,7 @@ impl Upbit {
         }
         if postOnly {
             if (self.safe_string(Value::Map(request.clone()), Value::Str("new_ord_type".into()), &[]).as_str() != Some("limit")) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" postOnly orders are only supported for limit orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " postOnly orders are only supported for limit orders")));
             }
             request.insert("new_time_in_force".into(), Value::Str("post_only".into()));
         }
@@ -2204,7 +2203,7 @@ impl Upbit {
             }
         }
         if (self.safe_string(Value::Map(request.clone()), Value::Str("new_ord_type".into()), &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a timeInForce parameter for best type orders".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires a timeInForce parameter for best type orders")));
         }
         let mut paramsRequest: crate::value::Dict = self.omit(&paramsOrdType, Value::from(vec![Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), Value::Str("postOnly".into()), Value::Str("newClientOrderId".into()), Value::Str("cost".into()), Value::Str("selfTradePrevention".into()), Value::Str("new_smp_type".into())]), &[]).into_dict();
         // console.log ('check the each request paramsOmitted: ', request);
@@ -2983,7 +2982,7 @@ impl Upbit {
         let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress requires params[\"network\"]".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDepositAddress requires params[\"network\"]")));
         }
         let __ws_arg_21 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3047,7 +3046,7 @@ impl Upbit {
         //
         let mut message: Option<String> = self.safe_string_k(&response, "message", &[]).as_str().map(str::to_owned);
         if (message.is_some()) {
-            panic!("{}", crate::exchange_errors::address_pending(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" is generating ".into())).into()), code).into()), Value::Str(" deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address".into()))));
+            panic!("{}", crate::exchange_errors::address_pending(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " is generating ").into()), code).into()), " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")));
         }
         return self.parse_deposit_address(&response, None);
         Value::Null
@@ -3098,7 +3097,7 @@ impl Upbit {
             // 2023-05-23 Change to required parameters for digital assets
             let mut network: Option<String> = self.safe_string_upper2(Value::from(&paramsTag), Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
             if (network.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network argument".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw() requires a network argument")));
             }
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTag, Value::from(vec![Value::Str("network".into())]), &[]).into_dict();
             request.insert("net_type".into(), network.map(Value::from).unwrap_or(Value::Null));
@@ -3136,14 +3135,14 @@ impl Upbit {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = self.implode_params(baseApiUrl.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), self.hostname.clone());
     m
 }));
-        url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())));
+        url.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         let mut numQueryKeys: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
         if (method.as_str() != Some("POST")) {
@@ -3182,7 +3181,7 @@ impl Upbit {
                 request.insert("query_hash_alg".into(), Value::Str("SHA512".into()));
             }
             let mut token: String = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
-            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("Bearer ".into()), token).into())); }
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into())); }
         }
         let mut requestHeaders: Value = (if (apiName.as_deref() == Some("private")) { headers } else { Value::Null });
         return Value::Map({
@@ -3216,7 +3215,7 @@ impl Upbit {
         if (error.is_some()) {
             let mut message: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
             let mut name: Option<String> = self.safe_string_k(&error, "name", &[]).as_str().map(str::to_owned);
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), name.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

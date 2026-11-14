@@ -397,7 +397,7 @@ impl Apex {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         if (symbolsLength == 0) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchTradesForSymbols() requires a non-empty array of symbols")));
         }
         let mut url: Option<String> = self.get_ws_public_url().as_str().map(str::to_owned);
         let mut topics: Vec<Value> = Vec::new();
@@ -409,8 +409,8 @@ impl Apex {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            topics.push(Value::Str(format!("{}{}", Value::Str("recentlyTrade.H.".into()), marketId).into()));
-            let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol.as_deref().unwrap_or("null"));
+            topics.push(Value::Str(format!("{}{}", "recentlyTrade.H.", marketId).into()));
+            let mut messageHash: String = format!("{}{}", "trade:", symbol.as_deref().unwrap_or("null"));
             messageHashes.push(Value::from(messageHash));
         }
         }
@@ -475,7 +475,7 @@ impl Apex {
             stored.append(Value::Dict(parsed));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trade", ":").into()), symbol);
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -578,7 +578,7 @@ impl Apex {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         if (symbolsLength == 0) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOrderBookForSymbols() requires a non-empty array of symbols")));
         }
         let mut url: Option<String> = self.get_ws_public_url().as_str().map(str::to_owned);
         let mut topics: Vec<Value> = Vec::new();
@@ -591,8 +591,8 @@ impl Apex {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook".into()), Value::from(self.number_to_string(Value::from(limitValue)))).into()), Value::Str(".H.".into())).into()), marketId).into()));
-            let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null"));
+            topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderBook".into()), Value::from(self.number_to_string(Value::from(limitValue)))).into()), ".H.").into()), marketId).into()));
+            let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
             messageHashes.push(Value::from(messageHash));
         }
         }
@@ -651,7 +651,7 @@ impl Apex {
         if (url.is_none()) {
             let mut timeStamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
             let wsEndpoint: String = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[Value::Str("".into())]).unwrap_or_default();
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, Value::Str("&timestamp=".into())).into()), timeStamp).into())); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, "&timestamp=").into()), timeStamp).into())); }
             url = self.safe_string_k(self.options.clone(), "wsPublicUrl", &[Value::Str("".into())]).as_str().map(str::to_owned);
         }
         return url.map(Value::from).unwrap_or(Value::Null);
@@ -664,7 +664,7 @@ impl Apex {
         if (url.is_none()) {
             let mut timeStamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
             let wsEndpoint: String = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).unwrap_or_default();
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, Value::Str("&timestamp=".into())).into()), timeStamp).into())); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, "&timestamp=").into()), timeStamp).into())); }
             url = self.safe_string_k(self.options.clone(), "wsPrivateUrl", &[Value::Str("".into())]).as_str().map(str::to_owned);
         }
         return url.map(Value::from).unwrap_or(Value::Null);
@@ -730,7 +730,7 @@ impl Apex {
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbol);
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
@@ -778,9 +778,9 @@ impl Apex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: Option<String> = self.get_ws_public_url().as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "ticker:", symbolValue);
         let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut topics: Value = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), marketId).into())]);
+        let mut topics: Value = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instrumentInfo", ".H.").into()), marketId).into())]);
         return self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), topics, &[params]).await;
         Value::Null
         }).await?))
@@ -820,8 +820,8 @@ impl Apex {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), marketId).into()));
-            let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol.as_deref().unwrap_or("null"));
+            topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instrumentInfo", ".H.").into()), marketId).into()));
+            let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
             messageHashes.push(Value::from(messageHash));
         }
         }
@@ -895,7 +895,7 @@ impl Apex {
         parsed.insert("timestamp".into(), Value::from(timestamp));
         parsed.insert("datetime".into(), self.iso8601(Value::from(timestamp)));
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(parsed)); }
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "ticker:", symbol);
         client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
@@ -972,8 +972,8 @@ impl Apex {
             let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             let mut timeframeId: Option<String> = self.safe_string(self.timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]).as_str().map(str::to_owned);
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candle.".into()), timeframeId.as_deref().unwrap_or("null")).into()), Value::Str(".".into())).into()), marketId).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), Value::from((market).symbol.clone())).into()), Value::Str("::".into())).into()), unfiedTimeframe).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candle.", timeframeId.as_deref().unwrap_or("null")).into()), ".").into()), marketId).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", Value::from((market).symbol.clone())).into()), "::").into()), unfiedTimeframe).into()));
         }
         }
         let mut symboltimeframestoredVariable = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(rawHashes), &[params]).await;
@@ -984,8 +984,8 @@ impl Apex {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
-        return self.create_ohlcv_object(symbol, timeframe, filtered);
+        let mut filtered: crate::value::List = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
     }
@@ -1045,7 +1045,7 @@ impl Apex {
             stored.append(Value::Arr(parsed));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbol).into()), "::").into()), timeframe.as_deref().unwrap_or("null"));
         let mut resolveData: Value = Value::from(vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
         client.resolve(resolveData, messageHash.as_str());
 }
@@ -1088,7 +1088,7 @@ impl Apex {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             symbolResolved = Some(self.symbol(symbol));
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("myTrades".into()), Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", "myTrades", ":").into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
@@ -1140,7 +1140,7 @@ impl Apex {
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
         let mut url: Value = self.get_ws_private_url();
-        messageHash = format!("{}{}", Value::Str("positions".into()), messageHash);
+        messageHash = format!("{}{}", "positions", messageHash);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         self.authenticate(url.as_str().unwrap_or_default(), &[]).await;
         self.set_positions_cache(client.as_value(), &[symbolsNormalized2.clone()]);
@@ -1190,7 +1190,7 @@ impl Apex {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             symbolResolved = Some(self.symbol(symbol));
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), symbolResolved.as_deref().unwrap_or("null"));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", "orders", ":").into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
@@ -1252,7 +1252,7 @@ impl Apex {
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut currentMessageHash: String = format!("{}{}", Value::Str("myTrades:".into()), key.as_deref().unwrap_or("null"));
+            let mut currentMessageHash: String = format!("{}{}", "myTrades:", key.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&trades), currentMessageHash.as_str());
         }
         }
@@ -1319,7 +1319,7 @@ impl Apex {
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (symbolsArray.len() as i64) } {
             let mut orderKey: Option<String> = symbolsArray.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut currentMessageHash: String = format!("{}{}", Value::Str("orders:".into()), orderKey.as_deref().unwrap_or("null"));
+            let mut currentMessageHash: String = format!("{}{}", "orders:", orderKey.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&orders), currentMessageHash.as_str());
         }
         }
@@ -1435,9 +1435,9 @@ impl Apex {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut symbolsString: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut symbols: crate::value::List = Value::Array(symbolsString.split(",").map(Value::from).collect()).into_list();
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
-            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
-                client.resolve(positions, messageHash.as_deref());
+            let mut positions: crate::value::List = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            if !(self.is_empty(&positions).as_bool() == Some(true)) {
+                client.resolve(Value::Arr(positions), messageHash.as_deref());
             }
         }
         }
@@ -1537,7 +1537,7 @@ impl Apex {
         let mut code: Option<String> = self.safe_string_n(message.clone(), Value::from(vec![Value::Str("code".into()), Value::Str("ret_code".into()), Value::Str("retCode".into())]), &[]).as_str().map(str::to_owned);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (code.is_some()) && (code.as_deref() != Some("0")) {
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 let mut msg: Option<String> = self.safe_string2(message.clone(), Value::Str("retMsg".into()), Value::Str("ret_msg".into()), &[]).as_str().map(str::to_owned);
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
@@ -1558,9 +1558,9 @@ impl Apex {
                     return Value::Bool(false);
                 }
                 if (op.as_deref() == Some("auth")) {
-                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str("Authentication failed: ".into()), ret_msg)));
+                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", "Authentication failed: ", ret_msg)));
                 }  else {
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), ret_msg)));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), ret_msg)));
                 }
             }
             return Value::Bool(false);
@@ -1667,7 +1667,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             })]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            let mut error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" handlePing failed with error ".into())).into()), self.exception_message(e, &[]))));
+            let mut error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " handlePing failed with error ").into()), self.exception_message(e, &[]))));
             client.reset(error);
         }
 
@@ -1735,7 +1735,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut future: Value = self.safe_value(__ch.futures.clone(), Value::from(messageHash.clone()), &[]);
             future.resolve(Value::Bool(true), None);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message))));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
             client.reject(error, messageHash.as_str());
             if (__ch.has_subscription(messageHash.as_str())) {
                 __ch.remove_subscription(messageHash.as_str());

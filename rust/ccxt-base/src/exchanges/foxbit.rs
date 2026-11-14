@@ -1500,7 +1500,7 @@ impl Foxbit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut typeValue: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "STOP_LIMIT") && (typeValue != "INSTANT") {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Invalid order type: ".into()), typeValue).into()), Value::Str(". Must be one of: limit, market, stop_market, stop_limit, instant.".into()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", "Invalid order type: ", typeValue).into()), ". Must be one of: limit, market, stop_market, stop_limit, instant.")));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -1515,7 +1515,7 @@ impl Foxbit {
         });
         if (typeValue == "STOP_MARKET") || (typeValue == "STOP_LIMIT") {
             if (triggerPrice.is_none()) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Invalid order type: ".into()), typeValue).into()), Value::Str(". Must have triggerPrice.".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", "Invalid order type: ", typeValue).into()), ". Must have triggerPrice.")));
             }
         }
         if (timeInForce.is_some()) {
@@ -1588,7 +1588,7 @@ impl Foxbit {
                 m
             })]);
             if (type_var != "LIMIT") && (type_var != "MARKET") && (type_var != "STOP_MARKET") && (type_var != "STOP_LIMIT") && (type_var != "INSTANT") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Invalid order type: ".into()), type_var).into()), Value::Str(". Must be one of: limit, market, stop_market, stop_limit, instant.".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", "Invalid order type: ", type_var).into()), ". Must be one of: limit, market, stop_market, stop_limit, instant.")));
             }
             let mut timeInForce: Option<String> = self.safe_string_upper_k(orderParams.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut postOnly: bool = self.safe_bool_k(orderParams.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -1602,7 +1602,7 @@ impl Foxbit {
             });
             if (type_var == "STOP_MARKET") || (type_var == "STOP_LIMIT") {
                 if (triggerPrice.is_none()) {
-                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Invalid order type: ".into()), type_var).into()), Value::Str(". Must have triggerPrice.".into()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", "Invalid order type: ", type_var).into()), ". Must have triggerPrice.")));
                 }
             }
             if (timeInForce.is_some()) {
@@ -1895,7 +1895,7 @@ impl Foxbit {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2259,7 +2259,7 @@ impl Foxbit {
         self.check_required_argument(Value::Str("editOrder".into()), symbol.clone(), Value::Str("symbol".into()), &[]);
         let mut typeValue: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "INSTANT") {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Invalid order type: ".into()), typeValue).into()), Value::Str(". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.".into()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", "Invalid order type: ", typeValue).into()), ". Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2406,7 +2406,7 @@ impl Foxbit {
             m
         });
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a code argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchLedger() requires a code argument")));
         }
         if (limit != Value::Null) {
             request.insert("page_size".into(), limit.clone());
@@ -2439,7 +2439,7 @@ impl Foxbit {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut fees: crate::value::Dict = self.safe_dict_k(market.clone(), "default_fees", &[]).into_dict();
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2842,10 +2842,10 @@ impl Foxbit {
             m
         });
         if (amount == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() requires a amount argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " parseLedgerEntry() requires a amount argument")));
         }
         if (balance.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() missing balance".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseLedgerEntry() missing balance")));
         }
         let mut before: Value = Value::Null;
         if (amount != Value::Null) && (balance.is_some()) {
@@ -2889,14 +2889,14 @@ impl Foxbit {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut version: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut urlPath: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut fullPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/rest/".into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut fullPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/rest/", version.as_deref().unwrap_or("null")).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         if (version.as_deref() == Some("status")) {
             fullPath = "/status".to_string();
             urlPath = Some("status".to_string());
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), urlPath.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), fullPath);
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
@@ -2909,7 +2909,7 @@ impl Foxbit {
             let mut lastKeyIndex: i64 = (paramKeysLength - 1);
             if paramKeysLength > 0 {
                 query = self.urlencode(paramsOmitted.clone(), &[]);
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
+                url.push_str(&format!("{}{}", "?", query));
             }
             {
                                 let mut i: Value = Value::Int(0);
@@ -2918,7 +2918,7 @@ impl Foxbit {
                 let mut key: Option<String> = paramKeys.get(i.as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut value: Option<String> = self.safe_string(paramsOmitted.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 if (value.is_some()) {
-                    signatureQuery.push_str(&format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), Value::Str("=".into())).into()), value.as_deref().unwrap_or("null")));
+                    signatureQuery.push_str(&format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), value.as_deref().unwrap_or("null")));
                 }
                 if i.as_f64().unwrap_or(f64::NAN) < (lastKeyIndex as f64) {
                     signatureQuery.push_str("&");
@@ -2975,12 +2975,12 @@ impl Foxbit {
                                 let mut i: i64 = 0;
                 let mut __for_first_680: bool = true;
                 while { if !__for_first_680 { i += 1; } __for_first_680 = false; i < (details.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                detailsString = format!("{}{}", Value::Str(format!("{}{}", detailsString, self.safe_string(&details, Value::Int(i), &[Value::Str("".into())])).into()), Value::Str(" ".into()));
+                detailsString = format!("{}{}", Value::Str(format!("{}{}", detailsString, self.safe_string(&details, Value::Int(i), &[Value::Str("".into())])).into()), " ");
             }
             }
         }
         if (error.is_some()) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message).into()), Value::Str(" details: ".into())).into()), detailsString);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message).into()), " details: ").into()), detailsString);
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(message), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(detailsString), Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

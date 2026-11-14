@@ -1453,7 +1453,7 @@ impl Hitbtc {
             let mut feeCurrency: Option<String> = self.safe_currency_code(feeCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut settleId: Option<String> = None;
             let mut settle: Value = Value::Null;
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             let mut type_var: String = "spot".to_string();
             let mut contractSize: Option<f64> = None;
             let mut linear: Value = Value::Null;
@@ -1465,10 +1465,9 @@ impl Hitbtc {
                 settle = settleCode.clone().map(Value::from).unwrap_or(Value::Null);
                 linear = (Value::Bool(quote == settleCode));
                 inverse = Some(!(linear.as_bool() == Some(true)));
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle);
+                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle);
                 if matches!(&future, Value::Bool(true)) {
-                    symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()),
-                        Value::Str(":".into())).into()), settle).into()), Value::Str("-".into())).into()), self.safe_string_k(&market, "expiry", &[Value::Str("".into())]));
+                    symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle).into()), "-").into()), self.safe_string_k(&market, "expiry", &[Value::Str("".into())]));
                     type_var = "future".to_string();
                 }  else {
                     type_var = "swap".to_string();
@@ -1885,7 +1884,7 @@ impl Hitbtc {
             response = self.private_get_futures_balance(&[paramsOmitted]).await;
         }  else {
             let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() type parameter must be one of ".into())).into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchBalance() type parameter must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         return self.parse_balance_list(response);
         Value::Null
@@ -2184,7 +2183,7 @@ impl Hitbtc {
                 let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_history_trade(&[__ws_arg_9]).await;
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchMyTrades() not support this market type")));
             }
         }
         return self.parse_trades(response, market.as_ref(), &[since, limit]);
@@ -2719,7 +2718,7 @@ impl Hitbtc {
             let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_futures_fee_symbol(&[__ws_arg_14]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() not support this market type".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTradingFee() not support this market type")));
         }
         return self.parse_trading_fee(response, Some(&market));
         Value::Null
@@ -2757,7 +2756,7 @@ impl Hitbtc {
         }  else if (marketType.as_deref() == Some("swap")) {
             response = self.private_get_futures_fee(&[Value::Dict(query)]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() not support this market type".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTradingFees() not support this market type")));
         }
         //
         //     [
@@ -2780,9 +2779,9 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 })]), None).as_map().cloned().unwrap_or_default();
-            let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
-            if (symbol != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&symbol), Value::Map(fee));
+            let mut symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
+            if (symbol.is_some()) {
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
             }
         }
         }
@@ -2970,7 +2969,7 @@ impl Hitbtc {
                 let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_history_order(&[__ws_arg_22]).await.into_opt_list();
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchClosedOrders() not support this market type")));
             }
         }
         let mut parsed: Vec<Value> = self.parse_orders(&response, market.as_ref(), &[since, limit]).as_array().cloned().unwrap_or_default();
@@ -3050,7 +3049,7 @@ impl Hitbtc {
                 let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_history_order(&[__ws_arg_26]).await.into_opt_list();
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOrder() not support this market type")));
             }
         }
         //
@@ -3145,7 +3144,7 @@ impl Hitbtc {
                 let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_history_trade(&[__ws_arg_30]).await;
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOrderTrades() not support this market type")));
             }
         }
         return self.parse_trades(response, market.as_ref(), &[since, limit]);
@@ -3215,7 +3214,7 @@ impl Hitbtc {
                 let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_order(&[__ws_arg_34]).await.into_opt_list();
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOpenOrders() not support this market type")));
             }
         }
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
@@ -3283,7 +3282,7 @@ impl Hitbtc {
                 let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_order_client_order_id(&[__ws_arg_38]).await.into_opt_dict();
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOpenOrder() not support this market type")));
             }
         }
         return self.parse_order(&response, market.as_ref());
@@ -3349,7 +3348,7 @@ impl Hitbtc {
                 let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_delete_margin_order(&[__ws_arg_42]).await.into_opt_list();
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelAllOrders() not support this market type")));
             }
         }
         return self.parse_orders(&response, market.as_ref(), &[]);
@@ -3417,7 +3416,7 @@ impl Hitbtc {
                 let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_delete_margin_order_client_order_id(&[__ws_arg_46]).await.into_opt_dict();
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrder() not support this market type")));
             }
         }
         return self.parse_order(&response, market.as_ref());
@@ -3453,7 +3452,7 @@ impl Hitbtc {
         });
         if (type_var.as_str() == Some("limit")) || (type_var.as_str() == Some("stopLimit")) {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" editOrder() limit order requires price".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " editOrder() limit order requires price")));
             }
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
@@ -3482,7 +3481,7 @@ impl Hitbtc {
                 let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_patch_margin_order_client_order_id(&[__ws_arg_50]).await.into_opt_dict();
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" editOrder() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " editOrder() not support this market type")));
             }
         }
         return self.parse_order(&response, market.as_ref());
@@ -3580,8 +3579,7 @@ impl Hitbtc {
         });
         if (reduceOnly.is_some()) {
             if (resolvedMarketType.as_deref() != Some("swap")) && (resolvedMarketType.as_deref() != Some("margin")) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support reduce_only for ".into())).into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()),
-                    Value::Str(" orders, reduce_only orders are supported for swap and margin markets only".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support reduce_only for ").into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), " orders, reduce_only orders are supported for swap and margin markets only")));
             }
         }
         if (reduceOnly == Some(true)) {
@@ -3595,14 +3593,14 @@ impl Hitbtc {
         }
         if isLimit || (type_var.as_str() == Some("stopLimit")) || (type_var.as_str() == Some("takeProfitLimit")) {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for limit orders")));
             }
             request.insert("price".into(), self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), price));
         }
         if (timeInForce.as_deref() == Some("GTD")) {
             let mut expireTime: Option<String> = self.safe_string_k(params.clone(), "expire_time", &[]).as_str().map(str::to_owned);
             if (expireTime.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an expire_time parameter for a GTD order".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() requires an expire_time parameter for a GTD order")));
             }
         }
         if (triggerPrice.is_some()) {
@@ -3613,7 +3611,7 @@ impl Hitbtc {
                 request.insert("type".into(), Value::Str("stopMarket".into()));
             }
         }  else if (type_var.as_str() == Some("stopLimit")) || (type_var.as_str() == Some("stopMarket")) || (type_var.as_str() == Some("takeProfitLimit")) || (type_var.as_str() == Some("takeProfitMarket")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")));
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("reduceOnly".into()), Value::Str("postOnly".into())]), &[]);
         if (marketType.as_str() == Some("swap")) {
@@ -3805,7 +3803,7 @@ impl Hitbtc {
         }  else if (marketType.as_deref() == Some("swap")) {
             response = self.private_get_futures_config(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
         }  else {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginModes () supports swap contracts and margin only".into()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " fetchMarginModes () supports swap contracts and margin only")));
         }
         let mut config: crate::value::List = self.safe_list_k(&response, "config", &[Value::from(vec![])]).into_list();
         return self.parse_margin_modes(&config, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into())]);
@@ -3868,7 +3866,7 @@ impl Hitbtc {
         let mut fromId: Option<String> = self.safe_string(&accountsByType, Value::from(fromAccountValue.clone()), &[Value::from(fromAccountValue)]).as_str().map(str::to_owned);
         let mut toId: Option<String> = self.safe_string(&accountsByType, Value::from(toAccountValue.clone()), &[Value::from(toAccountValue)]).as_str().map(str::to_owned);
         if (fromId == toId) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() fromAccount and toAccount arguments cannot be the same account".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " transfer() fromAccount and toAccount arguments cannot be the same account")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3916,7 +3914,7 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (code.as_str() != Some("USDT")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() only supports USDT currently".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " convertCurrencyNetwork() only supports USDT currently")));
         }
         let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3929,11 +3927,11 @@ impl Hitbtc {
         let mut fromNetworkValue2: Value = self.safe_string(&networks, fromNetworkValue, &[]); // unified code to exchange id
         let mut toNetworkValue2: Value = self.safe_string(&networks, toNetworkValue, &[]); // unified code to exchange id
         if (fromNetworkValue2 == toNetworkValue2) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")));
         }
         if (fromNetworkValue2 == Value::Null) || (toNetworkValue2 == Value::Null) {
             let mut keys: crate::value::List = Value::Array(networks.keys().cloned().map(Value::from).collect()).into_list();
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ".into())).into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4065,7 +4063,7 @@ impl Hitbtc {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_deref() != Some("swap")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() does not support ".into())).into()), type_var.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" markets".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchFundingRates() does not support ").into()), type_var.map(Value::from).unwrap_or(Value::Null)).into()), " markets")));
         }
         let __ws_arg_57 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let mut response: crate::value::Dict = self.public_get_public_futures_info(&[__ws_arg_57]).await.into_dict();
@@ -4271,7 +4269,7 @@ impl Hitbtc {
                 let __ws_arg_61 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_account(&[__ws_arg_61]).await;
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchPositions() not support this market type")));
             }
         }
         //
@@ -4373,7 +4371,7 @@ impl Hitbtc {
                 let __ws_arg_64 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_account_isolated_symbol(&[__ws_arg_64]).await.into_opt_dict();
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchPosition() not support this market type")));
             }
         }
         return self.parse_position(&response, Some(&market));
@@ -4610,7 +4608,7 @@ impl Hitbtc {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports swap contracts only".into()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " fetchOpenInterest() supports swap contracts only")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4649,7 +4647,7 @@ impl Hitbtc {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports swap contracts only".into()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " fetchFundingRate() supports swap contracts only")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4723,7 +4721,7 @@ impl Hitbtc {
         let mut leverage: Option<String> = self.safe_string_k(params.clone(), "leverage", &[]).as_str().map(str::to_owned);
         if (market).swap {
             if (leverage.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" modifyMarginHelper() requires a leverage parameter for swap markets".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " modifyMarginHelper() requires a leverage parameter for swap markets")));
             }
         }
         let mut stringAmount: Option<String> = self.number_to_string(amount);
@@ -4751,7 +4749,7 @@ impl Hitbtc {
             let __ws_arg_69 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             response = self.private_put_margin_account_isolated_symbol(&[__ws_arg_69]).await.into_opt_dict();
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" modifyMarginHelper() not support this market type".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " modifyMarginHelper() not support this market type")));
         }
         //
         //     {
@@ -4852,7 +4850,7 @@ impl Hitbtc {
     m
 }));
         if (Value::from(self.number_to_string(amount.clone())).as_str() != Some("0")) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")));
         }
         return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), Some("reduce"), &[params]).await;
         Value::Null
@@ -4940,7 +4938,7 @@ impl Hitbtc {
                 let __ws_arg_74 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_get_margin_account_isolated_symbol(&[__ws_arg_74]).await.into_opt_dict();
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() not support this market type".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchLeverage() not support this market type")));
             }
         }
         return self.parse_leverage(&response, Some(&market));
@@ -4988,14 +4986,14 @@ impl Hitbtc {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setLeverage() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut amount: Option<f64> = self.safe_number_k(params.clone(), "margin_balance", &[]).as_f64();
         if (amount.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut limits: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "limits", &[Value::Map({
@@ -5004,10 +5002,10 @@ impl Hitbtc {
         })]).as_map().cloned().unwrap_or_default();
         let mut maxLeverage: i64 = self.safe_integer_k(limits.get("leverage").cloned().unwrap_or(Value::Null), "max", &[Value::Int(50)]).as_i64().unwrap_or(50);
         if (Value::from((market).market_type.clone()).as_str() != Some("swap")) {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() supports swap contracts only".into()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " setLeverage() supports swap contracts only")));
         }
         if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_i64().unwrap_or_default() > maxLeverage) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() leverage should be between 1 and ".into())).into()), Value::Str(format!("{}", maxLeverage).into())).into()), Value::Str(" for ".into())).into()), symbol)));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " setLeverage() leverage should be between 1 and ").into()), Value::Str(format!("{}", maxLeverage).into())).into()), " for ").into()), symbol)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5212,7 +5210,7 @@ impl Hitbtc {
         let mut error: crate::value::Dict = self.safe_dict_k(response, "error", &[]).into_dict();
         let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             let mut message: Option<String> = self.safe_string2(&error, Value::Str("message".into()), Value::Str("description".into()), &[]).as_str().map(str::to_owned);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
@@ -5237,9 +5235,9 @@ impl Hitbtc {
         let mut implodedPath: String = self.implode_params(path, params.clone());
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut baseUrl: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), implodedPath);
+        let mut baseUrl: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), implodedPath);
         let mut getRequest: String = "".to_string();
         let mut queryString: String = self.urlencode(query, &[]);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
@@ -5249,7 +5247,7 @@ impl Hitbtc {
         });
         if (method.as_str() == Some("GET")) {
             if (((queryString.chars().count() as i64)) != 0) {
-                getRequest = format!("{}{}", Value::Str("?".into()), queryString);
+                getRequest = format!("{}{}", "?", queryString);
             }
         }
         let mut url: String = format!("{}{}", baseUrl, getRequest);
@@ -5260,9 +5258,9 @@ impl Hitbtc {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.number_to_string(self.nonce());
-            let mut payloadString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, Value::Str("/api/3/".into())).into()), implodedPath).into()), getRequest).into()), bodyString.as_deref().unwrap_or("null")).into()), timestamp.as_deref().unwrap_or("null"));
+            let mut payloadString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, "/api/3/").into()), implodedPath).into()), getRequest).into()), bodyString.as_deref().unwrap_or("null")).into()), timestamp.as_deref().unwrap_or("null"));
             let mut signature: String = self.hmac(self.encode(Value::from(payloadString)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
-            let mut secondPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), signature).into()), Value::Str(":".into())).into()), timestamp.as_deref().unwrap_or("null"));
+            let mut secondPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), ":").into()), signature).into()), ":").into()), timestamp.as_deref().unwrap_or("null"));
             headersValue.insert("Authorization".into(), Value::Str(format!("{}{}", Value::Str("HS256 ".into()), self.string_to_base64(Value::from(secondPayload), &[])).into()));
         }
         return Value::Map({

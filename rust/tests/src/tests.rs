@@ -139,7 +139,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Bool(true);
         }
         let mut newLine: Value = Value::Str("\n".into());
-        dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", newLine, Value::Str("".into())).into()), newLine).into()), Value::Str("".into())).into()), Value::Str("[INFO] TESTING ".into())).into()), self.ext.clone(), Value::Map({
+        dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", newLine, "").into()), newLine).into()), "").into()), "[INFO] TESTING ").into()), self.ext.clone(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("exchange".to_string(), exchangeId.clone());
                 m.insert("symbol".to_string(), symbolArgv.clone());
@@ -217,7 +217,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn load_credentials_from_env(&self, mut exchange: Value) {
         let mut exchangeId: Value = get_value(&exchange, &Value::Str("id".into()));
-        let mut reqCreds: Value = getExchangeProp(exchange.clone(), Value::Str(format!("{}{}", Value::Str("re".into()), Value::Str("quiredCredentials".into())).into()), &[]); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        let mut reqCreds: Value = getExchangeProp(exchange.clone(), Value::Str(format!("{}{}", "re", "quiredCredentials").into()), &[]); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         let mut objkeys: Value = object_keys(&reqCreds);
         {
                         let mut i: i64 = 0;
@@ -226,7 +226,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut credential: Value = objkeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
             if (is_equal(&isRequired, &Value::Bool(true))) && (getExchangeProp(exchange.clone(), credential.clone(), &[]) == Value::Null) {
-                let mut fullKey: String = format!("{}{}", Value::Str(format!("{}{}", exchangeId, Value::Str("_".into())).into()), credential);
+                let mut fullKey: String = format!("{}{}", Value::Str(format!("{}{}", exchangeId, "_").into()), credential);
                 let mut credentialEnvName: Value = Value::from(fullKey.to_uppercase()); // example: KRAKEN_APIKEY
                 let mut envVars: Value = getEnvVars();
                 let mut credentialValue: Value = (if (in_op(&envVars, &credentialEnvName)) { envVars.as_map().and_then(|__m| credentialEnvName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) } else { Value::Null });
@@ -388,7 +388,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             return Value::Bool(true);
         }
-        let mut argsStringified: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("(".into()), exchange.json(args.clone())).into()), Value::Str(")".into())).into()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
+        let mut argsStringified: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("(".into()), exchange.json(args.clone())).into()), ")").into()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
         dump(&[self.add_padding(Value::Str("[INFO] TESTING".into()), Value::Int(25)), name.clone(), methodName.clone(), argsStringified]);
         if is_true(&isSync()) {
             callMethodSync(self.testFiles.clone(), methodName.clone(), exchange.clone(), skippedPropertiesForMethod.clone(), args.clone());
@@ -411,7 +411,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
-        let mut methodNames: Value = Value::from(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, Value::Str(".".into())).into()), self.ext.clone()).into())]);
+        let mut methodNames: Value = Value::from(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, ".").into()), self.ext.clone()).into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1618: bool = true;
@@ -503,7 +503,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut isAuthError: bool = is_instance(&e, &Value::Str("AuthenticationError".into()));
                 let mut isNotSupported: bool = matches!(&e, Value::Str(__s) if __s.contains("[NotSupported]"));
                 let mut isOperationFailed: bool = is_instance(&e, &Value::Str("OperationFailed".into())); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".into()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".into()), self.get_last_request_url(exchange.clone()).map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" )".into())).into()) });
+                let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".into()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".into()), self.get_last_request_url(exchange.clone()).map(Value::from).unwrap_or(Value::Null)).into()), " )").into()) });
                 if isOperationFailed {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i.as_f64() == (match (&(maxRetries), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
@@ -675,10 +675,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut testPrefixString: Value = (if isPublicTest.as_bool() == Some(true) { Value::Str("PUBLIC_TESTS".into()) } else { Value::Str("PRIVATE_TESTS".into()) });
         if Value::Int(failedMethods.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut errorsString: Value = Value::Str(failedMethods.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ").into());
-            dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), testPrefixString.clone(), Value::Str(format!("{}{}", Value::Str("Failed methods : ".into()), errorsString).into())]);
+            dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), testPrefixString.clone(), Value::Str(format!("{}{}", "Failed methods : ", errorsString).into())]);
         }
         if is_true(&self.info) {
-            dump(&[self.add_padding(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[INFO] END ".into()), testPrefixString).into()), Value::Str(" ".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Int(25))]);
+            dump(&[self.add_padding(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[INFO] END ", testPrefixString).into()), " ").into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Int(25))]);
         }
         return Value::Bool(true);
 
@@ -1118,7 +1118,7 @@ if _try_result.is_err() {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         unscopedError = exceptionMessage(e);
                     }
-                    assert((unscopedError.as_str().unwrap_or("").contains("requires at least one of")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" fetchEvents () without a scope must throw ArgumentsRequired, got: ".into())).into()), unscopedError).into())]);
+                    assert((unscopedError.as_str().unwrap_or("").contains("requires at least one of")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents () without a scope must throw ArgumentsRequired, got: ").into()), unscopedError).into())]);
                 }
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
@@ -1140,7 +1140,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     eventParams.insert("query".into(), eventQuery.clone());
                 }
                 let mut events: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![Value::Map(eventParams)])).await;
-                assert((events != Value::Null), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" fetchEvents returned undefined".into())).into())]);
+                assert((events != Value::Null), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents returned undefined").into())]);
                 // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
                 let mut eventsList: Value = exchange.safe_list(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1197,8 +1197,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m
                     }), Value::Str("events".into()), &[Value::from(vec![])]);
                     let mut scopedListLength: Value = get_array_length(&scopedList);
-                    assert((scopedListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" fetchEvents scoped by ".into())).into()), exchange.json(scope)).into()),
-                        Value::Str(" returned no events - the parameter path may be broken".into())).into())]);
+                    assert((scopedListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents scoped by ").into()), exchange.json(scope)).into()), " returned no events - the parameter path may be broken").into())]);
                     self.assert_prediction_events(exchange.clone(), scopedList);
                 }
                 }
@@ -1216,7 +1215,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m
                     }), Value::Str("events".into()), &[Value::from(vec![])]);
                     let mut limitedListLength: Value = get_array_length(&limitedList);
-                    assert((limitedListLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" fetchEvents did not honour limit=1".into())).into())]);
+                    assert((limitedListLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents did not honour limit=1").into())]);
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
@@ -1235,7 +1234,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     tickersError = exceptionMessage(e);
                 }
-                assert((tickersError.as_str().unwrap_or("").contains("requires an outcomes argument")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" fetchTickers () without outcomes must throw ArgumentsRequired, got: ".into())).into()), tickersError).into())]);
+                assert((tickersError.as_str().unwrap_or("").contains("requires an outcomes argument")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchTickers () without outcomes must throw ArgumentsRequired, got: ").into()), tickersError).into())]);
             }
         }
         dump(&[Value::Str("[INFO:MAIN] Selected prediction OUTCOME:".into()), outcomeSymbol.clone(), Value::Str("| EVENT:".into()), exchange.json(eventId)]);
@@ -1288,7 +1287,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn assert_prediction_events(&self, mut exchange: Value, mut events: Value) -> Value {
-        assert((matches!(&events, Value::Arr(_))), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" fetchEvents/fetchEvent should return a list".into())).into())]);
+        assert((matches!(&events, Value::Arr(_))), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents/fetchEvent should return a list").into())]);
         let mut eventsLength: Value = Value::Int(events.len() as i64);
         {
                         let mut i: i64 = 0;
@@ -1306,30 +1305,30 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // validates one PredictionEvent structure (id, event handle, markets each carrying an
         // outcomes list, and the optional typed fields when present)
         let mut logText: String = format!("{}{}", Value::Str(" event: ".into()), exchange.json(event.clone()));
-        assert(Value::Bool(is_equal(&exchange.is_dictionary(event.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event should be a dict".into())).into()), logText).into())]);
-        assert((exchange.safe_string(event.clone(), Value::Str("id".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event missing id".into())).into()), logText).into())]);
-        assert((exchange.safe_string(event.clone(), Value::Str("event".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event missing the unified event handle".into())).into()), logText).into())]);
+        assert(Value::Bool(is_equal(&exchange.is_dictionary(event.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event should be a dict").into()), logText).into())]);
+        assert((exchange.safe_string(event.clone(), Value::Str("id".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event missing id").into()), logText).into())]);
+        assert((exchange.safe_string(event.clone(), Value::Str("event".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event missing the unified event handle").into()), logText).into())]);
         let mut markets: Value = exchange.safe_list(event.clone(), Value::Str("markets".into()), &[]);
-        assert((markets != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event missing markets".into())).into()), logText).into())]);
+        assert((markets != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event missing markets").into()), logText).into())]);
         let mut marketsLength: Value = get_array_length(&markets);
-        assert((exchange.safe_string(event.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event must not carry the deprecated symbol key".into())).into()), logText).into())]);
+        assert((exchange.safe_string(event.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event must not carry the deprecated symbol key").into()), logText).into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1636: bool = true;
             while { if !__for_first_1636 { i += 1; } __for_first_1636 = false; (i as f64) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
             let mut market: Value = get_value(&markets, &Value::Int(i));
-            assert(Value::Bool(is_equal(&exchange.is_dictionary(market.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market should be a dict".into())).into()), logText).into())]);
-            assert((exchange.safe_string(market.clone(), Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market missing the unified market handle".into())).into()), logText).into())]);
+            assert(Value::Bool(is_equal(&exchange.is_dictionary(market.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event market should be a dict").into()), logText).into())]);
+            assert((exchange.safe_string(market.clone(), Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event market missing the unified market handle").into()), logText).into())]);
             // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
-            assert((exchange.safe_string(market.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market must not carry the deprecated symbol key".into())).into()), logText).into())]);
+            assert((exchange.safe_string(market.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event market must not carry the deprecated symbol key").into()), logText).into())]);
             let mut outcomes: Value = exchange.safe_list(market, Value::Str("outcomes".into()), &[]);
-            assert((outcomes != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market missing outcomes".into())).into()), logText).into())]);
+            assert((outcomes != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event market missing outcomes").into()), logText).into())]);
             let mut outcomesLength: Value = get_array_length(&outcomes);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1635: bool = true;
                 while { if !__for_first_1635 { j += 1; } __for_first_1635 = false; (j as f64) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
-                assert((exchange.safe_string(get_value(&outcomes, &Value::Int(j)), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event outcome must not carry the deprecated symbol key".into())).into()), logText).into())]);
+                assert((exchange.safe_string(get_value(&outcomes, &Value::Int(j)), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event outcome must not carry the deprecated symbol key").into()), logText).into())]);
             }
             }
         }
@@ -1339,14 +1338,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (active != Value::Null) {
             // typeof check, not `=== true || === false` — the latter transpiles to `== False`
             // in Python, which ruff rejects (E712)
-            assert((matches!(&active, Value::Bool(_))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event active must be a bool".into())).into()), logText).into())]);
+            assert((matches!(&active, Value::Bool(_))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event active must be a bool").into()), logText).into())]);
         }
         let mut tags: Value = exchange.safe_value(event.clone(), Value::Str("tags".into()), &[]);
         if (tags != Value::Null) {
-            assert((matches!(&tags, Value::Arr(_))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event tags must be a list".into())).into()), logText).into())]);
+            assert((matches!(&tags, Value::Arr(_))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event tags must be a list").into()), logText).into())]);
         }
         let mut info: Value = exchange.safe_value(event, Value::Str("info".into()), &[]);
-        assert((info != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event missing info".into())).into()), logText).into())]);
+        assert((info != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event missing info").into()), logText).into())]);
         return Value::Bool(true);
 
     Value::Null
@@ -1398,13 +1397,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut failure: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             order = callExchangeMethodDynamically(&mut exchange, Value::Str("createOrder".into()), Value::from(vec![outcome.clone(), Value::Str("limit".into()), Value::Str("buy".into()), amount, price])).await;
-            assert((order != Value::Null), &[Value::Str(format!("{}{}", Value::Str("createOrder returned undefined for ".into()), get_value(&exchange, &Value::Str("id".into()))).into())]);
-            assert(Value::Bool(is_equal(&exchange.is_dictionary(order.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str("createOrder did not return an order structure for ".into()), get_value(&exchange, &Value::Str("id".into()))).into())]);
+            assert((order != Value::Null), &[Value::Str(format!("{}{}", "createOrder returned undefined for ", get_value(&exchange, &Value::Str("id".into()))).into())]);
+            assert(Value::Bool(is_equal(&exchange.is_dictionary(order.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", "createOrder did not return an order structure for ", get_value(&exchange, &Value::Str("id".into()))).into())]);
             placedId = exchange.safe_string(order.clone(), Value::Str("id".into()), &[]);
-            assert((placedId != Value::Null), &[Value::Str(format!("{}{}", Value::Str("createOrder returned no order id for ".into()), get_value(&exchange, &Value::Str("id".into()))).into())]);
+            assert((placedId != Value::Null), &[Value::Str(format!("{}{}", "createOrder returned no order id for ", get_value(&exchange, &Value::Str("id".into()))).into())]);
             let mut returnedOutcome: Value = exchange.safe_string(order, Value::Str("outcome".into()), &[]);
             assert(((returnedOutcome == Value::Null) || (is_equal(&returnedOutcome, &outcome))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("createOrder outcome \"".into()), exchange.json(returnedOutcome.clone())).into()),
-                Value::Str("\" should match requested \"".into())).into()), outcome).into()), Value::Str("\" for ".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into())]);
+                "\" should match requested \"").into()), outcome).into()), "\" for ").into()), get_value(&exchange, &Value::Str("id".into()))).into())]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
             failure = exceptionMessage(e);
@@ -1552,10 +1551,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // if exception was set, then throw it
         if (exceptionMessageString != Value::Null) {
-            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE] Failed ".into()), proxyTestName).into()), Value::Str(" : ".into())).into()), exceptionMessageString);
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[TEST_FAILURE] Failed ", proxyTestName).into()), " : ").into()), exceptionMessageString);
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_WARNING]".into()), errorMessage).into())]);
+            dump(&[Value::Str(format!("{}{}", "[TEST_WARNING]", errorMessage).into())]);
         }
         return Value::Bool(true);
 
@@ -1566,14 +1565,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // todo: this might be moved in base tests later
         if (get_value(&exchange, &Value::Str("id".into())).as_str() == Some("binance")) {
             assert(((get_value(&exchange, &Value::Str("hostname".into())) == Value::Null) || (get_value(&exchange, &Value::Str("hostname".into())).as_str() == Some(""))), &[Value::Str("binance.com hostname should be empty".into())]);
-            assert((get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.com/api/v3")), &[Value::Str(format!("{}{}",
-                Value::Str("https://api.binance.com/api/v3 does not match: ".into()), get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null)).into())]);
+            assert((get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.com/api/v3")), &[Value::Str(format!("{}{}", "https://api.binance.com/api/v3 does not match: ",
+                get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null)).into())]);
             assert((in_op(&get_value(&exchange, &Value::Str("api".into())).as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("get")).cloned().unwrap_or(Value::Null), &Value::Str("lending/union/account".into()))), &[Value::Str(format!("{}{}",
                 Value::Str("SAPI should contain the endpoint lending/union/account, ".into()), jsonStringify(get_value(&exchange, &Value::Str("api".into())).as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("get")).cloned().unwrap_or(Value::Null))).into())]);
         }  else if (get_value(&exchange, &Value::Str("id".into())).as_str() == Some("binanceus")) {
-            assert((get_value(&exchange, &Value::Str("hostname".into())).as_str() == Some("binance.us")), &[Value::Str(format!("{}{}", Value::Str("binance.us hostname does not match ".into()), get_value(&exchange, &Value::Str("hostname".into()))).into())]);
-            assert((get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.us/api/v3")), &[Value::Str(format!("{}{}",
-                Value::Str("https://api.binance.us/api/v3 does not match: ".into()), get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null)).into())]);
+            assert((get_value(&exchange, &Value::Str("hostname".into())).as_str() == Some("binance.us")), &[Value::Str(format!("{}{}", "binance.us hostname does not match ", get_value(&exchange, &Value::Str("hostname".into()))).into())]);
+            assert((get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.us/api/v3")), &[Value::Str(format!("{}{}", "https://api.binance.us/api/v3 does not match: ",
+                get_value(&exchange, &Value::Str("urls".into())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null)).into())]);
         }
 }
 
@@ -1665,9 +1664,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut storedString: Value = jsonStringify(storedOutput);
         let mut errorMessage: Value = message;
         if (key != Value::Null) {
-            errorMessage = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), key).into()), Value::Str("]".into())).into());
+            errorMessage = Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", key).into()), "]").into());
         }
-        errorMessage = Value::Str(format!("{}{}", errorMessage, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" computed: ".into()), storedString).into()), Value::Str(" stored: ".into())).into()), calculatedString).into())).into());
+        errorMessage = Value::Str(format!("{}{}", errorMessage, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", " computed: ", storedString).into()), " stored: ").into()), calculatedString).into())).into());
         assert(cond, &[errorMessage]);
 }
 
@@ -1676,7 +1675,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/markets/".into())).into()), id).into()), Value::Str(".json".into())).into());
+        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/markets/".into())).into()), id).into()), ".json").into());
         let mut content: Value = ioFileRead(filename, &[]);
         return content;
 
@@ -1686,7 +1685,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn load_events_from_file(&self, mut id: Value) -> Value {
         // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
         // static/events/<id>.json; returns undefined when the exchange has no events fixture
-        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/events/".into())).into()), id).into()), Value::Str(".json".into())).into());
+        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/events/".into())).into()), id).into()), ".json").into());
         if !is_true(&ioFileExists(filename.clone())) {
             return Value::Null;
         }
@@ -1696,7 +1695,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn load_currencies_from_file(&self, mut id: Value) -> Value {
-        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/currencies/".into())).into()), id).into()), Value::Str(".json".into())).into());
+        let mut filename: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/currencies/".into())).into()), id).into()), ".json").into());
         let mut content: Value = ioFileRead(filename, &[]);
         return content;
 
@@ -1711,9 +1710,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         if (targetExchange != Value::Null) && (targetExchange.as_str() != Some("")) {
             // read a single exchange
-            let mut path: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", folder, targetExchange).into()), Value::Str(".json".into())).into());
+            let mut path: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", folder, targetExchange).into()), ".json").into());
             if !is_true(&ioFileExists(path.clone())) {
-                dump(&[Value::Str(format!("{}{}", Value::Str("[WARN] tests not found: ".into()), path).into())]);
+                dump(&[Value::Str(format!("{}{}", "[WARN] tests not found: ", path).into())]);
                 return Value::Null;
             }
             result.insert(ccxt::runtime::stringify_param(&targetExchange), ioFileRead(path, &[]));
@@ -1951,7 +1950,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if ((self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO"))) && self.is_vacant_value(exchange.clone(), get_value(&storedOutput, &key)).as_bool() == Some(true) {
                         continue;
                     }
-                    self.assert_static_error(Value::Bool(false), Value::Str(format!("{}{}", Value::Str("output key missing: ".into()), key).into()), storedOutput.clone(), newOutput.clone(), &[]);
+                    self.assert_static_error(Value::Bool(false), Value::Str(format!("{}{}", "output key missing: ", key).into()), storedOutput.clone(), newOutput.clone(), &[]);
                 }
                 if exchange.in_array(key.clone(), skipKeys.clone()) {
                     continue;
@@ -1990,7 +1989,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // cost arrives as 0.0 rather than as a string). Test for undefined instead.
             let mut newOutputString: Value = (if (sanitizedNewOutput != Value::Null) { to_string_val(&sanitizedNewOutput) } else { Value::Str("undefined".into()) });
             let mut storedOutputString: Value = (if (sanitizedStoredOutput != Value::Null) { to_string_val(&sanitizedStoredOutput) } else { Value::Str("undefined".into()) });
-            let mut messageError: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("output value mismatch:".into()), newOutputString).into()), Value::Str(" != ".into())).into()), storedOutputString);
+            let mut messageError: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "output value mismatch:", newOutputString).into()), " != ").into()), storedOutputString);
             if strictTypeCheck.as_bool() == Some(true) && (self.lang.as_str() != Some("C#")) {
                 // upon building the request we want strict type check to make sure all the types are correct
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
@@ -2088,8 +2087,8 @@ if _try_result.is_err() {
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&self.info) {
-                let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.var_to_string(&[newOutput]), Value::Str("(calculated)".into())).into()), Value::Str(" != ".into())).into()), self.var_to_string(&[storedOutput])).into()), Value::Str("(stored)".into()));
-                dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE_DETAIL]".into()), errorMessage).into())]);
+                let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.var_to_string(&[newOutput]), Value::Str("(calculated)".into())).into()), " != ").into()), self.var_to_string(&[storedOutput])).into()), "(stored)");
+                dump(&[Value::Str(format!("{}{}", "[TEST_FAILURE_DETAIL]", errorMessage).into())]);
             }
             panic!("{}", e);
         }
@@ -2186,18 +2185,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.assert_static_error(Value::Bool((liquidationPrice.is_some() && entryPrice.is_some() && liquidationPrice > entryPrice)), Value::Str("isolated short liquidationPrice should be greater than entryPrice".into()), Value::from(entryPrice), Value::from(liquidationPrice), &[]);
             }
         }
-        let mut entryMargin: Value = Value::Null;
+        let mut entryMargin: Option<f64> = None;
         if (collateral.is_some()) {
             if (unrealizedPnl.is_some()) && (collateral != initialMargin) {
-                entryMargin = Value::from((if let (Some(__l), Some(__r)) = (collateral, unrealizedPnl) { Some(__l - __r) } else { None }));
+                entryMargin = (if let (Some(__l), Some(__r)) = (collateral, unrealizedPnl) { Some(__l - __r) } else { None });
             }  else {
-                entryMargin = Value::from(collateral);
+                entryMargin = collateral;
             }
         }  else if (initialMargin.is_some()) {
-            entryMargin = Value::from(initialMargin);
+            entryMargin = initialMargin;
         }
-        if (entryMargin != Value::Null) && (entryPrice.is_some()) && (liquidationPrice.is_some()) && (contracts.is_some()) && (contractSize.is_some()) && (maintenanceMargin != Value::Null) {
-            if (entryMargin.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (entryPrice > Some(0.0)) && (liquidationPrice > Some(0.0)) && (contracts > Some(0.0)) && (contractSize > Some(0.0)) && (maintenanceMargin.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) {
+        if (entryMargin.is_some()) && (entryPrice.is_some()) && (liquidationPrice.is_some()) && (contracts.is_some()) && (contractSize.is_some()) && (maintenanceMargin != Value::Null) {
+            if (entryMargin > Some(0.0)) && (entryPrice > Some(0.0)) && (liquidationPrice > Some(0.0)) && (contracts > Some(0.0)) && (contractSize > Some(0.0)) && (maintenanceMargin.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) {
                 let mut symbol: Value = exchange.safe_string(&entry, Value::Str("symbol".into()), &[]);
                 let mut market: Value = (if (symbol != Value::Null) { exchange.safe_dict(get_value(&exchange, &Value::Str("markets".into())), symbol, &[]) } else { Value::Null });
                 let mut isInverse: bool = (market != Value::Null) && is_true(&exchange.safe_bool(&market, Value::Str("inverse".into()), &[Value::Bool(false)]));
@@ -2212,12 +2211,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 let mut lossFromEntry: Value = (match (&((match (&(priceDiff), &(Value::from(contracts))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                     _ => Value::Null })), &(Value::from(contractSize))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-                let mut calculatedMm: Value = (match (&(entryMargin), &(lossFromEntry)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                let mut calculatedMm: Value = (match (&(Value::from(entryMargin)), &(lossFromEntry)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 self.assert_static_error(Value::Bool(calculatedMm.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), Value::Str("isolated position remaining collateral at liquidationPrice should be greater than 0".into()), maintenanceMargin.clone(), calculatedMm.clone(), &[]);
                 let mut mmDiff: Value = (if (calculatedMm.as_f64().unwrap_or(f64::NAN) > maintenanceMargin.as_f64().unwrap_or(f64::NAN)) { ((match (&(calculatedMm), &(maintenanceMargin)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { ((match (&(maintenanceMargin), &(calculatedMm)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) });
-                let mut maxTolerance: Value = (match (&(entryMargin), &(Value::Float(0.05))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                let mut maxTolerance: Value = Value::from((if let Some(__l) = entryMargin { Some(__l * 0.05) } else { None }));
                 self.assert_static_error(Value::Bool(mmDiff.as_f64().unwrap_or(f64::NAN) <= maxTolerance.as_f64().unwrap_or(f64::NAN)), Value::Str("isolated position maintenanceMargin does not match remaining collateral at liquidationPrice".into()), maintenanceMargin, calculatedMm, &[]);
             }
         }
@@ -2314,17 +2313,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut headerKey: Value = storedHeaderKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut storedHeaderValue: Value = get_value(&storedHeaders, &headerKey);
                     let mut sentHeaderValue: Value = exchange.safe_string(sentHeaders.clone(), headerKey.clone(), &[]);
-                    self.assert_static_error(Value::Bool(is_equal(&sentHeaderValue, &storedHeaderValue)), Value::Str(format!("{}{}", Value::Str("header mismatch for ".into()), headerKey).into()), storedHeaderValue.clone(), sentHeaderValue.clone(), &[]);
+                    self.assert_static_error(Value::Bool(is_equal(&sentHeaderValue, &storedHeaderValue)), Value::Str(format!("{}{}", "header mismatch for ", headerKey).into()), storedHeaderValue.clone(), sentHeaderValue.clone(), &[]);
                 }
                 }
             }
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.requestTestsFailed = Value::Bool(true);
-            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-                Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_REQUEST]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()),
-                data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[",
+                self.lang.clone()).into()), "][STATIC_REQUEST]").into()), "[").into()), get_value(&exchange, &Value::Str("id".into()))).into()), "]").into()), "[").into()), method).into()), "]").into()), "[").into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), "]").into()), exceptionMessage(e));
+            dump(&[Value::Str(format!("{}{}", "[TEST_FAILURE]", errorMessage).into())]);
         }
         return Value::Bool(true);
 
@@ -2359,10 +2357,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.responseTestsFailed = Value::Bool(true);
-            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-                Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_RESPONSE]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()),
-                data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[",
+                self.lang.clone()).into()), "][STATIC_RESPONSE]").into()), "[").into()), get_value(&exchange, &Value::Str("id".into()))).into()), "]").into()), "[").into()), method).into()), "]").into()), "[").into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), "]").into()), exceptionMessage(e));
+            dump(&[Value::Str(format!("{}{}", "[TEST_FAILURE]", errorMessage).into())]);
         }
         setFetchResponse(&mut exchange, Value::Null); // reset state
         return Value::Bool(true);
@@ -2492,8 +2489,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut sentMessages: Value = getWsSentMessages(exchange.clone(), url);
         let mut sentLength: Value = get_array_length(&sentMessages);
         let mut expectedLength: Value = get_array_length(&expectedSent);
-        assert((sentLength.as_f64() == expectedLength.as_f64()), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("sent ws messages count mismatch: sent ".into()), to_string_val(&sentLength)).into()), Value::Str(", expected ".into())).into()),
-            to_string_val(&expectedLength)).into()), Value::Str(" ".into())).into()), jsonStringify(sentMessages.clone())).into())]);
+        assert((sentLength.as_f64() == expectedLength.as_f64()), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("sent ws messages count mismatch: sent ".into()), to_string_val(&sentLength)).into()), ", expected ").into()),
+            to_string_val(&expectedLength)).into()), " ").into()), jsonStringify(sentMessages.clone())).into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1653: bool = true;
@@ -2544,10 +2541,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.staticWsTestsFailed = Value::Bool(true);
-            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-                Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_WS]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()),
-                data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[",
+                self.lang.clone()).into()), "][STATIC_WS]").into()), "[").into()), get_value(&exchange, &Value::Str("id".into()))).into()), "]").into()), "[").into()), method).into()), "]").into()), "[").into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), "]").into()), exceptionMessage(e));
+            dump(&[Value::Str(format!("{}{}", "[TEST_FAILURE]", errorMessage).into())]);
         }
         setFetchResponse(&mut exchange, Value::Null); // reset state
         return Value::Bool(true);
@@ -2668,22 +2664,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut basePath: String = format!("{}{}", getRootDir(), Value::Str("ts/src/test/static/binaries/".into()));
         if (exchangeName.as_str() == Some("lighter")) {
             if (self.lang.as_str() == Some("JS")) {
-                wasmExecPath = Some(format!("{}{}", basePath, Value::Str("wasm_exec.js".into())));
-                libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer.wasm".into())));
+                wasmExecPath = Some(format!("{}{}", basePath, "wasm_exec.js"));
+                libraryPath = Some(format!("{}{}", basePath, "lighter-signer.wasm"));
             }  else {
                 if is_true(&isWindows()) {
-                    libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-windows-amd64.dll".into())));
+                    libraryPath = Some(format!("{}{}", basePath, "lighter-signer-windows-amd64.dll"));
                 }  else if is_true(&isLinux()) {
                     if is_true(&isAmd64()) {
-                        libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-linux-amd64.so".into())));
+                        libraryPath = Some(format!("{}{}", basePath, "lighter-signer-linux-amd64.so"));
                     }  else {
-                        libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-linux-arm64.so".into())));
+                        libraryPath = Some(format!("{}{}", basePath, "lighter-signer-linux-arm64.so"));
                     }
                 }  else {
                     if is_true(&isAmd64()) {
-                        libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-x86.dylib".into())));
+                        libraryPath = Some(format!("{}{}", basePath, "lighter-signer-darwin-x86.dylib"));
                     }  else {
-                        libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-arm64.dylib".into())));
+                        libraryPath = Some(format!("{}{}", basePath, "lighter-signer-darwin-arm64.dylib"));
                     }
                 }
             }
@@ -2762,8 +2758,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // declares it required) — enforce it on the fixtures so a venue that stops
                     // setting it fails offline, not just in live tests. 'symbol' is deprecated
                     // on prediction structures and must be absent
-                    assert((exchange.safe_string(&evMarket, Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", exchangeName, Value::Str(" static events fixture: market row missing the unified market handle".into())).into())]);
-                    assert((exchange.safe_string(&evMarket, Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", exchangeName, Value::Str(" static events fixture: market row must not carry the deprecated symbol key".into())).into())]);
+                    assert((exchange.safe_string(&evMarket, Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", exchangeName, " static events fixture: market row missing the unified market handle").into())]);
+                    assert((exchange.safe_string(&evMarket, Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", exchangeName, " static events fixture: market row must not carry the deprecated symbol key").into())]);
                     append_to_array(&mut eventMarkets, evMarket);
                 }
                 }
@@ -3039,37 +3035,37 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // so their fixtures declare asyncOnly and the sync harness skips them
         let mut isAsyncOnly: bool = exchange.safe_bool(&exchangeData, Value::Str("asyncOnly".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isAsyncOnly && is_true(&isSync()) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is async-only, skipped by the sync test harness".into())).into())]);
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[TEST_WARNING] Exchange ", exchangeName).into()), " is async-only, skipped by the sync test harness").into())]);
             return Value::Bool(true);
         }
         let mut isDisabledPy: bool = exchange.safe_bool(&exchangeData, Value::Str("disabledPy".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isDisabledPy && (self.lang.as_str() == Some("PY")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in python".into())).into())]);
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[TEST_WARNING] Exchange ", exchangeName).into()), " is disabled in python").into())]);
             return Value::Bool(true);
         }
         let mut isDisabledPHP: bool = exchange.safe_bool(&exchangeData, Value::Str("disabledPHP".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isDisabledPHP && (self.lang.as_str() == Some("PHP")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in php".into())).into())]);
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[TEST_WARNING] Exchange ", exchangeName).into()), " is disabled in php").into())]);
             return Value::Bool(true);
         }
         let mut isDisabledCSharp: bool = exchange.safe_bool(&exchangeData, Value::Str("disabledCS".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isDisabledCSharp && (self.lang.as_str() == Some("C#")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in c#".into())).into())]);
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[TEST_WARNING] Exchange ", exchangeName).into()), " is disabled in c#").into())]);
             return Value::Bool(true);
         }
         let mut isDisabledGO: bool = exchange.safe_bool(&exchangeData, Value::Str("disabledGO".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isDisabledGO && (self.lang.as_str() == Some("GO")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in go".into())).into())]);
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[TEST_WARNING] Exchange ", exchangeName).into()), " is disabled in go").into())]);
             return Value::Bool(true);
         }
         let mut isDisabledRust: bool = exchange.safe_bool(&exchangeData, Value::Str("disabledRS".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isDisabledRust && (self.lang.as_str() == Some("RUST")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in rust".into())).into())]);
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[TEST_WARNING] Exchange ", exchangeName).into()), " is disabled in rust").into())]);
             return Value::Bool(true);
         }
         let mut isDisabledJava: bool = exchange.safe_bool(&exchangeData, Value::Str("disabledJava".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isDisabledJava && (self.lang.as_str() == Some("java")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in java".into())).into())]);
+            dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[TEST_WARNING] Exchange ", exchangeName).into()), " is disabled in java").into())]);
             return Value::Bool(true);
         }
         return Value::Bool(false);
@@ -3091,9 +3087,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut testName = get_arg(optional_args, 1, Value::Null);
         // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
         // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
-        let mut folder: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/".into())).into()), type_var).into()), Value::Str("/".into()));
+        let mut folder: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/".into())).into()), type_var).into()), "/");
         if is_true(&self.predictionTests) {
-            folder = format!("{}{}", folder, Value::Str("prediction/".into()));
+            folder = format!("{}{}", folder, "prediction/");
         }
         let mut staticData: Value = self.load_static_data(Value::from(folder), &[targetExchange.clone()]);
         if (staticData == Value::Null) {
@@ -3107,10 +3103,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut promises: Vec<Value> = Vec::new();
         let mut sum: Value = Value::Int(0);
         if (targetExchange != Value::Null) && (targetExchange.as_str() != Some("")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str("[INFO:MAIN] Exchange to test: ".into()), targetExchange).into())]);
+            dump(&[Value::Str(format!("{}{}", "[INFO:MAIN] Exchange to test: ", targetExchange).into())]);
         }
         if (testName != Value::Null) && (testName.as_str() != Some("")) {
-            dump(&[Value::Str(format!("{}{}", Value::Str("[INFO:MAIN] Testing only: ".into()), testName).into())]);
+            dump(&[Value::Str(format!("{}{}", "[INFO:MAIN] Testing only: ", testName).into())]);
         }
         {
                         let mut i: i64 = 0;
@@ -3144,16 +3140,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 self.responseTestsFailed = Value::Bool(true);
             }
-            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_REQUEST]".into())).into()), exceptionMessage(e));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", self.lang.clone()).into()), "][STATIC_REQUEST]").into()), exceptionMessage(e));
+            dump(&[Value::Str(format!("{}{}", "[TEST_FAILURE]", errorMessage).into())]);
         }
         if is_true(&self.requestTestsFailed) || is_true(&self.responseTestsFailed) || is_true(&self.staticWsTestsFailed) {
             exitScript(Value::Int(1));
         }  else {
             let mut prefix: String = (if is_true(&(isSync())) { "[SYNC]".to_string() } else { "".to_string() });
-            let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("]".into())).into()), prefix).into()),
-                Value::Str("[TEST_SUCCESS] ".into())).into()), Value::Str(format!("{}", sum).into())).into()), Value::Str(" static ".into())).into()), type_var).into()), Value::Str(" tests passed.".into()));
-            dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".into()), successMessage).into())]);
+            let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", self.lang.clone()).into()), "]").into()), prefix).into()), "[TEST_SUCCESS] ").into()),
+                Value::Str(format!("{}", sum).into())).into()), " static ").into()), type_var).into()), " tests passed.");
+            dump(&[Value::Str(format!("{}{}", "[INFO]", successMessage).into())]);
         }
         return Value::Bool(true);
 
@@ -3195,8 +3191,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await,
             self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await, self.test_extended().await]);
         promise_all(&promises).await;
-        let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][TEST_SUCCESS] brokerId tests passed.".into()));
-        dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".into()), successMessage).into())]);
+        let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", "[", self.lang.clone()).into()), "][TEST_SUCCESS] brokerId tests passed.");
+        dump(&[Value::Str(format!("{}{}", "[INFO]", successMessage).into())]);
         exitScript(Value::Int(0));
         return Value::Bool(true);
 
@@ -3219,7 +3215,7 @@ if _try_result.is_err() {
             spotOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderId, &spotId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - spot clientOrderId: ".into()), clientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+        assert((starts_with(&clientOrderId, &spotId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - spot clientOrderId: ", clientOrderId).into()), " does not start with spotId").into()), spotId).into())]);
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3242,10 +3238,10 @@ if _try_result.is_err() {
         }
         // linear swap
         let mut clientOrderIdSwap: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderIdSwap, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - swap clientOrderId: ".into()), clientOrderIdSwap).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+        assert((starts_with(&clientOrderIdSwap, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - swap clientOrderId: ", clientOrderIdSwap).into()), " does not start with swapId").into()), swapId).into())]);
         // inverse swap
         let mut clientOrderIdInverse: Value = swapInverseOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderIdInverse, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - swap clientOrderIdInverse: ".into()), clientOrderIdInverse).into()), Value::Str(" does not start with swapId".into())).into()), inverseSwapId).into())]);
+        assert((starts_with(&clientOrderIdInverse, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - swap clientOrderIdInverse: ", clientOrderIdInverse).into()), " does not start with swapId").into()), inverseSwapId).into())]);
         // defaultType swap routes spot-style symbols by defaultSubType: unset or linear -> USDⓈ-M, inverse -> COIN-M
         exchange.extend_exchange_options(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3263,7 +3259,7 @@ if _try_result.is_err() {
             swapNoSubTypeRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapNoSubTypeId: Value = swapNoSubTypeRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&swapNoSubTypeId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - defaultType swap without subType clientOrderId: ".into()), swapNoSubTypeId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+        assert((starts_with(&swapNoSubTypeId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - defaultType swap without subType clientOrderId: ", swapNoSubTypeId).into()), " does not start with swapId").into()), swapId).into())]);
         exchange.extend_exchange_options(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("defaultSubType".to_string(), Value::Str("linear".into()));
@@ -3280,7 +3276,7 @@ if _try_result.is_err() {
             swapLinearRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapLinearId: Value = swapLinearRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&swapLinearId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - defaultType swap linear clientOrderId: ".into()), swapLinearId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+        assert((starts_with(&swapLinearId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - defaultType swap linear clientOrderId: ", swapLinearId).into()), " does not start with swapId").into()), swapId).into())]);
         exchange.extend_exchange_options(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("defaultSubType".to_string(), Value::Str("inverse".into()));
@@ -3297,7 +3293,7 @@ if _try_result.is_err() {
             swapInverseRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapInverseId: Value = swapInverseRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&swapInverseId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - defaultType swap inverse clientOrderId: ".into()), swapInverseId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+        assert((starts_with(&swapInverseId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - defaultType swap inverse clientOrderId: ", swapInverseId).into()), " does not start with inverseSwapId").into()), inverseSwapId).into())]);
         exchange.extend_exchange_options(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("defaultType".to_string(), Value::Str("spot".into()));
@@ -3325,7 +3321,7 @@ if _try_result.is_err() {
         }
         let mut clientAlgoIdSwap: Value = swapAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
         assert((clientAlgoIdSwap != Value::Null), &[Value::Str("binance - swap conditional order must send clientAlgoId".into())]);
-        assert((starts_with(&clientAlgoIdSwap, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - swap clientAlgoId: ".into()), clientAlgoIdSwap).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+        assert((starts_with(&clientAlgoIdSwap, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - swap clientAlgoId: ", clientAlgoIdSwap).into()), " does not start with swapId").into()), swapId).into())]);
         // inverse swap conditional order
         let mut inverseAlgoOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3343,7 +3339,7 @@ if _try_result.is_err() {
         }
         let mut clientAlgoIdInverse: Value = inverseAlgoOrderRequest.as_map().and_then(|__m| __m.get("clientAlgoId")).cloned().unwrap_or(Value::Null);
         assert((clientAlgoIdInverse != Value::Null), &[Value::Str("binance - inverse swap conditional order must send clientAlgoId".into())]);
-        assert((starts_with(&clientAlgoIdInverse, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - inverse swap clientAlgoId: ".into()), clientAlgoIdInverse).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+        assert((starts_with(&clientAlgoIdInverse, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - inverse swap clientAlgoId: ", clientAlgoIdInverse).into()), " does not start with inverseSwapId").into()), inverseSwapId).into())]);
         let mut createOrdersRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3377,7 +3373,7 @@ if _try_result.is_err() {
             while { if !__for_first_1664 { i += 1; } __for_first_1664 = false; (i as f64) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&batchOrders, &Value::Int(i));
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".into()));
-            assert((starts_with(&currentClientOrderId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance createOrders - clientOrderId: ".into()), currentClientOrderId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+            assert((starts_with(&currentClientOrderId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance createOrders - clientOrderId: ", currentClientOrderId).into()), " does not start with swapId").into()), swapId).into())]);
         }
         }
         // linear conditional orders cannot be batched
@@ -3438,8 +3434,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut inverseConditionalClientOrderId: Value = exchange.safe_string(&inverseConditionalBatchOrder, Value::Str("newClientOrderId".into()), &[]);
         assert((inverseConditionalClientOrderId != Value::Null), &[Value::Str("binance createOrders - inverse conditional order must send newClientOrderId".into())]);
-        assert((inverseConditionalClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance createOrders - inverse conditional clientOrderId: ".into()), inverseConditionalClientOrderId).into()),
-            Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+        assert((inverseConditionalClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance createOrders - inverse conditional clientOrderId: ", inverseConditionalClientOrderId).into()), " does not start with inverseSwapId").into()), inverseSwapId).into())]);
         // quarterly futures use the prefix of their fapi/dapi side, not the inverse one
         let mut linearFutureOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3452,7 +3447,7 @@ if _try_result.is_err() {
             linearFutureOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdLinearFuture: Value = linearFutureOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderIdLinearFuture, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - linear future clientOrderId: ".into()), clientOrderIdLinearFuture).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+        assert((starts_with(&clientOrderIdLinearFuture, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - linear future clientOrderId: ", clientOrderIdLinearFuture).into()), " does not start with swapId").into()), swapId).into())]);
         let mut inverseFutureOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3464,7 +3459,7 @@ if _try_result.is_err() {
             inverseFutureOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdInverseFuture: Value = inverseFutureOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderIdInverseFuture, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - inverse future clientOrderId: ".into()), clientOrderIdInverseFuture).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+        assert((starts_with(&clientOrderIdInverseFuture, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - inverse future clientOrderId: ", clientOrderIdInverseFuture).into()), " does not start with inverseSwapId").into()), inverseSwapId).into())]);
         // the option api takes clientOrderId instead of newClientOrderId
         let mut optionOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3478,7 +3473,7 @@ if _try_result.is_err() {
         }
         let mut optionClientOrderId: Value = exchange.safe_string(&optionOrderRequest, Value::Str("clientOrderId".into()), &[]);
         assert((optionClientOrderId != Value::Null), &[Value::Str("binance - option order must send clientOrderId".into())]);
-        assert((optionClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - option clientOrderId: ".into()), optionClientOrderId).into()), Value::Str(" does not start with the option broker id ".into())).into()), inverseSwapId).into())]);
+        assert((optionClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - option clientOrderId: ", optionClientOrderId).into()), " does not start with the option broker id ").into()), inverseSwapId).into())]);
         // the implicit order endpoints inject the broker id of their api section
         // skipped in the sync flavours: callExchangeMethodDynamically is async-only there
         if !is_true(&isSync()) {
@@ -3502,7 +3497,7 @@ if _try_result.is_err() {
                 implicitDapiOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
             let mut implicitDapiClientOrderId: Value = implicitDapiOrderRequest.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-            assert((starts_with(&implicitDapiClientOrderId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit dapi clientOrderId: ".into()), implicitDapiClientOrderId).into()), Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+            assert((starts_with(&implicitDapiClientOrderId, &inverseSwapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit dapi clientOrderId: ", implicitDapiClientOrderId).into()), " does not start with inverseSwapId").into()), inverseSwapId).into())]);
             let mut implicitDapiBatchRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3533,8 +3528,7 @@ if _try_result.is_err() {
             })]);
             let mut implicitDapiBatchClientOrderId: Value = exchange.safe_string(&implicitDapiBatchOrder, Value::Str("newClientOrderId".into()), &[]);
             assert((implicitDapiBatchClientOrderId != Value::Null), &[Value::Str("binance - implicit dapi batch order must inject newClientOrderId".into())]);
-            assert((implicitDapiBatchClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit dapi batch clientOrderId: ".into()), implicitDapiBatchClientOrderId).into()),
-                Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+            assert((implicitDapiBatchClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit dapi batch clientOrderId: ", implicitDapiBatchClientOrderId).into()), " does not start with inverseSwapId").into()), inverseSwapId).into())]);
             // the implicit algo order endpoints take clientAlgoId instead of newClientOrderId
             let mut implicitFapiAlgoOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3559,7 +3553,7 @@ if _try_result.is_err() {
             }
             let mut implicitFapiClientAlgoId: Value = exchange.safe_string(&implicitFapiAlgoOrderRequest, Value::Str("clientAlgoId".into()), &[]);
             assert((implicitFapiClientAlgoId != Value::Null), &[Value::Str("binance - implicit fapi algo order must inject clientAlgoId".into())]);
-            assert((implicitFapiClientAlgoId.as_str().zip(swapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit fapi clientAlgoId: ".into()), implicitFapiClientAlgoId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+            assert((implicitFapiClientAlgoId.as_str().zip(swapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit fapi clientAlgoId: ", implicitFapiClientAlgoId).into()), " does not start with swapId").into()), swapId).into())]);
             // the papi order endpoints resolve the broker id from the path, not from the api section
             let mut implicitPapiUmOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3582,7 +3576,7 @@ if _try_result.is_err() {
             }
             let mut implicitPapiUmClientOrderId: Value = exchange.safe_string(&implicitPapiUmOrderRequest, Value::Str("newClientOrderId".into()), &[]);
             assert((implicitPapiUmClientOrderId != Value::Null), &[Value::Str("binance - implicit papi um order must inject newClientOrderId".into())]);
-            assert((implicitPapiUmClientOrderId.as_str().zip(swapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi um clientOrderId: ".into()), implicitPapiUmClientOrderId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+            assert((implicitPapiUmClientOrderId.as_str().zip(swapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit papi um clientOrderId: ", implicitPapiUmClientOrderId).into()), " does not start with swapId").into()), swapId).into())]);
             let mut implicitPapiCmOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3604,8 +3598,7 @@ if _try_result.is_err() {
             }
             let mut implicitPapiCmClientOrderId: Value = exchange.safe_string(&implicitPapiCmOrderRequest, Value::Str("newClientOrderId".into()), &[]);
             assert((implicitPapiCmClientOrderId != Value::Null), &[Value::Str("binance - implicit papi cm order must inject newClientOrderId".into())]);
-            assert((implicitPapiCmClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi cm clientOrderId: ".into()), implicitPapiCmClientOrderId).into()),
-                Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+            assert((implicitPapiCmClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit papi cm clientOrderId: ", implicitPapiCmClientOrderId).into()), " does not start with inverseSwapId").into()), inverseSwapId).into())]);
             let mut implicitPapiMarginOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3627,8 +3620,7 @@ if _try_result.is_err() {
             }
             let mut implicitPapiMarginClientOrderId: Value = exchange.safe_string(&implicitPapiMarginOrderRequest, Value::Str("newClientOrderId".into()), &[]);
             assert((implicitPapiMarginClientOrderId != Value::Null), &[Value::Str("binance - implicit papi margin order must inject newClientOrderId".into())]);
-            assert((implicitPapiMarginClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi margin clientOrderId: ".into()), implicitPapiMarginClientOrderId).into()),
-                Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert((implicitPapiMarginClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit papi margin clientOrderId: ", implicitPapiMarginClientOrderId).into()), " does not start with spotId").into()), spotId).into())]);
             let mut implicitSapiMarginOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3650,8 +3642,7 @@ if _try_result.is_err() {
             }
             let mut implicitSapiMarginClientOrderId: Value = exchange.safe_string(&implicitSapiMarginOrderRequest, Value::Str("newClientOrderId".into()), &[]);
             assert((implicitSapiMarginClientOrderId != Value::Null), &[Value::Str("binance - implicit sapi margin order must inject newClientOrderId".into())]);
-            assert((implicitSapiMarginClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit sapi margin clientOrderId: ".into()), implicitSapiMarginClientOrderId).into()),
-                Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert((implicitSapiMarginClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit sapi margin clientOrderId: ", implicitSapiMarginClientOrderId).into()), " does not start with spotId").into()), spotId).into())]);
             // the papi um algo order endpoint takes clientAlgoId
             let mut implicitPapiUmAlgoOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3676,7 +3667,7 @@ if _try_result.is_err() {
             }
             let mut implicitPapiUmClientAlgoId: Value = exchange.safe_string(&implicitPapiUmAlgoOrderRequest, Value::Str("clientAlgoId".into()), &[]);
             assert((implicitPapiUmClientAlgoId != Value::Null), &[Value::Str("binance - implicit papi um algo order must inject clientAlgoId".into())]);
-            assert((implicitPapiUmClientAlgoId.as_str().zip(swapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi um clientAlgoId: ".into()), implicitPapiUmClientAlgoId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+            assert((implicitPapiUmClientAlgoId.as_str().zip(swapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit papi um clientAlgoId: ", implicitPapiUmClientAlgoId).into()), " does not start with swapId").into()), swapId).into())]);
             // the papi cm conditional order endpoint takes newClientStrategyId
             let mut implicitPapiCmConditionalOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3700,8 +3691,7 @@ if _try_result.is_err() {
             }
             let mut implicitPapiCmStrategyId: Value = exchange.safe_string(&implicitPapiCmConditionalOrderRequest, Value::Str("newClientStrategyId".into()), &[]);
             assert((implicitPapiCmStrategyId != Value::Null), &[Value::Str("binance - implicit papi cm conditional order must inject newClientStrategyId".into())]);
-            assert((implicitPapiCmStrategyId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi cm newClientStrategyId: ".into()), implicitPapiCmStrategyId).into()),
-                Value::Str(" does not start with inverseSwapId".into())).into()), inverseSwapId).into())]);
+            assert((implicitPapiCmStrategyId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit papi cm newClientStrategyId: ", implicitPapiCmStrategyId).into()), " does not start with inverseSwapId").into()), inverseSwapId).into())]);
             let mut implicitPapiUmConditionalOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3724,7 +3714,7 @@ if _try_result.is_err() {
             }
             let mut implicitPapiUmStrategyId: Value = exchange.safe_string(&implicitPapiUmConditionalOrderRequest, Value::Str("newClientStrategyId".into()), &[]);
             assert((implicitPapiUmStrategyId != Value::Null), &[Value::Str("binance - implicit papi um conditional order must inject newClientStrategyId".into())]);
-            assert((implicitPapiUmStrategyId.as_str().zip(swapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit papi um newClientStrategyId: ".into()), implicitPapiUmStrategyId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
+            assert((implicitPapiUmStrategyId.as_str().zip(swapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit papi um newClientStrategyId: ", implicitPapiUmStrategyId).into()), " does not start with swapId").into()), swapId).into())]);
             // the eapi order endpoints take clientOrderId
             let mut implicitEapiOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3746,8 +3736,7 @@ if _try_result.is_err() {
             }
             let mut implicitEapiClientOrderId: Value = exchange.safe_string(&implicitEapiOrderRequest, Value::Str("clientOrderId".into()), &[]);
             assert((implicitEapiClientOrderId != Value::Null), &[Value::Str("binance - implicit eapi order must inject clientOrderId".into())]);
-            assert((implicitEapiClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit eapi clientOrderId: ".into()), implicitEapiClientOrderId).into()),
-                Value::Str(" does not start with the option broker id ".into())).into()), inverseSwapId).into())]);
+            assert((implicitEapiClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit eapi clientOrderId: ", implicitEapiClientOrderId).into()), " does not start with the option broker id ").into()), inverseSwapId).into())]);
             let mut implicitEapiBatchRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3777,8 +3766,7 @@ if _try_result.is_err() {
             })]);
             let mut implicitEapiBatchClientOrderId: Value = exchange.safe_string(&implicitEapiBatchOrder, Value::Str("clientOrderId".into()), &[]);
             assert((implicitEapiBatchClientOrderId != Value::Null), &[Value::Str("binance - implicit eapi batch order must inject clientOrderId".into())]);
-            assert((implicitEapiBatchClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit eapi batch clientOrderId: ".into()), implicitEapiBatchClientOrderId).into()),
-                Value::Str(" does not start with the option broker id ".into())).into()), inverseSwapId).into())]);
+            assert((implicitEapiBatchClientOrderId.as_str().zip(inverseSwapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit eapi batch clientOrderId: ", implicitEapiBatchClientOrderId).into()), " does not start with the option broker id ").into()), inverseSwapId).into())]);
             // the equity order endpoint takes clientOrderId
             let mut implicitEquityOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3801,7 +3789,7 @@ if _try_result.is_err() {
             }
             let mut implicitEquityClientOrderId: Value = exchange.safe_string(&implicitEquityOrderRequest, Value::Str("clientOrderId".into()), &[]);
             assert((implicitEquityClientOrderId != Value::Null), &[Value::Str("binance - implicit equity order must inject clientOrderId".into())]);
-            assert((implicitEquityClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit equity clientOrderId: ".into()), implicitEquityClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert((implicitEquityClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit equity clientOrderId: ", implicitEquityClientOrderId).into()), " does not start with spotId").into()), spotId).into())]);
             // the order list endpoints inject a listClientOrderId and one client order id per leg
             let mut implicitOcoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3827,7 +3815,7 @@ if _try_result.is_err() {
             let mut ocoAboveClientOrderId: Value = exchange.safe_string(&implicitOcoListRequest, Value::Str("aboveClientOrderId".into()), &[]);
             let mut ocoBelowClientOrderId: Value = exchange.safe_string(&implicitOcoListRequest, Value::Str("belowClientOrderId".into()), &[]);
             assert((ocoListClientOrderId != Value::Null), &[Value::Str("binance - implicit oco list must inject listClientOrderId".into())]);
-            assert((ocoListClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit oco listClientOrderId: ".into()), ocoListClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert((ocoListClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit oco listClientOrderId: ", ocoListClientOrderId).into()), " does not start with spotId").into()), spotId).into())]);
             assert(((ocoAboveClientOrderId != Value::Null) && (ocoAboveClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit oco aboveClientOrderId must inject the spot broker id".into())]);
             assert(((ocoBelowClientOrderId != Value::Null) && (ocoBelowClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit oco belowClientOrderId must inject the spot broker id".into())]);
             let mut implicitOtocoListRequest: Value = Value::Map({
@@ -4040,7 +4028,7 @@ if _try_result.is_err() {
             }
             let mut cancelReplaceClientOrderId: Value = exchange.safe_string(&implicitCancelReplaceRequest, Value::Str("newClientOrderId".into()), &[]);
             assert((cancelReplaceClientOrderId != Value::Null), &[Value::Str("binance - implicit cancel-replace must inject newClientOrderId".into())]);
-            assert((cancelReplaceClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance - implicit cancel-replace newClientOrderId: ".into()), cancelReplaceClientOrderId).into()), Value::Str(" does not start with spotId".into())).into()), spotId).into())]);
+            assert((cancelReplaceClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit cancel-replace newClientOrderId: ", cancelReplaceClientOrderId).into()), " does not start with spotId").into()), spotId).into())]);
         }
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
@@ -4065,9 +4053,9 @@ if _try_result.is_err() {
         }
         let mut clientOrderId: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".into())); // returns order inside array
         let mut idString: Value = Value::Str(format!("{}", id).into());
-        assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - spot clientOrderId: ".into()), clientOrderId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "okx - spot clientOrderId: ", clientOrderId).into()), " does not start with id: ").into()), idString).into())]);
         let mut spotTag: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("tag".into()));
-        assert(Value::Bool(is_equal(&spotTag, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - id: ".into()), id).into()), Value::Str(" different from spot tag: ".into())).into()), spotTag).into())]);
+        assert(Value::Bool(is_equal(&spotTag, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "okx - id: ", id).into()), " different from spot tag: ").into()), spotTag).into())]);
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4079,9 +4067,9 @@ if _try_result.is_err() {
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdSwap: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".into()));
-        assert((starts_with(&clientOrderIdSwap, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - swap clientOrderId: ".into()), clientOrderIdSwap).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert((starts_with(&clientOrderIdSwap, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "okx - swap clientOrderId: ", clientOrderIdSwap).into()), " does not start with id: ").into()), idString).into())]);
         let mut swapTag: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("tag".into()));
-        assert(Value::Bool(is_equal(&swapTag, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("okx - id: ".into()), id).into()), Value::Str(" different from swap tag: ".into())).into()), swapTag).into())]);
+        assert(Value::Bool(is_equal(&swapTag, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "okx - id: ", id).into()), " different from swap tag: ").into()), swapTag).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4105,7 +4093,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = get_value(&request.as_map().and_then(|__m| __m.get("params")).cloned().unwrap_or(Value::Null), &Value::Str("broker_id".into()));
-        assert(Value::Bool(is_equal(&brokerId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cryptocom - id: ".into()), id).into()), Value::Str(" different from  broker_id: ".into())).into()), brokerId).into())]);
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "cryptocom - id: ", id).into()), " different from  broker_id: ").into()), brokerId).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4132,7 +4120,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("Referer")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bybit - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("Referer")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "bybit - id: ", id).into()), " not in headers.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4159,7 +4147,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".into()), id).into()), Value::Str(" not in headers (v2 endpoints).".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "bithumb - id: ", id).into()), " not in headers (v2 endpoints).").into())]);
         reqHeaders = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4178,7 +4166,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".into()), id).into()), Value::Str(" not in headers (legacy endpoints).".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "bithumb - id: ", id).into()), " not in headers (legacy endpoints).").into())]);
         reqHeaders = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4193,7 +4181,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bithumb - id: ".into()), id).into()), Value::Str(" not in headers (public endpoints).".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("OPEN-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "bithumb - id: ", id).into()), " not in headers (public endpoints).").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4217,8 +4205,8 @@ if _try_result.is_err() {
         let mut builderId: Value = Value::Str("257624".into());
         let mut builderFeeRate: Value = Value::Str("0.0001".into());
         assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &Value::Bool(true))), &[Value::Str("extended - builderFee is not enabled in options".into())]);
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderId: ".into()), builderId).into()), Value::Str(" not in options".into())).into())]);
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("builderFeeRate")).cloned().unwrap_or(Value::Null), &builderFeeRate)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderFeeRate: ".into()), builderFeeRate).into()), Value::Str(" not in options".into())).into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "extended - builderId: ", builderId).into()), " not in options").into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("builderFeeRate")).cloned().unwrap_or(Value::Null), &builderFeeRate)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "extended - builderFeeRate: ", builderFeeRate).into()), " not in options").into())]);
         // default: the builder code and fee rate come from options
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4230,12 +4218,11 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderId: ".into()),
-            request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" different from options: ".into())).into()), builderId).into())]);
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &builderFeeRate)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderFee: ".into()),
-            request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" different from options: ".into())).into()), builderFeeRate).into())]);
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0005".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - fee: ".into()), request.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null)).into()),
-            Value::Str(" should stay the base fee, the builder fee is a separate field".into())).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "extended - builderId: ", request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)).into()),
+            " different from options: ").into()), builderId).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &builderFeeRate)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "extended - builderFee: ", request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)).into()),
+            " different from options: ").into()), builderFeeRate).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0005".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "extended - fee: ", request.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null)).into()), " should stay the base fee, the builder fee is a separate field").into())]);
         // params override the fee rate, the builder code stays
         request = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4251,10 +4238,8 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0002".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderFee: ".into()), request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)).into()),
-            Value::Str(" does not take the params value 0.0002".into())).into())]);
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - builderId: ".into()), request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)).into()),
-            Value::Str(" changed by a builderFeeRate param".into())).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0002".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "extended - builderFee: ", request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)).into()), " does not take the params value 0.0002").into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &builderId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "extended - builderId: ", request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)).into()), " changed by a builderFeeRate param").into())]);
         assert(Value::Bool(!(matches!(&request, Value::Dict(__d) if __d.contains_key("builderFeeRate")))), &[Value::Str("extended - builderFeeRate param leaked into the request".into())]);
         // sandbox: the builder is only attached when passed explicitly in params
         exchange.set_sandbox_mode(Value::Bool(true));
@@ -4284,10 +4269,8 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &Value::Str("999".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - sandbox builderId: ".into()), request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)).into()),
-            Value::Str(" does not take the params value 999".into())).into())]);
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0003".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("extended - sandbox builderFee: ".into()),
-            request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)).into()), Value::Str(" does not take the params value 0.0003".into())).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null), &Value::Str("999".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "extended - sandbox builderId: ", request.as_map().and_then(|__m| __m.get("builderId")).cloned().unwrap_or(Value::Null)).into()), " does not take the params value 999").into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null), &Value::Str("0.0003".into()))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "extended - sandbox builderFee: ", request.as_map().and_then(|__m| __m.get("builderFee")).cloned().unwrap_or(Value::Null)).into()), " does not take the params value 0.0003").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4305,12 +4288,12 @@ if _try_result.is_err() {
         });
         let mut spotId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("spot".into())), &Value::Str("id".into()));
         let mut spotKey: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("spot".into())), &Value::Str("key".into()));
-        assert((spotId.as_str() == Some("ccxt")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), spotId).into()), Value::Str(" not in options".into())).into())]);
-        assert((spotKey.as_str() == Some("9e58cc35-5b5e-4133-92ec-166e3f077cb8")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - key: ".into()), spotKey).into()), Value::Str(" not in options.".into())).into())]);
+        assert((spotId.as_str() == Some("ccxt")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoin - id: ", spotId).into()), " not in options").into())]);
+        assert((spotKey.as_str() == Some("9e58cc35-5b5e-4133-92ec-166e3f077cb8")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoin - key: ", spotKey).into()), " not in options.").into())]);
         let mut futureId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".into())), &Value::Str("id".into()));
         let mut futureKey: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".into())), &Value::Str("key".into()));
-        assert((futureId.as_str() == Some("ccxtfutures")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), futureId).into()), Value::Str(" not in options.".into())).into())]);
-        assert((futureKey.as_str() == Some("1b327198-f30c-4f14-a0ac-918871282f15")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - key: ".into()), futureKey).into()), Value::Str(" not in options.".into())).into())]);
+        assert((futureId.as_str() == Some("ccxtfutures")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoin - id: ", futureId).into()), " not in options.").into())]);
+        assert((futureKey.as_str() == Some("1b327198-f30c-4f14-a0ac-918871282f15")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoin - key: ", futureKey).into()), " not in options.").into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -4322,7 +4305,7 @@ if _try_result.is_err() {
 }) });
         }
         let mut id: Value = Value::Str("ccxt".into());
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), id).into()), Value::Str(" not in headers for spot orders.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoin - id: ", id).into()), " not in headers for spot orders.").into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4336,7 +4319,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), id).into()), Value::Str(" not in headers for spot uta orders.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoin - id: ", id).into()), " not in headers for spot uta orders.").into())]);
         id = Value::Str("ccxtfutures".into());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
@@ -4347,7 +4330,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), id).into()), Value::Str(" not in headers for swap orders.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoin - id: ", id).into()), " not in headers for swap orders.").into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4361,7 +4344,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoin - id: ".into()), id).into()), Value::Str(" not in headers for swap uta orders.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoin - id: ", id).into()), " not in headers for swap uta orders.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4379,8 +4362,8 @@ if _try_result.is_err() {
         let mut id: Value = Value::Str("ccxtfutures".into());
         let mut futureId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".into())), &Value::Str("id".into()));
         let mut futureKey: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &Value::Str("future".into())), &Value::Str("key".into()));
-        assert(Value::Bool(is_equal(&futureId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoinfutures - id: ".into()), futureId).into()), Value::Str(" not in options.".into())).into())]);
-        assert((futureKey.as_str() == Some("1b327198-f30c-4f14-a0ac-918871282f15")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoinfutures - key: ".into()), futureKey).into()), Value::Str(" not in options.".into())).into())]);
+        assert(Value::Bool(is_equal(&futureId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoinfutures - id: ", futureId).into()), " not in options.").into())]);
+        assert((futureKey.as_str() == Some("1b327198-f30c-4f14-a0ac-918871282f15")), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoinfutures - key: ", futureKey).into()), " not in options.").into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("uta".into()), Value::Bool(false));
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
@@ -4391,7 +4374,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoinfutures - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoinfutures - id: ", id).into()), " not in headers.").into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".into())), &Value::Str("uta".into()), Value::Bool(true));
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
@@ -4402,7 +4385,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kucoinfutures - id: ".into()), id).into()), Value::Str(" not in headers for uta orders.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("KC-API-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kucoinfutures - id: ", id).into()), " not in headers for uta orders.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4418,7 +4401,7 @@ if _try_result.is_err() {
             m
         });
         let mut id: Value = Value::Str("p4sve".into());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bitget - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "bitget - id: ", id).into()), " not in options").into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -4428,7 +4411,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-CHANNEL-API-CODE")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bitget - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-CHANNEL-API-CODE")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "bitget - id: ", id).into()), " not in headers.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4444,7 +4427,7 @@ if _try_result.is_err() {
             m
         });
         let mut id: Value = Value::Str("CCXT".into());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("mexc - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "mexc - id: ", id).into()), " not in options").into())]);
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
@@ -4455,7 +4438,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("source")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("mexc - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("source")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "mexc - id: ", id).into()), " not in headers.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4480,7 +4463,7 @@ if _try_result.is_err() {
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("client-order-id")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = Value::from(id);
-        assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("htx - spot clientOrderId ".into()), clientOrderId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "htx - spot clientOrderId ", clientOrderId).into()), " does not start with id: ").into()), idString).into())]);
         // swap test
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4503,9 +4486,9 @@ if _try_result.is_err() {
             swapInverseOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdSwap: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("channel_code")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderIdSwap, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("htx - swap channel_code ".into()), clientOrderIdSwap).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert((starts_with(&clientOrderIdSwap, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "htx - swap channel_code ", clientOrderIdSwap).into()), " does not start with id: ").into()), idString).into())]);
         let mut clientOrderIdInverse: Value = swapInverseOrderRequest.as_map().and_then(|__m| __m.get("channel_code")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderIdInverse, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("htx - swap inverse channel_code ".into()), clientOrderIdInverse).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert((starts_with(&clientOrderIdInverse, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "htx - swap inverse channel_code ", clientOrderIdInverse).into()), " does not start with id: ").into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4530,7 +4513,7 @@ if _try_result.is_err() {
         }
         let mut brokerId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("broker_id")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = Value::from(id);
-        assert((starts_with(&brokerId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("woo - broker_id: ".into()), brokerId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert((starts_with(&brokerId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "woo - broker_id: ", brokerId).into()), " does not start with id: ").into()), idString).into())]);
         // swap test
         let mut stopOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4547,7 +4530,7 @@ if _try_result.is_err() {
             stopOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderIdStop: Value = stopOrderRequest.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderIdStop, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("woo - brokerId: ".into()), clientOrderIdStop).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert((starts_with(&clientOrderIdStop, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "woo - brokerId: ", clientOrderIdStop).into()), " does not start with id: ").into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4563,7 +4546,7 @@ if _try_result.is_err() {
             m
         });
         let mut id: Value = Value::Str("CCXT".into());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bingx - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "bingx - id: ", id).into()), " not in options").into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -4574,7 +4557,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-SOURCE-KEY")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bingx - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-SOURCE-KEY")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "bingx - id: ", id).into()), " not in headers.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4598,7 +4581,7 @@ if _try_result.is_err() {
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("clOrdID")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = Value::from(id);
-        assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("phemex - clOrdID: ".into()), clientOrderId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "phemex - clOrdID: ", clientOrderId).into()), " does not start with id: ").into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4622,7 +4605,7 @@ if _try_result.is_err() {
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
         let mut idString: Value = Value::from(id);
-        assert((starts_with(&brokerId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("blofin - brokerId: ".into()), brokerId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
+        assert((starts_with(&brokerId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "blofin - brokerId: ", brokerId).into()), " does not start with id: ").into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4667,13 +4650,13 @@ if _try_result.is_err() {
             // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
             let mut url: Value = get_value(&exchange, &Value::Str("last_request_url".into()));
             let mut urlParts: Vec<Value> = Value::Array(if let Some(__s) = url.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            assert((Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", Value::Str("last_request_url has no query string: ".into()), url).into())]);
+            assert((Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", "last_request_url has no query string: ", url).into())]);
             let mut query: Value = self.urlencoded_to_dict(urlParts.get(1).cloned().unwrap_or(Value::Null));
             clientOrderId = query.as_map().and_then(|__m| __m.get("label")).cloned().unwrap_or(Value::Null);
         }
         // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
-        assert(((clientOrderId != Value::Null) && (Value::Bool(clientOrderId.as_str().zip((Value::Str(format!("{}{}", id, Value::Str("-".into())).into())).as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))).as_bool() == Some(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-            Value::Str("clientOrderId ".into()), clientOrderId).into()), Value::Str(" does not start with the brokerId prefix ".into())).into()), id).into()), Value::Str("-".into())).into())]);
+        assert(((clientOrderId != Value::Null) && (Value::Bool(clientOrderId.as_str().zip((Value::Str(format!("{}{}", id, "-").into())).as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))).as_bool() == Some(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "clientOrderId ",
+            clientOrderId).into()), " does not start with the brokerId prefix ").into()), id).into()), "-").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4725,7 +4708,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("order_tag")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&brokerId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("woofipro - id: ".into()), id).into()), Value::Str(" different from  broker_id: ".into())).into()), brokerId).into())]);
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "woofipro - id: ", id).into()), " different from  broker_id: ").into()), brokerId).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4748,7 +4731,7 @@ if _try_result.is_err() {
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut spotMedia: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("media")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&spotMedia, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt - id: ".into()), id).into()), Value::Str(" different from swap tag: ".into())).into()), spotMedia).into())]);
+        assert(Value::Bool(is_equal(&spotMedia, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "xt - id: ", id).into()), " different from swap tag: ").into()), spotMedia).into())]);
         let mut swapOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4760,7 +4743,7 @@ if _try_result.is_err() {
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut swapMedia: Value = swapOrderRequest.as_map().and_then(|__m| __m.get("clientMedia")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&swapMedia, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("xt - id: ".into()), id).into()), Value::Str(" different from swap tag: ".into())).into()), swapMedia).into())]);
+        assert(Value::Bool(is_equal(&swapMedia, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "xt - id: ", id).into()), " different from swap tag: ").into()), swapMedia).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4810,7 +4793,7 @@ if _try_result.is_err() {
             m
         });
         let mut id: Value = Value::Str("CCXT".into());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("paradex - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("broker")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "paradex - id: ", id).into()), " not in options").into())]);
         crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:USDC".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
@@ -4821,7 +4804,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("PARADEX-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("paradex - id: ".into()), id).into()), Value::Str(" not in headers".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("PARADEX-PARTNER")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "paradex - id: ", id).into()), " not in headers").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4847,7 +4830,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("INPUT-SOURCE")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("hashkey - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("INPUT-SOURCE")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "hashkey - id: ", id).into()), " not in headers.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4869,7 +4852,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut tag: Value = Value::Str("ccxt".into());
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("tag")).cloned().unwrap_or(Value::Null), &tag)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cryptomus - tag: ".into()), tag).into()), Value::Str(" not in request.".into())).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("tag")).cloned().unwrap_or(Value::Null), &tag)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "cryptomus - tag: ", tag).into()), " not in request.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4884,7 +4867,7 @@ if _try_result.is_err() {
         }
         let mut exchange: Value = self.init_offline_exchange(Value::Str("derive".into()), &[]);
         let mut id: Value = Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".into());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("derive - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "derive - id: ", id).into()), " not in options").into())]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4904,7 +4887,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("referral_code")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("derive - referral_code: ".into()), id).into()), Value::Str(" not in request.".into())).into())]);
+        assert(Value::Bool(is_equal(&request.as_map().and_then(|__m| __m.get("referral_code")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "derive - referral_code: ", id).into()), " not in request.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4932,7 +4915,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("order_tag")).cloned().unwrap_or(Value::Null);
-        assert(Value::Bool(is_equal(&brokerId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("modetrade - id: ".into()), id).into()), Value::Str(" different from  broker_id: ".into())).into()), brokerId).into())]);
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "modetrade - id: ", id).into()), " different from  broker_id: ").into()), brokerId).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4960,7 +4943,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-Broker-Id")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("backpack - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-Broker-Id")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "backpack - id: ", id).into()), " not in headers.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4986,7 +4969,7 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-BB-API-PLATFORM")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("toobit - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-BB-API-PLATFORM")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "toobit - id: ", id).into()), " not in headers.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }
@@ -4998,7 +4981,7 @@ if _try_result.is_err() {
     pub async fn test_weex(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("weex".into()), &[]);
         let mut id: Value = Value::Str("b-WEEX111125".into());
-        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("weex - id: ".into()), id).into()), Value::Str(" not in options".into())).into())]);
+        assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("options".into())).as_map().and_then(|__m| __m.get("partner")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "weex - id: ", id).into()), " not in options").into())]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5010,7 +4993,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("weex - newClientOrderId: ".into()), clientOrderId).into()), Value::Str(" for spot order does not start with id: ".into())).into()), id).into())]);
+        assert((starts_with(&clientOrderId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "weex - newClientOrderId: ", clientOrderId).into()), " for spot order does not start with id: ").into()), id).into())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".into()), Value::Str("limit".into()), Value::Str("buy".into()), Value::Int(1), Value::Int(20000)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -5018,7 +5001,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         clientOrderId = request.as_map().and_then(|__m| __m.get("newClientOrderId")).cloned().unwrap_or(Value::Null);
-        assert((starts_with(&clientOrderId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("weex - newClientOrderId: ".into()), clientOrderId).into()), Value::Str(" for swap order does not start with id: ".into())).into()), id).into())]);
+        assert((starts_with(&clientOrderId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "weex - newClientOrderId: ", clientOrderId).into()), " for swap order does not start with id: ").into()), id).into())]);
 
     Value::Null
 }
@@ -5040,9 +5023,9 @@ if _try_result.is_err() {
     m
 }) });
         }
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-FB-CLIENT")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("foxbit - id: ".into()), id).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-FB-CLIENT")).cloned().unwrap_or(Value::Null), &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "foxbit - id: ", id).into()), " not in headers.").into())]);
         let mut version: Value = exchange.get_ccxt_version();
-        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-FB-CLIENT-VERSION")).cloned().unwrap_or(Value::Null), &version)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("foxbit - version: ".into()), version).into()), Value::Str(" not in headers.".into())).into())]);
+        assert(Value::Bool(is_equal(&reqHeaders.as_map().and_then(|__m| __m.get("X-FB-CLIENT-VERSION")).cloned().unwrap_or(Value::Null), &version)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", "foxbit - version: ", version).into()), " not in headers.").into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
         }

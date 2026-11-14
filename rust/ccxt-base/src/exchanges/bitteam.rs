@@ -804,7 +804,7 @@ impl Bitteam {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("numericId".to_string(), Value::from(numericId));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -1673,7 +1673,7 @@ impl Bitteam {
         });
         if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }  else {
                 request.insert("price".into(), self.price_to_precision(symbol, price));
             }
@@ -3171,22 +3171,22 @@ impl Bitteam {
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params));
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         let mut query: String = self.urlencode(request.clone(), &[]);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) {
-                requestBody = json_stringify(&request);
+                requestBody = json_stringify(&request).as_str().map(str::to_owned);
             }  else if (((query.chars().count() as i64)) != 0) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
+                url.push_str(&format!("{}{}", "?", query));
             }
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), self.secret.clone());
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), ":").into()), self.secret.clone());
             let mut auth64: String = self.string_to_base64(Value::from(auth), &[]);
-            let mut signature: String = format!("{}{}", Value::Str("Basic ".into()), auth64);
+            let mut signature: String = format!("{}{}", "Basic ", auth64);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Authorization".to_string(), Value::from(signature));
@@ -3194,15 +3194,15 @@ impl Bitteam {
                 m
             }));
         }  else if (((query.chars().count() as i64)) != 0) {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), query));
+            url.push_str(&format!("{}{}", "?", query));
         }
-        let mut bodyResolved: Value = requestBody;
+        let mut bodyResolved: Option<String> = requestBody;
         let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });
@@ -3219,15 +3219,15 @@ impl Bitteam {
                 if (url.as_str().unwrap_or("").contains("/ccxt/order/")) && (method.as_str() == Some("GET")) {
                     let mut parts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("/order/").map(Value::from).collect() } else { Vec::new() });
                     let mut orderId: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".into())).into()), orderId).into()), Value::Str(" not found".into()))));
+                    panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " order ").into()), orderId).into()), " not found")));
                 }
                 if url.as_str().unwrap_or("").contains("/cmc/orderbook/") {
                     let mut parts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("/cmc/orderbook/").map(Value::from).collect() } else { Vec::new() });
                     let mut symbolId: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbolId ".into())).into()), symbolId).into()), Value::Str(" not found".into()))));
+                    panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " symbolId ").into()), symbolId).into()), " not found")));
                 }
             }
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
             let mut responseCode: Option<String> = self.safe_string_k(response, "code", &[]).as_str().map(str::to_owned);
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

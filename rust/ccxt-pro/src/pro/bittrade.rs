@@ -330,7 +330,7 @@ impl Bittrade {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         // only supports a limit of 150 at this time
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".detail".into()));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".detail");
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
         let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -445,7 +445,7 @@ impl Bittrade {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         // only supports a limit of 150 at this time
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".trade.detail".into()));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".trade.detail");
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
         let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -576,7 +576,7 @@ impl Bittrade {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".kline.".into())).into()), interval.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".kline.").into()), interval.as_deref().unwrap_or("null"));
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
         let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -687,7 +687,7 @@ impl Bittrade {
     m
 }));
         if (limit != Value::Null) && (limit.as_f64() != Some(150.0)) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook accepts limit = 150 only".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook accepts limit = 150 only")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -697,7 +697,7 @@ impl Bittrade {
         // only supports a limit of 150 at this time
         let mut limitValue: i64 = 150;
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".mbp.150".into()));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".mbp.150");
         let mut api: String = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
         let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1091,7 +1091,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (subscription.is_some()) {
                 let mut errorCode: Option<String> = (match __pro_message.get("err-code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut errorMessage: Option<String> = (match __pro_message.get("err-msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message));
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                     self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

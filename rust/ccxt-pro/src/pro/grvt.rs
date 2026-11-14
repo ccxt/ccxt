@@ -470,7 +470,7 @@ impl Grvt {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers requires a symbols argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchTickers requires a symbols argument")));
         }
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchTickers".into()), Value::Str("channel".into()), &[Value::Str("v1.ticker.s".into())]).as_array().cloned().unwrap_or_default();
         let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -491,7 +491,7 @@ impl Grvt {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), Value::Str(format!("{}", intervalOption).into())).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker::".into()), Value::from((market).symbol.clone())).into()));
+            messageHashes.push(Value::Str(format!("{}{}", "ticker::", Value::from((market).symbol.clone())).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -608,7 +608,7 @@ impl Grvt {
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut ticker: crate::value::Dict = self.parse_ws_ticker(data, Some(&market)).into_dict();
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
-        client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into())));
+        client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", "ticker::", symbol).into())));
 }
 
     pub fn parse_ws_ticker(&self, mut message: Value, market: Option<&crate::types::Market>) -> Value {
@@ -685,7 +685,7 @@ impl Grvt {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut limitRaw: i64 = self.safe_integer_k(params.clone(), "limit", &[Value::Int(50)]).as_i64().unwrap_or(50); // 50, 200, 500, 1000
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), Value::Str(format!("{}", limitRaw).into())).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade::".into()), Value::from((market).symbol.clone())).into()));
+            messageHashes.push(Value::Str(format!("{}{}", "trade::", Value::from((market).symbol.clone())).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -745,7 +745,7 @@ impl Grvt {
         let mut parsed: crate::value::Dict = self.parse_ws_trade(&data, None).into_dict();
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
         stored.append(Value::Dict(parsed));
-        client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into())));
+        client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", "trade::", symbol).into())));
 }
 
     pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
@@ -830,8 +830,8 @@ impl Grvt {
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             let mut timeframeId: Option<String> = self.safe_string(self.timeframes.clone(), Value::from(unfiedTimeframe.clone()), &[Value::from(unfiedTimeframe.clone())]).as_str().map(str::to_owned);
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), timeframeId.as_deref().unwrap_or("null")).into()), Value::Str("-TRADE".into())).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), Value::from((market).symbol.clone())).into()), Value::Str("::".into())).into()), unfiedTimeframe).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), timeframeId.as_deref().unwrap_or("null")).into()), "-TRADE").into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", Value::from((market).symbol.clone())).into()), "::").into()), unfiedTimeframe).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -849,8 +849,8 @@ impl Grvt {
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: Value = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
-        return self.create_ohlcv_object(symbol, timeframe, filtered);
+        let mut filtered: crate::value::List = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
     }
@@ -893,7 +893,7 @@ impl Grvt {
         if (timeframe.is_none()) {
             return;
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), timeframe.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbol).into()), "::").into()), timeframe.as_deref().unwrap_or("null"));
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         if !(self.ohlcvs.shelf(&symbol).has(&timeframe)) {
             let mut limit: Value = self.handle_option(Value::Str("watchOHLCV".into()), Value::Str("limit".into()), &[Value::Int(1000)]);
@@ -976,7 +976,7 @@ impl Grvt {
         let mut isSnapshot: bool = channel.as_deref() == Some("v1.book.s");
         let mut symbolsLength: i64 = symbols.len() as i64;
         if (symbolsLength == 0) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOrderBookForSymbols() requires a non-empty array of symbols")));
         }
         let limitOptionparamsLimitOptionVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsChannel, Value::Str("watchOrderBook".into()), Value::Str("limit".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
         let mut limitOption: Value = limitOptionparamsLimitOptionVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1006,7 +1006,7 @@ impl Grvt {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), extraPart).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), Value::from((market).symbol.clone())).into()));
+            messageHashes.push(Value::Str(format!("{}{}", "orderbook::", Value::from((market).symbol.clone())).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1058,7 +1058,7 @@ impl Grvt {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(&data, "event_time", Value::Float(0.000001), &[]).as_i64();
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook::", symbol);
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
@@ -1107,7 +1107,7 @@ impl Grvt {
             let mut accountId: Option<String> = self.safe_string_k(self.options.clone(), "AuthAccountId", &[]).as_str().map(str::to_owned);
             let mut cookieValue: Option<String> = self.safe_string_k(self.options.clone(), "AuthCookieValue", &[]).as_str().map(str::to_owned);
             if (cookieValue.is_none()) || (accountId.is_none()) {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" : at first, you need to authenticate with exchange using signIn() method.".into()))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " : at first, you need to authenticate with exchange using signIn() method.")));
             }
             let mut defaultOptions: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1169,8 +1169,8 @@ impl Grvt {
         let mut rawHashes: Vec<Value> = Vec::new();
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".into())).into()), Value::from((market).id.as_deref())).into()));
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str("myTrades::".into()), Value::from((market).symbol.clone())).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, "-").into()), Value::from((market).id.as_deref())).into()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "myTrades::", Value::from((market).symbol.clone())).into()));
         }  else {
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str("myTrades".into()));
             rawHashes.push(subAccountId);
@@ -1289,8 +1289,8 @@ impl Grvt {
                 while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".into())).into()), Value::from((market).id.as_deref())).into()));
-                messageHashes.push(Value::Str(format!("{}{}", Value::Str("positions::".into()), Value::from((market).symbol.clone())).into()));
+                rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, "-").into()), Value::from((market).id.as_deref())).into()));
+                messageHashes.push(Value::Str(format!("{}{}", "positions::", Value::from((market).symbol.clone())).into()));
             }
             }
         }  else {
@@ -1398,8 +1398,8 @@ impl Grvt {
             rawHashes.push(subAccountId.clone());
         }  else {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("order::".into()), Value::from((market).symbol.clone())).into()));
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".into())).into()), Value::from((market).id.as_deref())).into()));
+            messageHashes.push(Value::Str(format!("{}{}", "order::", Value::from((market).symbol.clone())).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, "-").into()), Value::from((market).id.as_deref())).into()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1521,12 +1521,12 @@ impl Grvt {
         let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) {
             let mut body: Option<String> = json_stringify(&response).as_str().map(str::to_owned);
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body.as_deref().unwrap_or("null"));
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body.as_deref().unwrap_or("null"));
             let mut message: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body.as_deref().unwrap_or("null"))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body.as_deref().unwrap_or("null"))));
         }
         return Value::Bool(false);
 

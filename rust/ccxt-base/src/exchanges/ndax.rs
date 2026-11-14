@@ -1087,7 +1087,7 @@ impl Ndax {
 }));
         self.check_required_credentials(&[]);
         if (self.login.clone() == Value::Null) || (self.password.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.login, exchange.password".into()))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " signIn() requires exchange.login, exchange.password")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1113,7 +1113,7 @@ impl Ndax {
         let mut pending2faToken: Option<String> = self.safe_string_k(response.clone(), "Pending2FaToken", &[]).as_str().map(str::to_owned);
         if (pending2faToken.is_some()) {
             if (self.twofa.clone() == Value::Null) {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.twofa credentials".into()))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " signIn() requires exchange.twofa credentials")));
             }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pending2faToken".into(), pending2faToken.map(Value::from).unwrap_or(Value::Null)); }
             request = ({
@@ -1270,7 +1270,7 @@ impl Ndax {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -1363,11 +1363,11 @@ impl Ndax {
             let mut level: Option<crate::value::List> = self.safe_list(orderbook.clone(), Value::Int(i), &[]).into_opt_list();
             let mut newTimestamp: Option<i64> = self.safe_integer(&level, Value::Int(2), &[]).as_i64();
             if (newTimestamp.is_some()) && ((latestTimestamp.is_none()) || ((newTimestamp.is_some() && latestTimestamp.is_some() && newTimestamp > latestTimestamp))) {
-                latestTimestamp = newTimestamp.clone();
+                latestTimestamp = newTimestamp;
             }
             let mut newNonce: Option<i64> = self.safe_integer(&level, Value::Int(0), &[]).as_i64();
             if (newNonce.is_some()) && ((nonce.is_none()) || ((newNonce.is_some() && nonce.is_some() && newNonce > nonce))) {
-                nonce = newNonce.clone();
+                nonce = newNonce;
             }
             let mut bidask: crate::value::List = self.parse_order_book_bid_ask(level.clone().map_or(Value::Null, Value::Arr), &[priceKey.clone(), amountKey.clone()]).into_list();
             let mut levelSide: Option<i64> = self.safe_integer(&level, Value::Int(9), &[]).as_i64();
@@ -1928,7 +1928,7 @@ impl Ndax {
     m
 }));
         if (self.login.clone() == Value::Null) || (self.login.as_str() == Some("")) {
-            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" fetchAccounts() requires exchange.login email credential".into()))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " fetchAccounts() requires exchange.login email credential")));
         }
         let mut omsId: i64 = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
         self.check_required_credentials(&[]);
@@ -2081,10 +2081,10 @@ impl Ndax {
         let mut amount: Option<String> = None;
         let mut direction: Option<String> = None;
         if crate::precise::Precise::stringLt(&credit.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            amount = credit.clone();
+            amount = credit;
             direction = Some("in".to_string());
         }  else if crate::precise::Precise::stringLt(&debit.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
-            amount = debit.clone();
+            amount = debit;
             direction = Some("out".to_string());
         }
         let mut before: Option<String> = None;
@@ -3332,10 +3332,10 @@ impl Ndax {
         // this method required login, password and twofa key
         let mut sessionToken: Option<String> = self.safe_string_k(self.options.clone(), "sessionToken", &[]).as_str().map(str::to_owned);
         if (sessionToken.is_none()) {
-            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" call signIn() method to obtain a session token".into()))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " call signIn() method to obtain a session token")));
         }
         if (self.twofa.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires exchange.twofa credentials".into()))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " withdraw() requires exchange.twofa credentials")));
         }
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut omsId: i64 = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
@@ -3370,7 +3370,7 @@ impl Ndax {
         let mut templateTypes: crate::value::List = self.safe_list_k(&withdrawTemplateTypesResponse, "TemplateTypes", &[Value::from(vec![])]).into_list();
         let mut firstTemplateType: Option<crate::value::Dict> = self.safe_dict(&templateTypes, Value::Int(0), &[]).into_opt_dict();
         if (firstTemplateType.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".into())).into()), crate::value::KeyRead::key_read(&&currency, "code"))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() could not find a withdraw template type for ").into()), crate::value::KeyRead::key_read(&&currency, "code"))));
         }
         let mut templateName: Option<String> = self.safe_string_k(&firstTemplateType, "TemplateName", &[]).as_str().map(str::to_owned);
         let mut withdrawTemplateRequest: indexmap::IndexMap<String, Value> = ({
@@ -3393,7 +3393,7 @@ impl Ndax {
         //
         let mut template: Option<String> = self.safe_string_k_opt(&withdrawTemplateResponse, "Template", &[]);
         if (template.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template for ".into())).into()), crate::value::KeyRead::key_read(&&currency, "code"))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() could not find a withdraw template for ").into()), crate::value::KeyRead::key_read(&&currency, "code"))));
         }
         let mut withdrawTemplate: Value = json_parse(&template.clone().map(Value::from).unwrap_or(Value::Null));
         add_element_to_object(&mut withdrawTemplate, &Value::Str("ExternalAddress".into()), address);
@@ -3440,21 +3440,21 @@ impl Ndax {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut bodySigned: Value = Value::Null;
+        let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (apiName.as_deref() == Some("public")) {
             if (path.as_str() == Some("Authenticate")) {
-                let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.login.clone(), Value::Str(":".into())).into()), self.password.clone());
+                let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.login.clone(), ":").into()), self.password.clone());
                 let mut auth64: String = self.string_to_base64(Value::from(auth), &[]);
                 headersSigned = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Basic ".into()), auth64).into()));
+                        m.insert("Authorization".to_string(), Value::Str(format!("{}{}", "Basic ", auth64).into()));
                     m
                 }));
             }  else if (path.as_str() == Some("Authenticate2FA")) {
@@ -3514,7 +3514,7 @@ impl Ndax {
                 }));
             }
             if isPost {
-                bodySigned = json_stringify(&query);
+                bodySigned = json_stringify(&query).as_str().map(str::to_owned);
             }  else {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
@@ -3522,12 +3522,12 @@ impl Ndax {
             }
         }
         let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
-        let mut bodyResolved: Value = bodySigned;
+        let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });
@@ -3537,7 +3537,7 @@ impl Ndax {
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (code.as_f64() == Some(404.0)) {
-            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body)));
         }
         if (response == Value::Null) {
             return Value::Null;
@@ -3548,7 +3548,7 @@ impl Ndax {
         //
         let mut message: Option<String> = self.safe_string_k(response, "errormsg", &[]).as_str().map(str::to_owned);
         if (message.is_some()) && (message.as_deref() != Some("")) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

@@ -624,7 +624,7 @@ impl Mercado {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(id));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -910,24 +910,24 @@ impl Mercado {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut balances: Value = self.safe_dict_k(&data, "balance", &[Value::Map({
+        let mut balances: crate::value::Dict = self.safe_dict_k(&data, "balance", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
             m
         });
-        let mut currencyIds: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_944: bool = true;
             while { if !__for_first_944 { i += 1; } __for_first_944 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            if (matches!((&balances, currencyId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), currencyId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            if (matches!(currencyId.as_deref(), Some(__k) if balances.contains_key(__k))) {
+                let mut balance: crate::value::Dict = self.safe_dict(&balances, currencyId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1021,7 +1021,7 @@ impl Mercado {
         }  else {
             if (side.as_str() == Some("buy")) {
                 if (price == Value::Null) {
-                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount".into()))));
+                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")));
                 }
                 let mut amountString: Option<String> = self.number_to_string(amount.clone());
                 let mut priceString: Option<String> = self.number_to_string(price);
@@ -1067,7 +1067,7 @@ impl Mercado {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1231,7 +1231,7 @@ impl Mercado {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1297,17 +1297,17 @@ impl Mercado {
         if (code.as_str() == Some("BRL")) {
             let mut account_ref: bool = paramsWithdrawTag.contains_key("account_ref");
             if !account_ref {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires account_ref parameter to withdraw ".into())).into()), code)));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() requires account_ref parameter to withdraw ").into()), code)));
             }
         }  else if (code.as_str() != Some("LTC")) {
             let mut tx_fee: bool = paramsWithdrawTag.contains_key("tx_fee");
             if !tx_fee {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires tx_fee parameter to withdraw ".into())).into()), code)));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() requires tx_fee parameter to withdraw ").into()), code)));
             }
             if (code.as_str() == Some("XRP")) {
                 if (tagWithdrawTag.is_none()) {
                     if !(paramsWithdrawTag.contains_key("destination_tag")) {
-                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a tag or destination_tag parameter to withdraw ".into())).into()), code)));
+                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() requires a tag or destination_tag parameter to withdraw ").into()), code)));
                     }
                 }  else {
                     request.insert("destination_tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
@@ -1471,7 +1471,7 @@ impl Mercado {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1518,7 +1518,7 @@ impl Mercado {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOpenOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1566,7 +1566,7 @@ impl Mercado {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1631,9 +1631,9 @@ impl Mercado {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into()));
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/");
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut isPublic: bool = (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("v4Public")) || (apiName.as_deref() == Some("v4PublicNet"));
         let mut privateBody: String = "".to_string();
@@ -1645,7 +1645,7 @@ impl Mercado {
             }
         }  else {
             self.check_required_credentials(&[]);
-            url.push_str(&format!("{}{}", self.version.clone(), Value::Str("/".into())));
+            url.push_str(&format!("{}{}", self.version.clone(), "/"));
             // mercado requires each tonce to be greater than the previous one
             let mut nonce: i64 = self.incrementing_nonce();
             let __ws_arg_16 = self.extend(Value::Map({
@@ -1655,7 +1655,7 @@ impl Mercado {
     m
 }), &[params]);
             privateBody = self.urlencode(__ws_arg_16, &[]);
-            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), Value::Str("?".into())).into()), privateBody);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/tapi/", self.version.clone()).into()), "/").into()), "?").into()), privateBody);
             privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -1695,7 +1695,7 @@ impl Mercado {
         //
         let mut errorMessage: Option<String> = self.safe_string_k(response.clone(), "error_message", &[]).as_str().map(str::to_owned);
         if (errorMessage.is_some()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response))));
         }
         return Value::Null;
 

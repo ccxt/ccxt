@@ -606,7 +606,7 @@ impl Bit2c {
             let mut currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut uppercase: String = currencyId.to_uppercase();
             if (self.safe_string(response.clone(), Value::from(uppercase.clone()), &[]) != Value::Null) {
-                account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".into()), uppercase).into()), &[]));
+                account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", "AVAILABLE_", uppercase).into()), &[]));
                 account.insert("total".into(), self.safe_string(response.clone(), Value::from(uppercase), &[]));
             }
             result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
@@ -1059,7 +1059,7 @@ impl Bit2c {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOpenOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1485,7 +1485,7 @@ impl Bit2c {
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
         if self.is_fiat(code.as_str()).as_bool() == Some(true) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() does not support fiat currencies".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchDepositAddress() does not support fiat currencies")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1540,10 +1540,10 @@ impl Bit2c {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.implode_params(path, params.clone()));
-        let mut requestBody: Value = Value::Null;
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path, params.clone()));
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
             url.push_str(".json");
@@ -1559,10 +1559,10 @@ impl Bit2c {
             let mut auth: String = self.urlencode(&query, &[]);
             if (method.as_str() == Some("GET")) {
                 if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), auth));
+                    url.push_str(&format!("{}{}", "?", auth));
                 }
             }  else {
-                requestBody = Value::from(auth.clone());
+                requestBody = Some(auth.clone());
             }
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             requestHeaders = Some(crate::value::Dict::new({
@@ -1573,13 +1573,13 @@ impl Bit2c {
                 m
             }));
         }
-        let mut bodyResult: Value = requestBody;
+        let mut bodyResult: Option<String> = requestBody;
         let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult);
     m
 });
@@ -1601,7 +1601,7 @@ impl Bit2c {
             error = self.safe_string_k(response, "Error", &[]).as_str().map(str::to_owned);
         }
         if (error.is_some()) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

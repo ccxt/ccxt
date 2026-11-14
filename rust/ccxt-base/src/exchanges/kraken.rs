@@ -723,100 +723,100 @@ impl Kraken {
 }));
         m.insert("depositMethods".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("1INCH".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("1inch".into()), Value::Str(" ".into())).into()), Value::Str("(1INCH)".into())).into()));
+        m.insert("1INCH".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "1inch", " ").into()), "(1INCH)").into()));
         m.insert("AAVE".to_string(), Value::Str("Aave".into()));
         m.insert("ADA".to_string(), Value::Str("ADA".into()));
         m.insert("ALGO".to_string(), Value::Str("Algorand".into()));
-        m.insert("ANKR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ANKR".into()), Value::Str(" ".into())).into()), Value::Str("(ANKR)".into())).into()));
-        m.insert("ANT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Aragon".into()), Value::Str(" ".into())).into()), Value::Str("(ANT)".into())).into()));
+        m.insert("ANKR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ANKR", " ").into()), "(ANKR)").into()));
+        m.insert("ANT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Aragon", " ").into()), "(ANT)").into()));
         m.insert("ATOM".to_string(), Value::Str("Cosmos".into()));
-        m.insert("AXS".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Axie Infinity Shards".into()), Value::Str(" ".into())).into()), Value::Str("(AXS)".into())).into()));
-        m.insert("BADGER".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Bager DAO".into()), Value::Str(" ".into())).into()), Value::Str("(BADGER)".into())).into()));
-        m.insert("BAL".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Balancer".into()), Value::Str(" ".into())).into()), Value::Str("(BAL)".into())).into()));
-        m.insert("BAND".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Band Protocol".into()), Value::Str(" ".into())).into()), Value::Str("(BAND)".into())).into()));
+        m.insert("AXS".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Axie Infinity Shards", " ").into()), "(AXS)").into()));
+        m.insert("BADGER".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Bager DAO", " ").into()), "(BADGER)").into()));
+        m.insert("BAL".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Balancer", " ").into()), "(BAL)").into()));
+        m.insert("BAND".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Band Protocol", " ").into()), "(BAND)").into()));
         m.insert("BAT".to_string(), Value::Str("BAT".into()));
         m.insert("BCH".to_string(), Value::Str("Bitcoin Cash".into()));
-        m.insert("BNC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Bifrost".into()), Value::Str(" ".into())).into()), Value::Str("(BNC)".into())).into()));
-        m.insert("BNT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Bancor".into()), Value::Str(" ".into())).into()), Value::Str("(BNT)".into())).into()));
+        m.insert("BNC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Bifrost", " ").into()), "(BNC)").into()));
+        m.insert("BNT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Bancor", " ").into()), "(BNT)").into()));
         m.insert("BTC".to_string(), Value::Str("Bitcoin".into()));
-        m.insert("CHZ".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Chiliz".into()), Value::Str(" ".into())).into()), Value::Str("(CHZ)".into())).into()));
-        m.insert("COMP".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Compound".into()), Value::Str(" ".into())).into()), Value::Str("(COMP)".into())).into()));
-        m.insert("CQT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("\tCovalent Query Token".into()), Value::Str(" ".into())).into()), Value::Str("(CQT)".into())).into()));
-        m.insert("CRV".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Curve DAO Token".into()), Value::Str(" ".into())).into()), Value::Str("(CRV)".into())).into()));
-        m.insert("CTSI".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Cartesi".into()), Value::Str(" ".into())).into()), Value::Str("(CTSI)".into())).into()));
+        m.insert("CHZ".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Chiliz", " ").into()), "(CHZ)").into()));
+        m.insert("COMP".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Compound", " ").into()), "(COMP)").into()));
+        m.insert("CQT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "\tCovalent Query Token", " ").into()), "(CQT)").into()));
+        m.insert("CRV".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Curve DAO Token", " ").into()), "(CRV)").into()));
+        m.insert("CTSI".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Cartesi", " ").into()), "(CTSI)").into()));
         m.insert("DAI".to_string(), Value::Str("Dai".into()));
         m.insert("DASH".to_string(), Value::Str("Dash".into()));
         m.insert("DOGE".to_string(), Value::Str("Dogecoin".into()));
         m.insert("DOT".to_string(), Value::Str("Polkadot".into()));
-        m.insert("DYDX".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("dYdX".into()), Value::Str(" ".into())).into()), Value::Str("(DYDX)".into())).into()));
-        m.insert("ENJ".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Enjin Coin".into()), Value::Str(" ".into())).into()), Value::Str("(ENJ)".into())).into()));
+        m.insert("DYDX".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "dYdX", " ").into()), "(DYDX)").into()));
+        m.insert("ENJ".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Enjin Coin", " ").into()), "(ENJ)").into()));
         m.insert("EOS".to_string(), Value::Str("EOS".into()));
-        m.insert("ETC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Ether Classic".into()), Value::Str(" ".into())).into()), Value::Str("(Hex)".into())).into()));
-        m.insert("ETH".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Ether".into()), Value::Str(" ".into())).into()), Value::Str("(Hex)".into())).into()));
+        m.insert("ETC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Ether Classic", " ").into()), "(Hex)").into()));
+        m.insert("ETH".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Ether", " ").into()), "(Hex)").into()));
         m.insert("EWT".to_string(), Value::Str("Energy Web Token".into()));
         m.insert("FEE".to_string(), Value::Str("Kraken Fee Credit".into()));
         m.insert("FIL".to_string(), Value::Str("Filecoin".into()));
         m.insert("FLOW".to_string(), Value::Str("Flow".into()));
-        m.insert("GHST".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Aavegotchi".into()), Value::Str(" ".into())).into()), Value::Str("(GHST)".into())).into()));
+        m.insert("GHST".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Aavegotchi", " ").into()), "(GHST)").into()));
         m.insert("GNO".to_string(), Value::Str("GNO".into()));
         m.insert("GRT".to_string(), Value::Str("GRT".into()));
         m.insert("ICX".to_string(), Value::Str("Icon".into()));
-        m.insert("INJ".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Injective Protocol".into()), Value::Str(" ".into())).into()), Value::Str("(INJ)".into())).into()));
-        m.insert("KAR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Karura".into()), Value::Str(" ".into())).into()), Value::Str("(KAR)".into())).into()));
+        m.insert("INJ".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Injective Protocol", " ").into()), "(INJ)").into()));
+        m.insert("KAR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Karura", " ").into()), "(KAR)").into()));
         m.insert("KAVA".to_string(), Value::Str("Kava".into()));
-        m.insert("KEEP".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Keep Token".into()), Value::Str(" ".into())).into()), Value::Str("(KEEP)".into())).into()));
-        m.insert("KNC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Kyber Network".into()), Value::Str(" ".into())).into()), Value::Str("(KNC)".into())).into()));
+        m.insert("KEEP".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Keep Token", " ").into()), "(KEEP)").into()));
+        m.insert("KNC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Kyber Network", " ").into()), "(KNC)").into()));
         m.insert("KSM".to_string(), Value::Str("Kusama".into()));
         m.insert("LINK".to_string(), Value::Str("Link".into()));
-        m.insert("LPT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Livepeer Token".into()), Value::Str(" ".into())).into()), Value::Str("(LPT)".into())).into()));
-        m.insert("LRC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Loopring".into()), Value::Str(" ".into())).into()), Value::Str("(LRC)".into())).into()));
+        m.insert("LPT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Livepeer Token", " ").into()), "(LPT)").into()));
+        m.insert("LRC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Loopring", " ").into()), "(LRC)").into()));
         m.insert("LSK".to_string(), Value::Str("Lisk".into()));
         m.insert("LTC".to_string(), Value::Str("Litecoin".into()));
         m.insert("MANA".to_string(), Value::Str("MANA".into()));
-        m.insert("MATIC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Polygon".into()), Value::Str(" ".into())).into()), Value::Str("(MATIC)".into())).into()));
+        m.insert("MATIC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Polygon", " ").into()), "(MATIC)").into()));
         m.insert("MINA".to_string(), Value::Str("Mina".into()));
-        m.insert("MIR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Mirror Protocol".into()), Value::Str(" ".into())).into()), Value::Str("(MIR)".into())).into()));
-        m.insert("MKR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Maker".into()), Value::Str(" ".into())).into()), Value::Str("(MKR)".into())).into()));
+        m.insert("MIR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Mirror Protocol", " ").into()), "(MIR)").into()));
+        m.insert("MKR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Maker", " ").into()), "(MKR)").into()));
         m.insert("MLN".to_string(), Value::Str("MLN".into()));
-        m.insert("MOVR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Moonriver".into()), Value::Str(" ".into())).into()), Value::Str("(MOVR)".into())).into()));
+        m.insert("MOVR".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Moonriver", " ").into()), "(MOVR)").into()));
         m.insert("NANO".to_string(), Value::Str("NANO".into()));
         m.insert("OCEAN".to_string(), Value::Str("OCEAN".into()));
-        m.insert("OGN".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Origin Protocol".into()), Value::Str(" ".into())).into()), Value::Str("(OGN)".into())).into()));
+        m.insert("OGN".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Origin Protocol", " ").into()), "(OGN)").into()));
         m.insert("OMG".to_string(), Value::Str("OMG".into()));
-        m.insert("OXT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Orchid".into()), Value::Str(" ".into())).into()), Value::Str("(OXT)".into())).into()));
-        m.insert("OXY".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Oxygen".into()), Value::Str(" ".into())).into()), Value::Str("(OXY)".into())).into()));
-        m.insert("PAXG".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("PAX".into()), Value::Str(" ".into())).into()), Value::Str("(Gold)".into())).into()));
-        m.insert("PERP".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Perpetual Protocol".into()), Value::Str(" ".into())).into()), Value::Str("(PERP)".into())).into()));
-        m.insert("PHA".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Phala".into()), Value::Str(" ".into())).into()), Value::Str("(PHA)".into())).into()));
+        m.insert("OXT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Orchid", " ").into()), "(OXT)").into()));
+        m.insert("OXY".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Oxygen", " ").into()), "(OXY)").into()));
+        m.insert("PAXG".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "PAX", " ").into()), "(Gold)").into()));
+        m.insert("PERP".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Perpetual Protocol", " ").into()), "(PERP)").into()));
+        m.insert("PHA".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Phala", " ").into()), "(PHA)").into()));
         m.insert("QTUM".to_string(), Value::Str("QTUM".into()));
-        m.insert("RARI".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Rarible".into()), Value::Str(" ".into())).into()), Value::Str("(RARI)".into())).into()));
-        m.insert("RAY".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Raydium".into()), Value::Str(" ".into())).into()), Value::Str("(RAY)".into())).into()));
-        m.insert("REN".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Ren Protocol".into()), Value::Str(" ".into())).into()), Value::Str("(REN)".into())).into()));
+        m.insert("RARI".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Rarible", " ").into()), "(RARI)").into()));
+        m.insert("RAY".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Raydium", " ").into()), "(RAY)").into()));
+        m.insert("REN".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Ren Protocol", " ").into()), "(REN)").into()));
         m.insert("REP".to_string(), Value::Str("REPv2".into()));
         m.insert("REPV1".to_string(), Value::Str("REP".into()));
-        m.insert("SAND".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("The Sandbox".into()), Value::Str(" ".into())).into()), Value::Str("(SAND)".into())).into()));
+        m.insert("SAND".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "The Sandbox", " ").into()), "(SAND)").into()));
         m.insert("SC".to_string(), Value::Str("Siacoin".into()));
-        m.insert("SDN".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Shiden".into()), Value::Str(" ".into())).into()), Value::Str("(SDN)".into())).into()));
+        m.insert("SDN".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Shiden", " ").into()), "(SDN)").into()));
         m.insert("SOL".to_string(), Value::Str("Solana".into()));
-        m.insert("SNX".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Synthetix  Network".into()), Value::Str(" ".into())).into()), Value::Str("(SNX)".into())).into()));
+        m.insert("SNX".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Synthetix  Network", " ").into()), "(SNX)").into()));
         m.insert("SRM".to_string(), Value::Str("Serum".into()));
-        m.insert("STORJ".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Storj".into()), Value::Str(" ".into())).into()), Value::Str("(STORJ)".into())).into()));
-        m.insert("SUSHI".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Sushiswap".into()), Value::Str(" ".into())).into()), Value::Str("(SUSHI)".into())).into()));
+        m.insert("STORJ".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Storj", " ").into()), "(STORJ)").into()));
+        m.insert("SUSHI".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Sushiswap", " ").into()), "(SUSHI)").into()));
         m.insert("TBTC".to_string(), Value::Str("tBTC".into()));
         m.insert("TRX".to_string(), Value::Str("Tron".into()));
         m.insert("UNI".to_string(), Value::Str("UNI".into()));
         m.insert("USDC".to_string(), Value::Str("USDC".into()));
-        m.insert("USDT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Tether USD".into()), Value::Str(" ".into())).into()), Value::Str("(ERC20)".into())).into()));
-        m.insert("USDT-TRC20".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Tether USD".into()), Value::Str(" ".into())).into()), Value::Str("(TRC20)".into())).into()));
+        m.insert("USDT".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Tether USD", " ").into()), "(ERC20)").into()));
+        m.insert("USDT-TRC20".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Tether USD", " ").into()), "(TRC20)").into()));
         m.insert("WAVES".to_string(), Value::Str("Waves".into()));
-        m.insert("WBTC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Wrapped Bitcoin".into()), Value::Str(" ".into())).into()), Value::Str("(WBTC)".into())).into()));
+        m.insert("WBTC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Wrapped Bitcoin", " ").into()), "(WBTC)").into()));
         m.insert("XLM".to_string(), Value::Str("Stellar XLM".into()));
         m.insert("XMR".to_string(), Value::Str("Monero".into()));
         m.insert("XRP".to_string(), Value::Str("Ripple XRP".into()));
         m.insert("XTZ".to_string(), Value::Str("XTZ".into()));
         m.insert("YFI".to_string(), Value::Str("YFI".into()));
-        m.insert("ZEC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Zcash".into()), Value::Str(" ".into())).into()), Value::Str("(Transparent)".into())).into()));
-        m.insert("ZRX".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), Value::Str(" ".into())).into()), Value::Str("(ZRX)".into())).into()));
+        m.insert("ZEC".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "Zcash", " ").into()), "(Transparent)").into()));
+        m.insert("ZRX".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", "0x", " ").into()), "(ZRX)").into()));
     m
 }));
         m.insert("withdrawMethods".to_string(), Value::Map({
@@ -1148,10 +1148,10 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut cachedCurrencies: Value = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[Value::Map({
+        let mut cachedCurrencies: crate::value::Dict = self.safe_dict_k(self.options.clone(), "cachedCurrencies", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut keys: Vec<Value> = Value::Array(markets.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -1193,22 +1193,22 @@ impl Kraken {
             let mut precisionAmount: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "lot_decimals", &[])]), &[]).as_f64();
             let mut spot: bool = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-            if spot && (matches!((&cachedCurrencies, &base), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut currency: crate::value::Dict = self.safe_dict(cachedCurrencies.clone(), base.clone(), &[]).into_dict();
+            if spot && (matches!(&base, Value::Str(__k) if cachedCurrencies.contains_key(__k.as_ref()))) {
+                let mut currency: crate::value::Dict = self.safe_dict(&cachedCurrencies, base.clone(), &[]).into_dict();
                 let mut currencyPrecision: Option<f64> = self.safe_number_k(&currency, "precision", &[]).as_f64();
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if (currencyPrecision.is_none()) {
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing currencyPrecision".into()))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " method() missing currencyPrecision")));
                 }
                 if (currencyPrecision.is_some() && precisionAmount.is_some() && currencyPrecision > precisionAmount) {
-                    precisionAmount = currencyPrecision.clone();
+                    precisionAmount = currencyPrecision;
                 }
             }
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
             let mut isActive: bool = status.as_deref() == Some("online");
             let mut symbol: Option<String> = id.clone();
             if !isSynthetic {
-                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote));
+                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote));
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1423,7 +1423,7 @@ impl Kraken {
         let mut code: Value = self.safe_currency_code(id.clone(), None).map(Value::from).unwrap_or(Value::Null);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if (id == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing id".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing id")));
         }
         if !id.as_str().unwrap_or("").contains(".") {
             let mut altName: Value = self.safe_string_k(rawCurrency.clone(), "altname", &[]);
@@ -1434,7 +1434,7 @@ impl Kraken {
             // XXBT  |  XBT
             // ZUSD  |  USD
             if (id == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing id".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing id")));
             }
             if (id != altName) && ((id.as_str().unwrap_or("").starts_with("X")) || (id.as_str().unwrap_or("").starts_with("Z"))) {
                 code = self.safe_currency_code(altName, None).map(Value::from).unwrap_or(Value::Null);
@@ -1447,7 +1447,7 @@ impl Kraken {
             }
         }
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing code".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing code")));
         }
         let mut isFiat: bool = code.as_str().unwrap_or("").contains(".HOLD");
         let mut rawCurrencyOmitted: Value = self.omit(rawCurrency, Value::Str("_coin_id".into()), &[]);
@@ -1914,7 +1914,7 @@ impl Kraken {
         if (since != Value::Null) {
             let mut scaledSince: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             if (parsedTimeframe.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing parsedTimeframe".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOHLCV() missing parsedTimeframe")));
             }
             let mut timeFrameInSeconds: Option<i64> = (if let Some(__l) = parsedTimeframe { Some(__l * 60) } else { None });
             request.insert("since".into(), Value::from(self.number_to_string(Value::from((if let (Some(__l), Some(__r)) = (scaledSince, timeFrameInSeconds) { Some(__l - __r) } else { None }))))); // expected to be in seconds
@@ -2633,19 +2633,19 @@ impl Kraken {
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut orderSymbols: Vec<Value> = Vec::new();
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_852: bool = true;
             while { if !__for_first_852 { i += 1; } __for_first_852 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
-            let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
-            if (symbol == Value::Null) {
-                symbol = marketId.clone().map(Value::from).unwrap_or(Value::Null);
+            let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
+            if (symbol.is_none()) {
+                symbol = marketId.clone();
             }  else {
-                if (symbol.as_str() != marketId.as_deref()) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".into()))));
+                if (symbol != marketId) {
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrders() requires all orders to have the same symbol")));
                 }
             }
             market = Some(match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2775,7 +2775,7 @@ impl Kraken {
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote);
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote);
         market = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from(symbol));
@@ -2937,7 +2937,7 @@ impl Kraken {
         let mut price: Option<String> = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = None;
         let mut cost: Option<String> = None;
-        let mut triggerPrice: Value = Value::Null;
+        let mut triggerPrice: Option<String> = None;
         if (orderDescription.is_some()) {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = orderDescription.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).into_list();
             side = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -2952,10 +2952,10 @@ impl Kraken {
             if (part4.as_deref() == Some("limit")) || (part4.as_deref() == Some("market")) {
                 descriptionType = part4.clone(); // eg, limit, market
             }  else {
-                descriptionType = Some(format!("{}{}", Value::Str(format!("{}{}", part4.as_deref().unwrap_or("null"), Value::Str(" ".into())).into()), part5.as_deref().unwrap_or("null"))); // eg. stop loss, take profit, trailing stop
+                descriptionType = Some(format!("{}{}", Value::Str(format!("{}{}", part4.as_deref().unwrap_or("null"), " ").into()), part5.as_deref().unwrap_or("null"))); // eg. stop loss, take profit, trailing stop
             }
             if (descriptionType.as_deref() == Some("stop loss")) || (descriptionType.as_deref() == Some("take profit")) {
-                triggerPrice = self.safe_string(&parts, Value::Int(6), &[]);
+                triggerPrice = self.safe_string(&parts, Value::Int(6), &[]).as_str().map(str::to_owned);
                 price = self.safe_string(&parts, Value::Int(9), &[]).as_str().map(str::to_owned);
             }  else if (descriptionType.as_deref() == Some("limit")) {
                 price = self.safe_string(&parts, Value::Int(5), &[]).as_str().map(str::to_owned);
@@ -3046,19 +3046,19 @@ impl Kraken {
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
         // triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
-        let mut stopLossPrice: Value = Value::Null;
-        let mut takeProfitPrice: Value = Value::Null;
+        let mut stopLossPrice: Option<String> = None;
+        let mut takeProfitPrice: Option<String> = None;
         // the dashed strings are not provided from fields (eg. fetch order)
         // while spaced strings from "order" sentence (when other fields not available)
         if (rawType.is_some()) {
             if (rawType.as_deref().unwrap_or_default().starts_with("take-profit")) {
-                takeProfitPrice = self.safe_string_k(&description, "price", &[]);
+                takeProfitPrice = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
                 price = self.safe_string_k(&description, "price2", &[]).as_str().map(str::to_owned);
                 if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
                     price = None.clone(); // kraken pads an absent price with zeros, so the omit-zero rule applies
                 }
             }  else if (rawType.as_deref().unwrap_or_default().starts_with("stop-loss")) {
-                stopLossPrice = self.safe_string_k(&description, "price", &[]);
+                stopLossPrice = self.safe_string_k(&description, "price", &[]).as_str().map(str::to_owned);
                 price = self.safe_string_k(&description, "price2", &[]).as_str().map(str::to_owned);
                 if (price.is_some()) && ((price.as_deref() == Some("")) || crate::precise::Precise::stringEquals(&price.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
                     price = None.clone(); // kraken pads an absent price with zeros, so the omit-zero rule applies
@@ -3096,9 +3096,9 @@ impl Kraken {
         m.insert("postOnly".to_string(), isPostOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("triggerPrice".to_string(), triggerPrice);
-        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
-        m.insert("stopLossPrice".to_string(), stopLossPrice);
+        m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopLossPrice".to_string(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
@@ -3152,7 +3152,7 @@ impl Kraken {
             }
             let mut extendedOflags: String = "viqc".to_string();
             if (flags.is_some()) {
-                extendedOflags = format!("{}{}", flags.as_deref().unwrap_or("null"), Value::Str(",viqc".into()));
+                extendedOflags = format!("{}{}", flags.as_deref().unwrap_or("null"), ",viqc");
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oflags".into(), Value::from(extendedOflags)); }
         }  else if isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder {
@@ -3181,9 +3181,9 @@ impl Kraken {
         }  else if isTrailingAmountOrder || isTrailingPercentOrder {
             let mut trailingPercentString: Value = Value::Null;
             if (trailingPercent.is_some()) {
-                trailingPercentString = (if (trailingPercent.as_deref().unwrap_or_default().ends_with("%")) { (Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent.as_deref().unwrap_or("null")).into())) } else { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("+".into()), trailingPercent.as_deref().unwrap_or("null")).into()), Value::Str("%".into())).into())) });
+                trailingPercentString = (if (trailingPercent.as_deref().unwrap_or_default().ends_with("%")) { (Value::Str(format!("{}{}", "+", trailingPercent.as_deref().unwrap_or("null")).into())) } else { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", "+", trailingPercent.as_deref().unwrap_or("null")).into()), "%").into())) });
             }
-            let mut trailingAmountString: Option<String> = (if (trailingAmount.is_some()) { Some(format!("{}{}", Value::Str("+".into()), trailingAmount.as_deref().unwrap_or("null"))) } else { None }); // must use + for this
+            let mut trailingAmountString: Option<String> = (if (trailingAmount.is_some()) { Some(format!("{}{}", "+", trailingAmount.as_deref().unwrap_or("null"))) } else { None }); // must use + for this
             let mut offset: String = self.safe_string_k(&paramsOmitted2, "offset", &[Value::Str("-".into())]).as_str().unwrap_or("-").to_string(); // can use + or - for this
             let mut trailingLimitAmountString: Option<String> = (if (trailingLimitAmount.is_some()) { Some(format!("{}{}", offset, Value::from(self.number_to_string(trailingLimitAmount.clone().map(Value::from).unwrap_or(Value::Null))))) } else { None });
             let mut trailingActivationPriceType: String = self.safe_string_k(&paramsOmitted2, "trigger", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
@@ -3191,7 +3191,7 @@ impl Kraken {
             if isLimitOrder || (trailingLimitAmount.is_some()) || (trailingLimitPercent.is_some()) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ordertype".into(), Value::Str("trailing-stop-limit".into())); }
                 if (trailingLimitPercent.is_some()) {
-                    let mut trailingLimitPercentString: String = (if (trailingLimitPercent.as_deref().unwrap_or_default().ends_with("%")) { format!("{}{}", offset, trailingLimitPercent.as_deref().unwrap_or("null")) } else { format!("{}{}", Value::Str(format!("{}{}", offset, trailingLimitPercent.as_deref().unwrap_or("null")).into()), Value::Str("%".into())) });
+                    let mut trailingLimitPercentString: String = (if (trailingLimitPercent.as_deref().unwrap_or_default().ends_with("%")) { format!("{}{}", offset, trailingLimitPercent.as_deref().unwrap_or("null")) } else { format!("{}{}", Value::Str(format!("{}{}", offset, trailingLimitPercent.as_deref().unwrap_or("null")).into()), "%") });
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), trailingPercentString.clone()); }
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price2".into(), Value::from(trailingLimitPercentString)); }
                 }  else if (trailingLimitAmount.is_some()) {
@@ -3241,7 +3241,7 @@ impl Kraken {
         if postOnly {
             let mut extendedPostFlags: String = "post".to_string();
             if (flags.is_some()) {
-                extendedPostFlags = format!("{}{}", flags.as_deref().unwrap_or("null"), Value::Str(",post".into()));
+                extendedPostFlags = format!("{}{}", flags.as_deref().unwrap_or("null"), ",post");
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oflags".into(), Value::from(extendedPostFlags)); }
         }
@@ -3299,7 +3299,7 @@ impl Kraken {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).spot {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".into())).into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), Value::Str(" orders, only spot orders are accepted".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " editOrder() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " orders, only spot orders are accepted")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3431,7 +3431,7 @@ impl Kraken {
         //
         let mut result: Value = self.safe_dict_k(&response, "result", &[Value::from(vec![])]);
         if !(matches!((&result, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".into())).into()), id)));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrder() could not find order id ").into()), id)));
         }
         let __ws_arg_11 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3474,7 +3474,7 @@ impl Kraken {
         let mut orderTrades: Option<crate::value::List> = (match params.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).into_opt_list();
         let mut tradeIds: Vec<Value> = Vec::new();
         if (orderTrades.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")));
         }  else {
             {
                                 let mut i: i64 = 0;
@@ -3764,7 +3764,7 @@ impl Kraken {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.last_http_response.clone() != Value::Null) && (self.last_http_response.as_str() != Some("")) {
                 if self.last_http_response.as_str().unwrap_or("").contains("EOrder:Unknown order") {
-                    panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() error ".into())).into()), self.last_http_response.clone())));
+                    panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cancelOrder() error ").into()), self.last_http_response.clone())));
                 }
             }
             panic!("{}", e);
@@ -3864,16 +3864,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         if (timeout == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() missing timeout".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " cancelAllOrdersAfter() missing timeout")));
         }
         if timeout.as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter timeout should be less than 86400000 milliseconds".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (timeout == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() missing timeout".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " cancelAllOrdersAfter() missing timeout")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4638,7 +4638,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         let mut codeResolved: String = code.as_str().unwrap_or_default().to_string();
         if (code.as_str() == Some("USDT")) && (network.as_str() == Some("TRC20")) {
-            codeResolved = format!("{}{}", Value::Str(format!("{}{}", code, Value::Str("-".into())).into()), network);
+            codeResolved = format!("{}{}", Value::Str(format!("{}{}", code, "-").into()), network);
         }
         let mut defaultDepositMethods: crate::value::Dict = self.safe_dict_k(self.options.clone(), "depositMethods", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4657,7 +4657,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     while { if !__for_first_863 { i += 1; } __for_first_863 = false; i < (depositMethods.len() as i64) } {
                     let mut entry: Option<String> = self.safe_string_k(depositMethods.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "method", &[]).as_str().map(str::to_owned);
                     if (entry.is_none()) {
-                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() missing entry".into()))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchDepositAddress() missing entry")));
                     }
                     if ((if let (Some(__h), Some(__n)) = (entry.as_deref(), (network).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                         depositMethod = entry;
@@ -4697,7 +4697,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]).into_opt_dict();
         if (firstResult.is_none()) {
-            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" privatePostDepositAddresses() returned no addresses for ".into())).into()), codeResolved)));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " privatePostDepositAddresses() returned no addresses for ").into()), codeResolved)));
         }
         return self.parse_deposit_address(&firstResult, Some(&currency));
         Value::Null
@@ -4787,7 +4787,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]).into_dict();
             return self.parse_transaction(&result, Some(&currency));
         }
-        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)".into()))));
+        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")));
         Value::Null
         }).await?))
     }
@@ -5007,8 +5007,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (fromAccountParsed.as_str() != Some("Spot Wallet")) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer cannot transfer from ".into())).into()), fromAccountParsed).into()), Value::Str(" to ".into())).into()), toAccountParsed).into()),
-                Value::Str(". Use krakenfutures instead to transfer from the futures account.".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " transfer cannot transfer from ").into()), fromAccountParsed).into()), " to ").into()), toAccountParsed).into()), ". Use krakenfutures instead to transfer from the futures account.")));
         }
         let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_post_wallet_transfer(&[__ws_arg_28]).await.into_dict();
@@ -5078,7 +5077,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), apiName).into()), Value::Str("/".into())).into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), apiName).into()), "/").into()), path);
         if (apiName.as_str() == Some("public")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
@@ -5132,7 +5131,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
             if (baseApiUrl.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
             let mut urlSigned: String = format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), url);
             return Value::Map({
@@ -5144,11 +5143,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 });
         }  else {
-            url = format!("{}{}", Value::Str("/".into()), path);
+            url = format!("{}{}", "/", path);
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName, &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5171,14 +5170,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (code.as_f64() == Some(520.0)) {
-            panic!("{}", crate::exchange_errors::exchange_not_available(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), Value::Str(format!("{}", code).into())).into()), Value::Str(" ".into())).into()), reason)));
+            panic!("{}", crate::exchange_errors::exchange_not_available(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), Value::Str(format!("{}", code).into())).into()), " ").into()), reason)));
         }
         if (response == Value::Null) {
             return Value::Null;
         }
         if (self.safe_string(body.clone(), Value::Int(0), &[]).as_str() == Some("{")) {
             if !matches!(&response, Value::Str(_)) {
-                let mut message: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+                let mut message: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
                 let mut errors: Option<crate::value::List> = self.safe_list_k(response.clone(), "error", &[]).into_opt_list();
                 if (errors.is_some()) {
                     let mut numErrors: f64 = ((errors.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);

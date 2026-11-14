@@ -563,7 +563,7 @@ impl Bitflyer {
         if (month.is_none()) {
             return Value::Null;
         }
-        return Value::from(self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", expiryYear, Value::Str("-".into())).into()), month.as_deref().unwrap_or("null")).into()), Value::Str("-".into())).into()), day).into()), Value::Str("T00:00:00Z".into())).into())));
+        return Value::from(self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", expiryYear, "-").into()), month.as_deref().unwrap_or("null")).into()), "-").into()), day).into()), "T00:00:00Z").into())));
 
     Value::Null
 }
@@ -682,7 +682,7 @@ impl Bitflyer {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             let mut taker: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]);
             let mut maker: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]);
             let mut contract: Value = Value::Bool((swap || future));
@@ -690,9 +690,9 @@ impl Bitflyer {
                 maker = Value::Int(0);
                 taker = Value::Int(0);
                 settle = Some("JPY".to_string());
-                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), settle.as_deref().unwrap_or("null"));
                 if future {
-                    symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(expiry.clone(), &[]));
+                    symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(expiry.clone(), &[]));
                 }
             }
             result.push(Value::Map({
@@ -963,7 +963,7 @@ impl Bitflyer {
         }
         let mut order: Option<String> = None;
         if (side.is_some()) {
-            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side.as_deref().unwrap_or("null"), Value::Str("_child_order_acceptance_id".into())).into()), &[]).as_str().map(str::to_owned);
+            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side.as_deref().unwrap_or("null"), "_child_order_acceptance_id").into()), &[]).as_str().map(str::to_owned);
         }
         if (order.is_none()) {
             order = self.safe_string_k(trade.clone(), "child_order_acceptance_id", &[]).as_str().map(str::to_owned);
@@ -1165,7 +1165,7 @@ impl Bitflyer {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1279,7 +1279,7 @@ impl Bitflyer {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1394,7 +1394,7 @@ impl Bitflyer {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires a symbol argument")));
         }
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), None, None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut ordersById: crate::value::Dict = self.index_by(crate::types::IntoRaw::into_raw(orders), Value::Str("id".into())).into_dict();
@@ -1402,7 +1402,7 @@ impl Bitflyer {
         if (found.is_some()) {
             return found.map_or(Value::Null, Value::Dict);
         }
-        panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" No order found with id ".into())).into()), id)));
+        panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " No order found with id ").into()), id)));
         Value::Null
         }).await?))
     }
@@ -1432,7 +1432,7 @@ impl Bitflyer {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1474,7 +1474,7 @@ impl Bitflyer {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires a `symbols` argument, exactly one symbol in an array".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1521,7 +1521,7 @@ impl Bitflyer {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (code.as_str() != Some("JPY")) && (code.as_str() != Some("USD")) && (code.as_str() != Some("EUR")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" allows withdrawing JPY, USD, EUR only, ".into())).into()), code).into()), Value::Str(" is not supported".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " allows withdrawing JPY, USD, EUR only, ").into()), code).into()), " is not supported")));
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1824,7 +1824,7 @@ impl Bitflyer {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut bodySigned: Value = Value::Null;
         let mut headersSigned: Option<crate::value::Dict> = None;
-        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into()));
+        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/");
         if (apiName.as_deref() == Some("private")) {
             request.push_str("me/");
         }
@@ -1832,17 +1832,17 @@ impl Bitflyer {
         if (method.as_str() == Some("GET")) {
             let mut query: String = self.urlencode(params.clone(), &[]);
             if (query != "") {
-                request.push_str(&format!("{}{}", Value::Str("?".into()), query));
+                request.push_str(&format!("{}{}", "?", query));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), request);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), request);
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 if (method.as_str() != Some("GET")) {
@@ -1854,7 +1854,7 @@ impl Bitflyer {
             headersSigned = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("ACCESS-TIMESTAMP".to_string(), nonce);
+                    m.insert("ACCESS-TIMESTAMP".to_string(), Value::from(nonce));
                     m.insert("ACCESS-SIGN".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
@@ -1878,7 +1878,7 @@ impl Bitflyer {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         let mut errorMessage: Option<String> = self.safe_string_k(response.clone(), "error_message", &[]).as_str().map(str::to_owned);
         let mut statusCode: Option<String> = self.safe_string_k(response, "status", &[]).as_str().map(str::to_owned);

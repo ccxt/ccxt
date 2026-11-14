@@ -977,15 +977,15 @@ impl Luno {
             let mut stablecoins: Value = Value::from(vec![Value::Str("USDT".into()), Value::Str("USDC".into())]);
             let mut taker: Option<f64> = None;
             let mut maker: Option<f64> = None;
-            if self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), fiats) {
-                if self.in_array(base.clone().map(Value::from).unwrap_or(Value::Null), stablecoins) {
+            if self.in_array(&quote, fiats) {
+                if self.in_array(&base, stablecoins) {
                     taker = Some(0.002_f64);
                     maker = Some(-0.0001_f64); // a rebate, not a charge
                 }  else {
                     taker = Some(0.006_f64);
                     maker = Some(0.004_f64);
                 }
-            }  else if !self.in_array(quote.clone().map(Value::from).unwrap_or(Value::Null), unverifiedQuotes) {
+            }  else if !self.in_array(&quote, unverifiedQuotes) {
                 // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                 // are both in Luno's crypto/crypto column
                 taker = Some(0.001_f64);
@@ -994,7 +994,7 @@ impl Luno {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("taker".to_string(), Value::from(taker));
                     m.insert("maker".to_string(), Value::from(maker));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1661,12 +1661,12 @@ impl Luno {
         if (feeBaseString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeBaseString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(&market, "base", &[]).as_str().map(str::to_owned);
-                feeCost = feeBaseString.clone();
+                feeCost = feeBaseString;
             }
         }  else if (feeCounterString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeCounterString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(&market, "quote", &[]).as_str().map(str::to_owned);
-                feeCost = feeCounterString.clone();
+                feeCost = feeCounterString;
             }
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
@@ -1850,7 +1850,7 @@ impl Luno {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1999,7 +1999,7 @@ impl Luno {
             response = self.private_post_postorder(&[__ws_arg_12]).await;
         }
         if (response == Value::Null) {
-            panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" createOrder() returned empty response".into()))));
+            panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " createOrder() returned empty response")));
         }
         let mut orderId: Option<String> = self.safe_string_k(response.clone(), "order_id", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
@@ -2111,18 +2111,18 @@ impl Luno {
         let mut maxRowParam: Option<i64> = self.safe_integer_k(params.clone(), "max_row", &[]).as_i64();
         if (id.is_none()) {
             if (code == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a currency code argument if no account id specified in params".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchLedger() requires a currency code argument if no account id specified in params")));
             }
             currency = Some(self.currency(code.clone()));
             let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("currency".into())).into_dict();
             let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
             if (account.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".into())).into()), code)));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchLedger() could not find account id for ").into()), code)));
             }
             id = self.safe_string_k(&account, "id", &[]).as_str().map(str::to_owned);
         }
         if ((minRowParam.is_none()) || (maxRowParam.is_none())) && ((minRowParam.is_some()) || (maxRowParam.is_some())) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")));
         }
         let mut maxRowBase: i64 = self.safe_integer_k(params.clone(), "max_row", &[Value::Int(0)]).as_i64().unwrap_or(0); // Default to most recent transactions
         let mut minRowBase: i64 = self.safe_integer_k(params.clone(), "min_row", &[Value::Int(-1000)]).as_i64().unwrap_or(-1000); // Maximum number of records supported
@@ -2135,7 +2135,7 @@ impl Luno {
         }
         let mut limitAdjusts: bool = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
         if (limitAdjusts && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) || (!limitAdjusts && ((maxRowBase - minRowBase)) > 1000) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires the params 'max_row' - 'min_row' <= 1000".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2387,7 +2387,7 @@ impl Luno {
 }));
         let mut address: Option<String> = self.safe_string_k(params.clone(), "address", &[]).as_str().map(str::to_owned);
         if (address.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: crate::types::Currency = self.currency(code);
@@ -2428,9 +2428,9 @@ impl Luno {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -2438,10 +2438,10 @@ impl Luno {
         }
         if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("exchangePrivate")) {
             self.check_required_credentials(&[]);
-            let mut auth: String = self.string_to_base64(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), Value::Str(":".into())).into()), self.secret.clone()).into()), &[]);
+            let mut auth: String = self.string_to_base64(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.apiKey.clone(), ":").into()), self.secret.clone()).into()), &[]);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Basic ".into()), auth).into()));
+                    m.insert("Authorization".to_string(), Value::Str(format!("{}{}", "Basic ", auth).into()));
                 m
             }));
         }
@@ -2464,7 +2464,7 @@ impl Luno {
         }
         let mut error: Option<String> = self.safe_string_k(response.clone(), "error", &[]).as_str().map(str::to_owned);
         if (error.is_some()) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
             let mut errorCode: Option<String> = self.safe_string_k(response, "error_code", &[]).as_str().map(str::to_owned);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

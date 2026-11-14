@@ -690,7 +690,7 @@ impl Hyperliquid {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbolValue);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -736,8 +736,8 @@ impl Hyperliquid {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "orderbook:", symbolValue);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut nonce: i64 = self.incrementing_nonce();
         let mut id: Option<String> = self.number_to_string(Value::from(nonce));
@@ -807,7 +807,7 @@ impl Hyperliquid {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         orderbook.reset(Value::Dict(snapshot));
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -840,7 +840,7 @@ impl Hyperliquid {
         // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
         // instead of the aggregate allMids broadcast that only carries mids and arrives at the
         // server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "ticker:", symbolValue);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -885,8 +885,8 @@ impl Hyperliquid {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut subMessageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "ticker:", symbolValue);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -956,7 +956,7 @@ impl Hyperliquid {
         }
         let mut paramsOmitted: crate::value::Dict = (if (defaultDex != Value::Null) { self.omit(params.clone(), Value::Str("dex".into()), &[]) } else { params }).into_dict();
         if (defaultDex != Value::Null) {
-            messageHash = format!("{}{}", Value::Str("tickers:".into()), defaultDex);
+            messageHash = format!("{}{}", "tickers:", defaultDex);
             if let Value::Dict(__d) = request.entry("subscription".into()).or_default() { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("allMids".into())); }
             if let Value::Dict(__d) = request.entry("subscription".into()).or_default() { std::sync::Arc::make_mut(__d).insert("dex".into(), defaultDex); }
         }
@@ -997,7 +997,7 @@ impl Hyperliquid {
         }
         self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
         let mut subMessageHash: String = "tickers".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1048,7 +1048,7 @@ impl Hyperliquid {
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.clone())) } else { symbol.as_str().map(str::to_owned) });
         if (symbolResolved.is_some()) {
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved.as_deref().unwrap_or("null"));
+            messageHash = format!("{}{}", "myTrades:", symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1064,7 +1064,7 @@ impl Hyperliquid {
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsValue]).into_dict();
         if (userAddress.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a user address".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchMyTrades() requires a user address")));
         }
         let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:userFills::".into()), userAddress.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
         // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
@@ -1148,7 +1148,7 @@ impl Hyperliquid {
                                 let mut i: i64 = 0;
                 let mut __for_first_398: bool = true;
                 while { if !__for_first_398 { i += 1; } __for_first_398 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                messageHashes.push(Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
+                messageHashes.push(Value::Str(format!("{}{}", "myLiquidations::", symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
         }
@@ -1166,7 +1166,7 @@ impl Hyperliquid {
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsValue]).into_dict();
         if (userAddress.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyLiquidationsForSymbols() requires a user address".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchMyLiquidationsForSymbols() requires a user address")));
         }
         // shares the userFills subscription with watchMyTrades
         let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:userFills::".into()), userAddress.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
@@ -1205,7 +1205,7 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")));
         }
         let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("unWatchMyTrades", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut paramsValue: crate::value::Dict = self.safe_dict(self.parent.handle_public_address("unWatchMyTrades", params.clone()), Value::Int(1), &[params]).into_dict();
@@ -1272,7 +1272,7 @@ impl Hyperliquid {
             let mut messageHash: String = "tickers".to_string();
             let mut dexMessage: Option<String> = self.safe_string_k(&data, "dex", &[]).as_str().map(str::to_owned);
             if (dexMessage.is_some()) {
-                messageHash.push_str(&format!("{}{}", Value::Str(":".into()), dexMessage.as_deref().unwrap_or("null")));
+                messageHash.push_str(&format!("{}{}", ":", dexMessage.as_deref().unwrap_or("null")));
             }
             client.resolve(self.tickers.clone(), messageHash.as_str());
         }
@@ -1317,7 +1317,7 @@ impl Hyperliquid {
         })]).into_dict();
         let mut ticker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ctx), Some(&market)).into_dict();
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(ticker), messageHash.as_str());
         return Value::Bool(true);
 
@@ -1464,7 +1464,7 @@ impl Hyperliquid {
             while { if !__for_first_404 { i += 1; } __for_first_404 = false; i < (keys.len() as i64) } {
             let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbolLiquidations: Value = self.filter_by_symbol(newLiquidations.clone(), &[symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
-            client.resolve(symbolLiquidations, &(Value::Str(format!("{}{}", Value::Str("myLiquidations::".into()), symbol.as_deref().unwrap_or("null")).into())));
+            client.resolve(symbolLiquidations, &(Value::Str(format!("{}{}", "myLiquidations::", symbol.as_deref().unwrap_or("null")).into())));
         }
         }
         client.resolve(newLiquidations, "myLiquidations");
@@ -1499,7 +1499,7 @@ impl Hyperliquid {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "trade:", symbolValue);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1549,8 +1549,8 @@ impl Hyperliquid {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "trade:", symbolValue);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1619,7 +1619,7 @@ impl Hyperliquid {
             trades.append(Value::Dict(trade));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "trade:", symbol);
         client.resolve(Value::from(&trades), messageHash.as_str());
 }
 
@@ -1741,7 +1741,7 @@ impl Hyperliquid {
 }));
             m
         });
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbolValue);
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         self.wait_for_pending_unsubscribe(url.clone(), messageHash.as_str()).await;
         let mut ohlcv: Value = self.watch(&url, &messageHash[..], &message, &messageHash[..], Value::Null).await;
@@ -1794,8 +1794,8 @@ impl Hyperliquid {
 }));
             m
         });
-        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue);
-        let mut messagehash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbolValue);
+        let mut messagehash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         return self.watch(url.as_deref(), &messagehash[..], &message, &messagehash[..], Value::Null).await;
         Value::Null
@@ -1838,7 +1838,7 @@ impl Hyperliquid {
         let mut ohlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         let mut parsed: crate::value::List = self.parse_ohlcv(Value::Dict(data), None).into_list();
         ohlcv.append(Value::Arr(parsed));
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&ohlcv), messageHash.as_str());
 }
 
@@ -1897,7 +1897,7 @@ impl Hyperliquid {
         if isSpot {
             topic = "spotState".to_string();
         }
-        let mut messageHash: String = format!("{}{}", topic, Value::Str("::balance".into()));
+        let mut messageHash: String = format!("{}{}", topic, "::balance");
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1961,7 +1961,7 @@ impl Hyperliquid {
         if isSpot {
             topic = "spotState".to_string();
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe".into()), Value::Str(":".into())).into()), topic);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "unsubscribe", ":").into()), topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -2078,7 +2078,7 @@ impl Hyperliquid {
         { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&account)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
         { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
         if (topic.is_some()) {
-            let mut messageHash: String = format!("{}{}", topic.as_deref().unwrap_or("null"), Value::Str("::balance".into()));
+            let mut messageHash: String = format!("{}{}", topic.as_deref().unwrap_or("null"), "::balance");
             client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), account.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
         }
 }
@@ -2179,7 +2179,7 @@ impl Hyperliquid {
         let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("watchPositions", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut paramsValue: crate::value::Dict = self.safe_dict(self.parent.handle_public_address("watchPositions", params.clone()), Value::Int(1), &[params]).into_dict();
         let mut topic: String = "clearinghouseState".to_string();
-        let mut messageHash: String = format!("{}{}", topic, Value::Str("::positions".into()));
+        let mut messageHash: String = format!("{}{}", topic, "::positions");
         let mut hasSymbols: bool = (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true));
         let mut symbolsNormalized: Value = symbols.clone();
         if hasSymbols {
@@ -2267,9 +2267,9 @@ impl Hyperliquid {
                 continue;
             }
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut positions: Value = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]);
-            if !(self.is_empty(positions.clone()).as_bool() == Some(true)) {
-                client.resolve(positions, messageHash.as_deref());
+            let mut positions: crate::value::List = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            if !(self.is_empty(&positions).as_bool() == Some(true)) {
+                client.resolve(Value::Arr(positions), messageHash.as_deref());
             }
         }
         }
@@ -2300,7 +2300,7 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbols != Value::Null) && !(self.is_empty(symbols).as_bool() == Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchPositions() does not support a symbol parameter, you must unwatch all orders".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")));
         }
         let mut messageHash: String = "unsubscribe:clearinghouseState".to_string();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
@@ -2380,7 +2380,7 @@ impl Hyperliquid {
         // future on the connection. address lowercased because the server is case-insensitive.
         // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
         if (userAddress.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a user address".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOrders() requires a user address")));
         }
         let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:orderUpdates::".into()), userAddress.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
         // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
@@ -2420,7 +2420,7 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders() does not support a symbol argument, unWatch from all markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchOrders() does not support a symbol argument, unWatch from all markets only")));
         }
         let mut messageHash: String = "unsubscribe:order".to_string();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
@@ -2498,7 +2498,7 @@ impl Hyperliquid {
             let mut __for_first_410: bool = true;
             while { if !__for_first_410 { i += 1; } __for_first_410 = false; i < (keys.len() as i64) } {
             let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&stored), innerMessageHash.as_str());
         }
         }
@@ -2557,7 +2557,7 @@ impl Hyperliquid {
                     return Value::Bool(true);
                 }
             }
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), ret_msg)));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), ret_msg)));
             client.reject(error.clone(), None);
             return Value::Bool(true);
         }
@@ -2576,13 +2576,13 @@ impl Hyperliquid {
         })]).into_dict();
         let mut status: Option<String> = self.safe_string_k(&payload, "status", &[]).as_str().map(str::to_owned);
         if (status.is_some()) && (status.as_deref() != Some("ok")) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&payload))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&payload))));
             client.reject(error.clone(), id.as_deref());
             return Value::Bool(true);
         }
         let mut type_var: Option<String> = self.safe_string_k(&payload, "type", &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("error")) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&payload))));
+            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&payload))));
             client.reject(error, id.as_deref());
             return Value::Bool(true);
         }
@@ -2618,7 +2618,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (matches!((&self.clients, &url), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut client: Value = self.client(&[url.clone()]);
             let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-            let mut unsubHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subHash).into());
+            let mut unsubHash: Value = Value::Str(format!("{}{}", "unsubscribe:", subHash).into());
             if (__ch.has_subscription(&unsubHash)) {
                 // share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
                 let mut timeout: i64 = self.safe_integer_k(self.options.clone(), "unsubscribeTimeout", &[Value::Int(10000)]).as_i64().unwrap_or(10000);
@@ -2641,7 +2641,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub async fn expire_pending_unsubscribe(&mut self, mut client: Value, mut subHash: Value, mut unsubHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         if (__ch.has_subscription(&unsubHash)) {
-            let mut error = Value::from(crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unsubscribe ".into())).into()), subHash).into()), Value::Str(" was not acknowledged".into()))));
+            let mut error = Value::from(crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unsubscribe ").into()), subHash).into()), " was not acknowledged")));
             client.reject(error, &unsubHash);
             self.clean_unsubscription(client, subHash, unsubHash, &[]);
         }
@@ -2663,8 +2663,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut coin: Option<String> = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null"));
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         if (self.orderbooks.has(&symbol)) {
             CacheStore::forget(&mut self.orderbooks, &symbol);
@@ -2678,8 +2678,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut coin: Option<String> = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol.as_deref().unwrap_or("null"));
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "trade:", symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         if (self.trades.has(&symbol)) {
             CacheStore::forget(&mut self.trades, &symbol);
@@ -2689,7 +2689,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_tickers_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         //
         let mut subMessageHash: String = "tickers".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
@@ -2708,8 +2708,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut coin: Option<String> = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut subMessageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbol);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "ticker:", symbol);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
@@ -2724,8 +2724,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut interval: String = (match subscription.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut timeframe: Option<String> = self.find_timeframe(Value::from(interval), &[]);
-        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         if (CacheShelves::has(&self.ohlcvs, &symbol)) {
             if (self.ohlcvs.shelf(&symbol).has(&timeframe)) {
@@ -2737,13 +2737,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_order_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subHash: String = "order".to_string();
-        let mut unSubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subHash);
+        let mut unSubHash: String = format!("{}{}", "unsubscribe:", subHash);
         self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         let mut user: Option<String> = self.safe_string_lower_k(subscription, "user", &[]).as_str().map(str::to_owned);
         if (user.is_some()) {
-            let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:orderUpdates::".into()), user.as_deref().unwrap_or("null"));
+            let mut subscribeHash: String = format!("{}{}", "subscribe:orderUpdates::", user.as_deref().unwrap_or("null"));
             if (__ch.has_subscription(subscribeHash.as_str())) {
                 __ch.remove_subscription(subscribeHash.as_str());
             }
@@ -2759,7 +2759,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_my_trades_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subHash: String = "myTrades".to_string();
-        let mut unSubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subHash);
+        let mut unSubHash: String = format!("{}{}", "unsubscribe:", subHash);
         self.clean_unsubscription(client.clone(), Value::from(subHash), Value::from(unSubHash.clone()), &[Value::Bool(true)]);
         // userFills also feeds watchMyLiquidations
         self.clean_unsubscription(client, Value::Str("myLiquidations".into()), Value::from(unSubHash), &[Value::Bool(true)]);
@@ -2768,7 +2768,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         let mut user: Option<String> = self.safe_string_lower_k(subscription, "user", &[]).as_str().map(str::to_owned);
         if (user.is_some()) {
-            let mut subscribeHash: String = format!("{}{}", Value::Str("subscribe:userFills::".into()), user.as_deref().unwrap_or("null"));
+            let mut subscribeHash: String = format!("{}{}", "subscribe:userFills::", user.as_deref().unwrap_or("null"));
             if (__ch.has_subscription(subscribeHash.as_str())) {
                 __ch.remove_subscription(subscribeHash.as_str());
             }
@@ -2783,7 +2783,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_positions_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut subHash: String = "clearinghouseState".to_string();
-        let mut unSubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subHash);
+        let mut unSubHash: String = format!("{}{}", "unsubscribe:", subHash);
         self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
         let mut topicStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2799,7 +2799,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_spot_balance_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut subHash: String = "spotState".to_string();
-        let mut unSubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subHash);
+        let mut unSubHash: String = format!("{}{}", "unsubscribe:", subHash);
         self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
         if (matches!(&self.balance, Value::Dict(__d) if __d.contains_key("spot"))) {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).shift_remove("spot"); }

@@ -1285,7 +1285,7 @@ impl Coinbaseexchange {
             result.push(self.extend(__ws_arg_4, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -1772,7 +1772,7 @@ impl Coinbaseexchange {
         let mut cost: Option<String> = None;
         let mut feeCurrencyId: Option<String> = self.safe_string_lower_k(&marketResolved, "quoteId", &[]).as_str().map(str::to_owned);
         if (feeCurrencyId.is_some()) {
-            let mut costField: String = format!("{}{}", feeCurrencyId.as_deref().unwrap_or("null"), Value::Str("_value".into()));
+            let mut costField: String = format!("{}{}", feeCurrencyId.as_deref().unwrap_or("null"), "_value");
             cost = self.safe_string(trade.clone(), Value::from(costField), &[]).as_str().map(str::to_owned);
             let mut liquidity: Option<String> = self.safe_string_k(trade.clone(), "liquidity", &[]).as_str().map(str::to_owned);
             if (liquidity.is_some()) {
@@ -1852,7 +1852,7 @@ impl Coinbaseexchange {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -2666,7 +2666,7 @@ impl Coinbaseexchange {
             response = self.private_post_withdrawals_crypto(&[__ws_arg_24]).await;
         }
         if (response == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() error: ".into())).into()), json_stringify(&response))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() error: ").into()), json_stringify(&response))));
         }
         return self.parse_transaction(response, Some(&currency));
         Value::Null
@@ -2795,7 +2795,7 @@ impl Coinbaseexchange {
 }));
         // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a code param".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchLedger() requires a code param")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2805,7 +2805,7 @@ impl Coinbaseexchange {
         let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into())).into_dict();
         let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
         if (account.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".into())).into()), code)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchLedger() could not find account id for ").into()), code)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2876,7 +2876,7 @@ impl Coinbaseexchange {
                 let mut accountsByCurrencyCode: crate::value::Dict = self.index_by(self.accounts.clone(), Value::Str("code".into())).into_dict();
                 let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
                 if (account.is_none()) {
-                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositsWithdrawals() could not find account id for ".into())).into()), code)));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchDepositsWithdrawals() could not find account id for ").into()), code)));
                 }
                 id = self.safe_string_k(&account, "id", &[]).as_str().map(str::to_owned);
             }
@@ -3193,8 +3193,7 @@ impl Coinbaseexchange {
         let mut accountsByCurrencyId: crate::value::Dict = self.safe_dict_k(self.options.clone(), "coinbaseAccountsByCurrencyId", &[]).into_dict();
         let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyId, currencyId.clone(), &[]).into_opt_dict();
         if (account.is_none()) {
-            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() could not find currency code ".into())).into()), code).into()), Value::Str(" with id = ".into())).into()),
-                currencyId).into()), Value::Str(" in this.options['coinbaseAccountsByCurrencyId']".into()))));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createDepositAddress() could not find currency code ").into()), code).into()), " with id = ").into()), currencyId).into()), " in this.options['coinbaseAccountsByCurrencyId']")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3239,12 +3238,12 @@ impl Coinbaseexchange {
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), request);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut payload: Option<String> = Some("".to_string());
             if (method.as_str() != Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -3258,14 +3257,14 @@ impl Coinbaseexchange {
                 secret = Value::from(self.base64_to_binary(self.secret.clone(), &[]));
              #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" sign() invalid base64 secret".into()))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " sign() invalid base64 secret")));
             }
             let mut signature: String = self.hmac(self.encode(Value::from(what)), secret, Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("CB-ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("CB-ACCESS-SIGN".to_string(), Value::from(signature));
-                    m.insert("CB-ACCESS-TIMESTAMP".to_string(), nonce);
+                    m.insert("CB-ACCESS-TIMESTAMP".to_string(), Value::from(nonce));
                     m.insert("CB-ACCESS-PASSPHRASE".to_string(), self.password.clone());
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m
@@ -3287,12 +3286,12 @@ if _try_result.is_err() {
         if (code.as_f64() == Some(400.0)) || (code.as_f64() == Some(404.0)) {
             if (body.as_str().unwrap_or("").starts_with("{")) {
                 let mut message: Option<String> = self.safe_string_k(response, "message", &[]).as_str().map(str::to_owned);
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message.as_deref().unwrap_or("null"));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null"));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body)));
         }
         return Value::Null;
 
@@ -3313,7 +3312,7 @@ if _try_result.is_err() {
         let mut response: Value = self.fetch2(path, &[api, method, params, config]).await;
         if !matches!(&response, Value::Str(_)) {
             if (in_op(&response, &Value::Str("message".into()))) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response))));
             }
         }
         return response;

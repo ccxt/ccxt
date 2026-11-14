@@ -671,7 +671,7 @@ impl Indodax {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -866,8 +866,8 @@ impl Indodax {
         let mut timestamp: Option<i64> = self.safe_timestamp_k(ticker.clone(), "server_time", &[]).as_i64();
         let mut baseId: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut quoteId: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut baseVolume: String = format!("{}{}", Value::Str("vol_".into()), baseId);
-        let mut quoteVolume: String = format!("{}{}", Value::Str("vol_".into()), quoteId);
+        let mut baseVolume: String = format!("{}{}", "vol_", baseId);
+        let mut quoteVolume: String = format!("{}{}", "vol_", quoteId);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1223,12 +1223,12 @@ impl Indodax {
             if (crate::value::KeyRead::key_read(&&marketResolved, "baseId").as_str() == Some("idr")) && (self.safe_string_k(order.clone(), "remain_rp", &[]) != Value::Null) {
                 baseId = "rp".to_string();
             }
-            cost = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), quoteId).into()), &[]).as_str().map(str::to_owned);
-            amount = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("order_".into()), baseId).into()), &[]).as_str().map(str::to_owned);
-            remaining = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("remain_".into()), baseId).into()), &[]).as_str().map(str::to_owned);
+            cost = self.safe_string(order.clone(), Value::Str(format!("{}{}", "order_", quoteId).into()), &[]).as_str().map(str::to_owned);
+            amount = self.safe_string(order.clone(), Value::Str(format!("{}{}", "order_", baseId).into()), &[]).as_str().map(str::to_owned);
+            remaining = self.safe_string(order.clone(), Value::Str(format!("{}{}", "remain_", baseId).into()), &[]).as_str().map(str::to_owned);
             // filled buy orders on idr-quoted markets carry the executed base amount
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-            filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", Value::Str("receive_".into()), baseId).into()), &[]).as_str().map(str::to_owned);
+            filled = self.safe_string(order.clone(), Value::Str(format!("{}{}", "receive_", baseId).into()), &[]).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "submit_time", &[]).as_i64();
         let mut fee: Option<String> = None;
@@ -1285,7 +1285,7 @@ impl Indodax {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1414,7 +1414,7 @@ impl Indodax {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchClosedOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1492,7 +1492,7 @@ impl Indodax {
                     quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost)).as_str().map(str::to_owned);
                 }  else {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).".into()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")));
                     }
                     let mut amountString: Option<String> = self.number_to_string(amount.clone());
                     let mut priceString: Option<String> = self.number_to_string(price.clone());
@@ -1512,7 +1512,7 @@ impl Indodax {
         }
         if priceIsRequired {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }
             request.insert("price".into(), price);
         }
@@ -1559,11 +1559,11 @@ impl Indodax {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         let mut side: Option<String> = self.safe_string_k(params.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an extra \"side\" param".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires an extra \"side\" param")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2071,10 +2071,10 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut networks: Value = self.safe_dict_k(&data, "network", &[Value::Map({
+        let mut networks: crate::value::Dict = self.safe_dict_k(&data, "network", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut addressKeys: Vec<Value> = Value::Array(addresses.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -2084,18 +2084,18 @@ impl Indodax {
             let mut marketId: Option<String> = addressKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(marketId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut address: Option<String> = self.safe_string(&addresses, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-            if (address.is_some()) && ((codes == Value::Null) || (self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), codes.clone()))) {
+            if (address.is_some()) && ((codes == Value::Null) || (self.in_array(&code, codes.clone()))) {
                 self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
                 let mut network: Value = Value::Null;
-                if (matches!((&networks, marketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                    let mut networkId: Option<String> = self.safe_string(networks.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                if (matches!(marketId.as_deref(), Some(__k) if networks.contains_key(__k))) {
+                    let mut networkId: Option<String> = self.safe_string(&networks, marketId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                     if (networkId.is_none()) {
-                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchDepositAddresses() missing networkId")));
                     }
                     if networkId.as_deref().unwrap_or_default().contains(",") {
                         network = Value::from(vec![]);
                         if (networkId.is_none()) {
-                            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));
+                            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchDepositAddresses() missing networkId")));
                         }
                         let mut networkIds: Vec<Value> = Value::Array(if let Some(__s) = networkId.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                         {
@@ -2150,10 +2150,10 @@ impl Indodax {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: Option<String> = apiUrl.clone();
-        let mut privateBody: Value = Value::Null;
+        let mut privateBody: Option<String> = None;
         let mut privateHeaders: Option<crate::value::Dict> = None;
         let mut isPublic: bool = apiName.as_deref() == Some("public");
         if isPublic {
@@ -2161,29 +2161,29 @@ impl Indodax {
             let mut requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
             url = Some(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath));
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath).into()), Value::Str("?".into())).into()), self.urlencode_with_array_repeat(query)));
+                url = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath).into()), "?").into()), self.urlencode_with_array_repeat(query)));
             }
         }  else {
             self.check_required_credentials(&[]);
             let __ws_arg_14 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("method".to_string(), path);
-                    m.insert("timestamp".to_string(), self.nonce());
-                    m.insert("recvWindow".to_string(), crate::value::get_value_k(&self.options, "recvWindow"));
-                m
-            }), &[params]);
-            privateBody = Value::from(self.urlencode(__ws_arg_14, &[]));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("method".to_string(), path);
+        m.insert("timestamp".to_string(), self.nonce());
+        m.insert("recvWindow".to_string(), crate::value::get_value_k(&self.options, "recvWindow"));
+    m
+}), &[params]);
+            privateBody = Some(self.urlencode(__ws_arg_14, &[]));
             privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(privateBody.clone()), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
+                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(privateBody.as_deref())), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[])));
                 m
             }));
         }
-        let mut requestBody: Value = privateBody;
+        let mut requestBody: Option<String> = privateBody;
         if isPublic {
-            requestBody = Value::Null;
+            requestBody = None.clone();
         }
         let mut requestHeaders: Value = privateHeaders.map_or(Value::Null, Value::Dict);
         if isPublic {
@@ -2193,7 +2193,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.map(Value::from).unwrap_or(Value::Null));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders);
     m
 });
@@ -2223,12 +2223,12 @@ impl Indodax {
         if (self.safe_integer_k(response.clone(), "success", &[Value::Int(0)]).as_f64() == Some(1.0)) {
             // { success: 1, return: { orders: [] }}
             if !(in_op(&response, &Value::Str("return".into()))) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(": malformed response: ".into())).into()), json_stringify(&response))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), ": malformed response: ").into()), json_stringify(&response))));
             }  else {
                 return Value::Null;
             }
         }
-        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::from(error.clone()), Value::from(feedback.clone()));
         self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(error), Value::from(feedback.clone()));
         panic!("{}", crate::exchange_errors::exchange_error(feedback));

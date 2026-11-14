@@ -1457,7 +1457,7 @@ impl Coinspot {
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut sideUpper: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         if (type_var.as_str() == Some("market")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() allows limit orders only")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1475,7 +1475,7 @@ impl Coinspot {
             let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_my_sell(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support buy/sell side".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder only support buy/sell side")));
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1511,7 +1511,7 @@ impl Coinspot {
 }));
         let mut side: Option<String> = self.safe_string_k(params.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.as_deref() != Some("buy")) && (side.as_deref() != Some("sell")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a side parameter, \"buy\" or \"sell\"".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("side".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1542,7 +1542,7 @@ impl Coinspot {
         }
         let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("error")) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response)).into());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1574,11 +1574,11 @@ impl Coinspot {
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone()));
         let mut fullPath: String = endpoint.clone();
         if isVersionedApi {
-            fullPath = format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null)).into()), endpoint);
+            fullPath = format!("{}{}", Value::Str(format!("{}{}", "/", api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null)).into()), endpoint);
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), accessType.clone(), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), fullPath);
         if (accessType.as_str() == Some("private")) {

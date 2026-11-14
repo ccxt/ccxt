@@ -2065,14 +2065,14 @@ impl Aster {
             settleId = self.safe_string_k(market.clone(), "marginAsset", &[]).as_str().map(str::to_owned);
             let mut settleCode: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             settle = settleCode.clone();
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settleCode.as_deref().unwrap_or("null")));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settleCode.as_deref().unwrap_or("null")));
             linear = Some(settleCode == quote);
             inverse = Some(settleCode == base);
             contractSize = self.safe_number2(market.clone(), Value::Str("contractSize".into()), Value::Str("unit".into()), &[self.parse_number(Value::Str("1".into()), &[])]).as_f64();
         }  else {
             spot = Some(true);
             swap = Some(false);
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
         }
         // filters
         let mut filters: crate::value::List = self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]).into_list();
@@ -2815,7 +2815,7 @@ impl Aster {
         //     ]
         //
         if (response == Value::Null) {
-            panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" fetchLastPrices() returned empty response".into()))));
+            panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " fetchLastPrices() returned empty response")));
         }
         let mut rows: crate::value::List = self.to_array(response).into_list();
         let mut results: Vec<Value> = Vec::new();
@@ -2936,7 +2936,7 @@ impl Aster {
         let mut interval: Option<String> = self.safe_string_k(contract.clone(), "fundingIntervalHours", &[]).as_str().map(str::to_owned);
         let mut intervalString: Option<String> = None;
         if (interval.is_some()) {
-            intervalString = Some(format!("{}{}", interval.as_deref().unwrap_or("null"), Value::Str("h".into())));
+            intervalString = Some(format!("{}{}", interval.as_deref().unwrap_or("null"), "h"));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2985,7 +2985,7 @@ impl Aster {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRate() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3228,12 +3228,12 @@ impl Aster {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMarginMode() requires a symbol argument")));
         }
         let mut marginModeUpper: String = marginMode.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut marginModeValue: String = (if (marginModeUpper == "CROSS") { "CROSSED".to_string() } else { marginModeUpper });
         if (marginModeValue != "ISOLATED") && (marginModeValue != "CROSSED") {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" marginMode must be either isolated or cross".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " marginMode must be either isolated or cross")));
         }
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3526,7 +3526,7 @@ impl Aster {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires a symbol argument")));
         }
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3579,7 +3579,7 @@ impl Aster {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOpenOrder() requires a symbol argument")));
         }
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3635,7 +3635,7 @@ impl Aster {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrders() requires a symbol argument")));
         }
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3705,8 +3705,8 @@ impl Aster {
         }
         if (symbol == Value::Null) {
             if matches!(self.safe_bool(self.options.as_map().and_then(|__m| __m.get("fetchOpenOrders")).cloned().unwrap_or(Value::Null), Value::Str("warnIfNoSymbol".into()), &[Value::Bool(false)]), Value::Bool(true)) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ".into())).into()),
-                    self.id.clone()).into()), Value::Str(".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ").into()), self.id.clone()).into()),
+                    ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")));
             }
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3807,7 +3807,7 @@ impl Aster {
         let mut orderSymbols: Vec<Value> = Vec::new();
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         if ordersLength > ((5i64) as f64) {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrders() order list max 5 orders".into()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrders() order list max 5 orders")));
         }
         {
                         let mut i: i64 = 0;
@@ -3832,7 +3832,7 @@ impl Aster {
         let mut orderSymbolsResolved: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
         let mut market: crate::types::Market = (match self.market((orderSymbolsResolved.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).spot {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".into())).into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrders() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " orders")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3856,10 +3856,10 @@ impl Aster {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a type argument")));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a side argument")));
         }
         /*
          * @method
@@ -3993,7 +3993,7 @@ impl Aster {
         }
         if priceIsRequired {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for a ").into()), type_var).into()), " order")));
             }
             let mut pricePrecision: Option<String> = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "precision"), "price", &[]).as_str().map(str::to_owned);
             let mut isPricePrecisionAvailable: bool = pricePrecision.is_some();
@@ -4005,7 +4005,7 @@ impl Aster {
         }
         if triggerPriceIsRequired {
             if (stopPrice == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a stopPrice extra param for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a stopPrice extra param for a ").into()), type_var).into()), " order")));
             }
             request.insert("stopPrice".into(), self.price_to_precision(symbol, stopPrice));
         }
@@ -4053,7 +4053,7 @@ impl Aster {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelAllOrders() requires a symbol argument")));
         }
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4103,7 +4103,7 @@ impl Aster {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4162,7 +4162,7 @@ impl Aster {
         let __ids_empty = Vec::new();
         let ids = ids.as_array().unwrap_or(&__ids_empty);
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a symbol argument")));
         }
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4222,10 +4222,10 @@ impl Aster {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setLeverage() requires a symbol argument")));
         }
         if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_f64().unwrap_or(f64::NAN) > ((125i64) as f64)) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 125".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " leverage should be between 1 and 125")));
         }
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4297,10 +4297,10 @@ impl Aster {
         let mut shortLeverage: Option<i64> = None;
         let mut leverageValue: Option<i64> = self.safe_integer_k(leverage.clone(), "leverage", &[]).as_i64();
         if (side.is_none()) || (side.as_deref() == Some("both")) {
-            longLeverage = leverageValue.clone();
-            shortLeverage = leverageValue.clone();
+            longLeverage = leverageValue;
+            shortLeverage = leverageValue;
         }  else if (side.as_deref() == Some("long")) {
-            longLeverage = leverageValue.clone();
+            longLeverage = leverageValue;
         }  else if (side.as_deref() == Some("short")) {
             shortLeverage = leverageValue;
         }
@@ -4406,7 +4406,7 @@ impl Aster {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory () requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMarginAdjustmentHistory () requires a symbol argument")));
         }
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4990,7 +4990,7 @@ impl Aster {
 }));
         if (symbols != Value::Null) {
             if !(matches!(&symbols, Value::Arr(_))) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositionsRisk() requires an array argument for symbols".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchPositionsRisk() requires an array argument for symbols")));
             }
         }
         self.load_markets_and_sign_in().await;
@@ -5077,7 +5077,7 @@ impl Aster {
         }  else if (defaultMethod.as_str() == Some("account")) {
             return self.fetch_account_positions(&[symbols, paramsMethod]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"".into())).into()), defaultMethod).into()), Value::Str("\" is invalid, please choose between \"account\" and \"positionRisk\"".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"").into()), defaultMethod).into()), "\" is invalid, please choose between \"account\" and \"positionRisk\"")));
         }
         Value::Null
         }).await?))
@@ -5279,11 +5279,11 @@ impl Aster {
             let mut pricePrecisionPlusOne: i64 = (pricePrecision + 1);
             // round half up
             let mut pricePrecisionPlusOneString: Option<String> = self.number_to_string(Value::from(pricePrecisionPlusOne));
-            let mut rounderString: String = format!("{}{}", Value::Str("5e-".into()), pricePrecisionPlusOneString.as_deref().unwrap_or("null"));
+            let mut rounderString: String = format!("{}{}", "5e-", pricePrecisionPlusOneString.as_deref().unwrap_or("null"));
             let mut liquidationPriceRoundedString: Option<String> = crate::precise::Precise::stringAdd(&Value::from(rounderString), &liquidationPriceStringRaw.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut truncatedLiquidationPrice: Option<String> = crate::precise::Precise::stringDivPrec(&liquidationPriceRoundedString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into()), &Value::from(pricePrecision)).as_str().map(str::to_owned);
             if (truncatedLiquidationPrice.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing truncatedLiquidationPrice".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " method() missing truncatedLiquidationPrice")));
             }
             if (truncatedLiquidationPrice.as_deref().unwrap_or_default().starts_with("-")) {
                 // user cannot be liquidated
@@ -5348,7 +5348,7 @@ impl Aster {
 }));
         if (symbols != Value::Null) {
             if !(matches!(&symbols, Value::Arr(_))) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires an array argument for symbols".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchPositions() requires an array argument for symbols")));
             }
         }
         self.load_markets_and_sign_in().await;
@@ -5568,12 +5568,12 @@ impl Aster {
             chainId = self.safe_integer(&chainIds, Value::from(network.as_deref()), &[]).as_i64();
         }
         if (chainId.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw require chainId or network parameter".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw require chainId or network parameter")));
         }
         request.insert("chainId".into(), Value::from(chainId));
         let mut fee: Option<String> = self.safe_string_k(&paramsWithdrawTag, "fee", &[]).as_str().map(str::to_owned);
         if (fee.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw require fee parameter".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw require fee parameter")));
         }
         request.insert("fee".into(), fee.map(Value::from).unwrap_or(Value::Null));
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("fee".into())]), &[]).into_dict();
@@ -5660,7 +5660,7 @@ impl Aster {
             type_var = Some("FUTURE_SPOT".to_string());
         }
         if (type_var.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")));
         }
         let mut defaultClientTranId: Option<String> = self.number_to_string(Value::Int(self.milliseconds()));
         let mut clientTranId: Option<String> = self.safe_string_k(params.clone(), "clientTranId", &[defaultClientTranId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
@@ -5735,9 +5735,9 @@ impl Aster {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), "/").into()), path);
         if (apiName.as_deref() == Some("fapiPublic")) || (apiName.as_deref() == Some("sapiPublic")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])));
@@ -5758,7 +5758,7 @@ impl Aster {
             }
             let mut signerAddress: Option<String> = self.safe_string_k(self.options.clone(), "signerAddress", &[walletAddress.clone()]).as_str().map(str::to_owned); // default to user's wallet
             if (signerAddress.is_none()) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires signerAddress in options when use v3 api".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires signerAddress in options when use v3 api")));
             }
             let mut domain: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -5840,9 +5840,9 @@ impl Aster {
             }
             let mut encodedMessage: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), paramsToEncode);
             let mut signature: Value = self.sign_message(encodedMessage, (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
-            let mut queryString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", paramString, Value::Str("&".into())).into()), Value::Str("signature=".into())).into()), signature);
+            let mut queryString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", paramString, "&").into()), "signature=").into()), signature);
             if (method.as_str() == Some("GET")) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
+                url.push_str(&format!("{}{}", "?", queryString));
             }  else {
                 let mut formHeaders: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -5883,7 +5883,7 @@ impl Aster {
             let mut isObj: bool = (matches!(&value, Value::Arr(_))) || self.is_dictionary(value.clone()).as_bool() == Some(true);
             let mut valueJsonified: Value = (if isObj { json_stringify(&value) } else { to_string_val(&value) });
             let mut encoded: Option<String> = self.encode_uri_component(valueJsonified).as_str().map(str::to_owned);
-            encodedString = Value::Str(format!("{}{}", encodedString, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), Value::Str("=".into())).into()), encoded.as_deref().unwrap_or("null")).into()), Value::Str("&".into())).into())).into());
+            encodedString = Value::Str(format!("{}{}", encodedString, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), encoded.as_deref().unwrap_or("null")).into()), "&").into())).into());
         }
         }
         return encodedString.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -5931,12 +5931,12 @@ impl Aster {
 }));
         if self.is_empty_string(self.privateKey.clone()).as_bool() == Some(true) {
             if !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true)) || !(self.is_empty_string(self.secret.clone()).as_bool() == Some(true)) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str("after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.".into()))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")));
             }
             return Value::Bool(false);
         }
         if ((self.privateKey.len() as i64) as f64) > ((66i64) as f64) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")));
         }
         self.initialize_client(&[params]).await;
         return Value::Bool(true);
@@ -6032,7 +6032,7 @@ if _try_result.is_err() {
         let mut codeError: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut message: Option<String> = self.safe_string_k(response, "msg", &[]).as_str().map(str::to_owned);
         if (codeError.is_some()) && (codeError.as_deref() != Some("200")) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

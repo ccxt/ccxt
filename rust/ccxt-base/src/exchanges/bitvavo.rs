@@ -885,7 +885,7 @@ impl Bitvavo {
             result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -1017,7 +1017,7 @@ impl Bitvavo {
         let mut fiatCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("fiatCurrencies".into()), &[Value::from(vec![])]);
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut isFiat: bool = self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), fiatCurrencies);
+        let mut isFiat: bool = self.in_array(&code, fiatCurrencies);
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1794,7 +1794,7 @@ impl Bitvavo {
         let mut direction: Option<String> = None;
         let mut subaccountId: Option<String> = None;
         if (fromAccount.as_str() == Some("master")) && (toAccount.as_str() == Some("master")) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")));
         }  else if (fromAccount.as_str() == Some("master")) {
             direction = Some("masterToSub".to_string());
             subaccountId = self.safe_string_k(params.clone(), "subaccountId", &[toAccount.clone()]).as_str().map(str::to_owned);
@@ -1802,10 +1802,10 @@ impl Bitvavo {
             direction = Some("subToMaster".to_string());
             subaccountId = self.safe_string_k(params.clone(), "subaccountId", &[fromAccount]).as_str().map(str::to_owned);
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires either fromAccount or toAccount to be master".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " transfer() requires either fromAccount or toAccount to be master")));
         }
         if (subaccountId.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1862,7 +1862,7 @@ impl Bitvavo {
         }
         let mut subaccountId: Option<String> = self.safe_string_k(params.clone(), "subaccountId", &[]).as_str().map(str::to_owned);
         if (subaccountId.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a subaccountId parameter".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchTransfers() requires a subaccountId parameter")));
         }
         if (since != Value::Null) {
             request.insert("start".into(), since.clone());
@@ -2052,10 +2052,10 @@ impl Bitvavo {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a type argument")));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a side argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2127,7 +2127,7 @@ impl Bitvavo {
         if (operatorId != Value::Null) {
             request.insert("operatorId".into(), Value::from(self.parse_to_int(operatorId)));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")));
         }
         let selfTradePreventionparamsSelfTradePreventionVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOperatorId, Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut selfTradePrevention: Option<String> = selfTradePreventionparamsSelfTradePreventionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2227,7 +2227,7 @@ impl Bitvavo {
         }
         request = self.extend(request.clone(), &[&paramsOmitted]);
         if self.is_empty(request.clone()).as_bool() == Some(true) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument, or a price argument, or non-empty params".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires an amount argument, or a price argument, or non-empty params")));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(&paramsOmitted, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
@@ -2237,7 +2237,7 @@ impl Bitvavo {
         if (operatorId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("operatorId".into()), Value::from(self.parse_to_int(operatorId)));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")));
         }
         add_element_to_object(&mut request, &Value::Str("market".into()), Value::from((market).id.as_deref()));
         return request;
@@ -2294,7 +2294,7 @@ impl Bitvavo {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2312,7 +2312,7 @@ impl Bitvavo {
         if (operatorId != Value::Null) {
             request.insert("operatorId".into(), Value::from(self.parse_to_int(operatorId)));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")));
         }
         return self.extend(Value::Map(request), &[&paramsOperatorId]);
 
@@ -2390,7 +2390,7 @@ impl Bitvavo {
         if (operatorId != Value::Null) {
             request.insert("operatorId".into(), Value::from(self.parse_to_int(operatorId)));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOperatorId]);
         let mut response: crate::value::List = self.private_delete_orders(&[__ws_arg_8]).await.into_list();
@@ -2415,10 +2415,10 @@ impl Bitvavo {
     m
 }));
         if timeout.as_f64().unwrap_or(f64::NAN) > ((300000i64) as f64) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")));
         }
         if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (timeout.as_f64().unwrap_or(f64::NAN) < ((10000i64) as f64)) {
-            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds".into()))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2462,7 +2462,7 @@ impl Bitvavo {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2539,7 +2539,7 @@ impl Bitvavo {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrders() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2787,7 +2787,7 @@ impl Bitvavo {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3361,7 +3361,7 @@ impl Bitvavo {
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path, params));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path, params));
         let mut getOrDelete: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"));
         if getOrDelete {
             if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
@@ -3395,7 +3395,7 @@ impl Bitvavo {
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut fullUrl: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), url);
         return Value::Map({
@@ -3422,7 +3422,7 @@ impl Bitvavo {
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "errorCode", &[]).as_str().map(str::to_owned);
         let mut error: Option<String> = self.safe_string_k(response, "error", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

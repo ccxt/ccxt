@@ -335,7 +335,7 @@ impl Hollaex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), marketId);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), marketId);
         let mut orderbook: Value = self.watch_public(messageHash.as_str(), &[params]).await;
         return orderbook.limit();
         Value::Null
@@ -388,7 +388,7 @@ impl Hollaex {
                 orderbook.reset(Value::Dict(snapshot));
             }
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketIdValue);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), marketIdValue);
                 client.resolve(Value::from(&orderbook), messageHash.as_str());
             }
         }
@@ -424,7 +424,7 @@ impl Hollaex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), marketId);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trade", ":").into()), marketId);
         let mut trades: Value = self.watch_public(messageHash.as_str(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -474,7 +474,7 @@ impl Hollaex {
         }
         }
         if (channel.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketIdValue);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), marketIdValue);
             client.resolve(Value::from(&stored), messageHash.as_str());
         }
         client.resolve(Value::from(&stored), channel.as_deref());
@@ -513,7 +513,7 @@ impl Hollaex {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), marketId);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), marketId);
         }
         let mut trades: Value = self.watch_private(messageHash.as_str(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -592,7 +592,7 @@ impl Hollaex {
             while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketId.as_deref().unwrap_or("null"));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.myTrades), messageHash.as_str());
             }
         }
@@ -632,7 +632,7 @@ impl Hollaex {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), marketId);
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), marketId);
         }
         let mut orders: Value = self.watch_private(messageHash.as_str(), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -748,7 +748,7 @@ impl Hollaex {
             while { if !__for_first_381 { i += 1; } __for_first_381 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketId.as_deref().unwrap_or("null"));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.orders), messageHash.as_str());
             }
         }
@@ -868,7 +868,7 @@ impl Hollaex {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".into(), expires.clone()); }
         }
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("CONNECT".into()), Value::Str("/stream".into())).into()), expires);
+        let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", "CONNECT", "/stream").into()), expires);
         let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
         let mut authParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -877,7 +877,7 @@ impl Hollaex {
                 m.insert("api-expires".to_string(), expires);
             m
         });
-        let mut signedUrl: String = format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(Value::Map(authParams), &[]));
+        let mut signedUrl: String = format!("{}{}", Value::Str(format!("{}{}", url, "?").into()), self.urlencode(Value::Map(authParams), &[]));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".into()));
@@ -901,7 +901,7 @@ impl Hollaex {
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (error.is_some()) {
-                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s),
                     Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }), Value::from(feedback));
             }

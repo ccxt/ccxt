@@ -610,7 +610,7 @@ impl Coincheck {
             let mut free: Option<String> = self.safe_string(response.clone(), currencyId.clone(), &[]).as_str().map(str::to_owned);
             if (free.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-                let mut reserved: String = format!("{}{}", currencyId, Value::Str("_reserved".into()));
+                let mut reserved: String = format!("{}{}", currencyId, "_reserved");
                 account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));
                 account.insert("used".into(), self.safe_string(response.clone(), Value::from(reserved), &[]));
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
@@ -923,7 +923,7 @@ impl Coincheck {
     m
 }));
         if (symbol.as_str() != Some("BTC/JPY")) {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() supports BTC/JPY only".into()))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " fetchTicker() supports BTC/JPY only")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1270,13 +1270,13 @@ impl Coincheck {
             m
         });
         if (type_var.as_str() == Some("market")) {
-            request.insert("order_type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str("_".into())).into()), side).into()));
+            request.insert("order_type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, "_").into()), side).into()));
             if (side.as_str() == Some("sell")) {
                 request.insert("amount".into(), amount.clone());
             }  else {
                 let mut cost: Option<f64> = self.safe_number_k(params.clone(), "cost", &[]).as_f64();
                 if (cost.is_some()) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders".into()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")));
                 }
                 request.insert("market_buy_amount".into(), Value::from(cost));
             }
@@ -1582,13 +1582,13 @@ impl Coincheck {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut bodySigned: Value = Value::Null;
+        let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut hasQuery: bool = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64);
         if (apiName.as_deref() == Some("public")) {
@@ -1597,7 +1597,7 @@ impl Coincheck {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut nonce: String = format!("{}", self.nonce());
             let mut queryString: String = "".to_string();
             if (method.as_str() == Some("GET")) {
                 if hasQuery {
@@ -1606,7 +1606,7 @@ impl Coincheck {
             }  else {
                 if hasQuery {
                     queryString = self.urlencode(self.keysort(query, &[]), &[]);
-                    bodySigned = Value::from(queryString.clone());
+                    bodySigned = Some(queryString.clone());
                 }
             }
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
@@ -1614,18 +1614,18 @@ impl Coincheck {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("ACCESS-NONCE".to_string(), nonce);
+                    m.insert("ACCESS-NONCE".to_string(), Value::from(nonce));
                     m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
                 m
             }));
         }
         let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
-        let mut bodyResolved: Value = bodySigned;
+        let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });
@@ -1644,7 +1644,7 @@ impl Coincheck {
         let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if !success {
             let mut error: Option<String> = self.safe_string_k(response.clone(), "error", &[]).as_str().map(str::to_owned);
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

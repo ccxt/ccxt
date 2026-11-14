@@ -627,7 +627,7 @@ impl Cryptomus {
         //
         let mut marketId: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
         if (marketId.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseMarket() missing marketId")));
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -641,7 +641,7 @@ impl Cryptomus {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
@@ -1212,7 +1212,7 @@ impl Cryptomus {
                 let mut createMarketBuyOrderRequiresPrice: Value = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
                     if (price == Value::Null) && (costParam.is_none()) {
-                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument".into()))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")));
                     }  else if (costParam.is_none()) {
                         cost = crate::precise::Precise::stringMul(&amountToString.clone().map(Value::from).unwrap_or(Value::Null), &priceToString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }
@@ -1227,14 +1227,14 @@ impl Cryptomus {
             response = self.private_post_v2_user_api_exchange_orders_market(&[__ws_arg_3]).await.into_opt_dict();
         }  else if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price parameter for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price parameter for a ").into()), type_var).into()), " order")));
             }
             request.insert("quantity".into(), amountToString.map(Value::from).unwrap_or(Value::Null));
             request.insert("price".into(), price);
             let __ws_arg_4 = self.extend(Value::Map(request), &[paramsCost]);
             response = self.private_post_v2_user_api_exchange_orders(&[__ws_arg_4]).await.into_opt_dict();
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a type parameter (limit or market)".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a type parameter (limit or market)")));
         }
         return self.parse_order(&response, Some(&market));
         Value::Null
@@ -1739,9 +1739,9 @@ impl Cryptomus {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), endpoint);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), endpoint);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut jsonParams: Option<String> = Some("".to_string());
@@ -1756,7 +1756,7 @@ impl Cryptomus {
             }  else {
                 let mut query: String = self.urlencode(paramsOmitted.clone(), &[]);
                 if (((query.chars().count() as i64)) != 0) {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), query));
+                    url.push_str(&format!("{}{}", "?", query));
                 }
             }
             let mut jsonParamsBase64: String = self.string_to_base64(jsonParams.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1775,7 +1775,7 @@ impl Cryptomus {
         }  else {
             let mut query: String = self.urlencode(paramsOmitted, &[]);
             if (((query.chars().count() as i64)) != 0) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), query));
+                url.push_str(&format!("{}{}", "?", query));
             }
         }
         return Value::Map({
@@ -1797,14 +1797,14 @@ impl Cryptomus {
         let mut codeError: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut message: Option<String> = self.safe_string_k(response, "message", &[]).as_str().map(str::to_owned);
         if (codeError.is_some()) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }  else if (message.is_some()) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

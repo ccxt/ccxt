@@ -896,7 +896,7 @@ impl Coinone {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -1281,7 +1281,7 @@ impl Coinone {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1481,10 +1481,10 @@ impl Coinone {
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
         let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase(); // unified lowercase order sides, same override rule
         if (orderType != "LIMIT") {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() allows limit orders only")));
         }
         if (price == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for the limit orders".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for the limit orders")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1532,7 +1532,7 @@ impl Coinone {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1617,7 +1617,7 @@ impl Coinone {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
         }
         let mut marketResolved: Value = (if (symbol.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("/".into())])) } else { crate::Value::from(market) });
         let mut timestamp: Option<i64> = self.safe_timestamp2(order.clone(), Value::Str("timestamp".into()), Value::Str("updatedAt".into()), &[]).as_i64();
@@ -1716,7 +1716,7 @@ impl Coinone {
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() allows fetching closed orders with a specific symbol".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOpenOrders() allows fetching closed orders with a specific symbol")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1777,7 +1777,7 @@ impl Coinone {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1838,13 +1838,13 @@ impl Coinone {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")));
         }
         let mut price: Option<f64> = self.safe_number_k(params.clone(), "price", &[]).as_f64();
         let mut qty: Option<f64> = self.safe_number_k(params.clone(), "qty", &[]).as_f64();
         let mut isAsk: Option<i64> = self.safe_integer_k(params.clone(), "is_ask", &[]).as_i64();
         if (price.is_none()) || (qty.is_none()) || (isAsk.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1963,30 +1963,30 @@ impl Coinone {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into()));
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/");
         let mut isPublic: bool = (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("v2Public"));
         if (apiName.as_deref() == Some("v2Public")) {
             let mut apiUrl2: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("v2Public".into()), &[]).as_str().map(str::to_owned);
             if (apiUrl2.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
-            url = format!("{}{}", apiUrl2.as_deref().unwrap_or("null"), Value::Str("/".into()));
+            url = format!("{}{}", apiUrl2.as_deref().unwrap_or("null"), "/");
         }  else if (apiName.as_deref() == Some("v2Private")) {
             let mut apiUrl3: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("v2Private".into()), &[]).as_str().map(str::to_owned);
             if (apiUrl3.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
-            url = format!("{}{}", apiUrl3.as_deref().unwrap_or("null"), Value::Str("/".into()));
+            url = format!("{}{}", apiUrl3.as_deref().unwrap_or("null"), "/");
         }  else if (apiName.as_deref() == Some("v2_1Private")) {
             let mut apiUrl4: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("v2_1Private".into()), &[]).as_str().map(str::to_owned);
             if (apiUrl4.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
-            url = format!("{}{}", apiUrl4.as_deref().unwrap_or("null"), Value::Str("/".into()));
+            url = format!("{}{}", apiUrl4.as_deref().unwrap_or("null"), "/");
         }
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if isPublic {
             url.push_str(&request.to_string());
@@ -2011,7 +2011,7 @@ impl Coinone {
 }), &[params]);
             let mut json: Option<String> = self.json(__ws_arg_10).as_str().map(str::to_owned);
             let mut payload: String = self.string_to_base64(json.map(Value::from).unwrap_or(Value::Null), &[]);
-            requestBody = Value::from(payload.clone());
+            requestBody = Some(payload.clone());
             let mut secret: Value = (if let Some(__s) = self.secret.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
             let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(secret), Value::Str("sha512".into()), &[]);
             requestHeaders = Some(crate::value::Dict::new({
@@ -2022,13 +2022,13 @@ impl Coinone {
                 m
             }));
         }
-        let mut bodyResolved: Value = requestBody;
+        let mut bodyResolved: Option<String> = requestBody;
         let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });
@@ -2046,7 +2046,7 @@ impl Coinone {
         //
         let mut errorCode: Option<String> = self.safe_string_k(response, "error_code", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) && (errorCode.as_deref() != Some("0")) {
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.clone(), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }

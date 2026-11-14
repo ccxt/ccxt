@@ -311,7 +311,7 @@ impl Luno {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut subscriptionHash: String = format!("{}{}", Value::Str("/stream/".into()), marketId);
+        let mut subscriptionHash: String = format!("{}{}", "/stream/", marketId);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
@@ -319,10 +319,10 @@ impl Luno {
         });
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchTrades() has no websocket url")));
         }
         let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), subscriptionHash);
-        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "trades:", symbolValue);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api_key_id".to_string(), self.apiKey.clone());
@@ -366,7 +366,7 @@ impl Luno {
         let mut symbol: Value = subscription.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "trades:", symbolValue);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbolValue);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -456,7 +456,7 @@ impl Luno {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut subscriptionHash: String = format!("{}{}", Value::Str("/stream/".into()), marketId);
+        let mut subscriptionHash: String = format!("{}{}", "/stream/", marketId);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
@@ -464,10 +464,10 @@ impl Luno {
         });
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook() has no websocket url")));
         }
         let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), subscriptionHash);
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbolValue);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("api_key_id".to_string(), self.apiKey.clone());
@@ -517,7 +517,7 @@ impl Luno {
         //     }
         //
         let mut symbol: String = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.indexed_order_book(&[Value::Map({
@@ -771,12 +771,12 @@ impl Luno {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut subscriptionHash: String = format!("{}{}", Value::Str("/stream/".into()), marketId);
+            let mut subscriptionHash: String = format!("{}{}", "/stream/", marketId);
             if (__ch.has_subscription(subscriptionHash.as_str())) {
                 __ch.remove_subscription(subscriptionHash.as_str());
             }
-            let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() received an out-of-sequence update for ".into())).into()), symbolValue).into()),
-                Value::Str(", expected ".into())).into()), Value::Str(format!("{}", expectedSequence).into())).into()), Value::Str(" but got ".into())).into()), Value::Str(format!("{}", messageSequence).into()))));
+            let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOrderBook() received an out-of-sequence update for ").into()), symbolValue).into()),
+                ", expected ").into()), Value::Str(format!("{}", expectedSequence).into())).into()), " but got ").into()), Value::Str(format!("{}", messageSequence).into()))));
             client.reset(error);
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &client.url()) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             return Value::Bool(false);

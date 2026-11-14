@@ -455,14 +455,14 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(operationType.clone().map(Value::from).unwrap_or(Value::Null), request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
         if (operationType.as_deref() == Some("create_stop_order")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support stop order type of order. Check provided arguments correctly!".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrderWs() do not support stop order type of order. Check provided arguments correctly!")));
         }  else if (operationType.as_deref() == Some("set_position_tpsl")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!")));
         }
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
@@ -577,7 +577,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
@@ -655,7 +655,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("cancelOrders() requires a \"symbol\" argument!".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), "cancelOrders() requires a \"symbol\" argument!")));
         }
         let mut request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[params]).into_dict();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -673,7 +673,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), Value::Dict(request)).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
@@ -772,7 +772,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs() requires a symbol argument".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrderWs() requires a symbol argument")));
         }
         let mut request: Value = self.parent.cancel_order_request(id, symbol.as_str(), &[params]);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -790,7 +790,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
@@ -882,7 +882,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
@@ -927,7 +927,7 @@ impl Pacifica {
         let aggLevelparamsAggLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
         let mut aggLevel: Option<i64> = aggLevelparamsAggLevelVariable.get(0).and_then(Value::as_i64);
         let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -943,7 +943,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -992,8 +992,8 @@ impl Pacifica {
         let aggLevelparamsAggLevelVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("aggLevel".into()), &[Value::Int(1)]).as_array().cloned().unwrap_or_default();
         let mut aggLevel: Option<i64> = aggLevelparamsAggLevelVariable.get(0).and_then(Value::as_i64);
         let mut paramsAggLevel: crate::value::Dict = aggLevelparamsAggLevelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "orderbook:", symbol);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -1009,7 +1009,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1082,7 +1082,7 @@ impl Pacifica {
         if (nonce.is_some()) && (nonce != Some(0)) {
             std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         if !(self.orderbooks.has(&symbol)) {
             let mut ob: crate::pro::order_book::Book = self.order_book(&[Value::from(&snapshot)]);
             CacheStore::put(&mut self.orderbooks, &symbol, ob);
@@ -1159,7 +1159,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1206,7 +1206,7 @@ impl Pacifica {
         }
         self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
         let mut subMessageHash: String = "tickers".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -1222,7 +1222,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1275,7 +1275,7 @@ impl Pacifica {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             symbolResolved = Some(self.symbol(symbol));
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved.as_deref().unwrap_or("null"));
+            messageHash = format!("{}{}", "myTrades:", symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
@@ -1292,7 +1292,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1341,7 +1341,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")));
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address("unWatchMyTrades", params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Option<String> = userAddressparamsOriginAndSingleAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1362,7 +1362,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1529,7 +1529,7 @@ impl Pacifica {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", "trade:", symbolValue);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -1545,7 +1545,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1594,8 +1594,8 @@ impl Pacifica {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbolValue);
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "trade:", symbolValue);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
@@ -1611,7 +1611,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1658,7 +1658,7 @@ impl Pacifica {
         let mut marketId: Option<String> = self.safe_string_k(&first, "s", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "trade:", symbol.as_deref().unwrap_or("null"));
         if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut stored: crate::pro::cache::Cache = ArrayCache::new(limit);
@@ -1817,7 +1817,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1831,7 +1831,7 @@ impl Pacifica {
 }));
             m
         });
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), parsedTf.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbolValue);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", parsedTf.as_deref().unwrap_or("null")).into()), ":").into()), symbolValue);
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -1885,7 +1885,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1899,8 +1899,8 @@ impl Pacifica {
 }));
             m
         });
-        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue);
-        let mut messagehash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbolValue);
+        let mut messagehash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         return self.watch(url.as_deref(), &messagehash[..], &message, &messagehash[..], Value::Null).await;
         Value::Null
@@ -1935,7 +1935,7 @@ impl Pacifica {
         if (timeframe.is_none()) {
             return;
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
@@ -1987,7 +1987,7 @@ impl Pacifica {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
         let mut urlKey: String = "api".to_string();
@@ -2004,7 +2004,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2053,7 +2053,7 @@ impl Pacifica {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders() does not support a symbol argument, unWatch from all markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchOrders() does not support a symbol argument, unWatch from all markets only")));
         }
         let mut messageHash: String = "unsubscribe:order".to_string();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -2071,7 +2071,7 @@ impl Pacifica {
         })]).into_dict();
         let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" has no websocket url for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address("unWatchOrders", params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Option<String> = userAddressparamsOriginAndSingleAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2157,7 +2157,7 @@ impl Pacifica {
             let mut __for_first_579: bool = true;
             while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (keys.len() as i64) } {
             let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
+            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&stored), innerMessageHash.as_str());
         }
         }
@@ -2209,8 +2209,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null"));
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         if (self.orderbooks.has(&symbol)) {
             CacheStore::forget(&mut self.orderbooks, &symbol);
@@ -2221,8 +2221,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut subMessageHash: String = format!("{}{}", Value::Str("trade:".into()), symbol.as_deref().unwrap_or("null"));
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", "trade:", symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         if (self.trades.has(&symbol)) {
             CacheStore::forget(&mut self.trades, &symbol);
@@ -2231,7 +2231,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_tickers_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut subMessageHash: String = "tickers".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
@@ -2254,8 +2254,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (timeframe.is_none()) {
             return;
         }
-        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
-        let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
+        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         if (symbol.is_some()) && (CacheShelves::has(&self.ohlcvs, &symbol)) {
             if (self.ohlcvs.shelf(&symbol).has(&timeframe)) {
@@ -2266,7 +2266,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_order_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut subHash: String = "order".to_string();
-        let mut unSubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subHash);
+        let mut unSubHash: String = format!("{}{}", "unsubscribe:", subHash);
         self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
         let mut topicStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2278,7 +2278,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_my_trades_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
         let mut subHash: String = "myTrades".to_string();
-        let mut unSubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subHash);
+        let mut unSubHash: String = format!("{}{}", "unsubscribe:", subHash);
         self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
         let mut topicStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2427,7 +2427,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn wrap_as_post_action(&self, mut operationType: Value, mut request: Value) -> Value {
         if (operationType == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("postAction() requires a \"operationType\" argument!".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), "postAction() requires a \"operationType\" argument!")));
         }
         // the venue requires a full uuid v4 request id
         let mut requestId: String = self.uuid(&[]);

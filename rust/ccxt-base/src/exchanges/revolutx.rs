@@ -468,10 +468,10 @@ impl Revolutx {
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut baseUrl: Option<String> = baseApiUrl;
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), implodedPath);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), implodedPath);
         let mut queryString: String = "".to_string();
         let mut bodyString: Option<String> = Some("".to_string());
         if (apiName.as_deref() == Some("private")) {
@@ -480,17 +480,17 @@ impl Revolutx {
             if (method.as_str() == Some("GET")) {
                 queryString = self.urlencode(query.clone(), &[]);
                 if (queryString != "") {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
+                    url.push_str(&format!("{}{}", "?", queryString));
                 }
             }  else if (method.as_str() == Some("DELETE")) {
                 queryString = self.urlencode(query.clone(), &[]);
                 if (queryString != "") {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
+                    url.push_str(&format!("{}{}", "?", queryString));
                 }
             }  else {
                 bodyString = json_stringify(&query).as_str().map(str::to_owned);
             }
-            let mut requestPath: String = format!("{}{}", Value::Str("/api/".into()), implodedPath);
+            let mut requestPath: String = format!("{}{}", "/api/", implodedPath);
             let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), requestPath).into()), queryString).into()), bodyString.as_deref().unwrap_or("null"));
             let mut signature: String = eddsa(self.encode(Value::from(message)), self.privateKey.clone(), Value::Str("ed25519".into()));
             requestHeaders = Value::Map({
@@ -511,7 +511,7 @@ impl Revolutx {
             if (method.as_str() == Some("GET")) {
                 queryString = self.urlencode(query.clone(), &[]);
                 if (queryString != "") {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), queryString));
+                    url.push_str(&format!("{}{}", "?", queryString));
                 }
             }  else {
                 bodyString = json_stringify(&query).as_str().map(str::to_owned);
@@ -558,7 +558,7 @@ impl Revolutx {
         let mut minOrderSizeQuote: Option<String> = self.safe_string_k(market.clone(), "min_order_size_quote", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: bool = status.as_deref() == Some("active");
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote);
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -688,7 +688,7 @@ impl Revolutx {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut marketId: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("-".into())).into()), quote.as_deref().unwrap_or("null"));
+            let mut marketId: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "-").into()), quote.as_deref().unwrap_or("null"));
             let mut marketData: crate::value::Dict = self.extend(market, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(marketId));
@@ -1024,7 +1024,7 @@ impl Revolutx {
         let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut ticker: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbol.clone(), &[]).into_opt_dict();
         if (ticker.is_none()) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find ticker for symbol ".into())).into()), symbol)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTicker() could not find ticker for symbol ").into()), symbol)));
         }
         return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -1587,10 +1587,10 @@ impl Revolutx {
         let mut isTpsl: bool = hasStopLoss || hasTakeProfit;
         if (triggerPrice.is_some()) || isTpsl {
             if (type_var.as_str() != Some("limit")) && (type_var.as_str() != Some("market")) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support order type ").into()), type_var)));
             }
             if (timeInForce.is_some()) || (executionInstructions != Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders")));
             }
         }
         let mut orderConfiguration: indexmap::IndexMap<String, Value> = ({
@@ -1598,7 +1598,7 @@ impl Revolutx {
             m
         });
         if (triggerPrice.is_some()) && isTpsl {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice".into()))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice")));
         }  else if (triggerPrice.is_some()) {
             let mut conditionalConfig: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1611,7 +1611,7 @@ impl Revolutx {
             }
             if (type_var.as_str() == Some("limit")) {
                 if (price == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit trigger orders".into()))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for limit trigger orders")));
                 }
                 conditionalConfig.insert("limit_price".into(), self.price_to_precision(symbol.clone(), price.clone()));
             }
@@ -1619,7 +1619,7 @@ impl Revolutx {
             orderConfiguration.insert("conditional".into(), Value::Map(conditionalConfig));
         }  else if isTpsl {
             if (cost.is_some()) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() TP/SL orders are sized in the base currency only, cost is not supported".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() TP/SL orders are sized in the base currency only, cost is not supported")));
             }
             let mut singleLeg: bool = !(hasStopLoss && hasTakeProfit);
             let mut tpslConfig: indexmap::IndexMap<String, Value> = ({
@@ -1654,10 +1654,10 @@ impl Revolutx {
             orderConfiguration.insert("limit".into(), Value::Map(limitConfig));
         }  else if (type_var.as_str() == Some("market")) {
             if (timeInForce.is_some()) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() timeInForce is only supported for limit orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() timeInForce is only supported for limit orders")));
             }
             if (executionInstructions != Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() executionInstructions are only supported for limit orders".into()))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() executionInstructions are only supported for limit orders")));
             }
             let mut marketConfig: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1670,7 +1670,7 @@ impl Revolutx {
             }
             orderConfiguration.insert("market".into(), Value::Map(marketConfig));
         }  else {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support order type ".into())).into()), type_var)));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support order type ").into()), type_var)));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1738,7 +1738,7 @@ impl Revolutx {
         let mut triggerPrice: Value = triggerPrice.into();
         let mut legTriggerPrice: Option<String> = self.safe_string2(leg.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[triggerPrice]).as_str().map(str::to_owned);
         if (legTriggerPrice.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice for each stopLoss and takeProfit leg".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg")));
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1748,7 +1748,7 @@ impl Revolutx {
         let mut legPrice: Option<String> = self.safe_string_k(leg, "price", &[]).as_str().map(str::to_owned);
         if (legPrice.is_none()) && (type_var.as_str() == Some("limit")) {
             if !singleLeg || (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set".into()))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set")));
             }
             legPrice = self.number_to_string(price);
         }
@@ -2186,7 +2186,7 @@ impl Revolutx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol parameter".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol parameter")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2352,7 +2352,7 @@ impl Revolutx {
             if (response == Value::Null) {
                 return Value::Null;
             }
-            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             let mut errorMessage: Option<String> = None;
             if matches!(&response, Value::Dict(_)) {
                 errorMessage = self.safe_string2(response, Value::Str("message".into()), Value::Str("error".into()), &[]).as_str().map(str::to_owned);
