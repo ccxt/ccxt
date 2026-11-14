@@ -308,9 +308,8 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
         // via live_lookup. It's ~250 flags and the per-assert
         // `exchange.clone()` in the validators made cloning it the
         // dominant cost of large-collection loops (fetchTickers/markets).
-        for k in ["api", "urls", "fees", "timeframes", "exceptions",
-                  "features", "precision", "limits", "has"] {
-            m.shift_remove(k);
+        for k in ccxt::value::LIVE_SNAPSHOT_STRIPPED_KEYS {
+            m.shift_remove(*k);
         }
         return Value::Map(m);
     }
