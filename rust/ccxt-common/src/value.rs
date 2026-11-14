@@ -2809,6 +2809,38 @@ mod self_write_read_parity_tests {
 }
 
 #[cfg(test)]
+mod typed_counter_write_back_tests {
+    // ral-zf: an `i64` loop counter keys the bind and the ccxt write-back as `&Value::Int(i)`; the `Value` counter held
+    // that same `Int`. Same helpers, same key: identical for in-range, out-of-range and negative indexes.
+    use super::*;
+    use crate::runtime::add_element_to_object as boxed_write;
+
+    fn rows() -> Value {
+        let mut m = HashMap::new();
+        m.insert("id".to_string(), Value::Int(1));
+        Value::from(vec![Value::Dict(Arc::new(m)), Value::Int(7), Value::Null])
+    }
+
+    fn tag(rows: &mut Value, key: &Value) {
+        let mut entry = get_value(rows, key);
+        boxed_write(&mut entry, &Value::Str("page".into()), Value::Int(1));
+        set_value(rows, key, entry);
+    }
+
+    #[test]
+    fn typed_counter_key_matches_value_counter() {
+        for n in [0i64, 1, 2, 3, 99, -1, i64::MIN] {
+            let counter = Value::Int(n);
+            let mut boxed = rows();
+            tag(&mut boxed, &counter);
+            let mut typed = rows();
+            tag(&mut typed, &Value::Int(n));
+            assert_eq!(typed, boxed);
+        }
+    }
+}
+
+#[cfg(test)]
 mod into_opt_string_tests {
     use super::*;
 

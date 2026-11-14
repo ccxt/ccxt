@@ -6656,7 +6656,7 @@ export class RustTranspilerBuilder {
         const lines = content.split('\n');
         const out: string[] = [];
         // the bind is the helper call or the printer's native dict read of the same container/key
-        const bindRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = (?:get_value\(&([a-zA-Z_]\w*), &([a-zA-Z_]\w*)\)|\(if let \(Some\(__m\), Some\(__k\)\) = \(([a-zA-Z_]\w*)\.as_map\(\), ([a-zA-Z_]\w*)\.as_str\(\)\) \{ __m\.get\(__k\)\.cloned\(\)\.unwrap_or\(Value::Null\) \} else \{ Value::Null \}\)|([a-zA-Z_]\w*)\.as_map\(\)\.and_then\(\|__m\| ([a-zA-Z_]\w*)\.as_str\(\)\.and_then\(\|__k\| __m\.get\(__k\)\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)|([a-zA-Z_]\w*)\.get\(([a-zA-Z_]\w*)\.as_str\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\));\s*$/;
+        const bindRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = (?:get_value\(&([a-zA-Z_]\w*), &([a-zA-Z_]\w*)\)|\(if let \(Some\(__m\), Some\(__k\)\) = \(([a-zA-Z_]\w*)\.as_map\(\), ([a-zA-Z_]\w*)\.as_str\(\)\) \{ __m\.get\(__k\)\.cloned\(\)\.unwrap_or\(Value::Null\) \} else \{ Value::Null \}\)|([a-zA-Z_]\w*)\.as_map\(\)\.and_then\(\|__m\| ([a-zA-Z_]\w*)\.as_str\(\)\.and_then\(\|__k\| __m\.get\(__k\)\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)|([a-zA-Z_]\w*)\.get\(([a-zA-Z_]\w*)\.as_str\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)|get_value\(&([a-zA-Z_]\w*), &Value::Int\(([a-zA-Z_]\w*)\)\));\s*$/;
         let i = 0;
         while (i < lines.length) {
             const m = lines[i].match(bindRe);
@@ -6670,10 +6670,11 @@ export class RustTranspilerBuilder {
             // single-letter-index restriction was therefore unnecessary.
             // (a typed literal map `IndexMap<String, Value>` reads `C.get(K.as_str()..)` and takes `set_value`'s plain-map insert)
             const typedMap = m !== null && m[9] !== undefined && this.rustTypedLiteralMapBefore(lines, i, m[9]);
-            if (m && (m[3] ?? m[5] ?? m[7] ?? (typedMap ? m[9] : 'self')) !== 'self') {
+            // (a typed `i64` loop counter keys the helper as `&Value::Int(i)`: the same `Int` the `Value` counter held)
+            if (m && (m[3] ?? m[5] ?? m[7] ?? m[11] ?? (typedMap ? m[9] : 'self')) !== 'self') {
                 const [, indent, local] = m;
-                const arr = m[3] ?? m[5] ?? m[7] ?? m[9];
-                const idx = m[4] ?? m[6] ?? m[8] ?? m[10];
+                const arr = m[3] ?? m[5] ?? m[7] ?? m[11] ?? m[9];
+                const idx = m[4] ?? m[6] ?? m[8] ?? (m[12] !== undefined ? `Value::Int(${m[12]})` : m[10]);
                 out.push(lines[i]);
                 let j = i + 1;
                 const mutRe = new RegExp(`^\\s*(add_element_to_object|crate::set_value|set_value|append_to_array)\\(&mut ${local}[,)]`);
