@@ -19,10 +19,10 @@ pub fn testIo() {
     // upper tmp dir
     let mut tempDir: Option<String> = exchange.get_temp_dir().as_str().map(str::to_owned);
     assert!(ccxt::runtime::is_true(&(((tempDir.is_some()) && (tempDir.as_deref() != Some(""))))));
-    let mut filePath: Value = Value::Str(format!("{}{}", tempDir.map(Value::from).unwrap_or(Value::Null), fileName).into()); // '../../../../../../../../../../../../tmp/' + fileName;
+    let mut filePath: String = format!("{}{}", tempDir.as_deref().unwrap_or("null"), fileName); // '../../../../../../../../../../../../tmp/' + fileName;
     let mut fileContent: Value = Value::Str("hello world".into());
-    assert!(ccxt::runtime::is_true(&(exchange.write_file(filePath.clone(), fileContent.clone()))));
-    assert!(ccxt::runtime::is_true(&(exchange.exists_file(filePath.clone()))));
-    let mut readContent: Value = exchange.read_file(filePath);
+    assert!(ccxt::runtime::is_true(&(exchange.write_file(Value::from(filePath.as_str()), fileContent.clone()))));
+    assert!(ccxt::runtime::is_true(&(exchange.exists_file(Value::from(filePath.as_str())))));
+    let mut readContent: Value = exchange.read_file(Value::from(filePath));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&readContent, &fileContent)))));
 }

@@ -2439,7 +2439,7 @@ impl Foxbit {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut fees: crate::value::Dict = self.safe_dict_k(market.clone(), "default_fees", &[]).into_dict();
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2887,10 +2887,10 @@ impl Foxbit {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut version: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut version: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut urlPath: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut fullPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/rest/".into()), version).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
-        if (version.as_str() == Some("status")) {
+        let mut fullPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/rest/".into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        if (version.as_deref() == Some("status")) {
             fullPath = "/status".to_string();
             urlPath = Some("status".to_string());
         }
@@ -2898,7 +2898,7 @@ impl Foxbit {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), fullPath);
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), fullPath);
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
         let mut timestamp: i64 = self.milliseconds();
         let mut query: String = "".to_string();
@@ -2916,9 +2916,9 @@ impl Foxbit {
                 let mut __for_first_679: bool = true;
                 while { if !__for_first_679 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_679 = false; i.as_f64().unwrap_or(f64::NAN) < ((paramKeys.len() as i64) as f64) } {
                 let mut key: Option<String> = paramKeys.get(i.as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
-                let mut value: Option<String> = self.safe_string(paramsOmitted.clone(), Value::from(key.as_deref()), &[]).as_str().map(str::to_owned);
+                let mut value: Option<String> = self.safe_string(paramsOmitted.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 if (value.is_some()) {
-                    signatureQuery.push_str(&format!("{}{}", Value::Str(format!("{}{}", key.map(Value::from).unwrap_or(Value::Null), Value::Str("=".into())).into()), value.map(Value::from).unwrap_or(Value::Null)));
+                    signatureQuery.push_str(&format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), Value::Str("=".into())).into()), value.as_deref().unwrap_or("null")));
                 }
                 if i.as_f64().unwrap_or(f64::NAN) < (lastKeyIndex as f64) {
                     signatureQuery.push_str("&");
@@ -2943,7 +2943,7 @@ impl Foxbit {
         });
         if (urlPath.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut preHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", timestamp).into()), method).into()), fullPath).into()), signatureQuery).into()), bodyToSignature.map(Value::from).unwrap_or(Value::Null));
+            let mut preHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", timestamp).into()), method).into()), fullPath).into()), signatureQuery).into()), bodyToSignature.as_deref().unwrap_or("null"));
             let mut signature: String = self.hmac(self.encode(Value::from(preHash)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             headersValue.insert("X-FB-ACCESS-KEY".into(), self.apiKey.clone());
             headersValue.insert("X-FB-ACCESS-TIMESTAMP".into(), Value::Str(format!("{}", timestamp).into()));

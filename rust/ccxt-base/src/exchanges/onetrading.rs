@@ -904,11 +904,11 @@ impl Onetrading {
         let mut expiry: Option<i64> = None;
         let mut expiryDate: Option<String> = self.safe_string_k(market.clone(), "contract_expiry_date", &[]).as_str().map(str::to_owned);
         if (expiryDate.is_some()) {
-            expiry = self.parse8601(Value::Str(format!("{}{}", expiryDate.map(Value::from).unwrap_or(Value::Null), Value::Str("T00:00:00Z".into())).into()));
+            expiry = self.parse8601(Value::Str(format!("{}{}", expiryDate.as_deref().unwrap_or("null"), Value::Str("T00:00:00Z".into())).into()));
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         if matches!(&isContract, Value::Bool(true)) {
-            symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote.as_deref().unwrap_or("null"));
             if matches!(&isFuture, Value::Bool(true)) && (expiry.is_some()) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[]));
             }
@@ -1020,7 +1020,7 @@ impl Onetrading {
         }  else if (method.as_deref() == Some("fetchPublicTradingFees")) {
             return self.fetch_public_trading_fees(&[paramsOmitted]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() does not support ".into())).into()), method.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(", fetchPrivateTradingFees and fetchPublicTradingFees are supported".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() does not support ".into())).into()), method.as_deref().unwrap_or("null")).into()), Value::Str(", fetchPrivateTradingFees and fetchPublicTradingFees are supported".into()))));
         }
         Value::Null
         }).await?))
@@ -1532,7 +1532,7 @@ impl Onetrading {
         if (period.is_none()) || (lowercaseUnit.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing period/unit".into()))));
         }
-        let mut timeframe: String = format!("{}{}", period.map(Value::from).unwrap_or(Value::Null), lowercaseUnit.map(Value::from).unwrap_or(Value::Null));
+        let mut timeframe: String = format!("{}{}", period.as_deref().unwrap_or("null"), lowercaseUnit.as_deref().unwrap_or("null"));
         let mut durationInSeconds: i64 = self.parse_timeframe(Value::from(timeframe));
         let mut duration: i64 = (durationInSeconds * 1000);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[]));
@@ -1868,7 +1868,7 @@ impl Onetrading {
         let mut filled: Option<String> = self.safe_string_k(&rawOrder, "filled_amount", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_lower_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
-        let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(&rawOrder, "time_in_force", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(&rawOrder, "time_in_force", &[])).as_str());
         let mut postOnly: Option<bool> = self.safe_bool_k(&rawOrder, "is_post_only", &[]).as_bool();
         let mut rawTrades: crate::value::List = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]).into_list();
         return self.safe_order(Value::Map({
@@ -1881,7 +1881,7 @@ impl Onetrading {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -2517,7 +2517,7 @@ impl Onetrading {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {

@@ -10,9 +10,9 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("fetchOHLCV".into());
+    let mut method: String = "fetchOHLCV".to_string();
     let mut timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".into())));
-    let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), Value::Map({
+    let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), Value::from(method.as_str()), Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
     }));

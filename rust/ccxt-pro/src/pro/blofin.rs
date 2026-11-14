@@ -535,7 +535,7 @@ impl Blofin {
             }
             stored.append(Value::Dict(trade));
             if (channelName.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol);
                 client.resolve(Value::from(&stored), messageHash.as_str());
             }
         }
@@ -644,7 +644,7 @@ impl Blofin {
         let mut data: Option<crate::value::Dict> = message.get("data").cloned().unwrap_or_default().into_opt_dict();
         let mut marketId: Option<String> = self.safe_string_k(&arg, "instId", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
@@ -652,7 +652,7 @@ impl Blofin {
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
         let mut action: Option<String> = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (action.as_deref() == Some("snapshot")) {
-            let mut orderBookSnapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone(), &[Value::from(timestamp)]).into_dict();
+            let mut orderBookSnapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
             std::sync::Arc::make_mut(&mut orderBookSnapshot).insert("nonce".into(), self.safe_integer_k(&data, "seqId", &[]));
             orderbook.reset(Value::Dict(orderBookSnapshot));
         }  else {
@@ -665,7 +665,7 @@ impl Blofin {
         }
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         if (channelName.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
 }
@@ -770,7 +770,7 @@ impl Blofin {
             let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Dict(ticker)); }
             if (channelName.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol);
                 client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
             }
         }
@@ -1284,7 +1284,7 @@ impl Blofin {
             })]), None).into_dict();
             orders.append(Value::from(&order));
             if (channelName.is_some()) {
-                client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())])).into())));
+                client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())])).into())));
             }
             client.resolve(Value::from(&orders), channelName.as_deref());
         }
@@ -1365,7 +1365,7 @@ impl Blofin {
             newPositions.push(Value::from(&position));
             cache.append(Value::from(&position));
             if (channelName.is_some()) {
-                client.resolve(Value::from(&position), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
+                client.resolve(Value::from(&position), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
             }
         }
         }
@@ -1499,7 +1499,7 @@ impl Blofin {
                     market = Some(match self.market(current.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                     let mut tf: Option<String> = self.safe_string(self.safe_list(symbolsArray.clone(), Value::Int(i), &[]), Value::Int(1), &[]).as_str().map(str::to_owned);
                     let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), tf.clone().map(Value::from).unwrap_or(Value::Null), &[tf.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-                    channel = format!("{}{}", channel, interval.map(Value::from).unwrap_or(Value::Null));
+                    channel = format!("{}{}", channel, interval.as_deref().unwrap_or("null"));
                 }  else {
                     market = Some(match self.market(current.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 }
@@ -1626,13 +1626,13 @@ impl Blofin {
         let mut channel: String = self.safe_string_k(&arg, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: Option<String> = self.safe_string_k(&arg, "instId", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol);
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
         if (channel == "trades") {
             self.clean_cache(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("topic".to_string(), Value::Str("trades".into()));
-                    m.insert("symbols".to_string(), Value::from(vec![symbol.clone()]));
+                    m.insert("symbols".to_string(), Value::from(vec![Value::from(symbol.as_deref())]));
                 m
             }));
             self.clean_unsubscription(client.clone(), Value::from(subMessageHash.clone()), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into()), &[]);
@@ -1642,7 +1642,7 @@ impl Blofin {
                 self.clean_cache(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("topic".to_string(), Value::Str("ohlcv".into()));
-                        m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol, timeframe.map(Value::from).unwrap_or(Value::Null)])]));
+                        m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null), timeframe.map(Value::from).unwrap_or(Value::Null)])]));
                     m
                 }));
             }

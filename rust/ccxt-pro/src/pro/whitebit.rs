@@ -418,8 +418,8 @@ impl Whitebit {
             let mut data: Value = params.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string(data.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles".into()), Value::Str(":".into())).into()), symbol);
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles".into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
             let mut parsed: crate::value::List = self.parse_ohlcv(data, Some(&market)).into_list();
             if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
                 CacheShelves::reset(&mut self.ohlcvs, &symbol);
@@ -522,7 +522,7 @@ impl Whitebit {
         let mut isSnapshot: bool = self.safe_bool(&params, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut marketId: Option<String> = self.safe_string(&params, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut data: Option<crate::value::Dict> = self.safe_dict(&params, Value::Int(1), &[]).into_opt_dict();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(&data, "timestamp", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
@@ -533,7 +533,7 @@ impl Whitebit {
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         if isSnapshot {
-            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, symbol.clone(), &[]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_deref()), &[]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
         }  else {
             let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
@@ -541,13 +541,13 @@ impl Whitebit {
             self.handle_deltas(orderbook.book_field("asks"), Value::Arr(asks));
             self.handle_deltas(orderbook.book_field("bids"), Value::Arr(bids));
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut price: Value = self.safe_float(delta.clone(), Value::Int(0), &[]);
-        let mut amount: Value = self.safe_float(delta, Value::Int(1), &[]);
+        let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
+        let mut amount: Option<f64> = self.safe_float(delta, Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
 }
 
@@ -797,7 +797,7 @@ impl Whitebit {
             stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -1410,7 +1410,7 @@ impl Whitebit {
             if (marketId != Value::Null) {
                 subscription.insert(crate::runtime::stringify_param(&marketId), Value::Bool(true));
             }
-            marketIds = Value::from(vec![marketId.clone()]);
+            marketIds = Value::from(vec![marketId]);
             if isNested {
                 marketIds = Value::from(vec![marketIds.clone()]);
             }

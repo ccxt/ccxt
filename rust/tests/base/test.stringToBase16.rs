@@ -14,10 +14,10 @@ pub fn testStringToBase16() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut result1: Value = exchange.string_to_base16(Value::Str("hello".into()));
-    let mut expected1: Value = Value::Str("0x68656c6c6f".into());
-    assert!(ccxt::runtime::is_true(&((result1.as_str() == expected1.as_str()))));
-    let mut result2: Value = exchange.string_to_base16(Value::Str("world 1!@#$%^&*()".into()));
-    let mut expected2: Value = Value::Str("0x776f726c64203121402324255e262a2829".into());
-    assert!(ccxt::runtime::is_true(&((result2.as_str() == expected2.as_str()))));
+    let mut result1: Option<String> = exchange.string_to_base16(Value::Str("hello".into())).as_str().map(str::to_owned);
+    let mut expected1: String = "0x68656c6c6f".to_string();
+    assert!(ccxt::runtime::is_true(&((result1.as_deref() == Some(expected1.as_str())))));
+    let mut result2: Option<String> = exchange.string_to_base16(Value::Str("world 1!@#$%^&*()".into())).as_str().map(str::to_owned);
+    let mut expected2: String = "0x776f726c64203121402324255e262a2829".to_string();
+    assert!(ccxt::runtime::is_true(&((result2.as_deref() == Some(expected2.as_str())))));
 }

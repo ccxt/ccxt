@@ -2005,7 +2005,7 @@ impl Bitstamp {
             }
             let mut settleId: Option<String> = None;
             let mut marketTypeRaw: Option<String> = self.safe_string_k(&market, "market_type", &[]).as_str().map(str::to_owned);
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
             let mut type_var: Option<String> = None;
             let mut subType: Option<String> = None;
             if (marketTypeRaw.as_deref() == Some("SPOT")) {
@@ -2013,7 +2013,7 @@ impl Bitstamp {
             }  else if (marketTypeRaw.as_deref() == Some("PERPETUAL")) {
                 type_var = Some("swap".to_string());
                 settleId = quoteId.clone();
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), self.safe_string_k(&market, "counter_currency", &[Value::Str("".into())]));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), self.safe_string_k(&market, "counter_currency", &[Value::Str("".into())]));
                 let mut payoffType: Option<String> = self.safe_string_k(&market, "payoff_type", &[]).as_str().map(str::to_owned);
                 if (payoffType.as_deref() == Some("Linear")) {
                     subType = Some("linear".to_string());
@@ -2176,10 +2176,9 @@ impl Bitstamp {
     m
 })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&options, "timestamp", &[]).as_i64();
-        let mut expires: Value = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]);
-        let mut now: Value = Value::Int(self.milliseconds());
-        if (timestamp.is_none()) || ((expires != Value::Null) && (((match (&(now), &(Value::from(timestamp))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > expires.as_f64().unwrap_or(f64::NAN))) {
+        let mut expires: i64 = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+        let mut now: i64 = self.milliseconds();
+        if (timestamp.is_none()) || ((true) && (((if let Some(__r) = timestamp { Some(now - __r) } else { None })) > Some(expires))) {
             let mut response: Value = self.public_get_markets(&[params]).await;
             //
             //    [
@@ -2201,7 +2200,7 @@ impl Bitstamp {
             { let __be_tmp = self.extend(options.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("response".to_string(), response);
-        m.insert("timestamp".to_string(), now);
+        m.insert("timestamp".to_string(), Value::from(now));
     m
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("fetchMarkets".into(), __be_tmp); } }
         }
@@ -2577,7 +2576,7 @@ impl Bitstamp {
         let mut side: Option<String> = None;
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut costString: Value = self.safe_string_k(trade.clone(), "cost", &[]);
         let mut rawMarketId: Option<String> = None;
         // resolved in the key scan below, falling back to the passed market
@@ -2679,7 +2678,7 @@ impl Bitstamp {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade, "order_id", &[]));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -4570,7 +4569,7 @@ impl Bitstamp {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()));
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into()));
         url.push_str(&format!("{}{}", self.version.clone(), Value::Str("/".into())));
         url.push_str(&(self.implode_params(path.clone(), params.clone())).to_string());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);

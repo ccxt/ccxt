@@ -14,7 +14,7 @@ fn helperTestNetworkCodeToId(mut networksMap: Value) {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
             m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("networks".to_string(), networksMap.clone());
+        m.insert("networks".to_string(), networksMap);
     m
 }));
         m
@@ -50,7 +50,7 @@ fn helperTestNetworkIdToCode(mut networksMap: Value) {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
             m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("networks".to_string(), networksMap.clone());
+        m.insert("networks".to_string(), networksMap);
     m
 }));
         m

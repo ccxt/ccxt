@@ -540,9 +540,9 @@ impl Bitflyer {
 
     pub fn parse_expiry_date(&self, expiry: &str) -> Value {
         let mut expiry: Value = expiry.into();
-        let mut day: Value = expiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut monthName: Value = expiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(5); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut expiryYear: Value = expiry.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(5); let __j = __l.min(9); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut day: String = expiry.as_str().unwrap_or_default().to_string().chars().skip(0).take(2).collect::<String>();
+        let mut monthName: String = expiry.as_str().unwrap_or_default().to_string().chars().skip(2).take(3).collect::<String>();
+        let mut expiryYear: String = expiry.as_str().unwrap_or_default().to_string().chars().skip(5).take(4).collect::<String>();
         let mut months: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("JAN".to_string(), Value::Str("01".into()));
@@ -559,11 +559,11 @@ impl Bitflyer {
                 m.insert("DEC".to_string(), Value::Str("12".into()));
             m
         });
-        let mut month: Option<String> = self.safe_string(&months, monthName, &[]).as_str().map(str::to_owned);
+        let mut month: Option<String> = self.safe_string(&months, Value::from(monthName), &[]).as_str().map(str::to_owned);
         if (month.is_none()) {
             return Value::Null;
         }
-        return Value::from(self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", expiryYear, Value::Str("-".into())).into()), month.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), day).into()), Value::Str("T00:00:00Z".into())).into())));
+        return Value::from(self.parse8601(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", expiryYear, Value::Str("-".into())).into()), month.as_deref().unwrap_or("null")).into()), Value::Str("-".into())).into()), day).into()), Value::Str("T00:00:00Z".into())).into())));
 
     Value::Null
 }
@@ -682,7 +682,7 @@ impl Bitflyer {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
             let mut taker: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]);
             let mut maker: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]);
             let mut contract: Value = Value::Bool((swap || future));
@@ -963,7 +963,7 @@ impl Bitflyer {
         }
         let mut order: Option<String> = None;
         if (side.is_some()) {
-            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("_child_order_acceptance_id".into())).into()), &[]).as_str().map(str::to_owned);
+            order = self.safe_string(trade.clone(), Value::Str(format!("{}{}", side.as_deref().unwrap_or("null"), Value::Str("_child_order_acceptance_id".into())).into()), &[]).as_str().map(str::to_owned);
         }
         if (order.is_none()) {
             order = self.safe_string_k(trade.clone(), "child_order_acceptance_id", &[]).as_str().map(str::to_owned);

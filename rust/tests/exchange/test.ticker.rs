@@ -155,8 +155,8 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
             // 0.01), so we widen the acceptance window by one such step on
             // each side - big enough to forgive rounding, far too small to
             // hide a real bug like mismatched units or a wrong-field parse
-            let mut quoteVolumeDecimals: Value = Value::Int(exchange.precision_from_string(quoteVolume.clone()));
-            let mut quoteQuantum: Value = exchange.parse_precision(&[Value::from(exchange.number_to_string(quoteVolumeDecimals))]);
+            let mut quoteVolumeDecimals: i64 = exchange.precision_from_string(quoteVolume.clone());
+            let mut quoteQuantum: Value = exchange.parse_precision(&[Value::from(exchange.number_to_string(Value::from(quoteVolumeDecimals)))]);
             baseLow = ccxt::precise::Precise::stringSub(&baseLow, &quoteQuantum);
             baseHigh = ccxt::precise::Precise::stringAdd(&baseHigh, &quoteQuantum);
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&quoteVolume, &baseLow))));

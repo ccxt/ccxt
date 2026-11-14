@@ -400,7 +400,7 @@ impl Poloniex {
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
             let mut accessPath: String = "/ws".to_string();
-            let mut requestString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("GET\n".into()), accessPath).into()), Value::Str("\nsignTimestamp=".into())).into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut requestString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("GET\n".into()), accessPath).into()), Value::Str("\nsignTimestamp=".into())).into()), timestamp.as_deref().unwrap_or("null"));
             let mut signature: String = self.hmac(self.encode(Value::from(requestString)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -866,13 +866,13 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut channel: Value = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]);
-        if (channel == Value::Null) {
+        let mut channel: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
+        if (channel.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCV cannot take a timeframe of ".into())).into()), timeframe)));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str("::".into())).into()), Value::from((market).symbol.clone()));
-        return self.un_subscribe(channel.as_str().unwrap_or_default(), Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), &[params]).await;
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel.as_deref().unwrap_or("null")).into()), Value::Str("::".into())).into()), Value::from((market).symbol.clone()));
+        return self.un_subscribe(channel.as_deref().unwrap_or_default(), Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1361,7 +1361,7 @@ impl Poloniex {
             }
             stored.append(Value::Arr(parsed));
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&stored), messageHash.as_str());
             }
         }
@@ -1928,9 +1928,9 @@ impl Poloniex {
             let mut item: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&item, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut name: String = "book_lv2".to_string();
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null"));
             let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1967,10 +1967,10 @@ impl Poloniex {
                         let mut __for_first_644: bool = true;
                         while { if !__for_first_644 { j += 1; } __for_first_644 = false; j < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                         let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(j), &[]).into_list();
-                        let mut price: Value = self.safe_number(&bid, Value::Int(0), &[]);
-                        let mut amount: Value = self.safe_number(&bid, Value::Int(1), &[]);
+                        let mut price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
+                        let mut amount: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
                         let mut bidsSide: Value = orderbook.book_field("bids");
-                        bidsSide.store(price.clone(), amount.clone());
+                        bidsSide.store(price, amount);
                     }
                     }
                 }
@@ -1980,14 +1980,14 @@ impl Poloniex {
                         let mut __for_first_645: bool = true;
                         while { if !__for_first_645 { j += 1; } __for_first_645 = false; j < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                         let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(j), &[]).into_list();
-                        let mut price: Value = self.safe_number(&ask, Value::Int(0), &[]);
-                        let mut amount: Value = self.safe_number(&ask, Value::Int(1), &[]);
+                        let mut price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
+                        let mut amount: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();
                         let mut asksSide: Value = orderbook.book_field("asks");
                         asksSide.store(price, amount);
                     }
                     }
                 }
-                orderbook.set_book_meta("symbol", symbol);
+                orderbook.set_book_meta("symbol", symbol.map(Value::from).unwrap_or(Value::Null));
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
                 orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
                 client.resolve(Value::from(&orderbook), messageHash.as_str());
@@ -2158,7 +2158,7 @@ impl Poloniex {
             let mut __for_first_648: bool = true;
             while { if !__for_first_648 { i += 1; } __for_first_648 = false; i < (marketIds.len() as i64) } {
             let mut symbol: Option<String> = self.safe_symbol(self.safe_string(&marketIds, Value::Int(i), &[]), None, &[]).as_str().map(str::to_owned);
-            let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null"));
             if (channel == "trades") {
                 self.clean_cache(Value::Map({
                     let mut m = indexmap::IndexMap::new();

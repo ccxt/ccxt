@@ -646,7 +646,7 @@ impl Hibachi {
         if (base.is_none()) || (quote.is_none()) || (settle.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
         let mut created: Option<i64> = self.safe_integer_product_k(market.clone(), "marketCreationTimestamp", Value::Int(1000), &[]).as_i64();
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1968,7 +1968,7 @@ impl Hibachi {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut withdrawAddress: Value = address.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 40).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut withdrawAddress: String = address.as_str().unwrap_or_default().to_string().chars().skip(address.as_str().unwrap_or_default().to_string().chars().count().saturating_sub(40)).collect::<String>();
         // Get the withdraw fees
         let mut exchangeInfo: crate::value::Dict = self.public_get_market_exchange_info(&[params.clone()]).await.into_dict();
         // {
@@ -1983,14 +1983,14 @@ impl Hibachi {
         let mut feeConfig: crate::value::Dict = self.safe_dict_k(&exchangeInfo, "feeConfig", &[]).into_dict();
         let mut maxFees: Option<f64> = self.safe_number_k(&feeConfig, "withdrawalFees", &[]).as_f64();
         // Generate the signature
-        let mut message: Value = self.encode_withdraw_message(amount.as_f64(), maxFees, withdrawAddress.as_str().unwrap_or_default());
+        let mut message: Value = self.encode_withdraw_message(amount.as_f64(), maxFees, withdrawAddress.as_str());
         let mut signature: Option<String> = self.sign_message(message, (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());
                 m.insert("coin".to_string(), Value::Str("USDT".into()));
                 m.insert("network".to_string(), Value::Str("ARBITRUM".into()));
-                m.insert("withdrawAddress".to_string(), withdrawAddress.clone());
+                m.insert("withdrawAddress".to_string(), Value::from(withdrawAddress.clone()));
                 m.insert("selfWithdrawal".to_string(), Value::Bool(false));
                 m.insert("quantity".to_string(), Value::from(self.number_to_string(amount.clone())));
                 m.insert("maxFees".to_string(), Value::from(self.number_to_string(Value::from(maxFees))));
@@ -2008,7 +2008,7 @@ impl Hibachi {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("address".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("addressTo".to_string(), withdrawAddress);
+        m.insert("addressTo".to_string(), Value::from(withdrawAddress));
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
@@ -2581,7 +2581,7 @@ impl Hibachi {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), endpoint);
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Hibachi-Client".to_string(), Value::Str("HibachiCCXT/unversioned".into()));

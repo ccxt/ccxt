@@ -1441,7 +1441,7 @@ impl Kraken {
         }
         let mut orderbook: Value = self.watch_multi_helper("orderbook", "book", &[symbols, Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("limit".to_string(), limit.clone());
+        m.insert("limit".to_string(), limit);
     m
 }), self.extend(Value::Map(requiredParams), &[params])]).await;
         return orderbook.limit();
@@ -1478,17 +1478,17 @@ impl Kraken {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut name: String = "ohlc".to_string();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2").as_str().map(str::to_owned);
         let mut requestId: i64 = self.request_id();
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, symbolValue.clone()]);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, Value::from(symbolValue.as_str())]);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), Value::from(name));
-        m.insert("symbol".to_string(), Value::from(vec![symbolValue.clone()]));
+        m.insert("symbol".to_string(), Value::from(vec![Value::from(symbolValue.as_str())]));
         m.insert("interval".to_string(), self.safe_value(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
     m
 }));
@@ -1499,7 +1499,7 @@ impl Kraken {
         let mut ohlcv: Value = self.watch(url.as_deref(), (&messageHash).as_deref(), &request, (&messageHash).as_deref(), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(symbolValue.as_str(), limit.as_i64());
+            limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
         return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -1530,16 +1530,16 @@ impl Kraken {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
-        let mut unsubMessageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ohlcv".into()), &[interval.map(Value::from).unwrap_or(Value::Null), symbolValue.clone()]).map(Value::from).unwrap_or(Value::Null));
+        let mut unsubMessageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ohlcv".into()), &[interval.map(Value::from).unwrap_or(Value::Null), Value::from(symbolValue.as_str())]).map(Value::from).unwrap_or(Value::Null));
         let mut unsubscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("channel".to_string(), Value::Str("ohlc".into()));
-        m.insert("symbol".to_string(), Value::from(vec![symbolValue]));
+        m.insert("symbol".to_string(), Value::from(vec![Value::from(symbolValue)]));
         m.insert("interval".to_string(), self.safe_value(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
     m
 }));
@@ -1739,20 +1739,20 @@ impl Kraken {
             // carry fewer levels than the subscription and must not cap the book
             let mut limit: Option<i64> = self.parse_to_int(self.safe_integer_k(&subscription, "limit", &[Value::Int(10)]));
             let mut asksLength: i64 = a.len() as i64;
-            let mut depth: Value = Value::from(self.parse_to_int((if ((limit.is_some() && Some(asksLength) > limit)) { Value::from(asksLength) } else { Value::from(limit) })));
+            let mut depth: Option<i64> = self.parse_to_int((if ((limit.is_some() && Some(asksLength) > limit)) { Value::from(asksLength) } else { Value::from(limit) }));
             let mut depths: Value = self.safe_dict_k(self.options.clone(), "wsOrderBookDepths", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut storedDepth: Value = self.safe_integer(depths.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) || (storedDepth.as_f64() != depth.as_f64()) {
+            let mut storedDepth: Option<i64> = self.safe_integer(depths.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
+            if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) || (storedDepth != depth) {
                 // rebuild only on the first snapshot or when the depth changes,
                 // e.g. a re-subscription with a different limit
                 { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), depth.clone()]); CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
-                if let Value::Dict(__d) = &mut depths { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), depth); }
+}), Value::from(depth)]); CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
+                if let Value::Dict(__d) = &mut depths { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(depth)); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsOrderBookDepths".into(), depths); }
             }
             // reset in place so that references held by users keep receiving
@@ -1832,8 +1832,8 @@ impl Kraken {
             let mut __for_first_423: bool = true;
             while { if !__for_first_423 { j += 1; } __for_first_423 = false; j < (deltas.len() as i64) } {
             let mut delta: crate::value::Dict = self.safe_dict(deltas.clone(), Value::Int(j), &[]).into_dict();
-            let mut price: Value = self.safe_number_k(&delta, "price", &[]);
-            let mut amount: Value = self.safe_number_k(&delta, "qty", &[]);
+            let mut price: Option<f64> = self.safe_number_k(&delta, "price", &[]).as_f64();
+            let mut amount: Option<f64> = self.safe_number_k(&delta, "qty", &[]).as_f64();
             bookside.store(price, amount);
         }
         }

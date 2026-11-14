@@ -1741,7 +1741,7 @@ impl Deribit {
 }));
         let mut instrumentsResponses: Vec<Value> = Vec::new();
         let mut result: Vec<Value> = Vec::new();
-        let mut parsedMarkets: Value = Value::Map({
+        let mut parsedMarkets: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1906,7 +1906,7 @@ impl Deribit {
                 let mut expiry: Option<i64> = self.safe_integer_k(&market, "expiration_timestamp", &[]).as_i64();
                 let mut strike: Option<f64> = None;
                 let mut optionType: Option<String> = None;
-                let mut symbol: Value = id.clone().map(Value::from).unwrap_or(Value::Null);
+                let mut symbol: Option<String> = id.clone();
                 let mut type_var: String = "swap".to_string();
                 if matches!(&future, Value::Bool(true)) {
                     type_var = "future".to_string();
@@ -1918,34 +1918,34 @@ impl Deribit {
                 let mut inverse: Option<bool> = None;
                 let mut linear: Option<bool> = None;
                 if matches!(&isSpot, Value::Bool(true)) {
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into());
+                    symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
                 }  else if !isComboMarket {
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null)).into());
+                    symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null")));
                     if option || matches!(&future, Value::Bool(true)) {
-                        symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())])).into());
+                        symbol = Some(format!("{}{}", Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())])));
                         if option {
                             strike = self.safe_number_k(&market, "strike", &[]).as_f64();
                             optionType = self.safe_string_k(&market, "option_type", &[]).as_str().map(str::to_owned);
                             let mut letter: String = (if (optionType.as_deref() == Some("call")) { "C".to_string() } else { "P".to_string() });
-                            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), Value::from(self.number_to_string(Value::from(strike)))).into()), Value::Str("-".into())).into()), letter).into());
+                            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), Value::Str("-".into())).into()), Value::from(self.number_to_string(Value::from(strike)))).into()), Value::Str("-".into())).into()), letter));
                         }
                     }
                     inverse = Some(quote != settle);
                     linear = Some(settle == quote);
                 }
-                let mut parsedMarketValue: Option<bool> = self.safe_bool(parsedMarkets.clone(), symbol.clone(), &[]).as_bool();
+                let mut parsedMarketValue: Option<bool> = self.safe_bool(Value::Map(parsedMarkets.clone()), Value::from(symbol.as_deref()), &[]).as_bool();
                 if (parsedMarketValue.is_some()) {
                     continue;
                 }
-                if (symbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut parsedMarkets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
+                if (symbol.is_some()) {
+                    parsedMarkets.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 }
                 let mut minTradeAmount: Option<f64> = self.safe_number_k(&market, "min_trade_amount", &[]).as_f64();
                 let mut tickSize: Option<f64> = self.safe_number_k(&market, "tick_size", &[]).as_f64();
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("symbol".to_string(), symbol);
+                        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
                         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
@@ -3189,7 +3189,7 @@ impl Deribit {
         let mut type_var: Option<String> = self.parse_order_type(rawType.as_deref());
         // injected in createOrder
         let mut trades: Option<crate::value::List> = self.safe_list_k(order.clone(), "trades", &[]).into_opt_list();
-        let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "time_in_force", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(order.clone(), "time_in_force", &[])).as_str());
         let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3201,7 +3201,7 @@ impl Deribit {
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -5725,14 +5725,14 @@ impl Deribit {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), apiName).into()), Value::Str("/".into())).into()), path);
-        if (apiName.as_str() == Some("public")) {
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), Value::Str("api/".into())).into()), self.version.clone()).into()), Value::Str("/".into())).into()), apiName.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into()), path);
+        if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 request.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])));
             }
         }
-        if (apiName.as_str() == Some("private")) {
+        if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = Value::Str(format!("{}", self.nonce()).into());
             let mut timestamp: String = format!("{}", self.milliseconds());
@@ -5753,7 +5753,7 @@ impl Deribit {
             if (baseApiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
-            let mut signedUrl: String = format!("{}{}", baseApiUrl.map(Value::from).unwrap_or(Value::Null), request);
+            let mut signedUrl: String = format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), request);
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(signedUrl));
@@ -5767,7 +5767,7 @@ impl Deribit {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), request);
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), request);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

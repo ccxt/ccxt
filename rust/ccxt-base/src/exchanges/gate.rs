@@ -3628,7 +3628,7 @@ if _try_result.is_err() {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -3907,7 +3907,7 @@ if _try_result.is_err() {
                 settle.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())]));
             marketType = "future".to_string();
         }  else {
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
         }
         let mut priceDeviate: Option<String> = self.safe_string_k(market.clone(), "order_price_deviate", &[]).as_str().map(str::to_owned);
         let mut markPrice: Option<String> = self.safe_string_k(market.clone(), "mark_price", &[]).as_str().map(str::to_owned);
@@ -4201,8 +4201,8 @@ if _try_result.is_err() {
                 if swap {
                     defaultSettle = "usdt".to_string();
                 }
-                let mut settle: Value = self.safe_string_lower_k(params.clone(), "settle", &[Value::from(defaultSettle)]);
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("settle".into(), settle); }
+                let mut settle: Option<String> = self.safe_string_lower_k(params.clone(), "settle", &[Value::from(defaultSettle)]).as_str().map(str::to_owned);
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("settle".into(), settle.map(Value::from).unwrap_or(Value::Null)); }
                 return Value::from(vec![request.clone(), self.omit(params.clone(), Value::Str("settle".into()), &[])]);
             }
         }
@@ -6056,7 +6056,7 @@ if _try_result.is_err() {
             let mut isMark: bool = price.as_deref() == Some("mark");
             let mut isIndex: bool = price.as_deref() == Some("index");
             if isMark || isIndex {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", price.map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), Value::from((market).id.as_deref())).into())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", price.as_deref().unwrap_or("null"), Value::Str("_".into())).into()), Value::from((market).id.as_deref())).into())); }
             }
             let mut paramsContract: Value = paramsOmitted.clone();
             if isMark || isIndex {
@@ -7308,7 +7308,7 @@ if _try_result.is_err() {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("currency_pair".to_string(), Value::from((market).id.as_deref()));
                         m.insert("type".to_string(), type_var.clone());
-                        m.insert("account".to_string(), marginMode.clone());
+                        m.insert("account".to_string(), marginMode);
                         m.insert("side".to_string(), side.clone());
                     m
                 });
@@ -7356,7 +7356,7 @@ if _try_result.is_err() {
                 }
                 query = self.omit(query, Value::Str("textIsRequired".into()), &[]);
                 if !(clientOrderIdRaw.as_deref().unwrap_or_default().starts_with("t")) {
-                    clientOrderId = Some(format!("{}{}", Value::Str("t-".into()), clientOrderIdRaw.map(Value::from).unwrap_or(Value::Null)));
+                    clientOrderId = Some(format!("{}{}", Value::Str("t-".into()), clientOrderIdRaw.as_deref().unwrap_or("null")));
                 }
                 request.insert("text".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
@@ -7422,7 +7422,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("price_type".to_string(), Value::from(priceType));
         m.insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerOrderPrice));
-        m.insert("rule".to_string(), rule.clone());
+        m.insert("rule".to_string(), rule);
     m
 }));
                 }
@@ -8049,7 +8049,7 @@ if _try_result.is_err() {
         let mut orderId: Value = id;
         if (clientOrderIdRaw.is_some()) {
             if !(clientOrderIdRaw.as_deref().unwrap_or_default().starts_with("t")) {
-                orderId = Value::Str(format!("{}{}", Value::Str("t-".into()), clientOrderIdRaw.clone().map(Value::from).unwrap_or(Value::Null)).into());
+                orderId = Value::Str(format!("{}{}", Value::Str("t-".into()), clientOrderIdRaw.as_deref().unwrap_or("null")).into());
             }  else {
                 orderId = clientOrderIdRaw.clone().map(Value::from).unwrap_or(Value::Null);
             }
@@ -10069,7 +10069,7 @@ if _try_result.is_err() {
         if (baseUrl.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have a testnet for the ".into())).into()), type_var).into()), Value::Str(" market type.".into()))));
         }
-        let mut url: String = format!("{}{}", baseUrl.map(Value::from).unwrap_or(Value::Null), entirePath);
+        let mut url: String = format!("{}{}", baseUrl.as_deref().unwrap_or("null"), entirePath);
         if (authentication.as_str() == Some("public")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
@@ -10715,8 +10715,8 @@ if _try_result.is_err() {
             if (type_var.as_deref() == Some("swap")) {
                 defaultSettle = "usdt".to_string();
             }
-            let mut settle: Value = self.safe_string_lower_k(&paramsMarketType, "settle", &[Value::from(defaultSettle)]);
-            request.insert("settle".into(), settle);
+            let mut settle: Option<String> = self.safe_string_lower_k(&paramsMarketType, "settle", &[Value::from(defaultSettle)]).as_str().map(str::to_owned);
+            request.insert("settle".into(), settle.map(Value::from).unwrap_or(Value::Null));
         }
         let mut isContract: bool = (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
         let mut paramsSettle: Value = Value::from(&paramsMarketType);

@@ -758,7 +758,7 @@ if _try_result.is_err() {
             channelSymbols.push(symbol.clone().map(Value::from).unwrap_or(Value::Null));
             if (topic.as_str() == Some("trades")) {
                 // the liquidations of a market come from its trades channel
-                hashes.push(Value::Str(format!("{}{}", Value::Str("liquidations:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
+                hashes.push(Value::Str(format!("{}{}", Value::Str("liquidations:".into()), symbol.as_deref().unwrap_or("null")).into()));
             }
         }
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -930,7 +930,7 @@ if _try_result.is_err() {
         if (requestId.is_some()) {
             self.handle_unsubscribe_reply(client.clone(), requestId.clone().map(Value::from).unwrap_or(Value::Null));
             // sendRequest waits on the request id, a request without a subscription of its own is kept under it
-            let mut requestHash: String = format!("{}{}", Value::Str("request:".into()), requestId.map(Value::from).unwrap_or(Value::Null));
+            let mut requestHash: String = format!("{}{}", Value::Str("request:".into()), requestId.as_deref().unwrap_or("null"));
             if (__ch.has_subscription(requestHash.as_str())) {
                 __ch.remove_subscription(requestHash.as_str());
             }
@@ -2311,7 +2311,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             channel = format!("{}{}", Value::Str("orders.".into()), Value::from((market).id.as_deref()));
-            messageHash = format!("{}{}", Value::Str("orders:".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
+            messageHash = format!("{}{}", Value::Str("orders:".into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
@@ -2377,7 +2377,7 @@ if _try_result.is_err() {
         let mut messageHash: String = "orders".to_string();
         client.resolve(Value::from(&self.orders), messageHash.as_str());
         if (symbol.is_some()) {
-            let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
+            let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.orders), symbolMessageHash.as_str());
         }
 }
@@ -2416,7 +2416,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             channel = format!("{}{}", Value::Str("fills.".into()), Value::from((market).id.as_deref()));
-            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
+            messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let mut url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(Value::from(channel.clone())).as_map().cloned().unwrap_or_default();
@@ -2480,7 +2480,7 @@ if _try_result.is_err() {
         let mut messageHash: String = "myTrades".to_string();
         client.resolve(Value::from(&trades), messageHash.as_str());
         if (symbol.is_some()) {
-            client.resolve(Value::from(&trades), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null)).into())));
+            client.resolve(Value::from(&trades), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null")).into())));
         }
 }
 
@@ -2784,7 +2784,7 @@ if _try_result.is_err() {
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         client.resolve(Value::from(&ticker), channel.as_deref());
         // watchTicker waits on the symbol whichever channel, per-market or all, carried it
-        let mut messageHash: String = format!("{}{}", Value::Str("markets_summary.".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("markets_summary.".into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(ticker), messageHash.as_str());
         return message;
 
@@ -2978,7 +2978,7 @@ if _try_result.is_err() {
         let mut fundingPeriod: Option<String> = self.safe_string_k(contract.clone(), "funding_period_hours", &[]).as_str().map(str::to_owned);
         let mut interval: Option<String> = None;
         if (fundingPeriod.is_some()) {
-            interval = Some(format!("{}{}", fundingPeriod.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())));
+            interval = Some(format!("{}{}", fundingPeriod.as_deref().unwrap_or("null"), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

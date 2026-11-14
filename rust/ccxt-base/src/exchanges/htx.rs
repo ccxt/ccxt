@@ -4100,7 +4100,7 @@ impl Htx {
                 }
                 baseId = spotBaseId.clone().map(Value::from).unwrap_or(Value::Null);
                 quoteId = spotQuoteId.clone();
-                let mut spotId: String = format!("{}{}", spotBaseId.map(Value::from).unwrap_or(Value::Null), spotQuoteId.map(Value::from).unwrap_or(Value::Null));
+                let mut spotId: String = format!("{}{}", spotBaseId.as_deref().unwrap_or("null"), spotQuoteId.as_deref().unwrap_or("null"));
                 id = Value::from(spotId.clone());
                 lowercaseId = Some(spotId.to_lowercase());
             }
@@ -4110,13 +4110,13 @@ impl Htx {
                 continue;
             }
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone(), None);
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
             let mut expiry: Option<i64> = None;
             if matches!(&contract, Value::Bool(true)) {
                 if (inverse == Some(true)) {
-                    symbol.push_str(&format!("{}{}", Value::Str(":".into()), base.clone().map(Value::from).unwrap_or(Value::Null)));
+                    symbol.push_str(&format!("{}{}", Value::Str(":".into()), base.as_deref().unwrap_or("null")));
                 }  else if (linear.as_bool() == Some(true)) {
-                    symbol.push_str(&format!("{}{}", Value::Str(":".into()), quote.clone().map(Value::from).unwrap_or(Value::Null)));
+                    symbol.push_str(&format!("{}{}", Value::Str(":".into()), quote.as_deref().unwrap_or("null")));
                 }
                 if future.as_bool() == Some(true) {
                     expiry = self.safe_integer_k(&market, "delivery_time", &[]).as_i64();
@@ -7908,8 +7908,8 @@ impl Htx {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut orderType: Value = (if let Some(__s) = typeStr.as_deref() { Some(__s.replace("buy-", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
-        orderType = orderType.as_str().map(|__s| Value::Str(__s.replace("sell-", "").into())).unwrap_or_else(|| orderType.clone());
+        let mut orderType: Option<String> = (if let Some(__s) = typeStr.as_deref() { Some(__s.replace("buy-", "")) } else { None });
+        orderType = (if let Some(__s) = orderType.as_deref() { Some(__s.replace("sell-", "")) } else { None });
         let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), Value::from((market).market_type.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7920,7 +7920,7 @@ impl Htx {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            if (matches!((&stopOrderTypes, &orderType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (matches!((&stopOrderTypes, orderType.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice for a trigger order".into()))));
             }
         }  else {
@@ -7928,28 +7928,28 @@ impl Htx {
             if (sideStr.as_deref() == Some("sell")) {
                 defaultOperator = "lte".to_string();
             }
-            let mut stopOperator: Value = self.safe_string_k(&paramsMarginMode, "operator", &[Value::from(defaultOperator)]);
+            let mut stopOperator: Option<String> = self.safe_string_k(&paramsMarginMode, "operator", &[Value::from(defaultOperator)]).as_str().map(str::to_owned);
             request.insert("stop-price".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
-            request.insert("operator".into(), stopOperator);
-            if (orderType.as_str() == Some("limit")) || (orderType.as_str() == Some("limit-fok")) {
-                orderType = Value::Str(format!("{}{}", Value::Str("stop-".into()), orderType).into());
-            }  else if (orderType.as_str() != Some("stop-limit")) && (orderType.as_str() != Some("stop-limit-fok")) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support ".into())).into()), typeStr.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" orders".into()))));
+            request.insert("operator".into(), stopOperator.map(Value::from).unwrap_or(Value::Null));
+            if (orderType.as_deref() == Some("limit")) || (orderType.as_deref() == Some("limit-fok")) {
+                orderType = Some(format!("{}{}", Value::Str("stop-".into()), orderType.as_deref().unwrap_or("null")));
+            }  else if (orderType.as_deref() != Some("stop-limit")) && (orderType.as_deref() != Some("stop-limit-fok")) {
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support ".into())).into()), typeStr.as_deref().unwrap_or("null")).into()), Value::Str(" orders".into()))));
             }
         }
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(orderType.as_str() == Some("market")), Value::Bool(orderType.as_str() == Some("limit-maker")), &[Value::from(&paramsMarginMode)]).as_array().cloned().unwrap_or_default();
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(orderType.as_deref() == Some("market")), Value::Bool(orderType.as_deref() == Some("limit-maker")), &[Value::from(&paramsMarginMode)]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly {
-            orderType = Value::Str("limit-maker".into());
+            orderType = Some("limit-maker".to_string());
         }
         let mut timeInForce: Option<String> = self.safe_string_k(&paramsPostOnly, "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
         if (timeInForce.as_deref() == Some("FOK")) {
-            orderType = Value::Str(format!("{}{}", orderType, Value::Str("-fok".into())).into());
+            orderType = Some(format!("{}{}", orderType.as_deref().unwrap_or("null"), Value::Str("-fok".into())));
         }  else if (timeInForce.as_deref() == Some("IOC")) {
-            orderType = Value::Str("ioc".into());
+            orderType = Some("ioc".to_string());
         }
-        request.insert("type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", sideStr.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), orderType).into()));
+        request.insert("type".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", sideStr.as_deref().unwrap_or("null"), Value::Str("-".into())).into()), orderType.as_deref().unwrap_or("null")).into()));
         let mut clientOrderId: Option<String> = self.safe_string2(Value::from(&paramsPostOnly), Value::Str("clientOrderId".into()), Value::Str("client-order-id".into()), &[]).as_str().map(str::to_owned); // must be 64 chars max and unique within 24 hours
         if (clientOrderId.is_none()) {
             let mut broker: crate::value::Dict = self.safe_dict_k(self.options.clone(), "broker", &[Value::Map({
@@ -7968,7 +7968,7 @@ impl Htx {
         }  else if (marginMode.as_deref() == Some("c2c")) {
             request.insert("source".into(), Value::Str("c2c-margin-api".into()));
         }
-        let mut isMarketBuy: bool = (orderType.as_str() == Some("market")) && (sideStr.as_deref() == Some("buy"));
+        let mut isMarketBuy: bool = (orderType.as_deref() == Some("market")) && (sideStr.as_deref() == Some("buy"));
         let mut requiresPriceAndParams: Value = self.handle_option_bool_and_params(&paramsPostOnly, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
         let mut cost: Option<f64> = self.safe_number(requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]).as_f64();
         let mut paramsCost: Value = Value::Dict(paramsPostOnly);
@@ -8005,7 +8005,7 @@ impl Htx {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if (matches!((&limitOrderTypes, &orderType), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if (matches!((&limitOrderTypes, orderType.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             request.insert("price".into(), self.price_to_precision(symbol, price));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsCost, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop-price".into()), Value::Str("clientOrderId".into()), Value::Str("client-order-id".into()), Value::Str("operator".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
@@ -9158,7 +9158,7 @@ impl Htx {
             result.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), order.clone());
-                    m.insert("id".to_string(), order.clone());
+                    m.insert("id".to_string(), order);
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
             }), None));
@@ -9733,7 +9733,7 @@ impl Htx {
         // a freshly created withdrawal has no tx-hash yet, the create
         // endpoint returns only { "status": "ok", "data": "<id>" }
         if (txHash.is_some()) && (networkId.as_deref() == Some("ETH")) && (!txHash.as_deref().unwrap_or_default().contains("0x")) {
-            txHash = Some(format!("{}{}", Value::Str("0x".into()), txHash.clone().map(Value::from).unwrap_or(Value::Null)));
+            txHash = Some(format!("{}{}", Value::Str("0x".into()), txHash.as_deref().unwrap_or("null")));
         }
         let mut subType: Option<String> = self.safe_string_k(transaction.clone(), "sub-type", &[]).as_str().map(str::to_owned);
         let mut internal: bool = subType.as_deref() == Some("FAST");
@@ -10030,9 +10030,9 @@ impl Htx {
         let mut fromOrToFuturesAccount: bool = (fromAccountIdStr.as_str() == Some("futures")) || (toAccountIdStr.as_str() == Some("futures"));
         let mut response: Value = Value::Null;
         if fromOrToFuturesAccount {
-            let mut type_var: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", fromAccountIdStr, Value::Str("-to-".into())).into()), toAccountIdStr).into());
-            type_var = self.safe_string_k(&paramsSubType, "type", &[type_var.clone()]);
-            request.insert("type".into(), type_var);
+            let mut type_var: Option<String> = Some(format!("{}{}", Value::Str(format!("{}{}", fromAccountIdStr, Value::Str("-to-".into())).into()), toAccountIdStr));
+            type_var = self.safe_string_k(&paramsSubType, "type", &[type_var.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            request.insert("type".into(), type_var.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_116 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.spot_private_post_v1_futures_transfer(&[__ws_arg_116]).await;
         }  else if fromSpot && toCross {
@@ -10357,7 +10357,7 @@ impl Htx {
                 rates.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("info".to_string(), entry.clone());
-                        m.insert("symbol".to_string(), symbolInner.clone());
+                        m.insert("symbol".to_string(), symbolInner);
                         m.insert("fundingRate".to_string(), self.safe_number_k(entry, "funding_rate", &[]));
                         m.insert("timestamp".to_string(), Value::from(timestamp));
                         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));

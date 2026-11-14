@@ -484,7 +484,7 @@ impl Bitstamp {
         if (deltaNonce.is_none()) {
             return;
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null"));
         if (nonce.is_none()) {
             let mut cacheLength: Option<i64> = self.parse_to_int(get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".into()))));
             // the rest API is very delayed
@@ -892,7 +892,7 @@ impl Bitstamp {
         if (userId.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders() requires a userId from authenticate()".into()))));
         }
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("private-my_orders_".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("-".into())).into()), userId.map(Value::from).unwrap_or(Value::Null));
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("private-my_orders_".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("-".into())).into()), userId.as_deref().unwrap_or("null"));
         return self.un_watch_channel(channel.as_str(), channel.as_str(), "orders", Value::from(vec![Value::from(symbolValue)]), &[params]).await;
         Value::Null
         }).await?))
@@ -983,7 +983,7 @@ impl Bitstamp {
         if (userId.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades() requires a userId from authenticate()".into()))));
         }
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("private-my_trades_".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("-".into())).into()), userId.map(Value::from).unwrap_or(Value::Null));
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("private-my_trades_".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("-".into())).into()), userId.as_deref().unwrap_or("null"));
         return self.un_watch_channel(channel.as_str(), channel.as_str(), "myTrades", Value::from(vec![Value::from(symbolValue)]), &[params]).await;
         Value::Null
         }).await?))
@@ -1292,7 +1292,7 @@ impl Bitstamp {
         if (channel.is_none()) {
             return;
         }
-        let mut unsubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), channel.map(Value::from).unwrap_or(Value::Null));
+        let mut unsubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), channel.as_deref().unwrap_or("null"));
         let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::from(unsubHash.clone()), &[]);
         if (subscription == Value::Null) {
             return;
@@ -1488,9 +1488,9 @@ impl Bitstamp {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut time: Value = Value::Int(self.milliseconds());
-        let mut expiresIn: Value = self.safe_integer_k(self.options.clone(), "expiresIn", &[]);
-        if (expiresIn == Value::Null) || (time.as_f64().unwrap_or(f64::NAN) > expiresIn.as_f64().unwrap_or(f64::NAN)) {
+        let mut time: i64 = self.milliseconds();
+        let mut expiresIn: Option<i64> = self.safe_integer_k(self.options.clone(), "expiresIn", &[]).as_i64();
+        if (expiresIn.is_none()) || ((expiresIn.is_some() && Some(time) > expiresIn)) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: the websocket token is
             // minted by a private REST call and cached in this.options, so N
@@ -1524,8 +1524,8 @@ impl Bitstamp {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty token".into()))));
                 }
                 let mut userId: Option<String> = self.safe_string_k(&response, "user_id", &[]).as_str().map(str::to_owned);
-                let mut validity: Value = self.safe_integer_product_k(&response, "valid_sec", Value::Int(1000), &[]);
-                { let __be_tmp = self.sum(&[time, validity]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), __be_tmp); } }
+                let mut validity: Option<i64> = self.safe_integer_product_k(&response, "valid_sec", Value::Int(1000), &[]).as_i64();
+                { let __be_tmp = self.sum(&[Value::from(time), Value::from(validity)]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), __be_tmp); } }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".into(), userId.map(Value::from).unwrap_or(Value::Null)); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsSessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
                 // settle the flight: client.resolve deletes the future from
@@ -1556,7 +1556,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (userId.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" subscribePrivate() requires a userId from authenticate()".into()))));
         }
-        let mut messageHashValue: String = format!("{}{}", messageHash, (Value::Str(format!("{}{}", Value::Str("-".into()), userId.map(Value::from).unwrap_or(Value::Null)).into())));
+        let mut messageHashValue: String = format!("{}{}", messageHash, (Value::Str(format!("{}{}", Value::Str("-".into()), userId.as_deref().unwrap_or("null")).into())));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("bts:subscribe".into()));

@@ -616,12 +616,12 @@ impl Upbit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut limit: Value = self.safe_integer_k(&options, "limit", &[Value::Int(15)]);
+        let mut limit: i64 = self.safe_integer_k(&options, "limit", &[Value::Int(15)]).as_i64().unwrap_or(15);
         if (type_var.as_deref() == Some("SNAPSHOT")) && !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         // upbit always returns a snapshot of 15 topmost entries
@@ -656,7 +656,7 @@ impl Upbit {
             m
         }), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -710,7 +710,7 @@ impl Upbit {
         //   }
         let mut marketId: Option<String> = (match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("candle.1s:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("candle.1s:".into()), symbol.as_deref().unwrap_or("null"));
         let mut ohlcv: crate::value::List = self.parse_ohlcv(message, None).into_list();
         client.resolve(Value::Arr(ohlcv), messageHash.as_str());
 }

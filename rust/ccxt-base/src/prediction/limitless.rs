@@ -1653,12 +1653,12 @@ impl Limitless {
         }
         let mut rawLabel: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "label", &[self.safe_string_k(crate::value::KeyRead::key_read(&market, "info"), "outcomeLabel", &[Value::Str("yes".into())])]).as_str().map(str::to_owned) } else { Some("yes".to_string()) });
         let mut isYes: bool = (rawLabel.as_deref().map(str::to_lowercase)).as_deref() != Some("no");
-        let mut bidStr: Value = Value::Null;
-        let mut askStr: Value = Value::Null;
+        let mut bidStr: Option<String> = None;
+        let mut askStr: Option<String> = None;
         let mut bidSizeStr: Option<String> = None;
         let mut askSizeStr: Option<String> = None;
         let mut lastStr: Option<String> = None;
-        let mut midStr: Value = Value::Null;
+        let mut midStr: Option<String> = None;
         if (book.is_some()) {
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             let mut rawBids: crate::value::List = self.safe_list_k(&book, "bids", &[Value::from(vec![])]).into_list();
@@ -1674,26 +1674,26 @@ impl Limitless {
             let mut yesLast: Option<String> = self.safe_string_k(&book, "lastTradePrice", &[]).as_str().map(str::to_owned);
             let mut yesMid: Option<String> = self.safe_string_k(&book, "midpoint", &[]).as_str().map(str::to_owned);
             if isYes {
-                bidStr = yesBidPrice.clone().map(Value::from).unwrap_or(Value::Null);
+                bidStr = yesBidPrice.clone();
                 bidSizeStr = yesBidSize.clone();
-                askStr = yesAskPrice.clone().map(Value::from).unwrap_or(Value::Null);
+                askStr = yesAskPrice.clone();
                 askSizeStr = yesAskSize.clone();
                 lastStr = yesLast.clone();
-                midStr = yesMid.clone().map(Value::from).unwrap_or(Value::Null);
+                midStr = yesMid.clone();
             }  else {
                 if (yesAskPrice.is_some()) {
-                    bidStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesAskPrice.map(Value::from).unwrap_or(Value::Null));
+                    bidStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesAskPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 bidSizeStr = yesAskSize;
                 if (yesBidPrice.is_some()) {
-                    askStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesBidPrice.map(Value::from).unwrap_or(Value::Null));
+                    askStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesBidPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 askSizeStr = yesBidSize;
                 if (yesLast.is_some()) {
                     lastStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesLast.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 if (yesMid.is_some()) {
-                    midStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesMid.map(Value::from).unwrap_or(Value::Null));
+                    midStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesMid.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
             }
         }
@@ -1729,9 +1729,9 @@ impl Limitless {
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), self.parse_number(bidStr, &[]));
+        m.insert("bid".to_string(), self.parse_number(bidStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("bidVolume".to_string(), self.parse_number(bidSizeStr.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("ask".to_string(), self.parse_number(askStr, &[]));
+        m.insert("ask".to_string(), self.parse_number(askStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("askVolume".to_string(), self.parse_number(askSizeStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
@@ -1740,7 +1740,7 @@ impl Limitless {
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), self.parse_number(midStr, &[]));
+        m.insert("average".to_string(), self.parse_number(midStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), self.parse_number(volumeStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("info".to_string(), ticker);
@@ -1823,7 +1823,7 @@ impl Limitless {
             promises.push(self.limitless_public_get_markets_address_or_slug(&[__ws_arg_18]).await);
             promises.push(self.limitless_public_get_markets_slug_orderbook(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("slug".to_string(), slug.clone());
+                    m.insert("slug".to_string(), slug);
                 m
             })]).await);
         }
@@ -2838,8 +2838,8 @@ impl Limitless {
     pub fn apply_scale(&self, amount: Option<&str>, optional_args: &[Value]) -> Value {
         let mut amount: Value = amount.into();
         let mut multiply = get_arg(optional_args, 0, Value::Bool(false));
-        let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
-        let mut scale: Option<String> = self.number_to_string(crate::runtime::Math::pow(&Value::Int(10), &decimals));
+        let mut decimals: i64 = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]).as_i64().unwrap_or(6);
+        let mut scale: Option<String> = self.number_to_string(Value::Float(f64::powf(10.0, (decimals as f64))));
         if multiply.as_bool() == Some(true) {
             return crate::precise::Precise::stringMul(&amount, &scale.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -2985,9 +2985,9 @@ if _try_result.is_err() {
         let mut signRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), Value::from(nonce));
-                m.insert("maker".to_string(), maker.clone());
-                m.insert("signer".to_string(), signer.clone());
-                m.insert("taker".to_string(), taker.clone());
+                m.insert("maker".to_string(), maker);
+                m.insert("signer".to_string(), signer);
+                m.insert("taker".to_string(), taker);
                 m.insert("tokenId".to_string(), outcomeObj.as_map().and_then(|__m| __m.get("outcomeId")).cloned().unwrap_or(Value::Null));
                 m.insert("nonce".to_string(), Value::Int(0));
                 m.insert("feeRateBps".to_string(), self.safe_integer_k(&rank, "feeRateBps", &[Value::Int(0)]));
@@ -3404,7 +3404,7 @@ if _try_result.is_err() {
         let mut failedLethgn: i64 = failed.len() as i64;
         if failedLethgn > 0 {
             let mut message: Option<String> = json_stringify(&response).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders failed: ".into())).into()), message.map(Value::from).unwrap_or(Value::Null)).into());
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders failed: ".into())).into()), message.as_deref().unwrap_or("null")).into());
             panic!("{}", crate::exchange_errors::order_not_found(feedback));
         }
         return self.parse_prediction_orders(Value::Arr(canceled), &[]);
@@ -4140,7 +4140,7 @@ if _try_result.is_err() {
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
                 let mut groupMarkets: Value = crate::value::get_value_k(&eventGroup, "markets");
-                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(m.clone()); };
+                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(m); };
                 add_element_to_object(&mut eventGroup, &Value::Str("markets".into()), groupMarkets);
             }
         }
@@ -4370,7 +4370,7 @@ if _try_result.is_err() {
             url.push_str(&format!("{}{}", Value::Str("?".into()), querystring));
         }
         let mut headersValue: Value = Value::Null;
-        let mut bodyValue: Value = Value::Null;
+        let mut bodyValue: Option<String> = None;
         if (api.get(1).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             let mut bodyString: Option<String> = Some("".to_string());
             headersValue = Value::Map({
@@ -4379,7 +4379,7 @@ if _try_result.is_err() {
             });
             if (method.as_str() == Some("POST")) && (querystring != "") {
                 bodyString = json_stringify(&query).as_str().map(str::to_owned);
-                bodyValue = bodyString.clone().map(Value::from).unwrap_or(Value::Null);
+                bodyValue = bodyString.clone();
                 headersValue = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Accept".to_string(), Value::Str("application/json".into()));
@@ -4390,7 +4390,7 @@ if _try_result.is_err() {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.iso8601(Value::Int(self.milliseconds())).as_str().map(str::to_owned);
             let mut newline: String = "\n".to_string(); // eslint-disable-line quotes
-            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.clone().map(Value::from).unwrap_or(Value::Null), newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString.map(Value::from).unwrap_or(Value::Null));
+            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.as_deref().unwrap_or("null"), newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString.as_deref().unwrap_or("null"));
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue = self.extend(headersValue, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4411,7 +4411,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyValue);
+        m.insert("body".to_string(), bodyValue.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersValue);
     m
 });

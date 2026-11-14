@@ -569,7 +569,7 @@ impl Bitvavo {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
             result.push(Value::from(&ticker));
             if (event.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("@".into())).into()), self.safe_string_k(&data, "market", &[Value::Str("".into())]));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), Value::Str("@".into())).into()), self.safe_string_k(&data, "market", &[Value::Str("".into())]));
                 client.resolve(Value::Dict(ticker), messageHash.as_str());
             }
         }
@@ -892,8 +892,8 @@ impl Bitvavo {
         let mut symbolValue: String = (market).symbol.clone();
         let mut name: String = "candles".to_string();
         let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
-        let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("_".into())).into()), interval);
+        let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("_".into())).into()), interval.as_deref().unwrap_or("null"));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -901,7 +901,7 @@ impl Bitvavo {
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("candles".into()));
-        m.insert("interval".to_string(), Value::from(vec![interval]));
+        m.insert("interval".to_string(), Value::from(vec![interval.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("markets".to_string(), Value::from(vec![marketId.map(Value::from).unwrap_or(Value::Null)]));
     m
 })]));
@@ -1225,7 +1225,7 @@ impl Bitvavo {
                 m.insert("symbol".to_string(), Value::from(symbolValue));
                 m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("method".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
-                m.insert("limit".to_string(), limit.clone());
+                m.insert("limit".to_string(), limit);
                 m.insert("params".to_string(), params.clone());
             m
         });
@@ -1292,7 +1292,7 @@ impl Bitvavo {
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::from(name));
                 m.insert("symbols".to_string(), symbolsNormalized.map_or(Value::Null, Value::Arr));
-                m.insert("limit".to_string(), limit.clone());
+                m.insert("limit".to_string(), limit);
                 m.insert("params".to_string(), params.clone());
             m
         });
@@ -1381,8 +1381,8 @@ impl Bitvavo {
     }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        let mut price: Value = self.safe_float(delta.clone(), Value::Int(0), &[]);
-        let mut amount: Value = self.safe_float(delta, Value::Int(1), &[]);
+        let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
+        let mut amount: Option<f64> = self.safe_float(delta, Value::Int(1), &[]).as_f64();
         bookside.store(price, amount);
 }
 
@@ -1568,18 +1568,18 @@ impl Bitvavo {
 
     pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
         let mut symbol: Option<String> = self.safe_string_k_opt(subscription.clone(), "symbol", &[]);
-        let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
+        let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
         let mut limits: Value = self.safe_dict_k(self.options.clone(), "orderBookLimits", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut storedLimit: Value = self.safe_integer(limits.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) || (storedLimit.as_f64() != limit.as_f64()) {
+        let mut storedLimit: Option<i64> = self.safe_integer(limits.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
+        if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) || (storedLimit != limit) {
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
-            if let Value::Dict(__d) = &mut limits { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), limit); }
+}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
+            if let Value::Dict(__d) = &mut limits { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(limit)); }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("orderBookLimits".into(), limits); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1605,11 +1605,11 @@ impl Bitvavo {
                 }  else if (subscription != Value::Null) {
                     // multi-symbol watches share one subscription object without a
                     // per-market method - initialize the order book directly
-                    let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
+                    let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
                     { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
                 }
             }
         }
@@ -2027,7 +2027,7 @@ impl Bitvavo {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), id.clone());
+                m.insert("orderId".to_string(), id);
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -2721,7 +2721,7 @@ impl Bitvavo {
         if (orderId.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" privateUpdateOrderMessageHash requires a orderId parameter".into()))));
         }
-        return Value::Str(format!("{}{}", action, orderId.map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", action, orderId.as_deref().unwrap_or("null")).into()).as_str().map(str::to_owned);
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
@@ -2751,7 +2751,7 @@ impl Bitvavo {
         let mut marketId: Option<String> = (match __pro_message.get("market").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("order:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("order:".into()), symbol.as_deref().unwrap_or("null"));
         let mut order: crate::value::Dict = self.parse_order(message, Some(&market)).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2783,7 +2783,7 @@ impl Bitvavo {
         let mut marketId: Option<String> = (match __pro_message.get("market").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), symbol.as_deref().unwrap_or("null"));
         let mut trade: crate::value::Dict = self.parse_trade(message, Some(&market)).into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);

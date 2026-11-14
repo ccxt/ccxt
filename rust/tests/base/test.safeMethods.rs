@@ -264,7 +264,7 @@ pub fn testSafeInteger() {
     // safeInteger
     let mut inputDict: Value = helperDefaultInputDict();
     let mut inputList: Value = Value::from(vec![Value::Str("Hi".into()), Value::Int(2)]);
-    let mut factor: Value = Value::Int(10);
+    let mut factor: i64 = 10;
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer(&inputDict, Value::Str("i".into()), &[]).as_f64() == Some(1.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer(&inputDict, Value::Str("f".into()), &[]).as_f64() == Some(0.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer(&inputDict, Value::Str("strNumber".into()), &[]).as_f64() == Some(3.0)))));
@@ -285,10 +285,10 @@ pub fn testSafeInteger() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_omit_zero(inputDict.clone(), Value::Str("strNumber".into()), &[]).as_f64() == Some(3.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_omit_zero(inputList.clone(), Value::Int(1), &[]).as_f64() == Some(2.0)))));
     // safeIntegerProduct
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputDict.clone(), Value::Str("i".into()), factor.clone(), &[]).as_f64() == Some(10.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputDict.clone(), Value::Str("f".into()), factor.clone(), &[]).as_f64() == Some(1.0))))); // NB the result is 1
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputDict.clone(), Value::Str("strNumber".into()), factor.clone(), &[]).as_f64() == Some(30.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputList.clone(), Value::Int(1), factor.clone(), &[]).as_f64() == Some(20.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputDict.clone(), Value::Str("i".into()), Value::from(factor), &[]).as_f64() == Some(10.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputDict.clone(), Value::Str("f".into()), Value::from(factor), &[]).as_f64() == Some(1.0))))); // NB the result is 1
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputDict.clone(), Value::Str("strNumber".into()), Value::from(factor), &[]).as_f64() == Some(30.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputList.clone(), Value::Int(1), Value::from(factor), &[]).as_f64() == Some(20.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputDict.clone(), Value::Str("longInt".into()), Value::Float(0.000001), &[]).as_f64() == Some(123456789.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputDict.clone(), Value::Str("inexistent".into()), Value::Float(0.000001), &[Value::Int(123456789)]).as_f64() == Some(123456789.0)))));
     // regression: 0.5 * 0.000001 is 5e-7, the product is rendered in exponential notation and the old parseInt-based truncation returned 5 instead of 0
@@ -296,17 +296,17 @@ pub fn testSafeInteger() {
     // a product of 1e18 stays within fixed notation (no exponential form) and fits signed int64 range in non-JS target languages
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product(inputDict.clone(), Value::Str("largeInt".into()), Value::Int(1000), &[]).as_f64() == Some(1000000000000000000.0)))));
     // safeIntegerProduct2
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".into()), Value::Str("i".into()), factor.clone(), &[]).as_f64() == Some(10.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".into()), Value::Str("f".into()), factor.clone(), &[]).as_f64() == Some(1.0))))); // NB the result is 1
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".into()), Value::Str("strNumber".into()), factor.clone(), &[]).as_f64() == Some(30.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputList.clone(), Value::Int(2), Value::Int(1), factor.clone(), &[]).as_f64() == Some(20.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".into()), Value::Str("i".into()), Value::from(factor), &[]).as_f64() == Some(10.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".into()), Value::Str("f".into()), Value::from(factor), &[]).as_f64() == Some(1.0))))); // NB the result is 1
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".into()), Value::Str("strNumber".into()), Value::from(factor), &[]).as_f64() == Some(30.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputList.clone(), Value::Int(2), Value::Int(1), Value::from(factor), &[]).as_f64() == Some(20.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".into()), Value::Str("tiny".into()), Value::Float(0.000001), &[]).as_f64() == Some(0.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".into()), Value::Str("largeInt".into()), Value::Int(1000), &[]).as_f64() == Some(1000000000000000000.0)))));
     // safeIntegerProductN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("i".into())]), factor.clone(), &[]).as_f64() == Some(10.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("f".into())]), factor.clone(), &[]).as_f64() == Some(1.0))))); // NB the result is 1
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("strNumber".into())]), factor.clone(), &[]).as_f64() == Some(30.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputList, Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), factor, &[]).as_f64() == Some(20.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("i".into())]), Value::from(factor), &[]).as_f64() == Some(10.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("f".into())]), Value::from(factor), &[]).as_f64() == Some(1.0))))); // NB the result is 1
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("strNumber".into())]), Value::from(factor), &[]).as_f64() == Some(30.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputList, Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), Value::from(factor), &[]).as_f64() == Some(20.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("tiny".into())]), Value::Float(0.000001), &[]).as_f64() == Some(0.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict, Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("largeInt".into())]), Value::Int(1000), &[]).as_f64() == Some(1000000000000000000.0)))));
 }
@@ -508,8 +508,8 @@ pub fn testCacheSafeCalls() {
     // Test map[string]*ArrayCache (Trades structure)
     let mut tradesMap: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("BTC/USDT".to_string(), arrayCache.clone());
-            m.insert("ETH/USDT".to_string(), arrayCacheBySymbolById.clone());
+            m.insert("BTC/USDT".to_string(), arrayCache);
+            m.insert("ETH/USDT".to_string(), arrayCacheBySymbolById);
         m
     });
     let mut stored: Value = exchange.safe_value(&tradesMap, Value::Str("BTC/USDT".into()), &[]);
@@ -526,7 +526,7 @@ pub fn testCacheSafeCalls() {
     // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
     let mut ohlcvInnerMap: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("1m".to_string(), arrayCacheByTimestamp.clone());
+            m.insert("1m".to_string(), arrayCacheByTimestamp);
             m.insert("5m".to_string(), ArrayCacheByTimestamp::new(Value::Int(100)));
         m
     });
@@ -540,7 +540,7 @@ pub fn testCacheSafeCalls() {
     // Test map[string]*ArrayCacheBySymbolBySide
     let mut cacheBySideMap: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("BTC/USDT".to_string(), arrayCacheBySymbolBySide.clone());
+            m.insert("BTC/USDT".to_string(), arrayCacheBySymbolBySide);
         m
     });
     let mut retrievedArrayCacheBySymbolBySide: Value = exchange.safe_value(&cacheBySideMap, Value::Str("BTC/USDT".into()), &[]);

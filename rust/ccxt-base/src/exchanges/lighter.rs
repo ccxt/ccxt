@@ -1484,7 +1484,7 @@ if _try_result.is_err() {
         let mut reduceOnly: bool = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false); // default false
         let mut orderType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut orderSide: Option<String> = side.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
@@ -1528,7 +1528,7 @@ if _try_result.is_err() {
         }  else {
             orderTypeNum = Some(0);
         }
-        if (orderSide.as_str() == Some("BUY")) {
+        if (orderSide.as_deref() == Some("BUY")) {
             request.insert("is_ask".into(), Value::Int(0));
         }  else {
             request.insert("is_ask".into(), Value::Int(1));
@@ -1600,7 +1600,7 @@ if _try_result.is_err() {
             // group order
             std::sync::Arc::make_mut(&mut firstOrder).insert("client_order_index".into(), Value::Int(0)); // client order index should be 0
             let mut triggerOrderSide: String = "".to_string();
-            if (orderSide.as_str() == Some("BUY")) {
+            if (orderSide.as_deref() == Some("BUY")) {
                 triggerOrderSide = "sell".to_string();
             }  else {
                 triggerOrderSide = "buy".to_string();
@@ -2099,9 +2099,9 @@ if _try_result.is_err() {
                 continue;
             }
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
             if (settle.is_some()) {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
             }
             let mut amountDecimals: Option<String> = self.safe_string2(&market, Value::Str("size_decimals".into()), Value::Str("supported_size_decimals".into()), &[]).as_str().map(str::to_owned);
             let mut priceDecimals: Option<String> = self.safe_string2(&market, Value::Str("price_decimals".into()), Value::Str("supported_price_decimals".into()), &[]).as_str().map(str::to_owned);

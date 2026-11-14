@@ -399,7 +399,7 @@ pub fn testWsOrderBook() {
         let mut m = indexmap::IndexMap::new();
         m
     }), Value::Int(3));
-    desyncBook.reset(orderBookInput.clone());
+    desyncBook.reset(orderBookInput);
     desyncBook.limit();
     // a delta beyond the trimmed tail must reinsert cleanly
     desyncBook.store_array_to_bids(Value::from(vec![Value::Float(6.4), Value::Int(14)]));

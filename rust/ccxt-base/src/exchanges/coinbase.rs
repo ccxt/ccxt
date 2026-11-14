@@ -2137,22 +2137,22 @@ impl Coinbase {
                 let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
                 if (base.is_some()) && (quote.is_some()) {
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
                 }
             }
         }
         let mut sizeInQuote: bool = self.safe_bool_k(trade.clone(), "size_in_quote", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut v3Price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut v3Cost: Value = Value::Null;
+        let mut v3Cost: Option<String> = None;
         let mut v3Amount: Option<String> = self.safe_string_k(trade.clone(), "size", &[]).as_str().map(str::to_owned);
         if sizeInQuote {
             // calculate base size
-            v3Cost = v3Amount.clone().map(Value::from).unwrap_or(Value::Null);
+            v3Cost = v3Amount.clone();
             v3Amount = crate::precise::Precise::stringDiv(&v3Amount.map(Value::from).unwrap_or(Value::Null), &v3Price.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut v3FeeCost: Option<String> = self.safe_string_k(trade.clone(), "commission", &[]).as_str().map(str::to_owned);
         let mut amountString: Value = self.safe_string_k(&amountObject, "amount", &[v3Amount.map(Value::from).unwrap_or(Value::Null)]);
-        let mut costString: Value = self.safe_string_k(&subtotalObject, "amount", &[v3Cost]);
+        let mut costString: Value = self.safe_string_k(&subtotalObject, "amount", &[v3Cost.map(Value::from).unwrap_or(Value::Null)]);
         let mut priceString: Option<String> = None;
         let mut cost: Value = Value::Null;
         if (costString != Value::Null) && (amountString != Value::Null) {
@@ -2289,8 +2289,8 @@ impl Coinbase {
                     }
                     result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("-".into())).into()), quoteId.clone().map(Value::from).unwrap_or(Value::Null)).into()));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("-".into())).into()), quoteId.as_deref().unwrap_or("null")).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -2637,7 +2637,7 @@ if _try_result.is_err() {
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -2850,14 +2850,14 @@ if _try_result.is_err() {
         }
         let mut isDisabled: bool = self.safe_bool_k(market.clone(), "is_disabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut tradingDisabled: bool = (isDisabled || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true)));
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut type_var: Option<String> = None;
         if matches!(&isSwap, Value::Bool(true)) {
             type_var = Some("swap".to_string());
-            symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote.as_deref().unwrap_or("null"));
         }  else {
             type_var = Some("future".to_string());
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("-".into())).into()), self.yymmdd(Value::from(expireTimestamp), &[]));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str("-".into())).into()), self.yymmdd(Value::from(expireTimestamp), &[]));
         }
         let mut takerFeeRate: Option<f64> = (match feeTier.get("taker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
         let mut makerFeeRate: Option<f64> = (match feeTier.get("maker_fee_rate") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => match __s.parse::<f64>() { Ok(__n) => Value::Float(__n), Err(_) => Value::Null }, _ => Value::Null }).as_f64();
@@ -2942,10 +2942,9 @@ if _try_result.is_err() {
     m
 })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&options, "timestamp", &[]).as_i64();
-        let mut expires: Value = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]);
-        let mut now: Value = Value::Int(self.milliseconds());
-        if (timestamp.is_none()) || (((match (&(now), &(Value::from(timestamp))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > expires.as_f64().unwrap_or(f64::NAN)) {
+        let mut expires: i64 = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+        let mut now: i64 = self.milliseconds();
+        if (timestamp.is_none()) || (((if let Some(__r) = timestamp { Some(now - __r) } else { None })) > Some(expires)) {
             let mut promises: Value = Value::from(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await]);
             let mut promisesResult: Value = promise_all(&promises).await;
             let mut fiatResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
@@ -2986,7 +2985,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("currencies".to_string(), __ws_arg_11);
         m.insert("exchangeRates".to_string(), exchangeRates);
-        m.insert("timestamp".to_string(), now);
+        m.insert("timestamp".to_string(), Value::from(now));
     m
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".into(), __be_tmp); } }
         }
@@ -3259,11 +3258,11 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_542: bool = true;
             while { if !__for_first_542 { i += 1; } __for_first_542 = false; i < (baseIds.len() as i64) } {
-            let mut baseId: Value = baseIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: String = format!("{}{}", Value::Str(format!("{}{}", baseId, delimiter).into()), quoteId);
+            let mut baseId: Option<String> = baseIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: String = format!("{}{}", Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), delimiter).into()), quoteId);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId), None, &[Value::from(delimiter.clone())]);
             let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            result.insert(symbol, self.parse_ticker(rates.get(baseId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)));
+            result.insert(symbol, self.parse_ticker(rates.get(baseId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -3680,9 +3679,9 @@ if _try_result.is_err() {
             });
             balanceResult.insert("USD".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("free".to_string(), free.clone());
+        m.insert("free".to_string(), free);
         m.insert("used".to_string(), used.map(Value::from).unwrap_or(Value::Null));
-        m.insert("total".to_string(), total.clone());
+        m.insert("total".to_string(), total);
     m
 }));
             return self.safe_balance(Value::Map(balanceResult));
@@ -3713,7 +3712,7 @@ if _try_result.is_err() {
                         let __ws_arg_19 = self.account();
                         account = self.extend(__ws_arg_19, &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
-                                m.insert("free".to_string(), free.clone());
+                                m.insert("free".to_string(), free);
                                 m.insert("total".to_string(), total.clone().map(Value::from).unwrap_or(Value::Null));
                             m
                         })]);
@@ -6226,7 +6225,7 @@ if _try_result.is_err() {
                 m.insert("account_id".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m.insert("currency".to_string(), (if let Some(__s) = code.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("payment_method".to_string(), id.clone());
+                m.insert("payment_method".to_string(), id);
                 m.insert("commit".to_string(), Value::Bool(true));
             m
         });
@@ -6314,7 +6313,7 @@ if _try_result.is_err() {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account_id".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("deposit_id".to_string(), id.clone());
+                m.insert("deposit_id".to_string(), id);
             m
         });
         if (accountId.is_none()) {
@@ -7294,7 +7293,7 @@ if _try_result.is_err() {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), fullPath);
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), fullPath);
         if signed {
             let mut authorization: Option<String> = self.safe_string_k(self.headers.clone(), "Authorization", &[]).as_str().map(str::to_owned);
             let mut authorizationString: Option<String> = None;
@@ -7348,12 +7347,12 @@ if _try_result.is_err() {
                     // }
                     let mut token: Option<String> = self.create_auth_token(Value::from(seconds), url.as_str(), method.as_str(), &[Value::Bool(isV2CloudAPiKey)]).as_str().map(str::to_owned);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
-                    authorizationString = Some(format!("{}{}", Value::Str("Bearer ".into()), token.map(Value::from).unwrap_or(Value::Null)));
+                    authorizationString = Some(format!("{}{}", Value::Str("Bearer ".into()), token.as_deref().unwrap_or("null")));
                 }  else {
                     let mut nonce: Option<i64> = self.parse_to_int(self.nonce());
                     let mut timestamp: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = nonce { Some((__l as f64) / 1000.0) } else { None }))));
                     let mut timestampString: Value = Value::Str(format!("{}", timestamp).into());
-                    let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestampString, method).into()), savedPath).into()), payload.map(Value::from).unwrap_or(Value::Null));
+                    let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestampString, method).into()), savedPath).into()), payload.as_deref().unwrap_or("null"));
                     let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();

@@ -660,7 +660,7 @@ impl P2b {
             }
             stored.append(Value::Arr(parsed));
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str("::".into())).into()), symbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&stored), messageHash.as_str());
             }
         }
@@ -776,7 +776,7 @@ impl P2b {
         let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         if (messageHashStart.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHashStart.map(Value::from).unwrap_or(Value::Null), Value::Str("::".into())).into()), symbol);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHashStart.as_deref().unwrap_or("null"), Value::Str("::".into())).into()), symbol);
             client.resolve(ticker, messageHash.as_str());
         }
         return message;
@@ -819,13 +819,13 @@ impl P2b {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut limit: Value = self.safe_integer_k(&subscription, "limit", &[]);
+        let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
         if (orderbook.is_none()) {
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             orderbook = self.orderbooks.at(&symbol);
         }
         if isFullUpdate {
@@ -844,10 +844,10 @@ impl P2b {
                 let mut __for_first_571: bool = true;
                 while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (bids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut bid: crate::value::List = self.safe_list(&bids, Value::Int(i), &[]).into_list();
-                let mut price: Value = self.safe_number(&bid, Value::Int(0), &[]);
-                let mut amount: Value = self.safe_number(&bid, Value::Int(1), &[]);
+                let mut price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
+                let mut amount: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
                 let mut bookSide: Value = orderbook.book_field("bids");
-                bookSide.store(price.clone(), amount.clone());
+                bookSide.store(price, amount);
             }
             }
         }
@@ -857,8 +857,8 @@ impl P2b {
                 let mut __for_first_572: bool = true;
                 while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (asks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut ask: crate::value::List = self.safe_list(&asks, Value::Int(i), &[]).into_list();
-                let mut price: Value = self.safe_number(&ask, Value::Int(0), &[]);
-                let mut amount: Value = self.safe_number(&ask, Value::Int(1), &[]);
+                let mut price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
+                let mut amount: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();
                 let mut bookside: Value = orderbook.book_field("asks");
                 bookside.store(price, amount);
             }

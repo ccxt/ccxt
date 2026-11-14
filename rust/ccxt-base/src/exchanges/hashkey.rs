@@ -1638,7 +1638,7 @@ impl Hashkey {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), suffix);
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), suffix);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: bool = status.as_deref() == Some("TRADING");
         let mut isLinear: Option<bool> = None;
@@ -3121,7 +3121,7 @@ impl Hashkey {
             label = "sub".to_string();
         }
         let mut accountType: Option<String> = self.parse_account_type((self.safe_string_k(account.clone(), "accountType", &[])).as_str());
-        let mut type_var: String = format!("{}{}", Value::Str(format!("{}{}", label, Value::Str(" ".into())).into()), accountType.map(Value::from).unwrap_or(Value::Null));
+        let mut type_var: String = format!("{}{}", Value::Str(format!("{}{}", label, Value::Str(" ".into())).into()), accountType.as_deref().unwrap_or("null"));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(account.clone(), "accountId", &[]));
@@ -4186,10 +4186,10 @@ impl Hashkey {
     m
 }));
         let mut methodName: String = "fetchOpenSwapOrders".to_string();
-        let mut methodNameOption: Value = self.safe_string_k(params.clone(), "methodName", &[Value::from(methodName)]);
+        let mut methodNameOption: Option<String> = self.safe_string_k(params.clone(), "methodName", &[Value::from(methodName)]).as_str().map(str::to_owned);
         let mut paramsMethodName: crate::value::Dict = self.omit(params, Value::Str("methodName".into()), &[]).into_dict();
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodNameOption).into()), Value::Str("() requires a symbol argument for swap market orders".into()))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodNameOption.as_deref().unwrap_or("null")).into()), Value::Str("() requires a symbol argument for swap market orders".into()))));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4198,7 +4198,7 @@ impl Hashkey {
             m
         });
         let mut isTrigger: bool = false;
-        let isTriggerTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsMethodName, methodNameOption.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(isTrigger)]).as_array().cloned().unwrap_or_default();
+        let isTriggerTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsMethodName, Value::from(methodNameOption.as_deref()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(isTrigger)]).as_array().cloned().unwrap_or_default();
         let mut isTriggerTrigger: bool = isTriggerTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsTrigger: crate::value::Dict = isTriggerTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if isTriggerTrigger {
@@ -4210,7 +4210,7 @@ impl Hashkey {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Option<crate::value::List> = None;
-        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTrigger, methodNameOption, Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
+        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTrigger, methodNameOption.map(Value::from).unwrap_or(Value::Null), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountId: Option<String> = accountIdparamsAccountIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (accountId.is_some()) {
@@ -4489,14 +4489,14 @@ impl Hashkey {
         }
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parse_order_type_time_in_force_and_post_only(type_var.as_str(), timeInForce.as_str()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).cloned().unwrap_or(Value::Null).as_bool(); }
+        { let __destr_tmp: Vec<Value> = self.parse_order_type_time_in_force_and_post_only(type_var.as_str(), timeInForce.as_str()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
         let mut average: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[]));
         if (price.is_none()) {
             price = average.clone();
         }
         let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
         let mut reduceOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).as_bool(); }
+        { let __destr_tmp: Vec<Value> = self.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
         let mut feeCurrncyId: Option<String> = self.safe_string_k(order.clone(), "feeCoin", &[]).as_str().map(str::to_owned);
         if (feeCurrncyId.as_deref() == Some("")) {
             feeCurrncyId = None.clone();
@@ -4876,7 +4876,7 @@ impl Hashkey {
         let mut methodNameOption: Option<String> = self.safe_string_k(params.clone(), "methodName", &[Value::from(methodName)]).as_str().map(str::to_owned);
         let mut paramsMethodName: crate::value::Dict = self.omit(params, Value::Str("methodName".into()), &[]).into_dict();
         if !(market).swap {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodNameOption.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("() supports swap markets only".into()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodNameOption.as_deref().unwrap_or("null")).into()), Value::Str("() supports swap markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5521,7 +5521,7 @@ impl Hashkey {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path);
         let mut query: Value = Value::Null;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -5553,14 +5553,14 @@ impl Hashkey {
     m
 })]);
                 query = self.custom_urlencode(&[__ws_arg_44]).map(Value::from).unwrap_or(Value::Null);
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), query);
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), query);
             }  else {
                 let mut totalParams: crate::value::Dict = self.extend(Value::Map(additionalParams), &[params.clone()]).into_dict();
                 signature = Value::from(self.hmac(self.encode(self.custom_urlencode(&[Value::from(&totalParams)]).map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
                 std::sync::Arc::make_mut(&mut totalParams).insert("signature".into(), signature.clone());
                 query = self.custom_urlencode(&[Value::Dict(totalParams)]).map(Value::from).unwrap_or(Value::Null);
                 if (method.as_str() == Some("GET")) {
-                    url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), query);
+                    url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), query);
                 }  else {
                     bodySigned = query.clone();
                 }
@@ -5579,7 +5579,7 @@ impl Hashkey {
         }  else {
             query = Value::from(self.urlencode(params, &[]));
             if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), query);
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path).into()), Value::Str("?".into())).into()), query);
             }
         }
         return Value::Map({

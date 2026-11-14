@@ -841,7 +841,7 @@ impl Cex {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
         }
         let mut timestamp: Option<i64> = self.safe_timestamp_k(ticker.clone(), "timestamp", &[]).as_i64();
         return self.safe_ticker(Value::Map({
@@ -940,7 +940,7 @@ impl Cex {
         self.authenticate(&[params.clone()]).await;
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let mut messageHash: String = format!("{}{}", Value::Str("orders:".into()), symbolValue);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -950,16 +950,16 @@ impl Cex {
         m.insert("pair".to_string(), Value::from(vec![Value::from((market).base_id.as_deref()), Value::from((market).quote_id.as_deref())]));
     m
 }));
-                m.insert("oid".to_string(), symbolValue.clone());
+                m.insert("oid".to_string(), Value::from(symbolValue.as_str()));
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
         let mut orders: Value = self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], &request).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolValue.as_str(), limit.as_i64());
+            limitResolved = orders.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbolValue.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(orders, Some(symbolValue.as_str()), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1122,9 +1122,9 @@ impl Cex {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
             if (side.as_deref() == Some("sell")) {
-                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", quote.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), base.map(Value::from).unwrap_or(Value::Null)));
+                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", quote.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), base.as_deref().unwrap_or("null")));
             }
         }
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
@@ -1250,7 +1250,7 @@ impl Cex {
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut market: crate::types::Market = self.safe_market(Value::from(symbol.clone()), None, &[]);
         remains = self.currency_from_precision(base.map(Value::from).unwrap_or(Value::Null), remains).map(Value::from).unwrap_or(Value::Null);
         if (self.orders.is_none()) {
@@ -1357,7 +1357,7 @@ impl Cex {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
         }
         let mut marketResolved: crate::types::Market = self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut time: Option<i64> = self.safe_integer_k(order.clone(), "time", &[]).as_i64();
@@ -1585,7 +1585,7 @@ impl Cex {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Str("".into());
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         return Value::from(symbol);
 
     Value::Null
@@ -1617,7 +1617,7 @@ impl Cex {
             return;
         }
         let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null"));
         let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
         if (nonce.is_none()) || (incrementalId != ((if let Some(__l) = nonce { Some(__l + 1) } else { None }))) {
             __ch.remove_subscription(messageHash.as_str());
@@ -1738,7 +1738,7 @@ impl Cex {
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut market: crate::types::Market = self.safe_market(Value::from(symbol.as_str()), None, &[]);
         let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
@@ -1792,11 +1792,11 @@ impl Cex {
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut pair: Option<String> = self.safe_string_k(&data, "pair", &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null));
-        if (symbol.as_str() == Some("")) {
+        let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        if (symbol.as_deref() == Some("")) {
             return;
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol.as_deref().unwrap_or("null"));
         let mut ohlcv: Value = Value::from(vec![self.safe_timestamp_k(&data, "time", &[]), self.safe_number_k(&data, "o", &[]), self.safe_number_k(&data, "h", &[]), self.safe_number_k(&data, "l", &[]), self.safe_number_k(&data, "c", &[]), self.safe_number_k(&data, "v", &[])]);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&(Value::Str("unknown".into())));
         stored.append(ohlcv);
@@ -1817,11 +1817,11 @@ impl Cex {
         //
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut pair: Option<String> = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbol: Value = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null));
-        if (symbol.as_str() == Some("")) {
+        let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        if (symbol.as_deref() == Some("")) {
             return;
         }
-        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str("ohlcv:".into()), symbol.as_deref().unwrap_or("null"));
         // const stored = this.safeValue (this.ohlcvs, symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&(Value::Str("unknown".into())));
         {

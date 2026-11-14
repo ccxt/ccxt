@@ -1393,12 +1393,12 @@ impl Digifinex {
             let mut spot: Value = Value::Bool(settle.is_none());
             let mut swap: Value = Value::Bool(!(matches!(&spot, Value::Bool(true))));
             let mut margin: Option<bool> = (if (marginMode.is_some()) { Some(true) } else { None });
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
             let mut isInverse: Option<bool> = None;
             let mut isLinear: Option<bool> = None;
             if matches!(&swap, Value::Bool(true)) {
                 type_var = "swap".to_string();
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
                 isInverse = self.safe_bool_k(&market, "is_inverse", &[]).as_bool();
                 isLinear = Some(if (isInverse != Some(true)) { true } else { false });
                 let mut isTrading: bool = self.safe_bool_k(&market, "isTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -1520,7 +1520,7 @@ impl Digifinex {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -3062,7 +3062,7 @@ impl Digifinex {
             let mut canceledOrders: crate::value::List = self.safe_list_k(response.clone(), "success", &[Value::from(vec![])]).into_list();
             let mut numCanceledOrders: i64 = canceledOrders.len() as i64;
             if (numCanceledOrders != 1) {
-                panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() ".into())).into()), idValue.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" not found".into()))));
+                panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() ".into())).into()), idValue.as_deref().unwrap_or("null")).into()), Value::Str(" not found".into()))));
             }
             let mut orders: crate::value::List = self.parse_cancel_orders(response.clone(), &[]).into_list();
             let mut canceled: Option<crate::value::Dict> = self.safe_dict(&orders, Value::Int(0), &[]).into_opt_dict();
@@ -3267,7 +3267,7 @@ impl Digifinex {
                 ordersRequests.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("instrument_id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("order_id".to_string(), orderId.clone());
+                        m.insert("order_id".to_string(), orderId);
                     m
                 }));
             }
@@ -3868,7 +3868,7 @@ impl Digifinex {
         let mut data: Value = self.safe_value_k(&response, "data", &[]);
         let mut order: Value = (if (!isMargin && (marketType.as_deref() == Some("swap"))) { data.clone() } else { self.safe_value(data, Value::Int(0), &[]) });
         if (order == Value::Null) {
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() order ".into())).into()), idValue.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" not found".into()))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() order ".into())).into()), idValue.as_deref().unwrap_or("null")).into()), Value::Str(" not found".into()))));
         }
         return self.parse_order(order, market.as_ref());
         Value::Null
@@ -4589,8 +4589,8 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fromId: Value = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]);
-        let mut toId: Value = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]);
+        let mut fromId: Option<String> = self.safe_string(&accountsByType, fromAccount.clone(), &[fromAccount.clone()]).as_str().map(str::to_owned);
+        let mut toId: Option<String> = self.safe_string(&accountsByType, toAccount.clone(), &[toAccount.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4600,7 +4600,7 @@ impl Digifinex {
         let mut response: Value = Value::Null;
         let mut amountString: Value = self.currency_to_precision(code, amount, &[]);
         if fromSwap || toSwap {
-            if (fromId.as_str() != Some("1")) && (toId.as_str() != Some("1")) {
+            if (fromId.as_deref() != Some("1")) && (toId.as_deref() != Some("1")) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() supports transferring between spot and swap, spot and margin, spot and OTC only".into()))));
             }
             request.insert("type".into(), (if toSwap { Value::Int(1) } else { Value::Int(2) })); // 1 = spot to swap, 2 = swap to spot
@@ -4621,8 +4621,8 @@ impl Digifinex {
         }  else {
             request.insert("currency_mark".into(), currencyId);
             request.insert("num".into(), amountString);
-            request.insert("from".into(), fromId); // 1 = SPOT, 2 = MARGIN, 3 = OTC
-            request.insert("to".into(), toId); // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            request.insert("from".into(), fromId.map(Value::from).unwrap_or(Value::Null)); // 1 = SPOT, 2 = MARGIN, 3 = OTC
+            request.insert("to".into(), toId.map(Value::from).unwrap_or(Value::Null)); // 1 = SPOT, 2 = MARGIN, 3 = OTC
             //
             //     {
             //         "code": 0
@@ -5577,11 +5577,11 @@ impl Digifinex {
         let mut positionMargin: Option<String> = self.safe_string_k(position.clone(), "margin", &[]).as_str().map(str::to_owned);
         let mut unrealizedPnl: Option<String> = self.safe_string_k(position.clone(), "unrealized_pnl", &[]).as_str().map(str::to_owned);
         let mut collateralString: Option<String> = None;
-        let mut marginString: Value = Value::Null;
+        let mut marginString: Option<String> = None;
         if (marginMode.as_deref() == Some("isolated")) {
             let mut isolatedMargin: Option<String> = self.safe_string_k(position.clone(), "posi_balance", &[]).as_str().map(str::to_owned);
             if (isolatedMargin.is_some()) {
-                marginString = isolatedMargin.clone().map(Value::from).unwrap_or(Value::Null);
+                marginString = isolatedMargin.clone();
                 collateralString = (if (unrealizedPnl.is_some()) { crate::precise::Precise::stringAdd(&isolatedMargin.clone().map(Value::from).unwrap_or(Value::Null), &unrealizedPnl.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) } else { isolatedMargin.clone() });
             }
         }
@@ -5609,7 +5609,7 @@ impl Digifinex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.safe_number_k(position.clone(), "maint_margin_ratio", &[]));
-        m.insert("positionMargin".to_string(), self.parse_number(marginString, &[]));
+        m.insert("positionMargin".to_string(), self.parse_number(marginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("collateral".to_string(), self.parse_number(collateralString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMargin".to_string(), self.parse_number(positionMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
@@ -5668,18 +5668,18 @@ impl Digifinex {
             m
         });
         let mut defaultMarginMode: Option<String> = self.safe_string2(self.options.clone(), Value::Str("marginMode".into()), Value::Str("defaultMarginMode".into()), &[]).as_str().map(str::to_owned);
-        let mut marginMode: Value = self.safe_string_lower2(params.clone(), Value::Str("marginMode".into()), Value::Str("defaultMarginMode".into()), &[defaultMarginMode.map(Value::from).unwrap_or(Value::Null)]);
-        if (marginMode != Value::Null) {
-            marginMode = (if (marginMode.as_str() == Some("cross")) { Value::Str("crossed".into()) } else { Value::Str("isolated".into()) });
-            request.insert("margin_mode".into(), marginMode.clone());
+        let mut marginMode: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("marginMode".into()), Value::Str("defaultMarginMode".into()), &[defaultMarginMode.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (marginMode.is_some()) {
+            marginMode = (if (marginMode.as_deref() == Some("cross")) { Some("crossed".to_string()) } else { Some("isolated".to_string()) });
+            request.insert("margin_mode".into(), Value::from(marginMode.as_deref()));
         }
         let mut omitKeys: Vec<Value> = Vec::new();
-        if (marginMode != Value::Null) {
+        if (marginMode.is_some()) {
             omitKeys.push(Value::Str("marginMode".into()));
             omitKeys.push(Value::Str("defaultMarginMode".into()));
         }
         let mut side: Option<String> = self.safe_string_k(params.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut isIsolated: bool = marginMode.as_str() == Some("isolated");
+        let mut isIsolated: bool = marginMode.as_deref() == Some("isolated");
         if isIsolated {
             if (side.is_some()) {
                 request.insert("side".into(), side.clone().map(Value::from).unwrap_or(Value::Null));
@@ -6107,7 +6107,7 @@ impl Digifinex {
                     m
                 });
                 if (networkId.is_some()) {
-                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
+                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code]));
                     if (networkCode != Value::Null) {
                         add_element_to_object(get_value_mut(&mut depositWithdrawFee, &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6440,7 +6440,7 @@ impl Digifinex {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), payload);
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
         let mut urlencoded: Value = Value::Str("".into());
         if signed && (pathPart == "/swap/v2") && (method.as_str() == Some("POST")) {

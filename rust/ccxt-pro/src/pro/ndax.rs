@@ -675,15 +675,15 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_523: bool = true;
             while { if !__for_first_523 { i += 1; } __for_first_523 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut timeframes: Vec<Value> = object_keys(&updates.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut timeframes: Vec<Value> = object_keys(&updates.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_522: bool = true;
                 while { if !__for_first_522 { j += 1; } __for_first_522 = false; j < (timeframes.len() as i64) } {
-                let mut timeframe: Value = timeframes.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe).into()), Value::Str(":".into())).into()), marketId);
-                let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
+                let mut timeframe: Option<String> = timeframes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), marketId.as_deref().unwrap_or("null"));
+                let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
                 let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut symbolOhlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
                 client.resolve(Value::from(&symbolOhlcv), messageHash.as_str());
@@ -827,16 +827,16 @@ impl Ndax {
             }
             // 0 new, 1 update, 2 remove
             let mut type_var: Option<i64> = self.safe_integer(&bidask, Value::Int(3), &[]).as_i64();
-            let mut price: Value = self.safe_float(&bidask, Value::Int(6), &[]);
-            let mut amount: Value = self.safe_float(&bidask, Value::Int(8), &[]);
+            let mut price: Option<f64> = self.safe_float(&bidask, Value::Int(6), &[]).as_f64();
+            let mut amount: Option<f64> = self.safe_float(&bidask, Value::Int(8), &[]).as_f64();
             let mut side: Option<i64> = self.safe_integer(&bidask, Value::Int(9), &[]).as_i64();
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
             let mut orderbookSide: Value = (if (side == Some(0)) { orderbook.book_field("bids") } else { orderbook.book_field("asks") });
             // 0 new, 1 update, 2 remove
             if (type_var == Some(0)) {
-                orderbookSide.store(price.clone(), amount.clone());
+                orderbookSide.store(price, amount);
             }  else if (type_var == Some(1)) {
-                orderbookSide.store(price.clone(), amount);
+                orderbookSide.store(price, amount);
             }  else if (type_var == Some(2)) {
                 orderbookSide.store(price, Value::Int(0));
             }
@@ -846,7 +846,7 @@ impl Ndax {
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
         let mut name: String = "SubscribeLevel2".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId.as_deref().unwrap_or("null"));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
@@ -884,7 +884,7 @@ impl Ndax {
             return;
         }
         let mut snapshot: crate::value::Dict = self.parse_order_book(&payload, Value::from(symbol.as_deref()), &[]).into_dict();
-        let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
+        let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[]).as_i64();
         // reset the existing orderbook instead of replacing it: a consumer
         // holds a reference to the old object and would never see updates
         // after a re-subscription snapshot
@@ -892,7 +892,7 @@ impl Ndax {
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         orderbook.reset(Value::Dict(snapshot));

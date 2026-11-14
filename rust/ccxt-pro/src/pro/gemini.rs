@@ -340,7 +340,7 @@ impl Gemini {
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() has no websocket url".into()))));
         }
-        let mut url: String = format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/v2/marketdata".into()));
+        let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::Str("/v2/marketdata".into()));
         let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), request, subscribeHash.as_str(), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -573,7 +573,7 @@ impl Gemini {
             while { if !__for_first_343 { i += 1; } __for_first_343 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut symbolStore: Value = (if let (Some(__m), Some(__k)) = (storesForSymbols.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol.map(Value::from).unwrap_or(Value::Null));
+            let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(symbolStore, messageHash.as_str());
         }
         }
@@ -609,24 +609,24 @@ impl Gemini {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut timeframeId: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("name".to_string(), Value::Str(format!("{}{}", Value::Str("candles_".into()), timeframeId).into()));
+        m.insert("name".to_string(), Value::Str(format!("{}{}", Value::Str("candles_".into()), timeframeId.as_deref().unwrap_or("null")).into()));
         m.insert("symbols".to_string(), Value::from(vec![self.safe_string_upper_k(&market, "id", &[])]));
     m
 })]));
             m
         });
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), Value::from((market).symbol.as_str())).into()), Value::Str(":".into())).into()), timeframeId);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), Value::from((market).symbol.as_str())).into()), Value::Str(":".into())).into()), timeframeId.as_deref().unwrap_or("null"));
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() has no websocket url".into()))));
         }
-        let mut url: String = format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/v2/marketdata".into()));
+        let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::Str("/v2/marketdata".into()));
         let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -699,7 +699,7 @@ impl Gemini {
             stored.append(parsed);
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timeframeId);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), timeframeId);
         client.resolve(Value::from(&stored), messageHash.as_str());
         return message;
 
@@ -753,7 +753,7 @@ impl Gemini {
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() has no websocket url".into()))));
         }
-        let mut url: String = format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/v2/marketdata".into()));
+        let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::Str("/v2/marketdata".into()));
         let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_str(), messageHash.as_str(), request, subscribeHash.as_str(), Value::Null).await.into();
         return orderbook.limit();
         Value::Null
@@ -805,11 +805,11 @@ impl Gemini {
             let mut __for_first_346: bool = true;
             while { if !__for_first_346 { i += 1; } __for_first_346 = false; i < (changes.len() as i64) } {
             let mut delta: crate::value::List = changes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            let mut price: Value = self.safe_number(&delta, Value::Int(1), &[]);
-            let mut size: Value = self.safe_number(&delta, Value::Int(2), &[]);
+            let mut price: Option<f64> = self.safe_number(&delta, Value::Int(1), &[]).as_f64();
+            let mut size: Option<f64> = self.safe_number(&delta, Value::Int(2), &[]).as_f64();
             if (self.safe_string(&delta, Value::Int(0), &[]).as_str() == Some("buy")) {
                 let mut bids: Value = orderbook.book_field("bids");
-                bids.store(price.clone(), size.clone());
+                bids.store(price, size);
             }  else {
                 let mut asks: Value = orderbook.book_field("asks");
                 asks.store(price, size);
@@ -995,7 +995,7 @@ impl Gemini {
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" helperForWatchMultipleConstruct() has no websocket url".into()))));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/v1/multimarketdata?symbols=".into())).into()), queryStr).into()), Value::Str("&heartbeat=true&".into()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::Str("/v1/multimarketdata?symbols=".into())).into()), queryStr).into()), Value::Str("&heartbeat=true&".into()));
         if (itemHashName.as_str() == Some("orderbook")) {
             url.push_str("trades=false&bids=true&offers=true");
         }  else if (itemHashName.as_str() == Some("bidsasks")) {
@@ -1041,11 +1041,11 @@ impl Gemini {
             let mut __for_first_349: bool = true;
             while { if !__for_first_349 { i += 1; } __for_first_349 = false; i < (rawOrderBookChanges.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(rawOrderBookChanges.clone(), Value::Int(i), &[]).into_dict();
-            let mut price: Value = self.safe_number_k(&entry, "price", &[]);
-            let mut size: Value = self.safe_number_k(&entry, "remaining", &[]);
+            let mut price: Option<f64> = self.safe_number_k(&entry, "price", &[]).as_f64();
+            let mut size: Option<f64> = self.safe_number_k(&entry, "remaining", &[]).as_f64();
             let mut rawSide: Option<String> = self.safe_string_k(&entry, "side", &[]).as_str().map(str::to_owned);
             if (rawSide.as_deref() == Some("bid")) {
-                bids.store(price.clone(), size.clone());
+                bids.store(price, size);
             }  else {
                 asks.store(price, size);
             }
@@ -1129,7 +1129,7 @@ impl Gemini {
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() has no websocket url".into()))));
         }
-        let mut url: String = format!("{}{}", wsUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked".into()));
+        let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), Value::Str("/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked".into()));
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }

@@ -593,7 +593,7 @@ impl Bitget {
             args.insert(topicOrChannel, Value::Str("ticker".into()));
             args.insert(symbolOrInstId, Value::from((marketInner).id.as_deref()));
             topics.push(Value::Map(args));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol.as_deref().unwrap_or("null")).into()));
         }
         }
         let mut tickers: Value = self.watch_public_multiple((uta == Some(true)), Value::from(messageHashes), Value::from(topics), &[Value::Dict(paramsValue)]).await;
@@ -881,7 +881,7 @@ impl Bitget {
             args.insert(topicOrChannel, Value::Str("ticker".into()));
             args.insert(symbolOrInstId, Value::from((marketInner).id.as_deref()));
             topics.push(Value::Map(args));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol.as_deref().unwrap_or("null")).into()));
         }
         }
         let mut tickers: Value = self.watch_public_multiple((uta == Some(true)), Value::from(messageHashes), Value::from(topics), &[Value::Dict(paramsValue)]).await;
@@ -1012,7 +1012,7 @@ impl Bitget {
             args.insert("interval".into(), interval.clone().map(Value::from).unwrap_or(Value::Null));
             messageHash = Some(format!("{}{}", Value::Str("kline:".into()), symbolValue));
         }  else {
-            args.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("candle".into()), interval.map(Value::from).unwrap_or(Value::Null)).into()));
+            args.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("candle".into()), interval.as_deref().unwrap_or("null")).into()));
             args.insert("instId".into(), Value::from((market).id.as_deref()));
             messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue));
         }
@@ -1089,10 +1089,10 @@ impl Bitget {
             args.insert("interval".into(), interval.clone().map(Value::from).unwrap_or(Value::Null));
             messageHash = Some(format!("{}{}", Value::Str("kline".into()), symbol));
         }  else {
-            channel = Some(format!("{}{}", Value::Str("candle".into()), interval.clone().map(Value::from).unwrap_or(Value::Null)));
+            channel = Some(format!("{}{}", Value::Str("candle".into()), interval.as_deref().unwrap_or("null")));
             args.insert("channel".into(), channel.clone().map(Value::from).unwrap_or(Value::Null));
             args.insert("instId".into(), Value::from((market).id.as_deref()));
-            messageHash = Some(format!("{}{}", Value::Str("candles:".into()), interval.map(Value::from).unwrap_or(Value::Null)));
+            messageHash = Some(format!("{}{}", Value::Str("candles:".into()), interval.as_deref().unwrap_or("null")));
         }
         return self.un_watch_channel(symbol.as_str().unwrap_or_default(), channel.as_deref().unwrap_or_default(), messageHash.as_deref().unwrap_or_default(), "watchOHLCV", &[paramsRequest]).await;
         Value::Null
@@ -1202,7 +1202,7 @@ impl Bitget {
         if (isUta == Some(true)) {
             messageHash = Some(format!("{}{}", Value::Str("kline:".into()), symbol));
         }  else {
-            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), symbol));
+            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbol));
         }
         client.resolve(Value::from(&stored), messageHash.as_deref());
 }
@@ -1467,7 +1467,7 @@ impl Bitget {
             args.insert(topicOrChannel, channel.clone());
             args.insert(symbolOrInstId, Value::from((market).id.as_deref()));
             topics.push(Value::Map(args));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null")).into()));
         }
         }
         if isStockOrUta {
@@ -1772,7 +1772,7 @@ impl Bitget {
             args.insert(topicOrChannel, (if (uta == Some(true)) { Value::Str("publicTrade".into()) } else { Value::Str("trade".into()) }));
             args.insert(symbolOrInstId, Value::from((market).id.as_deref()));
             topics.push(Value::Map(args));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol.as_deref().unwrap_or("null")).into()));
         }
         }
         let mut paramsRequest: Value = paramsCursor.clone();
@@ -2653,7 +2653,7 @@ impl Bitget {
             let mut __for_first_121: bool = true;
             while { if !__for_first_121 { i += 1; } __for_first_121 = false; i < (keys.len() as i64) } {
             let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
+            let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
             if (channel.as_deref() == Some("orders-crossed")) {
                 innerMessageHash = format!("{}{}", innerMessageHash, Value::Str(":cross".into()));
             }  else if (channel.as_deref() == Some("orders-isolated")) {
@@ -3436,7 +3436,7 @@ impl Bitget {
         // see https://github.com/ccxt/ccxt/issues/21973
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), message); }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        let mut messageHash: String = format!("{}{}", Value::Str("balance:".into()), instType.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("balance:".into()), instType.as_deref().unwrap_or("null"));
         client.resolve(self.balance.clone(), messageHash.as_str());
 }
 
@@ -3875,9 +3875,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut instId: Option<String> = self.safe_string2(&arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(instId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(type_var)]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into());
-        let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol);
+        let mut subMessageHash: String = format!("{}{}", Value::Str("orderbook:".into()), symbol.as_deref().unwrap_or("null"));
         if (self.orderbooks.has(&symbol)) {
             CacheStore::forget(&mut self.orderbooks, &symbol);
         }
@@ -3887,7 +3887,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             __ch.remove_subscription(&messageHash);
         }
-        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".into())).into()), symbol)));
+        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".into())).into()), symbol.as_deref().unwrap_or("null"))));
         if (__ch.has_future(subMessageHash.as_str())) {
             client.reject(error, subMessageHash.as_str());
         }
@@ -3989,7 +3989,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             isUta = Some(true);
         }
         let mut timeframes: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "timeframes", &[]).into_opt_dict();
-        let mut timeframe: Value = Value::from(self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[timeframes.map_or(Value::Null, Value::Dict)]));
+        let mut timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[timeframes.map_or(Value::Null, Value::Dict)]);
         let mut market: crate::types::Market = self.safe_market(instId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(type_var)]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: Option<String> = None;
@@ -3997,12 +3997,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (isUta == Some(true)) {
             messageHash = Some(format!("{}{}", Value::Str("unsubscribe:kline:".into()), symbol));
             subMessageHash = Some(format!("{}{}", Value::Str("kline:".into()), symbol));
-        }  else if (timeframe != Value::Null) {
-            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol));
-            subMessageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbol));
+        }  else if (timeframe.is_some()) {
+            messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbol));
+            subMessageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbol));
         }
         if (CacheShelves::has(&self.ohlcvs, &symbol)) {
-            if (timeframe != Value::Null) && (self.ohlcvs.shelf(&symbol).has(&timeframe)) {
+            if (timeframe.is_some()) && (self.ohlcvs.shelf(&symbol).has(&timeframe)) {
                 CacheShelves::forget2(&mut self.ohlcvs, &symbol, &timeframe);
             }
         }

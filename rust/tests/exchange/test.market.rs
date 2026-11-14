@@ -293,9 +293,9 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
             // max >= 0
             crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), limitEntry.clone(), Value::Str("max".into()).clone(), Value::Str("0".into()).clone()]);
             // max >= min
-            let mut minString: Value = exchange.safe_string(&limitEntry, Value::Str("min".into()), &[]);
-            if (minString != Value::Null) {
-                crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), limitEntry.clone(), Value::Str("max".into()).clone(), minString.clone()]);
+            let mut minString: Option<String> = exchange.safe_string(&limitEntry, Value::Str("min".into()), &[]).as_str().map(str::to_owned);
+            if (minString.is_some()) {
+                crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), limitEntry.clone(), Value::Str("max".into()).clone(), minString.map(Value::from).unwrap_or(Value::Null).clone()]);
             }
         }
     }

@@ -827,7 +827,7 @@ impl Polymarket {
         let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(Some(symbolResolved.as_str()), limitResolved.clone());
+            limitResolved = trades.get_limit(Some(symbolResolved.as_str()), limitResolved);
         }
         return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
@@ -1017,7 +1017,7 @@ impl Polymarket {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() does not support the ".into())).into()), timeframe).into()), Value::Str(" timeframe over the websocket".into()))));
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolResolved);
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("::".into())).into()), interval.map(Value::from).unwrap_or(Value::Null));
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("::".into())).into()), interval.as_deref().unwrap_or("null"));
         let mut request: crate::value::Dict = self.send_subscription(Value::Str("sub".into()), Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1026,7 +1026,7 @@ impl Polymarket {
         let mut ohlcv: Value = self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = ohlcv.get_limit(Some(symbolResolved.as_str()), limitResolved.clone());
+            limitResolved = ohlcv.get_limit(Some(symbolResolved.as_str()), limitResolved);
         }
         return self.filter_by_since_limit(ohlcv, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]);
         Value::Null
@@ -1065,7 +1065,7 @@ impl Polymarket {
         let mut interval: Option<String> = self.safe_string(&wsTimeframes, timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolResolved);
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
-        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("::".into())).into()), interval.map(Value::from).unwrap_or(Value::Null));
+        let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), Value::Str("::".into())).into()), interval.as_deref().unwrap_or("null"));
         let mut context: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
@@ -1128,7 +1128,7 @@ impl Polymarket {
             ohlcv.append(Value::Arr(parsed));
         }
         }
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), symbol);
         client.resolve(Value::from(&ohlcv), messageHash.as_str());
 }
 
@@ -1229,7 +1229,7 @@ impl Polymarket {
         let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, "orders", Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(symbolResolved.as_deref(), limitResolved.clone());
+            limitResolved = orders.get_limit(symbolResolved.as_deref(), limitResolved);
         }
         return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
@@ -1352,7 +1352,7 @@ impl Polymarket {
         let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, "fills", Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(symbolResolved.as_deref(), limitResolved.clone());
+            limitResolved = trades.get_limit(symbolResolved.as_deref(), limitResolved);
         }
         return self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
@@ -1704,7 +1704,7 @@ impl Polymarket {
             // post replies carry a data object - the auth op is matched back
             // through its pending entry, anything else counts like a pong
             if (id.is_some()) {
-                let mut postKey: String = format!("{}{}", Value::Str("req:".into()), id.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut postKey: String = format!("{}{}", Value::Str("req:".into()), id.as_deref().unwrap_or("null"));
                 let mut postPending: Option<crate::value::Dict> = self.safe_dict(__ch.subscriptions.clone(), Value::from(postKey.clone()), &[]).into_opt_dict();
                 if (postPending.is_some()) {
                     __ch.remove_subscription(postKey.as_str());
@@ -1736,7 +1736,7 @@ impl Polymarket {
         if (id.is_none()) {
             return;
         }
-        let mut key: String = format!("{}{}", Value::Str("req:".into()), id.map(Value::from).unwrap_or(Value::Null));
+        let mut key: String = format!("{}{}", Value::Str("req:".into()), id.as_deref().unwrap_or("null"));
         let mut pending: Option<crate::value::Dict> = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(key.clone()), &[]).into_opt_dict();
         if (pending.is_none()) {
             return;

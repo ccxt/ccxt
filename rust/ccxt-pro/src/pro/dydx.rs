@@ -577,8 +577,8 @@ impl Dydx {
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
         if (matches!(&delta, Value::Arr(_))) {
-            let mut price: Value = self.safe_float(delta.clone(), Value::Int(0), &[]);
-            let mut amount: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
+            let mut price: Option<f64> = self.safe_float(delta.clone(), Value::Int(0), &[]).as_f64();
+            let mut amount: Option<f64> = self.safe_float(delta.clone(), Value::Int(1), &[]).as_f64();
             bookside.store(price, amount);
         }  else {
             let mut bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("size".into())]).into_list();
@@ -623,7 +623,7 @@ impl Dydx {
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_candles".into()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("/".into())).into()), resolution.map(Value::from).unwrap_or(Value::Null)).into()));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("/".into())).into()), resolution.as_deref().unwrap_or("null")).into()));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
@@ -671,7 +671,7 @@ impl Dydx {
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("channel".to_string(), Value::Str("v4_candles".into()));
-                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("/".into())).into()), resolution.map(Value::from).unwrap_or(Value::Null)).into()));
+                m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("/".into())).into()), resolution.as_deref().unwrap_or("null")).into()));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);

@@ -479,14 +479,14 @@ impl Hyperliquid {
         if (side.as_f64() == Some(0.0)) {
             label = "YES".to_string();
         }
-        let mut base: Value = (if let Some(__s) = underlying.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut base: Option<String> = underlying.as_str().map(str::to_uppercase);
         if (targetPrice != "") {
-            base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_ABOVE_".into())).into()), targetPrice).into());
+            base = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("_ABOVE_".into())).into()), targetPrice));
         }
         if (expiryDate.as_deref() != Some("")) {
-            base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".into())).into()), expiryDate.map(Value::from).unwrap_or(Value::Null)).into());
+            base = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("_".into())).into()), expiryDate.as_deref().unwrap_or("null")));
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str(":".into())).into()), label).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), label).into()).as_str().map(str::to_owned);
 }
 
 /*
@@ -523,7 +523,7 @@ impl Hyperliquid {
             }
             let mut expiryPart: String = "".to_string();
             if (expiryDate.as_deref() != Some("")) {
-                expiryPart = format!("{}{}", Value::Str("_".into()), expiryDate.map(Value::from).unwrap_or(Value::Null));
+                expiryPart = format!("{}{}", Value::Str("_".into()), expiryDate.as_deref().unwrap_or("null"));
             }
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(underlying.to_uppercase()), targetPart).into()), expiryPart).into()).as_str().map(str::to_owned);
         }
@@ -541,7 +541,7 @@ impl Hyperliquid {
                 }
                 let mut questionExpiryPart: String = "".to_string();
                 if (questionExpiryDate.as_deref() != Some("")) {
-                    questionExpiryPart = format!("{}{}", Value::Str("_".into()), questionExpiryDate.map(Value::from).unwrap_or(Value::Null));
+                    questionExpiryPart = format!("{}{}", Value::Str("_".into()), questionExpiryDate.as_deref().unwrap_or("null"));
                 }
                 let mut thresholdsRaw: String = self.safe_string_k(&questionDesc, "priceThresholds", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut indexStr: Option<String> = self.safe_string_k(desc.clone(), "index", &[]).as_str().map(str::to_owned);
@@ -602,9 +602,9 @@ impl Hyperliquid {
                     }
                 }
                 if (outcomeSlug != Value::Null) && (outcomeSlug.as_str() != Some("")) {
-                    return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionSlug.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), outcomeSlug).into()), Value::Str("_".into())).into()), Value::Str(format!("{}", outcomeId).into())).into()).as_str().map(str::to_owned);
+                    return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionSlug.as_deref().unwrap_or("null"), Value::Str("_".into())).into()), outcomeSlug).into()), Value::Str("_".into())).into()), Value::Str(format!("{}", outcomeId).into())).into()).as_str().map(str::to_owned);
                 }
-                return Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionSlug.map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), Value::Str(format!("{}", outcomeId).into())).into()).as_str().map(str::to_owned);
+                return Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionSlug.as_deref().unwrap_or("null"), Value::Str("_".into())).into()), Value::Str(format!("{}", outcomeId).into())).into()).as_str().map(str::to_owned);
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
@@ -1583,8 +1583,8 @@ impl Hyperliquid {
             let mut tradeCoin: String = format!("{}{}", Value::Str("#".into()), Value::from(coin.chars().skip(1).collect::<String>()));
             let mut outcomeObj: Value = self.safe_outcome(Value::from(tradeCoin.clone()), None);
             if (outcomes != Value::Null) {
-                let mut outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj.clone(), "outcome", &[]);
-                if (outcomeHandle.is_none()) || !(matches!(&outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if requestedOutcomeSymbols.contains_key(__k.as_ref()))) {
+                let mut outcomeHandle: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcome", &[]).as_str().map(str::to_owned);
+                if (outcomeHandle.is_none()) || !(matches!(outcomeHandle.as_deref(), Some(__k) if requestedOutcomeSymbols.contains_key(__k))) {
                     continue;
                 }
             }
@@ -1684,7 +1684,7 @@ impl Hyperliquid {
 })]).into_dict();
                 let mut ocSymbol: Value = self.safe_string2(&oc, Value::Str("outcome".into()), Value::Str("symbol".into()), &[Value::Str("".into())]);
                 let mut ocLabel: Option<String> = self.safe_string_upper_k(&oc, "label", &[]).as_str().map(str::to_owned);
-                if (ocLabel == normalizedHint) || (ocSymbol.as_str().zip((Value::Str(format!("{}{}", Value::Str(":".into()), normalizedHint.clone().map(Value::from).unwrap_or(Value::Null)).into())).as_str()).is_some_and(|(__s, __p)| __s.ends_with(__p))) {
+                if (ocLabel == normalizedHint) || (ocSymbol.as_str().zip((Value::Str(format!("{}{}", Value::Str(":".into()), normalizedHint.as_deref().unwrap_or("null")).into())).as_str()).is_some_and(|(__s, __p)| __s.ends_with(__p))) {
                     return Value::Dict(oc);
                 }
             }
@@ -2810,7 +2810,7 @@ impl Hyperliquid {
                 let mut symLower: Option<String> = parentSymbolOrEmpty.as_str().map(str::to_lowercase);
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
-                let mut haystack: String = format!("{}{}", Value::Str(format!("{}{}", description, Value::Str(" ".into())).into()), symLower.map(Value::from).unwrap_or(Value::Null));
+                let mut haystack: String = format!("{}{}", Value::Str(format!("{}{}", description, Value::Str(" ".into())).into()), symLower.as_deref().unwrap_or("null"));
                 let mut matches: bool = false;
                 {
                                         let mut qi: i64 = 0;
@@ -2933,12 +2933,12 @@ impl Hyperliquid {
         if (underlying.is_some()) {
             let mut titleSuffix: String = "".to_string();
             if (targetPrice.is_some()) && (targetPrice.as_deref() != Some("")) {
-                titleSuffix = format!("{}{}", Value::Str(format!("{}{}", titleSuffix, Value::Str(" ABOVE ".into())).into()), targetPrice.map(Value::from).unwrap_or(Value::Null));
+                titleSuffix = format!("{}{}", Value::Str(format!("{}{}", titleSuffix, Value::Str(" ABOVE ".into())).into()), targetPrice.as_deref().unwrap_or("null"));
             }
             if (expiryRaw.is_some()) && (expiryRaw.as_deref() != Some("")) {
-                titleSuffix = format!("{}{}", Value::Str(format!("{}{}", titleSuffix, Value::Str(" @ ".into())).into()), expiryRaw.map(Value::from).unwrap_or(Value::Null));
+                titleSuffix = format!("{}{}", Value::Str(format!("{}{}", titleSuffix, Value::Str(" @ ".into())).into()), expiryRaw.as_deref().unwrap_or("null"));
             }
-            title = Some(format!("{}{}", underlying.map(Value::from).unwrap_or(Value::Null), titleSuffix));
+            title = Some(format!("{}{}", underlying.as_deref().unwrap_or("null"), titleSuffix));
         }
         let mut endValue: Option<i64> = (if (expiryMs.is_some()) { expiryMs } else { firstExpiry });
         return self.extend(Value::Map({

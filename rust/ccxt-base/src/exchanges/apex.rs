@@ -1072,7 +1072,7 @@ impl Apex {
         if (baseId.is_none()) || (quote.is_none()) || (settle.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
         let mut expiry: i64 = 0;
         let mut takerFee: Option<f64> = Some(0.0002_f64);
         let mut makerFee: Option<f64> = Some(0.0005_f64);
@@ -2187,13 +2187,13 @@ impl Apex {
                     m.insert("isContract".to_string(), Value::Bool(true));
                 m
             });
-            let mut signature: Value = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), &[orderToSign.clone()]).await;
+            let mut signature: Value = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), &[orderToSign]).await;
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("amount".to_string(), amount.clone());
                     m.insert("expireTime".to_string(), Value::from(expireTime));
                     m.insert("clientWithdrawId".to_string(), finalClientOrderId.clone());
-                    m.insert("signature".to_string(), signature.clone());
+                    m.insert("signature".to_string(), signature);
                     m.insert("token".to_string(), code.clone());
                     m.insert("ethAddress".to_string(), Value::from(ethAddress));
                 m

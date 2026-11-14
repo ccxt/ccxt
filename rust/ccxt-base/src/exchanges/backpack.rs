@@ -1434,7 +1434,7 @@ impl Backpack {
                 if (assetId.is_none()) {
                     continue;
                 }
-                let mut marketId: Value = Value::Str(format!("{}{}", assetId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("_USDC_RFQ".into())).into());
+                let mut marketId: Value = Value::Str(format!("{}{}", assetId.as_deref().unwrap_or("null"), Value::Str("_USDC_RFQ".into())).into());
                 if !(matches!(&marketId, Value::Str(__k) if marketIds.contains_key(__k.as_ref()))) {
                     let mut market: Value = self.parse_market(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -1589,7 +1589,7 @@ impl Backpack {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut filters: crate::value::Dict = self.safe_dict_k(market.clone(), "filters", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1623,7 +1623,7 @@ impl Backpack {
         if (typeOfMarket.as_deref() == Some("spot")) || matches!(&rfq, Value::Bool(true)) {
             type_var = Some("spot".to_string());
             if matches!(&rfq, Value::Bool(true)) {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(".RFQ/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str(".RFQ/".into())).into()), quote.as_deref().unwrap_or("null"));
                 let mut sessions: crate::value::List = self.safe_list_k(&security, "sessions", &[Value::from(vec![])]).into_list();
                 let mut stepSize: Option<String> = None;
                 let mut minimum: Option<String> = None;
@@ -1662,7 +1662,7 @@ impl Backpack {
             inverse = Some(false);
             settleId = self.safe_string_k(market.clone(), "quoteSymbol", &[]).as_str().map(str::to_owned);
             settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)); // settle is the quote currency
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), quote.as_deref().unwrap_or("null")); // settle is the quote currency
             contractSize = Some(1);
         }  else {
             return Value::Null;
@@ -2609,7 +2609,7 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut maxLimit: Value = Value::Int(2000);
+        let mut maxLimit: i64 = 2000;
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
@@ -2627,11 +2627,11 @@ impl Backpack {
             request.insert("endTime".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // convert milliseconds to seconds
         }
         let mut defaultLimit: i64 = 100;
-        let mut limitResolved: Value = limit;
-        if (limitResolved != Value::Null) {
-            limitResolved = crate::runtime::Math::min(&limitResolved, &maxLimit);
+        let mut limitResolved: Option<i64> = limit.as_i64();
+        if (limitResolved.is_some()) {
+            limitResolved = (if let Some(__m0) = limitResolved { Some(i64::min(__m0, maxLimit)) } else { None });
         }
-        let mut windowLimit: Value = (if (limitResolved == Value::Null) { Value::from(defaultLimit) } else { limitResolved.clone() });
+        let mut windowLimit: Option<i64> = (if (limitResolved.is_none()) { Some(defaultLimit) } else { limitResolved });
         let mut now: Value = Value::Int(self.milliseconds());
         let mut startTime: Value = since.clone();
         let mut untilValue: Value = until;
@@ -2639,13 +2639,13 @@ impl Backpack {
             if (untilValue == Value::Null) {
                 untilValue = now.clone();
             }
-            startTime = (match (&(untilValue), &(((match (&(windowLimit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            startTime = (match (&(untilValue), &((Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
         request.insert("startTime".into(), Value::from(self.parse_to_int((match ((startTime).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         // set until value
         if (untilValue == Value::Null) {
-            let mut windowEnd: Value = self.sum(&[startTime, (match (&(windowLimit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+            let mut windowEnd: Value = self.sum(&[startTime, Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))]);
             untilValue = crate::runtime::Math::min(&now, &windowEnd);
         }
         request.insert("endTime".into(), Value::from(self.parse_to_int((match ((untilValue).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
@@ -2657,7 +2657,7 @@ impl Backpack {
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_api_v1_klines(&[__ws_arg_6]).await.into_list();
         let mut ohlcvs: Value = self.to_array(&response);
-        return self.parse_ohlc_vs(ohlcvs, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -3845,7 +3845,7 @@ impl Backpack {
             while { if !__for_first_257 { i += 1; } __for_first_257 = false; i < (unsupported.len() as i64) } {
             let mut key: Option<String> = unsupported.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (matches!((&paramsResolved, key.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() RFQs do not support ".into())).into()), key.map(Value::from).unwrap_or(Value::Null))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() RFQs do not support ".into())).into()), key.as_deref().unwrap_or("null"))));
             }
         }
         }
@@ -4443,7 +4443,7 @@ impl Backpack {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), id.clone());
+                m.insert("orderId".to_string(), id);
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -5048,7 +5048,7 @@ impl Backpack {
                 endpoint.push_str(&format!("{}{}", Value::Str("?".into()), query));
             }
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), endpoint);
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         let mut headersResolved: Value = (if (apiName.as_deref() == Some("private")) { headersSigned } else { Value::Null });
         let mut bodyResolved: Value = Value::Null;
         if (apiName.as_deref() == Some("private")) && (method.as_str() != Some("GET")) {

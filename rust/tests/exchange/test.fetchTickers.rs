@@ -15,11 +15,11 @@ pub async fn testFetchTickers(mut exchange: Value, mut skippedProperties: Value,
     // fetchTickers by the outcome handle instead
     if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("prediction".into()), &[Value::Bool(false)]), Value::Bool(true)) {
         let mut predictionResult: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::from(vec![symbol.clone()]), &[]).await;
-        return Value::from(vec![predictionResult.clone()]);
+        return Value::from(vec![predictionResult]);
     }
     let mut withoutSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::Null, &[]).await;
-    let mut withSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::from(vec![symbol.clone()]), &[]).await;
-    let mut results: Value = promise_all(&Value::from(vec![withoutSymbol.clone(), withSymbol.clone()])).await;
+    let mut withSymbol: Value = fetchTickersHelperTest(exchange.clone(), skippedProperties.clone(), Value::from(vec![symbol]), &[]).await;
+    let mut results: Value = promise_all(&Value::from(vec![withoutSymbol, withSymbol])).await;
     fetchTickersAmountsTest(exchange.clone(), skippedProperties, results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
     return results;
 

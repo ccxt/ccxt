@@ -14,7 +14,7 @@ pub fn testImplodeParams() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    let mut path: Value = Value::Str("v2/watchlists/{timeframe_id}/{symbol_id}".into());
+    let mut path: String = "v2/watchlists/{timeframe_id}/{symbol_id}".to_string();
     let mut params: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("timeframe_id".to_string(), Value::Str("1m".into()));
@@ -23,6 +23,6 @@ pub fn testImplodeParams() {
         m
     });
     let mut expected: String = "v2/watchlists/1m/BTC/USDT".to_string();
-    let mut result: String = exchange.implode_params(path, params);
+    let mut result: String = exchange.implode_params(Value::from(path), params);
     assert!(ccxt::runtime::is_true(&((result == expected))));
 }

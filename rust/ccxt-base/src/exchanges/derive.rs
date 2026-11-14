@@ -1691,7 +1691,7 @@ impl Derive {
             return Value::Null;
         }
         let mut marketId: Option<String> = self.safe_string_k(market.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut settleId: Option<String> = None;
         let mut settle: Value = Value::Null;
         let mut expiry: Option<i64> = None;
@@ -1706,7 +1706,7 @@ impl Derive {
             settleId = Some("USDC".to_string());
             settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             if (settle != Value::Null) {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle);
+                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle);
             }
             swap = true;
             linear = Some(true);
@@ -3045,10 +3045,10 @@ impl Derive {
         // the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
         let mut rawNonce: i64 = self.incrementing_nonce();
         let mut randomPart: i64 = self.rand_number(Value::Int(6)); // guards against collisions of different instances with the same wallet
-        let mut milliseconds: Value = Value::from(self.number_to_string(Value::from(rawNonce)));
+        let mut milliseconds: Option<String> = self.number_to_string(Value::from(rawNonce));
         let mut suffix: Option<String> = self.number_to_string(Value::from(randomPart));
         let mut padded: Option<String> = (if let Some(__s) = suffix.as_deref() { Some(format!("{:0>6}", __s)) } else { None });
-        return Value::Str(format!("{}{}", milliseconds, padded.map(Value::from).unwrap_or(Value::Null)).into()).as_str().map(str::to_owned);
+        return Value::Str(format!("{}{}", milliseconds.as_deref().unwrap_or("null"), padded.as_deref().unwrap_or("null")).into()).as_str().map(str::to_owned);
 }
 
     pub fn hash_message(&self, message: &str) -> Option<String> {
@@ -3135,8 +3135,8 @@ impl Derive {
         let mut timeInForce: Option<String> = self.safe_string_lower2(Value::from(&paramsDeriveSubaccountId), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = self.safe_bool_k(&paramsDeriveSubaccountId, "postOnly", &[]).as_bool();
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
-        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
+        let mut orderSideIsBuy: Value = (Value::Bool(orderSide == "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         let mut signatureExpiry: Value = self.safe_integer_k(&paramsDeriveSubaccountId, "signature_expiry_sec", &[(match (&(Value::Int(self.seconds())), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
@@ -3169,7 +3169,7 @@ impl Derive {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("direction".to_string(), orderSide);
+                m.insert("direction".to_string(), Value::from(orderSide));
                 m.insert("order_type".to_string(), Value::from(orderType));
                 m.insert("nonce".to_string(), nonce);
                 m.insert("amount".to_string(), amountString);
@@ -3327,8 +3327,8 @@ impl Derive {
         let mut timeInForce: Option<String> = self.safe_string_lower2(Value::from(&paramsDeriveSubaccountId), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = self.safe_bool_k(&paramsDeriveSubaccountId, "postOnly", &[]).as_bool();
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
-        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        let mut orderSideIsBuy: Value = (Value::Bool(orderSide.as_str() == Some("buy"))); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+        let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
+        let mut orderSideIsBuy: Value = (Value::Bool(orderSide == "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Value = self.nonce_string().map(Value::from).unwrap_or(Value::Null);
         let mut signatureExpiry: Value = self.safe_number_k(&paramsDeriveSubaccountId, "signature_expiry_sec", &[(match (&(Value::Int(self.seconds())), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
             Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
@@ -3352,8 +3352,8 @@ impl Derive {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                m.insert("order_id_to_cancel".to_string(), id.clone());
-                m.insert("direction".to_string(), orderSide);
+                m.insert("order_id_to_cancel".to_string(), id);
+                m.insert("direction".to_string(), Value::from(orderSide));
                 m.insert("order_type".to_string(), Value::from(orderType));
                 m.insert("nonce".to_string(), nonce);
                 m.insert("amount".to_string(), amountString);
@@ -3520,11 +3520,11 @@ impl Derive {
             m
         });
         let mut clientOrderIdUnified: Option<String> = self.safe_string_k(&paramsOmitted, "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(&paramsOmitted, "label", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
-        let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
+        let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k(&paramsOmitted, "label", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
         let mut response: Option<crate::value::Dict> = None;
         if isByClientOrder {
-            request.insert("label".into(), clientOrderIdExchangeSpecific.clone());
+            request.insert("label".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
             let mut paramsLabel: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("label".into())]), &[]).into_dict();
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsLabel]);
             response = self.private_post_cancel_by_label(&[__ws_arg_15]).await.into_opt_dict();
@@ -3590,7 +3590,7 @@ impl Derive {
             m
         })]).into_dict();
         if isByClientOrder {
-            extendParams.insert("client_order_id".into(), clientOrderIdExchangeSpecific);
+            extendParams.insert("client_order_id".into(), clientOrderIdExchangeSpecific.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_18 = self.parse_order(&order, Some(&market));
         return self.extend(__ws_arg_18, &[Value::Map(extendParams)]);
@@ -4190,7 +4190,7 @@ impl Derive {
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id.clone());
+                m.insert("order_id".to_string(), id);
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
             m
         });
@@ -5949,7 +5949,7 @@ impl Derive {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), path);
         if (method.as_str() == Some("POST")) {
             let mut postHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

@@ -50,7 +50,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
             if !exchange.in_array(networkCode, allowedUnifiedAliases.clone()) {
                 assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkId.clone(), collectedNetworkIds.clone()))))));
             }
-            append_to_array(&mut collectedNetworkIds, networkId.clone());
+            append_to_array(&mut collectedNetworkIds, networkId);
         }
         }
         // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
@@ -61,7 +61,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
             while { if !__for_first_1559 { i += 1; } __for_first_1559 = false; i < (networkCodes.len() as i64) } {
             let mut networkCodeLower: Value = ((networkCodes.get(i as usize).cloned().unwrap_or(Value::Null))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkCodeLower.clone(), collectedNetworkCodes.clone()))))));
-            append_to_array(&mut collectedNetworkCodes, networkCodeLower.clone());
+            append_to_array(&mut collectedNetworkCodes, networkCodeLower);
         }
         }
         {

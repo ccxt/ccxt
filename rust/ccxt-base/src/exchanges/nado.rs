@@ -1099,7 +1099,7 @@ impl Nado {
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.clone());
                 m.insert("productIds".to_string(), Value::from(vec![Value::from(productId)]));
-                m.insert("digests".to_string(), Value::from(vec![id.clone()]));
+                m.insert("digests".to_string(), Value::from(vec![id]));
                 m.insert("nonce".to_string(), cancelNonce);
             m
         });
@@ -2563,9 +2563,9 @@ impl Nado {
             let mut quoteId: Value = self.safe_string_k(&quoteAsset, "product_id", &[Value::from(rawQuoteId)]);
             let mut settleId: Value = (if contract { quoteId.clone() } else { Value::Null });
             let mut settle: Option<String> = (if contract { quote.clone() } else { None });
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
             if contract {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), quote.as_deref().unwrap_or("null"));
             }
             let mut tradingStatus: Option<String> = self.safe_string_k(&market, "trading_status", &[]).as_str().map(str::to_owned);
             let mut active: bool = tradingStatus.as_deref() != Some("not_tradable");
@@ -3543,13 +3543,13 @@ impl Nado {
         let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<String> = None;
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last_price", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp.as_deref())));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), Value::Null);
@@ -4427,7 +4427,7 @@ impl Nado {
         if (path.as_str() != Some("")) {
             pathSuffix = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         }
-        let mut url: String = format!("{}{}", baseApiUrl.clone().map(Value::from).unwrap_or(Value::Null), pathSuffix);
+        let mut url: String = format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), pathSuffix);
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4438,7 +4438,7 @@ impl Nado {
         }
         if (method.as_str() == Some("GET")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.map(Value::from).unwrap_or(Value::Null), pathSuffix).into()), Value::Str("?".into())).into()), self.urlencode(query.clone(), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), pathSuffix).into()), Value::Str("?".into())).into()), self.urlencode(query.clone(), &[]));
             }
         }  else {
             headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));

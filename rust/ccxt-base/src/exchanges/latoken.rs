@@ -911,12 +911,12 @@ impl Latoken {
                     continue;
                 }
                 let mut lowercaseQuote: Option<String> = quote.as_deref().map(str::to_lowercase);
-                let mut capitalizedQuote: Value = self.capitalize(lowercaseQuote.map(Value::from).unwrap_or(Value::Null));
+                let mut capitalizedQuote: Option<String> = self.capitalize(lowercaseQuote.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 let mut status: Option<String> = self.safe_string_k(&market, "status", &[]).as_str().map(str::to_owned);
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
                         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("settle".to_string(), Value::Null);
@@ -966,8 +966,8 @@ impl Latoken {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", Value::Str("minOrderCost".into()), capitalizedQuote).into()), &[]));
-        m.insert("max".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", Value::Str("maxOrderCost".into()), capitalizedQuote).into()), &[]));
+        m.insert("min".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", Value::Str("minOrderCost".into()), capitalizedQuote.as_deref().unwrap_or("null")).into()), &[]));
+        m.insert("max".to_string(), self.safe_number(&market, Value::Str(format!("{}{}", Value::Str("maxOrderCost".into()), capitalizedQuote.as_deref().unwrap_or("null")).into()), &[]));
     m
 }));
     m
@@ -1395,7 +1395,7 @@ impl Latoken {
         let mut symbol: Value = Value::Null;
         let mut marketResolved: Value = crate::Value::from(market);
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             }
@@ -1530,7 +1530,7 @@ impl Latoken {
         //         "makerBuyer":false
         //     }
         //
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "quantity", &[]).as_str().map(str::to_owned);
@@ -1556,7 +1556,7 @@ impl Latoken {
         let mut symbol: Value = Value::Null;
         let mut marketResolved: Value = crate::Value::from(market);
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into());
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
             if (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             }
@@ -1581,7 +1581,7 @@ impl Latoken {
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -1881,7 +1881,7 @@ impl Latoken {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Value = Value::Null;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
         }
         let mut symbolKnown: bool = (symbol != Value::Null) && (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())));
         let mut marketResolved: Value = crate::Value::from(market);
@@ -1910,7 +1910,7 @@ impl Latoken {
             }
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut timeInForce: Value = self.parse_time_in_force((self.safe_string_k(order.clone(), "condition", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(order.clone(), "condition", &[])).as_str());
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1922,7 +1922,7 @@ impl Latoken {
         m.insert("status".to_string(), status);
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -2676,7 +2676,7 @@ impl Latoken {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), requestString);
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestString);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

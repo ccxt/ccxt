@@ -896,7 +896,7 @@ impl Coinone {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -1281,7 +1281,7 @@ impl Coinone {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1478,9 +1478,9 @@ impl Coinone {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // unified lowercase order sides, same override rule
-        if (orderType.as_str() != Some("LIMIT")) {
+        let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase(); // unified lowercase order sides, same override rule
+        if (orderType != "LIMIT") {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
         }
         if (price == Value::Null) {
@@ -1497,8 +1497,8 @@ impl Coinone {
             let mut m = indexmap::IndexMap::new();
                 m.insert("quote_currency".to_string(), Value::from((market).quote_id.as_deref()));
                 m.insert("target_currency".to_string(), Value::from((market).base_id.as_deref()));
-                m.insert("type".to_string(), orderType);
-                m.insert("side".to_string(), orderSide);
+                m.insert("type".to_string(), Value::from(orderType));
+                m.insert("side".to_string(), Value::from(orderSide));
                 m.insert("price".to_string(), self.price_to_precision(symbol.clone(), price));
                 m.insert("qty".to_string(), self.amount_to_precision(symbol, amount));
             m
@@ -1540,7 +1540,7 @@ impl Coinone {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id.clone());
+                m.insert("order_id".to_string(), id);
                 m.insert("currency".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -1617,7 +1617,7 @@ impl Coinone {
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)));
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")));
         }
         let mut marketResolved: Value = (if (symbol.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("/".into())])) } else { crate::Value::from(market) });
         let mut timestamp: Option<i64> = self.safe_timestamp2(order.clone(), Value::Str("timestamp".into()), Value::Str("updatedAt".into()), &[]).as_i64();
@@ -1965,26 +1965,26 @@ impl Coinone {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()));
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into()));
         let mut isPublic: bool = (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("v2Public"));
         if (apiName.as_deref() == Some("v2Public")) {
             let mut apiUrl2: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("v2Public".into()), &[]).as_str().map(str::to_owned);
             if (apiUrl2.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
-            url = format!("{}{}", apiUrl2.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()));
+            url = format!("{}{}", apiUrl2.as_deref().unwrap_or("null"), Value::Str("/".into()));
         }  else if (apiName.as_deref() == Some("v2Private")) {
             let mut apiUrl3: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("v2Private".into()), &[]).as_str().map(str::to_owned);
             if (apiUrl3.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
-            url = format!("{}{}", apiUrl3.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()));
+            url = format!("{}{}", apiUrl3.as_deref().unwrap_or("null"), Value::Str("/".into()));
         }  else if (apiName.as_deref() == Some("v2_1Private")) {
             let mut apiUrl4: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("v2_1Private".into()), &[]).as_str().map(str::to_owned);
             if (apiUrl4.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
             }
-            url = format!("{}{}", apiUrl4.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into()));
+            url = format!("{}{}", apiUrl4.as_deref().unwrap_or("null"), Value::Str("/".into()));
         }
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Option<crate::value::Dict> = None;

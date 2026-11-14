@@ -1122,9 +1122,9 @@ impl Extended {
         let mut minAmount: Option<f64> = self.safe_number_k(&tradingConfig, "minOrderSize", &[]).as_f64();
         let mut maxCost: Option<f64> = self.safe_number_k(&tradingConfig, "maxLimitOrderValue", &[]).as_f64();
         let mut created: Option<i64> = self.safe_integer_k(market.clone(), "createdAt", &[]).as_i64();
-        let mut settleId: Value = Value::Null;
+        let mut settleId: Option<String> = None;
         let mut settle: Option<String> = None;
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut isSpot: bool = false;
         let mut type_var: Option<String> = self.safe_string_lower_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut contractSize: Option<f64> = None;
@@ -1137,7 +1137,7 @@ impl Extended {
             isSpot = true;
         }  else {
             type_var = Some("swap".to_string());
-            settleId = quoteId.clone().map(Value::from).unwrap_or(Value::Null);
+            settleId = quoteId.clone();
             settle = quote.clone();
             symbol.push_str(&format!("{}{}", Value::Str(":".into()), settle.as_deref().unwrap_or("null")));
             contractSize = Some(1_f64);
@@ -1153,7 +1153,7 @@ impl Extended {
         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), Value::from(baseId));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), settleId);
+        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(isSpot.clone()));
         m.insert("margin".to_string(), Value::Bool(false));
@@ -1307,7 +1307,7 @@ impl Extended {
         m.insert("active".to_string(), isActive.map_or(Value::Null, Value::Bool));
         m.insert("deposit".to_string(), Value::Bool(true));
         m.insert("withdraw".to_string(), Value::Bool(true));
-        m.insert("precision".to_string(), crate::runtime::Math::pow(&Value::Int(10), &Value::Int((precision * -1))));
+        m.insert("precision".to_string(), Value::Float(f64::powf(10.0, (((precision * -1)) as f64))));
         m.insert("type".to_string(), Value::Str("other".into()));
         m.insert("margin".to_string(), self.safe_bool_k(currency.clone(), "canBeUsedAsCollateral", &[]));
         m.insert("info".to_string(), currency);
@@ -3600,7 +3600,7 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsList: Value = symbols.clone();
         if matches!(&symbols, Value::Str(_)) {
-            symbolsList = Value::from(vec![symbols.clone()]);
+            symbolsList = Value::from(vec![symbols]);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchPositionsHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -3955,7 +3955,7 @@ impl Extended {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
-        let mut uppercaseSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut uppercaseSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         if (market).spot && (uppercaseType != "LIMIT") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports limit orders for spot markets only".into()))));
         }
@@ -4031,14 +4031,14 @@ impl Extended {
                 m.insert("collateralPosition".to_string(), collateralPosition.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut isBuy: bool = uppercaseSide.as_str() == Some("BUY");
+        let mut isBuy: bool = uppercaseSide == "BUY";
         let mut clientOrderId: Value = self.safe_string2(paramsBuilder.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[Value::from(self.uuid(&[]))]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), clientOrderId.clone());
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), Value::from(uppercaseType));
-                m.insert("side".to_string(), uppercaseSide);
+                m.insert("side".to_string(), Value::from(uppercaseSide));
                 m.insert("qty".to_string(), amountString.clone());
                 m.insert("price".to_string(), priceString.clone());
                 m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
@@ -4317,7 +4317,7 @@ impl Extended {
         if (amountValue.is_none()) || (priceValue.is_none()) || (expiryEpochMillis.is_none()) || (postOnly.is_none()) || (reduceOnly.is_none()) || (cancelId.is_none()) {
             let mut response: crate::value::Dict = self.v1_private_get_user_orders_id(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id.clone());
+                    m.insert("id".to_string(), id);
                 m
             })]).await.into_dict();
             let mut order: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({

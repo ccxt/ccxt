@@ -1294,8 +1294,8 @@ impl Bittrade {
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), Value::Str(format!("{}{}", baseId.clone().map(Value::from).unwrap_or(Value::Null), quoteId.clone().map(Value::from).unwrap_or(Value::Null)).into()));
-                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+                    m.insert("id".to_string(), Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), quoteId.as_deref().unwrap_or("null")).into()));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()));
                     m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
@@ -3211,20 +3211,20 @@ impl Bittrade {
         if (tagWithdrawTag.is_some()) {
             request.insert("addr-tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)); // only for XRP?
         }
-        let mut network: Value = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]);
-        if (network != Value::Null) {
-            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]); // accepts aliases like ETH for ERC20
+        let mut network: Option<String> = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
+        if (network.is_some()) {
+            network = self.safe_string(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned); // accepts aliases like ETH for ERC20
         }
-        network = self.safe_string_lower(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), network.clone(), &[network.clone()]); // handle ETH>ERC20 alias
-        if (network != Value::Null) {
+        network = self.safe_string_lower(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned); // handle ETH>ERC20 alias
+        if (network.is_some()) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
-            if (network.as_str() == Some("erc20")) {
-                request.insert("chain".into(), Value::Str(format!("{}{}", crate::value::KeyRead::key_read(&&currency, "id"), network).into()));
+            if (network.as_deref() == Some("erc20")) {
+                request.insert("chain".into(), Value::Str(format!("{}{}", crate::value::KeyRead::key_read(&&currency, "id"), network.as_deref().unwrap_or("null")).into()));
             }  else {
-                request.insert("chain".into(), Value::Str(format!("{}{}", network, crate::value::KeyRead::key_read(&&currency, "id")).into()));
+                request.insert("chain".into(), Value::Str(format!("{}{}", network.as_deref().unwrap_or("null"), crate::value::KeyRead::key_read(&&currency, "id")).into()));
             }
         }
-        let mut paramsNetwork: crate::value::Dict = (if (network != Value::Null) { self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict() } else { paramsWithdrawTag });
+        let mut paramsNetwork: crate::value::Dict = (if (network.is_some()) { self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict() } else { paramsWithdrawTag });
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsNetwork]);
         let mut response: crate::value::Dict = self.private_post_dw_withdraw_api_create(&[__ws_arg_19]).await.into_dict();
         return self.parse_transaction(&response, Some(&currency));

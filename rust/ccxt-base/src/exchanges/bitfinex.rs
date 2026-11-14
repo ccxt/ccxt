@@ -1523,24 +1523,24 @@ impl Bitfinex {
                 baseId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                 quoteId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
             }
-            let mut base: Value = self.safe_currency_code(baseId.clone(), None).map(Value::from).unwrap_or(Value::Null);
-            let mut quote: Value = self.safe_currency_code(quoteId.clone(), None).map(Value::from).unwrap_or(Value::Null);
-            let mut splitBase: crate::value::List = Value::Array(if let Some(__s) = base.as_str() { __s.split("F0").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut splitQuote: crate::value::List = Value::Array(if let Some(__s) = quote.as_str() { __s.split("F0").map(Value::from).collect() } else { Vec::new() }).into_list();
-            base = self.safe_string(&splitBase, Value::Int(0), &[]);
-            quote = self.safe_string(&splitQuote, Value::Int(0), &[]);
-            if (base == Value::Null) || (quote == Value::Null) {
+            let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
+            let mut quote: Option<String> = self.safe_currency_code(quoteId.clone(), None);
+            let mut splitBase: crate::value::List = Value::Array(if let Some(__s) = base.as_deref() { __s.split("F0").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut splitQuote: crate::value::List = Value::Array(if let Some(__s) = quote.as_deref() { __s.split("F0").map(Value::from).collect() } else { Vec::new() }).into_list();
+            base = self.safe_string(&splitBase, Value::Int(0), &[]).as_str().map(str::to_owned);
+            quote = self.safe_string(&splitQuote, Value::Int(0), &[]).as_str().map(str::to_owned);
+            if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote);
+            let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
-            let mut settle: Value = Value::Null;
-            let mut settleId: Value = Value::Null;
+            let mut settle: Option<String> = None;
+            let mut settleId: Option<String> = None;
             if swap {
                 settle = quote.clone();
                 settleId = quote.clone();
-                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle);
+                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
             }
             let mut minOrderSizeString: Option<String> = self.safe_string(&market, Value::Int(3), &[]).as_str().map(str::to_owned);
             let mut maxOrderSizeString: Option<String> = self.safe_string(&market, Value::Int(4), &[]).as_str().map(str::to_owned);
@@ -1548,12 +1548,12 @@ impl Bitfinex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str("t".into()), id).into()));
                     m.insert("symbol".to_string(), Value::from(symbol));
-                    m.insert("base".to_string(), base);
-                    m.insert("quote".to_string(), quote);
-                    m.insert("settle".to_string(), settle);
+                    m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("baseId".to_string(), baseId);
                     m.insert("quoteId".to_string(), quoteId);
-                    m.insert("settleId".to_string(), settleId);
+                    m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("spot".to_string(), Value::Bool(spot.clone()));
                     m.insert("margin".to_string(), Value::Bool((spot && self.in_array(id, Value::from(&marginIds)))));
@@ -2745,7 +2745,7 @@ impl Bitfinex {
         }
         let mut orderType: Option<String> = self.safe_string(&orderList, Value::Int(8), &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string(self.safe_dict_k(self.options.clone(), "exchangeTypes", &[]), orderType.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-        let mut timeInForce: Value = self.parse_time_in_force(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut timeInForce: Option<String> = self.parse_time_in_force(orderType.as_deref());
         let mut rawFlags: Option<String> = self.safe_string(&orderList, Value::Int(12), &[]).as_str().map(str::to_owned);
         let mut flags: Vec<Value> = self.parse_order_flags(rawFlags.as_deref()).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = false;
@@ -2785,7 +2785,7 @@ impl Bitfinex {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Bool(postOnly));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -2892,7 +2892,7 @@ impl Bitfinex {
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (market).spot && (marginMode.is_none()) {
             // The EXCHANGE prefix is only required for non margin spot markets
-            orderType = Some(format!("{}{}", Value::Str("EXCHANGE ".into()), orderType.clone().map(Value::from).unwrap_or(Value::Null)));
+            orderType = Some(format!("{}{}", Value::Str("EXCHANGE ".into()), orderType.as_deref().unwrap_or("null")));
         }
         request.insert("type".into(), orderType.map(Value::from).unwrap_or(Value::Null));
         // flag values may be summed to combine flags
@@ -4540,7 +4540,7 @@ impl Bitfinex {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), request);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), request);
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("public")) {

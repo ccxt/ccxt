@@ -1695,7 +1695,7 @@ impl Woo {
         }
         let mut settleId: Option<String> = None;
         let mut settle: Option<String> = None;
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut contractSize: Option<f64> = None;
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
@@ -1705,7 +1705,7 @@ impl Woo {
             margin = false;
             settleId = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
             settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
+            symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
             contractSize = Some(1_f64);
             linear = Some(true);
             inverse = Some(false);
@@ -2532,11 +2532,11 @@ impl Woo {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderSide: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("side".to_string(), orderSide.clone());
+                m.insert("side".to_string(), Value::from(orderSide.clone()));
             m
         });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
@@ -2632,7 +2632,7 @@ impl Woo {
             request.insert("algoType".into(), Value::Str("BRACKET".into()));
             let mut childOrders: Vec<Value> = Vec::new();
             let mut closeSide: String = "BUY".to_string();
-            if (orderSide.as_str() == Some("BUY")) {
+            if (orderSide == "BUY") {
                 closeSide = "SELL".to_string();
             }
             if hasStopLoss {
@@ -2761,8 +2761,8 @@ impl Woo {
             request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount));
         }
         let mut clientOrderIdUnified: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
-        let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
+        let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k(params.clone(), "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
         let mut triggerPrice: Option<f64> = self.safe_number_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]).as_f64();
         if (triggerPrice.is_some()) {
             request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), Value::from(triggerPrice)));
@@ -2791,7 +2791,7 @@ impl Woo {
         let mut response: Value = Value::Null;
         if isConditional {
             if isByClientOrder {
-                request.insert("clientAlgoOrderId".into(), clientOrderIdExchangeSpecific.clone());
+                request.insert("clientAlgoOrderId".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
             }
@@ -2799,7 +2799,7 @@ impl Woo {
             response = self.v3_private_put_trade_algo_order(&[__ws_arg_5]).await;
         }  else {
             if isByClientOrder {
-                request.insert("clientOrderId".into(), clientOrderIdExchangeSpecific.clone());
+                request.insert("clientOrderId".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
             }  else {
                 request.insert("orderId".into(), id.clone());
             }
@@ -2821,7 +2821,7 @@ impl Woo {
 })]).into_dict();
         let mut order: crate::value::Dict = self.extend(response, &[&data]).into_dict();
         if isByClientOrder {
-            std::sync::Arc::make_mut(&mut order).insert("clientOrderId".into(), clientOrderIdExchangeSpecific);
+            std::sync::Arc::make_mut(&mut order).insert("clientOrderId".into(), clientOrderIdExchangeSpecific.map(Value::from).unwrap_or(Value::Null));
         }  else {
             std::sync::Arc::make_mut(&mut order).insert("orderId".into(), id);
         }
@@ -2871,13 +2871,13 @@ impl Woo {
             m
         });
         let mut clientOrderIdUnified: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(&paramsOmitted, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
+        let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k(&paramsOmitted, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
-        let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
+        let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
         let mut response: Option<crate::value::Dict> = None;
         if isTrigger {
             if isByClientOrder {
-                request.insert("clientAlgoOrderId".into(), clientOrderIdExchangeSpecific.clone());
+                request.insert("clientAlgoOrderId".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
             }  else {
                 request.insert("algoOrderId".into(), id.clone());
             }
@@ -2886,7 +2886,7 @@ impl Woo {
         }  else {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             if isByClientOrder {
-                request.insert("clientOrderId".into(), clientOrderIdExchangeSpecific.clone());
+                request.insert("clientOrderId".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
             }  else {
                 request.insert("orderId".into(), id.clone());
             }
@@ -2908,7 +2908,7 @@ impl Woo {
         })]).as_map().cloned().unwrap_or_default();
         data.insert("timestamp".into(), self.safe_string_k(&response, "timestamp", &[]));
         if isByClientOrder {
-            data.insert("clientOrderId".into(), clientOrderIdExchangeSpecific);
+            data.insert("clientOrderId".into(), clientOrderIdExchangeSpecific.map(Value::from).unwrap_or(Value::Null));
         }  else {
             data.insert("orderId".into(), id);
         }
@@ -5045,14 +5045,14 @@ impl Woo {
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Option<String> = None;
-        let mut version: Value = section.get(0).cloned().unwrap_or(Value::Null);
+        let mut version: Option<String> = section.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut urlPrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), version).into()), Value::Str("/".into()));
+        let mut urlPrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into()));
         let mut paramsSorted: indexmap::IndexMap<String, Value> = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]).as_map().cloned().unwrap_or_default();
         let mut url: String = urlPrefix.clone();
         if (access.as_deref() == Some("public")) {
@@ -5072,19 +5072,19 @@ impl Woo {
                 let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
                 if !isSandboxMode {
                     let mut applicationId: String = "bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string();
-                    let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::from(applicationId)]);
+                    let mut brokerId: Option<String> = self.safe_string_k(self.options.clone(), "brokerId", &[Value::from(applicationId)]).as_str().map(str::to_owned);
                     let mut isTrigger: bool = path.as_str().unwrap_or("").contains("algo");
                     if isTrigger {
-                        paramsSorted.insert("brokerId".into(), brokerId.clone());
+                        paramsSorted.insert("brokerId".into(), Value::from(brokerId.as_deref()));
                     }  else {
-                        paramsSorted.insert("broker_id".into(), brokerId);
+                        paramsSorted.insert("broker_id".into(), brokerId.map(Value::from).unwrap_or(Value::Null));
                     }
                 }
             }
             let mut paramsSigned: Value = self.keysort(Value::Map(paramsSorted), &[]);
             let mut auth: String = "".to_string();
             let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
-            let mut authBase: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), pathWithParams);
+            let mut authBase: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), Value::Str("/".into())).into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into()), pathWithParams);
             url = format!("{}{}", urlPrefix, pathWithParams);
             let mut signedHeaders: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -5092,12 +5092,12 @@ impl Woo {
                     m.insert("x-api-timestamp".to_string(), ts.clone());
                 m
             });
-            if (version.as_str() == Some("v3")) {
+            if (version.as_deref() == Some("v3")) {
                 auth = authBase.clone();
                 if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                     let mut jsonBody: Option<String> = json_stringify(&paramsSigned).as_str().map(str::to_owned);
                     requestBody = jsonBody.clone();
-                    auth = format!("{}{}", authBase, jsonBody.map(Value::from).unwrap_or(Value::Null));
+                    auth = format!("{}{}", authBase, jsonBody.as_deref().unwrap_or("null"));
                     if let Value::Dict(__d) = &mut signedHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/json".into())); }
                 }  else {
                     if ((Value::Array(paramsSigned.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -5318,7 +5318,7 @@ impl Woo {
         let mut intervalString: Option<String> = self.safe_string_k(fundingRate.clone(), "estFundingIntervalHours", &[]).as_str().map(str::to_owned);
         let mut interval: Option<String> = None;
         if (intervalString.is_some()) {
-            interval = Some(format!("{}{}", intervalString.map(Value::from).unwrap_or(Value::Null), Value::Str("h".into())));
+            interval = Some(format!("{}{}", intervalString.as_deref().unwrap_or("null"), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

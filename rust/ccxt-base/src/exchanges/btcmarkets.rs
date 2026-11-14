@@ -932,7 +932,7 @@ impl Btcmarkets {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut fees: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.options.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2009,7 +2009,7 @@ impl Btcmarkets {
             request.insert("toAddress".into(), address.clone());
         }
         if (tagWithdrawTag.is_some()) {
-            request.insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("?dt=".into())).into()), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)).into()));
+            request.insert("toAddress".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str("?dt=".into())).into()), tagWithdrawTag.as_deref().unwrap_or("null")).into()));
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: crate::value::Dict = self.private_post_withdrawals(&[__ws_arg_15]).await.into_dict();
@@ -2048,9 +2048,9 @@ impl Btcmarkets {
                     request.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
                 }
             }  else {
-                let mut jsonBody: Value = json_stringify(&query);
-                requestBody = jsonBody.clone();
-                auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, request).into()), nonce).into()), jsonBody);
+                let mut jsonBody: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
+                requestBody = jsonBody.clone().map(Value::from).unwrap_or(Value::Null);
+                auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, request).into()), nonce).into()), jsonBody.as_deref().unwrap_or("null"));
             }
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), &secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             requestHeaders = Some(crate::value::Dict::new({
@@ -2072,7 +2072,7 @@ impl Btcmarkets {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), request);
+        let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), request);
         let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
         let mut bodyResult: Value = requestBody;
         return Value::Map({

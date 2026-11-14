@@ -746,7 +746,7 @@ impl Hyperliquid {
             if (matches!((&spotCurrencyMapping, &baseName.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut unifiedBaseName: Option<String> = self.safe_string(spotCurrencyMapping, baseName.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut quote: Option<String> = self.safe_string(&symbolParts, Value::Int(1), &[]).as_str().map(str::to_owned);
-                let mut newSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.map(Value::from).unwrap_or(Value::Null)).into());
+                let mut newSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into());
                 if (matches!((&self.markets, &newSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     return (if let (Some(__m), Some(__k)) = (self.markets.as_map(), newSymbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 }
@@ -1465,7 +1465,7 @@ impl Hyperliquid {
             let mut mappedQuoteId: Option<String> = self.safe_string(&spotCurrencyMapping, quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[quoteId.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut mappedBase: Option<String> = self.safe_currency_code(mappedBaseName.map(Value::from).unwrap_or(Value::Null), None);
             let mut mappedQuote: Option<String> = self.safe_currency_code(mappedQuoteId.map(Value::from).unwrap_or(Value::Null), None);
-            let mut mappedSymbol: String = format!("{}{}", Value::Str(format!("{}{}", mappedBase.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), mappedQuote.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut mappedSymbol: String = format!("{}{}", Value::Str(format!("{}{}", mappedBase.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), mappedQuote.as_deref().unwrap_or("null"));
             let mut innerBaseTokenInfo: crate::value::Dict = self.safe_dict_k(&baseTokenInfo, "spec", &[Value::from(&baseTokenInfo)]).into_dict();
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             let mut amountPrecisionStr: Option<String> = self.safe_string_k(&innerBaseTokenInfo, "szDecimals", &[]).as_str().map(str::to_owned);
@@ -1586,24 +1586,24 @@ impl Hyperliquid {
             settleId = Some("USDC".to_string());
         }
         let mut baseName: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
-        let mut base: Value = self.safe_currency_code(baseName.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-        if (base == Value::Null) {
+        let mut base: Option<String> = self.safe_currency_code(baseName.clone().map(Value::from).unwrap_or(Value::Null), None);
+        if (base.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing base currency".into()))));
         }
-        base = base.as_str().map(|__s| Value::Str(__s.replace(":", "-").into())).unwrap_or_else(|| base.clone()); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
+        base = (if let Some(__s) = base.as_deref() { Some(__s.replace(":", "-")) } else { None }); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         if (quote.is_none()) {
             return Value::Null;
         }
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseId", &[]).as_str().map(str::to_owned);
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut symbolBase: String = format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbolBase: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut symbol: String = symbolBase.clone();
         let mut contract: bool = true;
         let mut swap: bool = true;
         if contract {
             if swap {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", symbolBase, Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", symbolBase, Value::Str(":".into())).into()), settle.as_deref().unwrap_or("null"));
             }
         }
         let mut fees: crate::value::Dict = self.safe_dict_k(self.fees.clone(), "swap", &[Value::Map({
@@ -1629,7 +1629,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
-        m.insert("base".to_string(), base);
+        m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3543,8 +3543,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut slippage: Value = self.safe_string_k(orderParams.clone(), "slippage", &[Value::from(defaultSlippage.as_deref())]);
-            if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).insert("slippage".into(), slippage); }
+            let mut slippage: Option<String> = self.safe_string_k(orderParams.clone(), "slippage", &[Value::from(defaultSlippage.as_deref())]).as_str().map(str::to_owned);
+            if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).insert("slippage".into(), slippage.map(Value::from).unwrap_or(Value::Null)); }
             let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "stopLoss", &[]).into_opt_dict();
             let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]).into_opt_dict();
             let mut hasStopLoss: bool = stopLoss.is_some();
@@ -4125,7 +4125,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut id: Option<String> = self.safe_string_k(&rawOrder, "id", &[]).as_str().map(str::to_owned);
             let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut symbol: Value = Value::from((market).symbol.clone());
+            let mut symbol: String = (market).symbol.clone();
             let mut type_var: Option<String> = self.safe_string_upper_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
             let mut isMarket: bool = type_var.as_deref() == Some("MARKET");
             let mut side: Option<String> = self.safe_string_upper_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
@@ -4158,11 +4158,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut px: Value = Value::from(self.number_to_string(price.map(Value::from).unwrap_or(Value::Null)));
             if isMarket {
                 px = (if isBuy { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage)) } else { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage)) });
-                px = self.price_to_precision(symbol.clone(), px);
+                px = self.price_to_precision(Value::from(symbol.as_str()), px);
             }  else {
-                px = self.price_to_precision(symbol.clone(), px);
+                px = self.price_to_precision(Value::from(symbol.as_str()), px);
             }
-            let mut sz: Value = self.amount_to_precision(symbol.clone(), amount.map(Value::from).unwrap_or(Value::Null));
+            let mut sz: Value = self.amount_to_precision(Value::from(symbol.as_str()), amount.map(Value::from).unwrap_or(Value::Null));
             let mut orderType: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -4170,10 +4170,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if isTrigger {
                 let mut isTp: bool = false;
                 if (takeProfitPrice.is_some()) {
-                    triggerPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
+                    triggerPrice = self.price_to_precision(Value::from(symbol.as_str()), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
                     isTp = true;
                 }  else {
-                    triggerPrice = self.price_to_precision(symbol, stopLossPrice.map(Value::from).unwrap_or(Value::Null));
+                    triggerPrice = self.price_to_precision(Value::from(symbol), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
                 }
                 let mut tpSlType: String = "sl".to_string();
                 if isTp {
@@ -5997,7 +5997,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut strAmount: Option<String> = self.number_to_string(amount.clone());
             let mut vaultAddressRaw: Option<String> = self.safe_string2(params.clone(), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_str().map(str::to_owned);
             if (vaultAddressRaw.is_some()) {
-                strAmount = Some(format!("{}{}", Value::Str(format!("{}{}", strAmount.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(" subaccount:".into())).into()), self.format_vault_address(vaultAddressRaw.as_deref()).map(Value::from).unwrap_or(Value::Null)));
+                strAmount = Some(format!("{}{}", Value::Str(format!("{}{}", strAmount.as_deref().unwrap_or("null"), Value::Str(" subaccount:".into())).into()), self.format_vault_address(vaultAddressRaw.as_deref()).map(Value::from).unwrap_or(Value::Null)));
             }
             let mut strAmountFinal: Option<String> = strAmount; // java req
             let mut toPerp: Value = Value::Bool((toAccount.as_str() == Some("perp")) || (toAccount.as_str() == Some("swap")));
@@ -6062,7 +6062,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut useSendAsset: bool = transferMethod.as_deref() == Some("sendAsset");
         if (transferMethod.is_none()) {
             let mut isUnified: Option<bool> = None;
-            { let __destr_tmp: Vec<Value> = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[Value::Bool(false), query.clone()]).await.as_array().cloned().unwrap_or_default(); isUnified = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool(); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.is_unified_enabled("transfer", masterAddress.as_deref(), &[Value::Bool(false), query.clone()]).await.as_array().cloned().unwrap_or_default(); isUnified = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             useSendAsset = (isUnified == Some(true));
         }
         if useSendAsset {
@@ -6132,12 +6132,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut sig: Value = self.sign_l1_action(action.clone(), Value::from(nonce), None, None);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("action".to_string(), action.clone());
+                    m.insert("action".to_string(), action);
                     m.insert("nonce".to_string(), Value::from(nonce));
-                    m.insert("signature".to_string(), sig.clone());
+                    m.insert("signature".to_string(), sig);
                 m
             });
-            let mut response: crate::value::Dict = self.private_post_exchange(&[request.clone()]).await.into_dict();
+            let mut response: crate::value::Dict = self.private_post_exchange(&[request]).await.into_dict();
             return self.parse_transfer(&response, Some(&self.safe_currency(code.clone(), None)));
         }  else {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
@@ -6229,18 +6229,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(params, Value::Str("withdraw".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Value = self.format_vault_address(vaultAddressOption.as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
         let mut nonce: i64 = self.incrementing_nonce();
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut sig: Value = Value::Null;
-        if (vaultAddress != Value::Null) {
+        if (vaultAddress.is_some()) {
             action = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("vaultTransfer".into()));
-                    m.insert("vaultAddress".to_string(), Value::Str(format!("{}{}", Value::Str("0x".into()), vaultAddress).into()));
+                    m.insert("vaultAddress".to_string(), Value::Str(format!("{}{}", Value::Str("0x".into()), vaultAddress.as_deref().unwrap_or("null")).into()));
                     m.insert("isDeposit".to_string(), Value::Bool(false));
                     m.insert("usd".to_string(), amount.clone());
                 m
@@ -7156,7 +7156,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (hip3Dict.is_some()) {
             let mut quote: String = self.safe_string_k(&hip3Dict, "quote", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
             let mut code: Option<String> = self.safe_string_k(&hip3Dict, "code", &[coin.clone()]).as_str().map(str::to_owned);
-            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into()).as_str().map(str::to_owned);
+            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), quote).into()).as_str().map(str::to_owned);
         }
         if coin.as_str().unwrap_or("").contains("/") || coin.as_str().unwrap_or("").contains("@") {
             return coin.as_str().map(str::to_owned);

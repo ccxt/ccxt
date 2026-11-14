@@ -1163,7 +1163,7 @@ impl Alpaca {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut status: Option<String> = self.safe_string_k(asset.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: bool = status.as_deref() == Some("active");
         let mut minAmount: Option<f64> = self.safe_number_k(asset.clone(), "min_order_size", &[]).as_f64();
@@ -2950,7 +2950,7 @@ impl Alpaca {
         let mut amount: Option<f64> = None;
         let mut code: Value = Value::Null;
         let mut status: Value = Value::Null;
-        let mut comment: Value = Value::Null;
+        let mut comment: Option<String> = None;
         let mut internal: Option<bool> = None;
         let mut fee: Option<crate::value::Dict> = None;
         if (activityType.is_some()) {
@@ -2973,7 +2973,7 @@ impl Alpaca {
                 code = self.safe_currency_code(Value::Null, currency).map(Value::from).unwrap_or(Value::Null);
             }
             status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-            comment = activityType.clone().map(Value::from).unwrap_or(Value::Null);
+            comment = activityType.clone();
             internal = Some(activityType.as_deref() != Some("TRANS"));
         }  else {
             txid = self.safe_string_k(transaction.clone(), "tx_hash", &[]).as_str().map(str::to_owned);
@@ -3017,7 +3017,7 @@ impl Alpaca {
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status);
         m.insert("updated".to_string(), Value::Null);
-        m.insert("comment".to_string(), comment);
+        m.insert("comment".to_string(), comment.map(Value::from).unwrap_or(Value::Null));
         m.insert("internal".to_string(), internal.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m

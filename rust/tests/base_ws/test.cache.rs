@@ -132,10 +132,10 @@ pub fn testWsCache() {
     let mut ohlcv2: Value = Value::from(vec![Value::Int(200), Value::Int(5), Value::Int(6), Value::Int(7)]);
     timestampCache.append(ohlcv1.clone());
     timestampCache.append(ohlcv2.clone());
-    assert!(ccxt::runtime::is_true(&(equals(Value::from(&timestampCache), Value::from(vec![ohlcv1.clone(), ohlcv2.clone()])))));
+    assert!(ccxt::runtime::is_true(&(equals(Value::from(&timestampCache), Value::from(vec![ohlcv1.clone(), ohlcv2])))));
     let mut modify2: Value = Value::from(vec![Value::Int(200), Value::Int(10), Value::Int(11), Value::Int(12)]);
     timestampCache.append(modify2.clone());
-    assert!(ccxt::runtime::is_true(&(equals(Value::from(&timestampCache), Value::from(vec![ohlcv1.clone(), modify2.clone()])))));
+    assert!(ccxt::runtime::is_true(&(equals(Value::from(&timestampCache), Value::from(vec![ohlcv1, modify2])))));
     // ----------------------------------------------------------------------------
     let mut cacheSymbolId: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Null);
     let mut object1: Value = Value::Map({
@@ -159,10 +159,10 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(3));
         m
     });
-    cacheSymbolId.append(object1.clone());
+    cacheSymbolId.append(object1);
     cacheSymbolId.append(object2.clone());
     cacheSymbolId.append(object3.clone()); // should update index 0
-    assert!(ccxt::runtime::is_true(&(equals(Value::from(&cacheSymbolId), Value::from(vec![object2.clone(), object3.clone()])))));
+    assert!(ccxt::runtime::is_true(&(equals(Value::from(&cacheSymbolId), Value::from(vec![object2, object3])))));
     // ----------------------------------------------------------------------------
     let mut cacheSymbolId5: ccxt::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::Int(5));
     {
@@ -260,7 +260,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(28));
         m
     });
-    cacheSymbolId5.append(middle.clone());
+    cacheSymbolId5.append(middle);
     assert!(ccxt::runtime::is_true(&(equals(Value::from(&cacheSymbolId5), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
@@ -299,7 +299,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(27));
         m
     });
-    cacheSymbolId5.append(otherMiddle.clone());
+    cacheSymbolId5.append(otherMiddle);
     assert!(ccxt::runtime::is_true(&(equals(Value::from(&cacheSymbolId5), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
@@ -382,7 +382,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(38));
         m
     });
-    cacheSymbolId5.append(first.clone());
+    cacheSymbolId5.append(first);
     assert!(ccxt::runtime::is_true(&(equals(Value::from(&cacheSymbolId5), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
@@ -421,7 +421,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(50));
         m
     });
-    cacheSymbolId5.append(another.clone());
+    cacheSymbolId5.append(another);
     assert!(ccxt::runtime::is_true(&(equals(Value::from(&cacheSymbolId5), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));

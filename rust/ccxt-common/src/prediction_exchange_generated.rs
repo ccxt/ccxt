@@ -737,7 +737,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (eventPart.is_none()) || (eventPart.as_deref() == Some("")) || (eventPart == marketPart) {
             return marketPart.map(Value::from).unwrap_or(Value::Null);
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", eventPart.map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), marketPart.map(Value::from).unwrap_or(Value::Null)).into());
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", eventPart.as_deref().unwrap_or("null"), Value::Str("_".into())).into()), marketPart.as_deref().unwrap_or("null")).into());
 
     Value::Null
 }
@@ -2515,7 +2515,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
         let mut stripped: Option<String> = self.remove0x_prefix(address).as_str().map(str::to_owned);
-        return Value::Str(format!("{}{}", Value::Str("000000000000000000000000".into()), stripped.map(Value::from).unwrap_or(Value::Null)).into());
+        return Value::Str(format!("{}{}", Value::Str("000000000000000000000000".into()), stripped.as_deref().unwrap_or("null")).into());
 
     Value::Null
 }
@@ -2538,7 +2538,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut lengthHex: Option<String> = Some(self.int_to_base16(Value::from(byteLength), &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(183 + __r) } else { None })), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), hex).into());
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(183 + __r) } else { None })), &[]), lengthHex.as_deref().unwrap_or("null")).into()), hex).into());
 
     Value::Null
 }
@@ -2559,7 +2559,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut lengthHex: Option<String> = Some(self.int_to_base16(Value::from(byteLength), &[]));
         lengthHex = self.pad_hex_to_even(lengthHex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut lengthOfLength: Option<i64> = self.parse_to_int(Value::Float(((((lengthHex.as_deref().unwrap_or_default().chars().count() as i64)) as f64) / 2.0)));
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(247 + __r) } else { None })), &[]), lengthHex.map(Value::from).unwrap_or(Value::Null)).into()), concatenated).into());
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.int_to_base16(Value::from((if let Some(__r) = lengthOfLength { Some(247 + __r) } else { None })), &[]), lengthHex.as_deref().unwrap_or("null")).into()), concatenated).into());
 
     Value::Null
 }

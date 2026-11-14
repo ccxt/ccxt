@@ -1608,18 +1608,18 @@ impl Opinion {
     m
 });
         }
-        let mut priceStr: Value = self.decimal_to_precision(Value::from(self.number_to_string(price)), Value::Int(crate::runtime::ROUND), Value::Int(6), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-        let mut priceParts: crate::value::List = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut priceStr: Option<String> = self.decimal_to_precision(Value::from(self.number_to_string(price)), Value::Int(crate::runtime::ROUND), Value::Int(6), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
+        let mut priceParts: crate::value::List = Value::Array(if let Some(__s) = priceStr.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut priceInt: String = self.safe_string(&priceParts, Value::Int(0), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut priceFrac: String = self.safe_string(&priceParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut priceDenom: String = "1000000".to_string();
         let mut priceNum: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&Value::from(priceInt), &Value::from(priceDenom.clone())), &Value::from(format!("{:0<6}", priceFrac))).as_str().map(str::to_owned);
         if (priceNum.as_deref() == Some("0")) {
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() invalid price ".into())).into()), priceStr)));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() invalid price ".into())).into()), priceStr.as_deref().unwrap_or("null"))));
         }
         let mut makerRaw: Option<String> = amountStr.clone();
         if (side.as_str() == Some("BUY")) {
-            makerRaw = crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &priceStr).as_str().map(str::to_owned);
+            makerRaw = crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &priceStr.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut makerAmountWei: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw.map(Value::from).unwrap_or(Value::Null), &Value::from(decimalsStr)), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         let mut makerAmount: Option<String> = None;
@@ -1677,17 +1677,17 @@ impl Opinion {
         let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
         let mut tokenId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
         let mut isMarket: bool = type_var.as_str() == Some("market");
-        let mut sideStr: Value = (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut sideStr: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
         if (price == Value::Null) {
             if !isMarket {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price for limit orders".into()))));
             }
-            if (sideStr.as_str() == Some("SELL")) {
+            if (sideStr == "SELL") {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price for market sell orders".into()))));
             }
         }
         let mut marketOrderPrice: Option<String> = Some("0".to_string());
-        if isMarket && (sideStr.as_str() == Some("SELL")) {
+        if isMarket && (sideStr == "SELL") {
             marketOrderPrice = self.number_to_string(price.clone());
         }
         let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
@@ -1697,10 +1697,10 @@ impl Opinion {
         let mut topicId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut quoteTokenAddress: Option<String> = self.safe_string_k(&info, "quoteToken", &[]).as_str().map(str::to_owned);
         let mut quoteToken: Value = self.load_quote_token(quoteTokenAddress.as_deref()).await;
-        let mut amounts: crate::value::Dict = self.opinion_order_raw_amounts(isMarket.clone(), sideStr.as_str().unwrap_or_default(), amount.as_f64(), price.as_f64(), (self.safe_integer_k(quoteToken.clone(), "decimal", &[Value::Int(18)])).as_i64()).into_dict();
+        let mut amounts: crate::value::Dict = self.opinion_order_raw_amounts(isMarket.clone(), sideStr.as_str(), amount.as_f64(), price.as_f64(), (self.safe_integer_k(quoteToken.clone(), "decimal", &[Value::Int(18)])).as_i64()).into_dict();
         let mut makerAmount: Option<String> = self.safe_string_k(&amounts, "makerAmount", &[]).as_str().map(str::to_owned);
         let mut takerAmount: Option<String> = self.safe_string_k(&amounts, "takerAmount", &[]).as_str().map(str::to_owned);
-        let mut sideInt: i64 = (if (sideStr.as_str() == Some("BUY")) { 0 } else { 1 });
+        let mut sideInt: i64 = (if (sideStr == "BUY") { 0 } else { 1 });
         let mut salt: Option<String> = self.number_to_string(Value::Int(self.milliseconds()));
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]).into_dict();
@@ -2398,8 +2398,8 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut tokenId: Option<String> = self.safe_string_k_opt(&info, "tokenId", &[]);
-            if (tokenId.is_some()) && (matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if wantedTokenIds.contains_key(__k.as_ref()))) {
+            let mut tokenId: Option<String> = self.safe_string_k(&info, "tokenId", &[]).as_str().map(str::to_owned);
+            if (tokenId.is_some()) && (matches!(tokenId.as_deref(), Some(__k) if wantedTokenIds.contains_key(__k))) {
                 filtered.push(position);
             }
         }
@@ -2791,7 +2791,7 @@ if _try_result.is_err() {
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut sym: Option<String> = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj]).as_str().map(str::to_owned);
         let mut channel: String = "market.depth.diff".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), sym.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("orderbook::".into()), sym.as_deref().unwrap_or("null"));
         self.load_api_key().await;
         let mut url: Value = self.opinion_ws_url().map(Value::from).unwrap_or(Value::Null);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
@@ -2865,7 +2865,7 @@ if _try_result.is_err() {
         bookSide.store_array(Value::from(vec![Value::from(price), Value::from(size)]));
         orderbook.set_book_meta("timestamp", Value::Null);
         orderbook.set_book_meta("datetime", Value::Null);
-        client.resolve(Value::from(&orderbook), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
+        client.resolve(Value::from(&orderbook), &(Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym.as_deref().unwrap_or("null")).into())));
 }
 
 /*
@@ -2895,7 +2895,7 @@ if _try_result.is_err() {
 })]).into_dict();
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut sym: Option<String> = self.safe_outcome_symbol(outcome, &[outcomeObj]).as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), sym.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker::".into()), sym.as_deref().unwrap_or("null"));
         return self.subscribe_opinion_channel(messageHash.as_str(), "market.last.price", marketId).await;
         Value::Null
         }).await?))
@@ -2939,7 +2939,7 @@ if _try_result.is_err() {
 })]).as_map().cloned().unwrap_or_default();
         cachedTickers.insert(sym.as_deref().unwrap_or("null").to_string(), ticker.clone());
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("wsTickers".into(), Value::Map(cachedTickers)); }
-        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym.map(Value::from).unwrap_or(Value::Null)).into())));
+        client.resolve(ticker, &(Value::Str(format!("{}{}", Value::Str("ticker::".into()), sym.as_deref().unwrap_or("null")).into())));
 }
 
 /*
@@ -2973,7 +2973,7 @@ if _try_result.is_err() {
 })]).into_dict();
         let mut marketId: Option<i64> = self.safe_integer_k(&info, "marketId", &[]).as_i64();
         let mut sym: Option<String> = self.safe_outcome_symbol(outcome, &[outcomeObj]).as_str().map(str::to_owned);
-        let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), sym.as_deref().unwrap_or("null"));
         let mut trades: Value = self.subscribe_opinion_channel(messageHash.as_str(), "market.last.trade", marketId).await;
         return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null

@@ -856,12 +856,12 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut obLimit: Value = self.safe_integer_k(&options, "limit", &[Value::Int(1000)]);
+        let mut obLimit: i64 = self.safe_integer_k(&options, "limit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), obLimit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+}), Value::from(obLimit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut units: crate::value::List = __pro_message.get("orderbook_units").cloned().unwrap_or_default().into_list();
@@ -896,7 +896,7 @@ impl Bithumb {
             m
         }), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
@@ -1065,7 +1065,7 @@ impl Bithumb {
             }
             let mut trades: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
             trades.append(Value::Dict(parsed));
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("trade".into()), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&trades), messageHash.as_str());
         }
         }
@@ -1178,7 +1178,7 @@ impl Bithumb {
             }
             if (errorCode.as_deref() != Some("0000")) {
                 let mut msg: Option<String> = (match message.get("resmsg") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg.map(Value::from).unwrap_or(Value::Null))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg.as_deref().unwrap_or("null"))));
             }
             return Value::Bool(true);
          #[allow(unreachable_code)] { Value::Null }}));

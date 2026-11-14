@@ -388,7 +388,7 @@ impl Hollaex {
                 orderbook.reset(Value::Dict(snapshot));
             }
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketIdValue);
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketIdValue);
                 client.resolve(Value::from(&orderbook), messageHash.as_str());
             }
         }
@@ -474,7 +474,7 @@ impl Hollaex {
         }
         }
         if (channel.is_some()) {
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketIdValue);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketIdValue);
             client.resolve(Value::from(&stored), messageHash.as_str());
         }
         client.resolve(Value::from(&stored), channel.as_deref());
@@ -592,7 +592,7 @@ impl Hollaex {
             while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketId.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.myTrades), messageHash.as_str());
             }
         }
@@ -748,7 +748,7 @@ impl Hollaex {
             while { if !__for_first_381 { i += 1; } __for_first_381 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (channel.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), marketId.map(Value::from).unwrap_or(Value::Null));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), marketId.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.orders), messageHash.as_str());
             }
         }
@@ -804,10 +804,10 @@ impl Hollaex {
     m
 }) });
         let mut keys: Vec<Value> = object_keys(&data).as_array().cloned().unwrap_or_default();
-        let mut timestamp: Value = self.safe_timestamp_k(message, "time", &[]);
+        let mut timestamp: Option<i64> = self.safe_timestamp_k(message, "time", &[]).as_i64();
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
+        { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
             let mut __for_first_382: bool = true;

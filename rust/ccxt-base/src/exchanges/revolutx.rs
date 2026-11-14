@@ -471,7 +471,7 @@ impl Revolutx {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut baseUrl: Option<String> = baseApiUrl;
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), implodedPath);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), implodedPath);
         let mut queryString: String = "".to_string();
         let mut bodyString: Option<String> = Some("".to_string());
         if (apiName.as_deref() == Some("private")) {
@@ -491,7 +491,7 @@ impl Revolutx {
                 bodyString = json_stringify(&query).as_str().map(str::to_owned);
             }
             let mut requestPath: String = format!("{}{}", Value::Str("/api/".into()), implodedPath);
-            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), requestPath).into()), queryString).into()), bodyString.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), requestPath).into()), queryString).into()), bodyString.as_deref().unwrap_or("null"));
             let mut signature: String = eddsa(self.encode(Value::from(message)), self.privateKey.clone(), Value::Str("ed25519".into()));
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -688,7 +688,7 @@ impl Revolutx {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut marketId: String = format!("{}{}", Value::Str(format!("{}{}", base.map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), quote.map(Value::from).unwrap_or(Value::Null));
+            let mut marketId: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("-".into())).into()), quote.as_deref().unwrap_or("null"));
             let mut marketData: crate::value::Dict = self.extend(market, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(marketId));
@@ -1350,7 +1350,7 @@ impl Revolutx {
         if (matches!(&payload, Value::Arr(_))) {
             payload = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("data".to_string(), payload.clone());
+                    m.insert("data".to_string(), payload);
                 m
             });
         }
@@ -2292,7 +2292,7 @@ impl Revolutx {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("client_order_id".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("venue_order_id".to_string(), id.clone());
+                m.insert("venue_order_id".to_string(), id);
             m
         });
         if (cost.is_some()) {

@@ -122,14 +122,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("min".into()).clone(), Value::Str("0".into()).clone()]);
         crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("max".into()).clone(), Value::Str("0".into()).clone()]);
         // max should be more than min (withdrawal limits)
-        let mut minStringWithdrawal: Value = exchange.safe_string(&withdrawLimits, Value::Str("min".into()), &[]);
-        if (minStringWithdrawal != Value::Null) {
-            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits.clone(), Value::Str("max".into()).clone(), minStringWithdrawal.clone()]);
+        let mut minStringWithdrawal: Option<String> = exchange.safe_string(&withdrawLimits, Value::Str("min".into()), &[]).as_str().map(str::to_owned);
+        if (minStringWithdrawal.is_some()) {
+            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), withdrawLimits.clone(), Value::Str("max".into()).clone(), minStringWithdrawal.map(Value::from).unwrap_or(Value::Null).clone()]);
         }
         // max should be more than min (deposit limits)
-        let mut minStringDeposit: Value = exchange.safe_string(&depositLimits, Value::Str("min".into()), &[]);
-        if (minStringDeposit != Value::Null) {
-            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("max".into()).clone(), minStringDeposit.clone()]);
+        let mut minStringDeposit: Option<String> = exchange.safe_string(&depositLimits, Value::Str("min".into()), &[]).as_str().map(str::to_owned);
+        if (minStringDeposit.is_some()) {
+            crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), depositLimits.clone(), Value::Str("max".into()).clone(), minStringDeposit.map(Value::from).unwrap_or(Value::Null).clone()]);
         }
         // check valid ID & CODE
         crate::tests_support::shared::assert_valid_currency_id_and_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);

@@ -449,11 +449,11 @@ impl Derive {
         if !(self.orderbooks.has(&symbol)) {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut subscription: Value = (if (topic.is_none()) { Value::Null } else { __ch.get_subscription((&topic).as_deref()) });
-            let mut limit: Value = self.safe_integer_k(subscription, "limit", &[Value::from(defaultLimit)]);
+            let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[Value::from(defaultLimit)]).as_i64();
             { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+}), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
@@ -1099,8 +1099,8 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("watchOrders", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut subaccountIdString: Value = Value::from(self.number_to_string(Value::from(subaccountId)));
-        let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".orders".into()));
+        let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".orders".into()));
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
@@ -1215,7 +1215,7 @@ impl Derive {
                 }
                 cachedOrders.append(parsed);
                 if (topic.is_some()) {
-                    let mut messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", topic.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), symbol.map(Value::from).unwrap_or(Value::Null));
+                    let mut messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", topic.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), symbol.as_deref().unwrap_or("null"));
                     client.resolve(Value::from(&self.orders), messageHashSymbol.as_str());
                 }
             }
@@ -1251,8 +1251,8 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("unWatchOrders", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut subaccountIdString: Value = Value::from(self.number_to_string(Value::from(subaccountId)));
-        let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".orders".into()));
+        let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".orders".into()));
         let mut messageHash: String = format!("{}{}", Value::Str("unwatch".into()), topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1306,8 +1306,8 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("watchMyTrades", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut subaccountIdString: Value = Value::from(self.number_to_string(Value::from(subaccountId)));
-        let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".trades".into()));
+        let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".trades".into()));
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
@@ -1363,7 +1363,7 @@ impl Derive {
             myTrades.append(Value::from(&trade));
             client.resolve(Value::from(&myTrades), topic.as_deref());
             if (topic.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(":".into())).into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic.as_deref().unwrap_or("null"), Value::Str(":".into())).into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]));
                 client.resolve(Value::from(&myTrades), messageHash.as_str());
             }
         }
@@ -1397,8 +1397,8 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id("unWatchMyTrades", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut subaccountIdString: Value = Value::from(self.number_to_string(Value::from(subaccountId)));
-        let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".trades".into()));
+        let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".trades".into()));
         let mut messageHash: String = format!("{}{}", Value::Str("unwatch".into()), topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1477,8 +1477,8 @@ impl Derive {
             let mut seeded: crate::value::Dict = self.extend(crate::types::IntoRaw::into_raw(snapshot), &[Value::Map(emptyBalance)]).into_dict(); // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), Value::Dict(seeded)); }
         }
-        let mut subaccountIdString: Value = Value::from(self.number_to_string(Value::from(subaccountId)));
-        let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".balances".into()));
+        let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".balances".into()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
@@ -1573,8 +1573,8 @@ impl Derive {
             if let Value::Dict(__d) = &mut loadedSnapshots { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&subaccountIdKey), Value::Bool(true)); }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("loadedPositionsSnapshots".into(), loadedSnapshots.clone()); }
         }
-        let mut subaccountIdString: Value = Value::from(self.number_to_string(Value::from(subaccountId)));
-        let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".balances".into()));
+        let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
+        let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), Value::Str(".balances".into()));
         let mut messageHash: String = format!("{}{}", Value::Str("positions:".into()), topic);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

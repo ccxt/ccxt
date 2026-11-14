@@ -1702,12 +1702,12 @@ impl Weex {
         }
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut active: bool = true;
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut isSpot: bool = true;
         let mut isLinear: Option<bool> = None;
         let mut isInverse: Option<bool> = None;
         if (settle.is_some()) {
-            symbol.push_str(&format!("{}{}", Value::Str(":".into()), settle.clone().map(Value::from).unwrap_or(Value::Null)));
+            symbol.push_str(&format!("{}{}", Value::Str(":".into()), settle.as_deref().unwrap_or("null")));
             isSpot = false;
             if (settle == quote) {
                 isLinear = Some(true);
@@ -5892,7 +5892,7 @@ impl Weex {
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut baseId: Option<String> = self.safe_string_k(&market, "baseId", &[]).as_str().map(str::to_owned);
         if sandboxMode && (baseId.is_some()) {
-            return Value::Str(format!("{}{}", baseId.map(Value::from).unwrap_or(Value::Null), Value::Str("SUSDT".into())).into()).as_str().map(str::to_owned);
+            return Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), Value::Str("SUSDT".into())).into()).as_str().map(str::to_owned);
         }
         return self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
 }
@@ -5969,7 +5969,7 @@ impl Weex {
             }
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.number_to_string(self.nonce());
-            let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.clone().map(Value::from).unwrap_or(Value::Null), method).into()), Value::Str("/".into())).into()), endpoint).into());
+            let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.as_deref().unwrap_or("null"), method).into()), Value::Str("/".into())).into()), endpoint).into());
             if hasJsonBody {
                 payload = Value::Str(format!("{}{}", payload, requestBody).into());
             }
@@ -5997,7 +5997,7 @@ impl Weex {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
         let mut baseUrl: Option<String> = baseApiUrl;
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), endpoint);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), endpoint);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

@@ -763,7 +763,7 @@ impl Bitopro {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
         let mut limits: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), Value::Map({
@@ -1649,7 +1649,7 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), id.clone());
+                m.insert("id".to_string(), id);
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -1824,7 +1824,7 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), id.clone());
+                m.insert("orderId".to_string(), id);
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -2321,7 +2321,7 @@ impl Bitopro {
             let mut requestedNetwork: Option<String> = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
             let mut networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string(&networks, self.safe_string(self.networkAliases.clone(), requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null)]), &[]).as_str().map(str::to_owned) });
             if (networkId.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork.map(Value::from).unwrap_or(Value::Null))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork.as_deref().unwrap_or("null"))));
             }
             request.insert("protocol".into(), networkId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -2432,8 +2432,8 @@ impl Bitopro {
             m
         });
         let mut isSignedBody: bool = (apiName.as_deref() == Some("private")) && ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")));
-        let mut signedBody: Value = json_stringify(&params);
-        let mut requestBody: Value = Value::Null;
+        let mut signedBody: Option<String> = json_stringify(&params).as_str().map(str::to_owned);
+        let mut requestBody: Option<String> = None;
         if isSignedBody {
             requestBody = signedBody.clone();
         }
@@ -2441,7 +2441,7 @@ impl Bitopro {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
-                let mut payload: Value = Value::from(self.string_to_base64(signedBody, &[]));
+                let mut payload: Value = Value::from(self.string_to_base64(signedBody.map(Value::from).unwrap_or(Value::Null), &[]));
                 let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 requestHeaders.insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone());
                 requestHeaders.insert("X-BITOPRO-PAYLOAD".into(), payload.clone());
@@ -2472,12 +2472,12 @@ impl Bitopro {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut fullUrl: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), url);
+        let mut fullUrl: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), url);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(fullUrl));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(requestHeaders));
     m
 });

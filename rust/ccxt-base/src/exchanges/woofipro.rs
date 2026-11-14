@@ -1513,7 +1513,7 @@ impl Woofipro {
         }
         let mut settleId: Option<String> = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null")).into()), Value::Str(":".into())).into()), quote.as_deref().unwrap_or("null"));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -3453,7 +3453,7 @@ impl Woofipro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id.clone());
+                m.insert("order_id".to_string(), id);
             m
         });
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]).as_str().map(str::to_owned);
@@ -3566,12 +3566,12 @@ impl Woofipro {
             m
         });
         let mut clientOrderIdUnified: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut clientOrderIdExchangeSpecific: Value = self.safe_string_k(&paramsOmitted, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]);
-        let mut isByClientOrder: bool = clientOrderIdExchangeSpecific != Value::Null;
+        let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k(&paramsOmitted, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
         let mut response: Value = Value::Null;
         if trigger {
             if isByClientOrder {
-                request.insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone());
+                request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
                 let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
                 response = self.v1_private_delete_algo_client_order(&[__ws_arg_11]).await;
@@ -3582,7 +3582,7 @@ impl Woofipro {
             }
         }  else {
             if isByClientOrder {
-                request.insert("client_order_id".into(), clientOrderIdExchangeSpecific.clone());
+                request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
                 let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
                 response = self.v1_private_delete_client_order(&[__ws_arg_13]).await;
@@ -3613,7 +3613,7 @@ impl Woofipro {
             m
         });
         if isByClientOrder {
-            extendParams.insert("client_order_id".into(), clientOrderIdExchangeSpecific);
+            extendParams.insert("client_order_id".into(), clientOrderIdExchangeSpecific.map(Value::from).unwrap_or(Value::Null));
         }  else {
             extendParams.insert("id".into(), id);
         }
@@ -5391,14 +5391,14 @@ impl Woofipro {
 }));
         let __section_empty = Vec::new();
         let section = section.as_array().unwrap_or(&__section_empty);
-        let mut version: Value = section.get(0).cloned().unwrap_or(Value::Null);
+        let mut version: Option<String> = section.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut access: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), access.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), version).into()), Value::Str("/".into()));
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), Value::Str("/".into())).into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into()));
         let mut requestParams: indexmap::IndexMap<String, Value> = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]).as_map().cloned().unwrap_or_default();
         let mut requestBody: Value = Value::Null;
         let mut requestHeaders: Value = Value::Null;
@@ -5442,7 +5442,7 @@ impl Woofipro {
                     m.insert("orderly-timestamp".to_string(), ts.clone());
                 m
             });
-            auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), pathWithParams).into());
+            auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), Value::Str("/".into())).into()), version.as_deref().unwrap_or("null")).into()), Value::Str("/".into())).into()), pathWithParams).into());
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 requestBody = json_stringify(&Value::Map(requestParams.clone()));
                 auth = Value::Str(format!("{}{}", auth, requestBody).into());
