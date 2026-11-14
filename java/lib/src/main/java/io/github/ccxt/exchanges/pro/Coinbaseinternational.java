@@ -142,9 +142,11 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
         if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
         {
-            return (String) (((Map<String, Object>)this.urls.get("api")).get("wsPrivate"));
+            return (String) (this.safeString(this.urls.get("api"), "wsPrivate", ""));
+        } else
+        {
+            return (String) (this.safeString(this.urls.get("api"), "ws", ""));
         }
-        return (String) (((Map<String, Object>)this.urls.get("api")).get("ws"));
     }
 
     public Object ping(Client client)

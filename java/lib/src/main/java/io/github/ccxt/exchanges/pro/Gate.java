@@ -2793,13 +2793,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public String getUrlByMarket(Object market)
     {
-        Object baseUrl = Helpers.GetValue(this.urls.get("api"), Helpers.GetValue(market, "type"));
         if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
         {
-            return (String) (((Boolean.TRUE.equals((this.safeBool(market, "linear", false))))) ? Helpers.GetValue(baseUrl, "usdt") : Helpers.GetValue(baseUrl, "btc"));
+            String settleKey = ((Boolean.TRUE.equals((this.safeBool(market, "linear", false))))) ? "usdt" : "btc";
+            return (String) (this.safeString(Helpers.GetValue(this.urls.get("api"), Helpers.GetValue(market, "type")), settleKey, ""));
         } else
         {
-            return (String) (baseUrl);
+            return (String) (this.safeString(this.urls.get("api"), Helpers.GetValue(market, "type"), ""));
         }
     }
 
@@ -2823,14 +2823,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public String getUrlByMarketType(String type, Boolean isInverse)
     {
-        Object api = this.urls.get("api");
-        Object url = this.safeValue(api, type);
         if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
         {
-            return (String) (((java.util.Objects.requireNonNullElse(isInverse, false))) ? Helpers.GetValue(url, "btc") : Helpers.GetValue(url, "usdt"));
+            String settleKey = ((java.util.Objects.requireNonNullElse(isInverse, false))) ? "btc" : "usdt";
+            return (String) (this.safeString(this.safeDict(this.urls.get("api"), type, (Object) null), settleKey));
         } else
         {
-            return (String) (url);
+            return (String) (this.safeString(this.urls.get("api"), type));
         }
     }
 

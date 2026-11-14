@@ -4566,7 +4566,7 @@ public class Gate extends GateApi
                 {
                     String currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                     Object content = (balances == null || currencyId == null ? null : balances.get(currencyId));
-                    Helpers.addElementToObject(content, "currency", currencyId);
+                    ((Map<String, Object>)content).put("currency", currencyId);
                     ((List<Object>)flatBalances).add(content);
                 }
                 data = flatBalances;

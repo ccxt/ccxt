@@ -1593,7 +1593,7 @@ public class Kraken extends KrakenApi
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = (ledger == null || key == null ? null : ledger.get(key));
-                Helpers.addElementToObject(value, "id", key);
+                ((Map<String, Object>)value).put("id", key);
                 ((List<Object>)items).add(value);
             }
             return this.parseLedger(items, currency, since, limit, new HashMap<String, Object>() {{}});

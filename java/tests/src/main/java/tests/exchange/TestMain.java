@@ -327,7 +327,7 @@ public class TestMain extends BaseTest
             }
             String skipMessage = null;
             Boolean supportedByExchange = (Helpers.inOp(exchange.has, methodName)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, methodName), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, methodName), false));
-            if (!Boolean.TRUE.equals(isLoadMarkets) && ((((List<?>)this.onlySpecificTests).size() > 0) && (!java.util.Objects.equals(exchange.inArray(methodName, this.onlySpecificTests), true))))
+            if (!Boolean.TRUE.equals(isLoadMarkets) && ((((List<?>)this.onlySpecificTests).size() > 0) && !Helpers.isTrue(exchange.inArray(methodName, this.onlySpecificTests))))
             {
                 skipMessage = "[INFO] IGNORED_TEST";
             } else if (!Boolean.TRUE.equals(isLoadMarkets) && !Boolean.TRUE.equals(supportedByExchange) && !Boolean.TRUE.equals(isProxyTest) && !Boolean.TRUE.equals(isFeatureTest) && !Boolean.TRUE.equals(isConstructorTest))

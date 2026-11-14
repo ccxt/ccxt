@@ -98,13 +98,15 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     public String getWsUrl()
     {
-        Object url = ((Map<String, Object>)this.urls.get("api")).get("ws");
+        String url = this.safeString(this.urls.get("api"), "ws", "");
         if (!Boolean.TRUE.equals(this.safeBool(this.options, "sbe", true)))
         {
             return (String) (url);
+        } else
+        {
+            String schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
+            return (String) (((url + "?sbeSchemaId=1&sbeSchemaVersion=") + schemaVersion));
         }
-        String schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
-        return (String) (((java.util.function.BinaryOperator<Object>) (hx4J40v4A, hx4J40v4B) -> { Object hx4J40v4P = hx4J40v4A instanceof Integer hx4J40v4i ? (Object) Long.valueOf(hx4J40v4i.longValue()) : hx4J40v4A; Object hx4J40v4Q = hx4J40v4B instanceof Integer hx4J40v4i ? (Object) Long.valueOf(hx4J40v4i.longValue()) : hx4J40v4B; if (hx4J40v4P instanceof Long hx4J40v4l && hx4J40v4Q instanceof Long hx4J40v4r) { return hx4J40v4l + hx4J40v4r; } if (hx4J40v4P instanceof Double || hx4J40v4Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v4D = hx4J40v4o -> { if (hx4J40v4o instanceof Double || hx4J40v4o instanceof Float || hx4J40v4o instanceof Long || hx4J40v4o instanceof Integer || hx4J40v4o instanceof java.math.BigDecimal) { return ((Number) hx4J40v4o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v4o)); } catch (NumberFormatException hx4J40v4e) { return 0.0; } }; return hx4J40v4D.applyAsDouble(hx4J40v4P) + hx4J40v4D.applyAsDouble(hx4J40v4Q); } if (hx4J40v4P instanceof String || hx4J40v4Q instanceof String) { return String.valueOf(hx4J40v4P) + String.valueOf(hx4J40v4Q); } return null; }).apply(((Object) (switch ((Object) (url)) { case null -> (Object) ("null" + ("?sbeSchemaId=1&sbeSchemaVersion=")); case Double hx4J40v3 -> (Object) (hx4J40v3 + 0.0); case Object hx4J40v3 -> (Object) (String.valueOf(hx4J40v3) + ("?sbeSchemaId=1&sbeSchemaVersion=")); })), schemaVersion));
     }
 
     public String getOrderBookChannel(String marketId, Object deltas)
