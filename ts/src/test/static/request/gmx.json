@@ -1,0 +1,120 @@
+{
+    "exchange": "gmx",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchOpenInterests": [
+            {
+                "description": "GMX open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "GMX open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses=0x47c031236e19d024b42f8ae6780e44a573170703",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "GMX funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "GMX funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses=0x47c031236e19d024b42f8ae6780e44a573170703",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "GMX OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://arbitrum.gmxapi.io/v1/prices/ohlcv?symbol=BTC&timeframe=1h&limit=5",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1h",
+                    null,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "GMX order book",
+                "method": "fetchOrderBook",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses=0x47c031236e19d024b42f8ae6780e44a573170703",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "GMX tickers",
+                "method": "fetchTickers",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "GMX ticker",
+                "method": "fetchTicker",
+                "url": "https://arbitrum.gmxapi.io/v1/markets/tickers?addresses=0x47c031236e19d024b42f8ae6780e44a573170703",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "GMX status",
+                "method": "fetchStatus",
+                "url": "https://arbitrum.gmxapi.io/v1/stats/summary",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "GMX currencies",
+                "method": "fetchCurrencies",
+                "url": "https://arbitrum.gmxapi.io/v1/tokens",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "GMX markets",
+                "method": "fetchMarkets",
+                "url": "https://arbitrum.gmxapi.io/v1/markets",
+                "input": [],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
