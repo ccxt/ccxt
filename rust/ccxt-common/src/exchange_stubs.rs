@@ -2484,10 +2484,10 @@ impl Exchange {
     pub fn binary_to_base58(&self, b: impl Into<Value>, _optional_args: &[Value]) -> String {
         base58_encode(&crate::exchange::value_to_bytes(&b.into()))
     }
-    pub fn binary_length(&self, b: impl Into<Value>, _optional_args: &[Value]) -> Value {
+    pub fn binary_length(&self, b: impl Into<Value>, _optional_args: &[Value]) -> i64 {
         match b.into() {
-            Value::Arr(a) => Value::Int(a.len() as i64),
-            _ => Value::Int(0),
+            Value::Arr(a) => a.len() as i64,
+            _ => 0,
         }
     }
     /// `isBinaryMessage` — in this port a binary buffer is a

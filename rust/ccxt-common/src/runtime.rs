@@ -1319,7 +1319,7 @@ fn b64url_encode(data: &[u8]) -> String {
 
 /// `jwt(request, secret, algorithm, isRsa, opts)` — JSON Web Token.
 /// HS256 (HMAC) or RS256 (RSA), signing `header.payload`.
-pub fn jwt(request: Value, secret: impl Into<Value>, algorithm: Value, is_rsa: Value, _opts: Value) -> String {
+pub fn jwt(request: impl Into<Value>, secret: impl Into<Value>, algorithm: Value, is_rsa: Value, _opts: Value) -> String {
     let rsa_mode = matches!(is_rsa, Value::Bool(true));
     let bits = match algorithm.as_str() {
         Some("sha512") => "512",
@@ -1329,7 +1329,7 @@ pub fn jwt(request: Value, secret: impl Into<Value>, algorithm: Value, is_rsa: V
     let alg = format!("{}{}", if rsa_mode { "RS" } else { "HS" }, bits);
     // Header keys must be in a fixed order — build the JSON literally.
     let header = format!("{{\"alg\":\"{alg}\",\"typ\":\"JWT\"}}");
-    let payload = serde_json::to_string(&request.to_json()).unwrap_or_else(|_| "{}".to_string());
+    let payload = serde_json::to_string(&request.into().to_json()).unwrap_or_else(|_| "{}".to_string());
     let token = format!("{}.{}",
         b64url_encode(header.as_bytes()),
         b64url_encode(payload.as_bytes()));
