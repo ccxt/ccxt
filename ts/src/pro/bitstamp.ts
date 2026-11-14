@@ -60,6 +60,7 @@ export default class bitstamp extends bitstampRest {
      * @method
      * @name bitstamp#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.bitstamp.net/websocket/v2/
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -132,6 +133,12 @@ export default class bitstamp extends bitstampRest {
         return await this.watch (url, unsubHash, this.extend (request, params), unsubHash, subscription);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name bitstamp#handleOrderBook
+     * @description buffers updates during REST synchronization and applies newer live updates
+     */
     handleOrderBook (client: Client, message: Dict) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
@@ -167,19 +174,21 @@ export default class bitstamp extends bitstampRest {
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const delta = this.safeDict (message, 'data');
         const deltaNonce = this.safeInteger (delta, 'microtimestamp');
-        if (deltaNonce === undefined) {
+        if ((deltaNonce === undefined) || (deltaNonce <= 0)) {
             return;
         }
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
-            const cacheLength = this.parseToInt (storedOrderBook.cache.length);
+            const cache: any[] = storedOrderBook.cache;
+            const cacheLength = cache.length;
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             const snapshotDelay = this.parseToInt (this.handleOption ('watchOrderBook', 'snapshotDelay', 6));
+            // Include the triggering delta even if the spawned snapshot loader completes inline.
+            storedOrderBook.cache.push (delta);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, null, {});
             }
-            storedOrderBook.cache.push (delta);
             return;
         } else if (nonce >= deltaNonce) {
             return;
@@ -188,11 +197,22 @@ export default class bitstamp extends bitstampRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name bitstamp#handleBookDelta
+     * @description applies a newer timestamped price-level update, including buffered updates
+     */
     override handleBookDelta (orderbook: WsOrderBook, delta: any) {
+        const deltaNonce = this.safeInteger (delta, 'microtimestamp');
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        if ((deltaNonce === undefined) || (deltaNonce <= 0) || ((nonce !== undefined) && (deltaNonce <= nonce))) {
+            return;
+        }
         const timestamp = this.safeTimestamp (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
-        orderbook['nonce'] = this.safeInteger (delta, 'microtimestamp');
+        orderbook['nonce'] = deltaNonce;
         const bids = this.safeList (delta, 'bids', []);
         const asks = this.safeList (delta, 'asks', []);
         this.handleBidAsks (orderbook['bids'], bids);
@@ -206,25 +226,38 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name bitstamp#getCacheIndex
+     * @description finds the first buffered update newer than the REST snapshot
+     */
     override getCacheIndex (orderbook: NullableDict, deltas: any[]): number {
-        // we will consider it a fail
+        // Require overlap: an older snapshot may need updates preceding our cache.
         const firstElement = this.safeDict (deltas, 0);
         const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
-        if (firstElementNonce === undefined) {
+        if ((firstElementNonce === undefined) || (firstElementNonce <= 0)) {
             return -1;
         }
         const nonce = this.safeInteger (orderbook, 'nonce');
-        if ((nonce === undefined) || (nonce < firstElementNonce)) {
+        if ((nonce === undefined) || (nonce <= 0) || (nonce < firstElementNonce)) {
             return -1;
         }
-        for (let i = 0; i < deltas.length; i++) {
+        const deltasLength = deltas.length;
+        let index = deltasLength;
+        for (let i = 0; i < deltasLength; i++) {
             const delta = this.safeDict (deltas, i);
             const deltaNonce = this.safeInteger (delta, 'microtimestamp');
-            if (deltaNonce === nonce) {
-                return i + 1;
+            if ((deltaNonce === undefined) || (deltaNonce <= 0)) {
+                return -1;
+            }
+            // microtimestamp is a timestamp, not a contiguous sequence number.
+            // An exact match is not required; never discard newer cached updates.
+            if ((deltaNonce > nonce) && (index === deltasLength)) {
+                index = i;
             }
         }
-        return deltas.length;
+        return index;
     }
 
     /**
