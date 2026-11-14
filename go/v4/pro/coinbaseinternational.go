@@ -121,9 +121,10 @@ func (this *Coinbaseinternational) GetWsUrl(optionalArgs ...any) any {
 		return "wss://www.deribit.com/ws/api/v2"
 	}
 	if isPrivate == true {
-		return this.UrlsApi["wsPrivate"]
+		return this.SafeString(this.Urls["api"], "wsPrivate", "")
+	} else {
+		return this.SafeString(this.Urls["api"], "ws", "")
 	}
-	return this.UrlsApi["ws"]
 }
 func (this *Coinbaseinternational) Ping(client any) any {
 	var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")

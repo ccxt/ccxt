@@ -365,7 +365,7 @@ func (this *testMainClass) testMethodBody(ch chan ccxt.AsyncResult[any], methodN
 	}
 	var skipMessage any = nil
 	var supportedByExchange bool = (InOp(exchange.GetHas(), methodName)) && (!IsEqual(GetValue(exchange.GetHas(), methodName), nil)) && (!IsEqual(GetValue(exchange.GetHas(), methodName), false))
-	if !isLoadMarkets && ((GetArrayLength(this.OnlySpecificTests) > 0) && (!IsEqual(exchange.InArray(methodName, this.OnlySpecificTests), true))) {
+	if !isLoadMarkets && ((GetArrayLength(this.OnlySpecificTests) > 0) && !EvalTruthy(exchange.InArray(methodName, this.OnlySpecificTests))) {
 		skipMessage = "[INFO] IGNORED_TEST"
 	} else if !isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest {
 		skipMessage = "[INFO] UNSUPPORTED_TEST" // keep it aligned with the longest message

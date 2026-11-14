@@ -79,12 +79,13 @@ func (this *Paradex) Describe() map[string]any {
 	})
 }
 func (this *Paradex) GetWsUrl() any {
-	var url any = this.UrlsApi["ws"]
+	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	if !(*this.SafeBool(this.Options, "sbe", true)) {
 		return url
+	} else {
+		var schemaVersion string = *this.SafeString(this.Options, "sbeSchemaVersion", "3")
+		return *url + "?sbeSchemaId=1&sbeSchemaVersion=" + schemaVersion
 	}
-	var schemaVersion string = *this.SafeString(this.Options, "sbeSchemaVersion", "3")
-	return ccxt.Add(ccxt.Add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion)
 }
 func (this *Paradex) GetOrderBookChannel(marketId any, optionalArgs ...any) any {
 	// the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed

@@ -1879,7 +1879,7 @@ func (this *Gate) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 		messageHash += ":" + *symbol
 	}
 	var isInverse bool = (subType != nil && *subType == "inverse")
-	var url any = this.GetUrlByMarketType(typeVar, isInverse)
+	var url *string = this.GetUrlByMarketType(typeVar, isInverse)
 	var payload []any = []any{marketId}
 	// uid required for non spot markets
 	var requiresUid bool = (typeVar == nil || *typeVar != "spot")
@@ -1985,7 +1985,7 @@ func (this *Gate) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opti
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType)
 	var isInverse bool = (subType != nil && *subType == "inverse")
-	var url any = this.GetUrlByMarketType(typeVar, isInverse)
+	var url *string = this.GetUrlByMarketType(typeVar, isInverse)
 	var requiresUid bool = (typeVar == nil || *typeVar != "spot")
 	var channelType any = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot",
@@ -2168,7 +2168,7 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	var subType *string = nil
 	subType, query = this.HandleSubTypeAndParams("watchPositions", market, query)
 	var isInverse bool = (subType != nil && *subType == "inverse")
-	var url any = this.GetUrlByMarketType(typeVar, isInverse)
+	var url *string = this.GetUrlByMarketType(typeVar, isInverse)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbolsNormalized)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
@@ -2458,7 +2458,7 @@ func (this *Gate) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	var subType *string = nil
 	subType, query = this.HandleSubTypeAndParams("watchOrders", market, query)
 	var isInverse bool = (subType != nil && *subType == "inverse")
-	var url any = this.GetUrlByMarketType(typeVar, isInverse)
+	var url *string = this.GetUrlByMarketType(typeVar, isInverse)
 	// uid required for non spot markets
 	var requiresUid bool = (typeVar != "spot")
 
@@ -2665,7 +2665,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]c
 	var subType *string = nil
 	subType, query = this.HandleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query)
 	var isInverse bool = (subType != nil && *subType == "inverse")
-	var url any = this.GetUrlByMarketType(typeVar, isInverse)
+	var url *string = this.GetUrlByMarketType(typeVar, isInverse)
 	var payload []any = []any{}
 	var messageHash any = ""
 	if this.IsEmpty(symbolsNormalized) {
@@ -3173,16 +3173,16 @@ func (this *Gate) HandleMessage(client any, message map[string]any) {
 	}
 }
 func (this *Gate) GetUrlByMarket(market any) any {
-	var baseUrl any = ccxt.GetValue(this.Urls["api"], ccxt.GetValue(market, "type"))
 	if *this.SafeBool(market, "contract", false) {
-		return func() any {
+		var settleKey string = func() string {
 			if *this.SafeBool(market, "linear", false) {
-				return ccxt.GetValue(baseUrl, "usdt")
+				return "usdt"
 			}
-			return ccxt.GetValue(baseUrl, "btc")
+			return "btc"
 		}()
+		return this.SafeString(ccxt.GetValue(this.Urls["api"], ccxt.GetValue(market, "type")), settleKey, "")
 	} else {
-		return baseUrl
+		return this.SafeString(this.Urls["api"], ccxt.GetValue(market, "type"), "")
 	}
 }
 func (this *Gate) GetTypeByMarket(market any) any {
@@ -3197,20 +3197,19 @@ func (this *Gate) GetTypeByMarket(market any) any {
 		return "futures"
 	}
 }
-func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
+func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) *string {
 	var isInverse bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = isInverse
-	var api any = this.Urls["api"]
-	var url any = this.SafeValue(api, typeVar)
 	if (ccxt.IsEqual(typeVar, "swap")) || (ccxt.IsEqual(typeVar, "future")) {
-		return func() any {
+		var settleKey string = func() string {
 			if isInverse == true {
-				return ccxt.GetValue(url, "btc")
+				return "btc"
 			}
-			return ccxt.GetValue(url, "usdt")
+			return "usdt"
 		}()
+		return this.SafeString(this.SafeDict(this.Urls["api"], typeVar), settleKey)
 	} else {
-		return url
+		return this.SafeString(this.Urls["api"], typeVar)
 	}
 }
 func (this *Gate) GetMarketTypeByUrl(url string) any {
