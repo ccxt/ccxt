@@ -14,7 +14,7 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
     let mut currencies: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_currencies", vec![]).await;
     // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
     let mut numInactiveCurrencies: Value = Value::Int(0);
-    let mut maxInactiveCurrenciesPercentage: Value = exchange.safe_integer(&skippedProperties, Value::Str("maxInactiveCurrenciesPercentage".into()), &[Value::Int(50)]); // no more than X% currencies should be inactive
+    let mut maxInactiveCurrenciesPercentage: i64 = exchange.safe_integer(&skippedProperties, Value::Str("maxInactiveCurrenciesPercentage".into()), &[Value::Int(50)]).as_i64().unwrap_or(50); // no more than X% currencies should be inactive
     let mut requiredActiveCurrencies: Value = Value::from(vec![Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("USDT".into()), Value::Str("USDC".into())]);
     let mut features: Value = get_value(&exchange, &Value::Str("features".into()));
     let mut featuresSpot: Value = exchange.safe_dict(&features, Value::Str("spot".into()), &[Value::Map({
@@ -61,7 +61,7 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
         // check at least X% of currencies are active
         let mut inactiveCurrenciesPercentage: Value = (match (&(((match ((numInactiveCurrencies).as_f64(), (currenciesLength).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
             (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&skipActive) || (inactiveCurrenciesPercentage.as_f64().unwrap_or(f64::NAN) < maxInactiveCurrenciesPercentage.as_f64().unwrap_or(f64::NAN))))));
+        assert!(ccxt::runtime::is_true(&((is_true(&skipActive) || (inactiveCurrenciesPercentage.as_f64().unwrap_or(f64::NAN) < (maxInactiveCurrenciesPercentage as f64))))));
         detectCurrencyConflicts(exchange, currencies);
     }
     return Value::Bool(true);

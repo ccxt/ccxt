@@ -484,12 +484,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // tests queue if any single test-method fails. Instead, they are echoed with
         // formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
         // run-tests.js, so the exceptions are still printed out to console from there.
-        let mut maxRetries: Value = Value::Int(3);
+        let mut maxRetries: i64 = 3;
         let mut argsStringified: Value = exchange.json(args.clone()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1620: bool = true;
-            while { if !__for_first_1620 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1620 = false; i.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1620 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1620 = false; i.as_f64().unwrap_or(f64::NAN) < (maxRetries as f64) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(methodName.clone(), exchange.clone(), args.clone(), isPublic.clone()).await;
                 return Value::Bool(true);
@@ -506,7 +506,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".into()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".into()), self.get_last_request_url(exchange.clone()).map(Value::from).unwrap_or(Value::Null)).into()), " )").into()) });
                 if isOperationFailed {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
-                    if (i.as_f64() == (match (&(maxRetries), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+                    if (i.as_f64() == Value::Int((maxRetries - 1)).as_f64()) {
                         let mut isOnMaintenance: bool = matches!(&e, Value::Str(__s) if __s.contains("[OnMaintenance]"));
                         let mut isExchangeNotAvailable: bool = is_instance(&e, &Value::Str("ExchangeNotAvailable".into()));
                         let mut shouldFail: Option<bool> = None;
@@ -1183,11 +1183,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     scopesToTest.push(get_value(&extraScopes, &Value::Int(si)));
                 }
                 }
-                let mut scopesToTestLength: Value = Value::Int(scopesToTest.len() as i64);
+                let mut scopesToTestLength: i64 = scopesToTest.len() as i64;
                 {
                                         let mut sj: i64 = 0;
                     let mut __for_first_1633: bool = true;
-                    while { if !__for_first_1633 { sj += 1; } __for_first_1633 = false; (sj as f64) < scopesToTestLength.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1633 { sj += 1; } __for_first_1633 = false; sj < scopesToTestLength } {
                     let mut scope: Value = scopesToTest.get(sj as usize).cloned().unwrap_or(Value::Null);
                     // fetchEvents scoped by a single parameter must return a non-empty, valid list
                     let mut scopedEvents: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![scope.clone()])).await;
@@ -1288,11 +1288,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn assert_prediction_events(&self, mut exchange: Value, mut events: Value) -> Value {
         assert((matches!(&events, Value::Arr(_))), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents/fetchEvent should return a list").into())]);
-        let mut eventsLength: Value = Value::Int(events.len() as i64);
+        let mut eventsLength: i64 = events.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1634: bool = true;
-            while { if !__for_first_1634 { i += 1; } __for_first_1634 = false; (i as f64) < eventsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1634 { i += 1; } __for_first_1634 = false; i < eventsLength } {
             self.assert_prediction_event(exchange.clone(), events.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1533,12 +1533,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Bool(true);
         }
         // try proxy several times
-        let mut maxRetries: Value = Value::Int(3);
+        let mut maxRetries: i64 = 3;
         let mut exceptionMessageString: Value = Value::Null;
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1637: bool = true;
-            while { if !__for_first_1637 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1637 = false; j.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1637 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1637 = false; j.as_f64().unwrap_or(f64::NAN) < (maxRetries as f64) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(proxyTestName.clone(), exchange.clone(), Value::from(vec![]), true).await;
                 return Value::Bool(true);
@@ -1748,11 +1748,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut urlParts: Vec<Value> = Value::Array(if let Some(__s) = url.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut res: String = "".to_string();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1639: bool = true;
-            while { if !__for_first_1639 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1639 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            if i.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
-                let mut current: Value = urlParts.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1639 { i += 1; } __for_first_1639 = false; i < (urlParts.len() as i64) } {
+            if i > 2 {
+                let mut current: Value = urlParts.get(i as usize).cloned().unwrap_or(Value::Null);
                 if current.as_str().unwrap_or("").contains("?") {
                     // handle urls like this: /v1/account/accounts?AccessK
                     let mut currentParts: Vec<Value> = Value::Array(if let Some(__s) = current.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
@@ -2228,11 +2228,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn assert_static_isolated_positions(&self, mut exchange: Value, mut method: Value, mut output: Value) -> Value {
         if (method.as_str() == Some("fetchPosition")) || (method.as_str() == Some("fetchPositions")) || (method.as_str() == Some("fetchPositionsForSymbol")) || (method.as_str() == Some("fetchPositionsRisk")) {
             if (matches!(&output, Value::Arr(_))) {
-                let mut outputLength: Value = Value::Int(output.len() as i64);
+                let mut outputLength: i64 = output.len() as i64;
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_1647: bool = true;
-                    while { if !__for_first_1647 { i += 1; } __for_first_1647 = false; (i as f64) < outputLength.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1647 { i += 1; } __for_first_1647 = false; i < outputLength } {
                     self.assert_static_isolated_position(exchange.clone(), output.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 }
                 }

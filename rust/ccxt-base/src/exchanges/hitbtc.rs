@@ -1456,15 +1456,15 @@ impl Hitbtc {
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             let mut type_var: String = "spot".to_string();
             let mut contractSize: Option<f64> = None;
-            let mut linear: Value = Value::Null;
+            let mut linear: Option<bool> = None;
             let mut inverse: Option<bool> = None;
             if matches!(&contract, Value::Bool(true)) {
                 contractSize = Some(1_f64);
                 settleId = feeCurrencyId.take();
                 let mut settleCode: Option<String> = self.safe_currency_code(Value::from(settleId.as_deref()), None);
                 settle = settleCode.clone().map(Value::from).unwrap_or(Value::Null);
-                linear = (Value::Bool(quote == settleCode));
-                inverse = Some(!(linear.as_bool() == Some(true)));
+                linear = Some(quote == settleCode);
+                inverse = Some(!(linear == Some(true)));
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle);
                 if matches!(&future, Value::Bool(true)) {
                     symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle).into()), "-").into()), self.safe_string_k(&market, "expiry", &[Value::Str("".into())]));
@@ -1495,7 +1495,7 @@ impl Hitbtc {
                     m.insert("option".to_string(), Value::Bool(option));
                     m.insert("active".to_string(), Value::Bool(true));
                     m.insert("contract".to_string(), contract);
-                    m.insert("linear".to_string(), linear);
+                    m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
                     m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("taker".to_string(), self.safe_number_k(&market, "take_rate", &[]));
                     m.insert("maker".to_string(), self.safe_number_k(&market, "make_rate", &[]));
@@ -1870,7 +1870,7 @@ impl Hitbtc {
     m
 }));
         let mut type_var: String = self.safe_string_lower_k(params.clone(), "type", &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("type".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["type"], &[]).into_dict();
         let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2169,7 +2169,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchMyTrades".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         if (marginMode.is_some()) {
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_margin_history_trade(&[__ws_arg_6]).await;
@@ -2955,7 +2955,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchClosedOrders".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Option<crate::value::List> = None;
         if (marginMode.is_some()) {
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3035,7 +3035,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrder".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Option<crate::value::List> = None;
         if (marginMode.is_some()) {
             let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3130,7 +3130,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrderTrades".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Value = Value::from(vec![]);
         if (marginMode.is_some()) {
             let __ws_arg_27 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3200,7 +3200,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Option<crate::value::List> = None;
         if (marginMode.is_some()) {
             let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3268,7 +3268,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrder".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
             let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3334,7 +3334,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Option<crate::value::List> = None;
         if (marginMode.is_some()) {
             let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3402,7 +3402,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
             let __ws_arg_43 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3467,7 +3467,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("editOrder".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
             let __ws_arg_47 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3616,7 +3616,7 @@ impl Hitbtc {
         }  else if (type_var.as_str() == Some("stopLimit")) || (type_var.as_str() == Some("stopMarket")) || (type_var.as_str() == Some("takeProfitLimit")) || (type_var.as_str() == Some("takeProfitMarket")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("reduceOnly".into()), Value::Str("postOnly".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(params, &["triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"], &[]);
         if (marketType.as_str() == Some("swap")) {
             // set default margin mode to cross
             request.insert("margin_mode".into(), (if (marginMode == Value::Null) { Value::Str("cross".into()) } else { marginMode }));
@@ -4259,7 +4259,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchPositions".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Value = Value::Null;
         if (marginMode.is_some()) {
             let __ws_arg_59 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -4361,7 +4361,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchPosition".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
             let __ws_arg_62 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -4925,7 +4925,7 @@ impl Hitbtc {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".into()), &[params]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("marginMode".into()), Value::Str("margin".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, &["marginMode", "margin"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) {
             let __ws_arg_71 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);

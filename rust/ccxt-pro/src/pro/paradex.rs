@@ -259,8 +259,8 @@ impl Paradex {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "clean_unsubscribed" => { self.clean_unsubscribed(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -558,11 +558,11 @@ impl Paradex {
         // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
         // starts a client without any. Each but the last is sent once the previous one is acknowledged
         self.wait_for_pending_unsubscribe(url.as_str().unwrap_or_default(), channels.clone()).await;
-        let mut channelsLength: f64 = ((channels.len() as i64) as f64);
+        let mut channelsLength: i64 = channels.len() as i64;
         {
                         let mut attempt: Value = Value::Int(0);
             let mut __for_first_582: bool = true;
-            while { if !__for_first_582 { if let Value::Int(n) = &mut attempt { *n += 1; } } __for_first_582 = false; attempt.as_f64().unwrap_or(f64::NAN) < channelsLength } {
+            while { if !__for_first_582 { if let Value::Int(n) = &mut attempt { *n += 1; } } __for_first_582 = false; attempt.as_f64().unwrap_or(f64::NAN) < (channelsLength as f64) } {
             let mut pending: Vec<Value> = self.unsubscribed_channels(url.clone(), channels.clone()).as_array().cloned().unwrap_or_default();
             let mut pendingLength: i64 = pending.len() as i64;
             if pendingLength < 2 {
@@ -1090,15 +1090,15 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
-        let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbolsNormalized.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchTradesForSymbols() requires a non-empty array of symbols")));
         }
         let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_591: bool = true;
-            while { if !__for_first_591 { i += 1; } __for_first_591 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_591 { i += 1; } __for_first_591 = false; i < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", "trades.", Value::from((market).id.as_deref())).into()));
         }
@@ -1380,8 +1380,8 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
-        let mut symbolsLength: f64 = ((symbolsNormalized.len() as i64) as f64);
-        if (symbolsLength == 0.0) {
+        let mut symbolsLength: i64 = symbolsNormalized.len() as i64;
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOrderBookForSymbols() requires a non-empty array of symbols")));
         }
         let deltasOptionparamsDeltasVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("deltas".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -1394,7 +1394,7 @@ if _try_result.is_err() {
         {
                         let mut i: i64 = 0;
             let mut __for_first_593: bool = true;
-            while { if !__for_first_593 { i += 1; } __for_first_593 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_593 { i += 1; } __for_first_593 = false; i < symbolsLength } {
             let mut feedMarket: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             feeds.push(self.get_order_book_channel(Value::from((feedMarket).id.as_deref()), &[Value::Bool(true)]).map(Value::from).unwrap_or(Value::Null));
             feeds.push(self.get_order_book_channel(Value::from((feedMarket).id.as_deref()), &[Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null));
@@ -1408,7 +1408,7 @@ if _try_result.is_err() {
         {
                         let mut i: i64 = 0;
             let mut __for_first_594: bool = true;
-            while { if !__for_first_594 { i += 1; } __for_first_594 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_594 { i += 1; } __for_first_594 = false; i < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut deltasChannel: Value = self.get_order_book_channel(Value::from((market).id.as_deref()), &[Value::Bool(true)]).map(Value::from).unwrap_or(Value::Null);
             let mut snapshotChannel: Value = self.get_order_book_channel(Value::from((market).id.as_deref()), &[Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null);
@@ -1775,11 +1775,11 @@ if _try_result.is_err() {
         let mut channel: String = "markets_summary".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut newTicker: Value = Value::Null;
-        if (symbolsLength as f64) > ((0i64) as f64) {
+        if symbolsLength > 0 {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_599: bool = true;
-                while { if !__for_first_599 { i += 1; } __for_first_599 = false; (i as f64) < (symbolsLength as f64) } {
+                while { if !__for_first_599 { i += 1; } __for_first_599 = false; i < symbolsLength } {
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
@@ -1897,7 +1897,7 @@ if _try_result.is_err() {
         {
                         let mut i: i64 = 0;
             let mut __for_first_601: bool = true;
-            while { if !__for_first_601 { i += 1; } __for_first_601 = false; (i as f64) < (symbolsLength as f64) } {
+            while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < symbolsLength } {
             let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             marketIds.push(marketId.clone());
@@ -1906,7 +1906,7 @@ if _try_result.is_err() {
         }
         }
         let mut tickerSymbols: Value = (if (symbolsNormalized == Value::Null) { Value::from(vec![]) } else { symbolsNormalized });
-        if ((symbolsLength as f64) > ((0i64) as f64)) && (client.has_subscription(channel.as_str())) {
+        if (symbolsLength > 0) && (client.has_subscription(channel.as_str())) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_602: bool = true;
@@ -1937,7 +1937,7 @@ if _try_result.is_err() {
             }
         }
         }
-        if (((symbolsLength as f64) == 0.0)) || ((client.has_subscription(scopedHash.as_str())) && (remaining == 0)) {
+        if (symbolsLength == 0) || ((client.has_subscription(scopedHash.as_str())) && (remaining == 0)) {
             // a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
             let mut channelSubscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2149,11 +2149,11 @@ if _try_result.is_err() {
         let mut url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         let mut channels: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
-        if (symbolsLength as f64) > ((0i64) as f64) {
+        if symbolsLength > 0 {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_606: bool = true;
-                while { if !__for_first_606 { i += 1; } __for_first_606 = false; (i as f64) < (symbolsLength as f64) } {
+                while { if !__for_first_606 { i += 1; } __for_first_606 = false; i < symbolsLength } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 channels.push(Value::Str(format!("{}{}", "bbo.", Value::from((market).id.as_deref())).into()));
                 messageHashes.push(Value::Str(format!("{}{}", "bidask:", Value::from((market).symbol.clone())).into()));
@@ -2208,11 +2208,11 @@ if _try_result.is_err() {
         let mut channels: Vec<Value> = Vec::new();
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let mut bidAskSymbols: Vec<Value> = Vec::new();
-        if (symbolsLength as f64) > ((0i64) as f64) {
+        if symbolsLength > 0 {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_607: bool = true;
-                while { if !__for_first_607 { i += 1; } __for_first_607 = false; (i as f64) < (symbolsLength as f64) } {
+                while { if !__for_first_607 { i += 1; } __for_first_607 = false; i < symbolsLength } {
                 let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 channels.push(Value::Str(format!("{}{}", "bbo.", Value::from((market).id.as_deref())).into()));
                 subMessageHashes.push(Value::Str(format!("{}{}", "bidask:", Value::from((market).symbol.clone())).into()));
@@ -2527,13 +2527,13 @@ if _try_result.is_err() {
         if (symbolsNormalized.is_some()) {
             symbolsLength = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         }
-        if (((symbolsLength as f64) == 0.0)) {
+        if (symbolsLength == 0) {
             messageHashes.push(Value::from(channel.clone()));
         }  else {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_608: bool = true;
-                while { if !__for_first_608 { i += 1; } __for_first_608 = false; (i as f64) < (symbolsLength as f64) } {
+                while { if !__for_first_608 { i += 1; } __for_first_608 = false; i < symbolsLength } {
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
@@ -3811,7 +3811,7 @@ if _try_result.is_err() {
             if (messageString.is_some()) {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), messageString.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             }
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // the subscription of every request sent keeps its id, so the request this error answers is found
@@ -3926,8 +3926,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("account".to_string(), Value::Str("handle_balance".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(&methods, name.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method != Value::Null) {
+            let mut method: Option<String> = self.safe_value(&methods, name.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client, message]);
             }
         }

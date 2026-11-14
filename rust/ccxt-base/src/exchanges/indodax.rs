@@ -1120,7 +1120,7 @@ impl Indodax {
         let mut selectedTimeframe: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut now: i64 = self.seconds();
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::from(now)]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["until"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("to".to_string(), Value::from(until));

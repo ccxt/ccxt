@@ -1183,7 +1183,7 @@ impl Polymarket {
     m
 })]).into_dict();
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
-            merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.extend(previous.clone(), &[&entry]));
+            merged.insert(instrumentId.as_deref().unwrap_or("null").to_string(), self.extend(previous, &[&entry]));
         }
         }
         let mut tickers: crate::value::List = self.safe_list(responses, Value::Int(0), &[Value::from(vec![])]).into_list();
@@ -1971,7 +1971,7 @@ impl Polymarket {
         let mut tif: Option<String> = timeInForce.as_deref().map(str::to_lowercase);
         let mut reduceOnly: bool = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("c".into()), &[]).as_str().map(str::to_owned);
-        paramsOmitted = self.omit(paramsOmitted, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("reduceOnly".into()), Value::Str("clientOrderId".into())]), &[]);
+        paramsOmitted = self.omit(paramsOmitted, &["timeInForce", "reduceOnly", "clientOrderId"], &[]);
         let mut instrumentId: Option<i64> = self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut isBuy: bool = (side.as_str() == Some("buy"));
         let mut quantity: Option<String> = self.amount_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), amount);
@@ -2244,7 +2244,7 @@ impl Polymarket {
                 clientOrderIds = Value::from(vec![clientOrderId.map(Value::from).unwrap_or(Value::Null)]);
             }
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderIds", "clientOrderId"], &[]).into_dict();
         let mut signable: Value = Value::Null;
         let mut bodyOp: Value = Value::Null;
         let mut response: Value = Value::Null;

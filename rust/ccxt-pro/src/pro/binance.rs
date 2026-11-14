@@ -268,8 +268,8 @@ impl Binance {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
@@ -819,7 +819,7 @@ impl Binance {
 }));
         let mut url: Value = self.get_stock_ws_url(&[Value::Str("market".into())]);
         let mut requestId: i64 = self.request_id(url.clone());
-        let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("type".into()), Value::Str("subType".into()), Value::Str("symbol".into()), Value::Str("timeframe".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(params, &["stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -3985,10 +3985,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut channelName: Option<String> = None;
         let mut resolvedMessageHashes: Vec<Value> = Vec::new();
         let mut rawTickers: Value = Value::from(vec![]);
-        let mut newTickers: indexmap::IndexMap<String, Value> = {
+        let mut newTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
-        };
+        });
         if (matches!(&message, Value::Arr(_))) {
             rawTickers = message.clone();
         }  else {
@@ -4021,20 +4021,20 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
             let mut tickerMarketType: Value = (if (tickerMarketById != Value::Null) { self.safe_value_k(tickerMarketById, "type", &[]) } else { Value::from(tickerFallbackType) });
             let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(&ticker, tickerMarketType).into_dict();
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&parsedTicker, "symbol");
-            if (symbol != Value::Null) {
-                newTickers.insert(crate::runtime::stringify_param(&symbol), Value::from(&parsedTicker));
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsedTicker, "symbol").as_str().map(str::to_owned);
+            if (symbol.is_some()) {
+                newTickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker));
             }
             if isBidAsk {
-                if (symbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&parsedTicker)); }
+                if (symbol.is_some()) {
+                    if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
                 }
             }  else {
-                if (symbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&parsedTicker)); }
+                if (symbol.is_some()) {
+                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
                 }
             }
-            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix.as_deref().unwrap_or("null"), ":").into()), channelName.as_deref().unwrap_or("null")).into()), "@").into()), symbol);
+            let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unifiedPrefix.as_deref().unwrap_or("null"), ":").into()), channelName.as_deref().unwrap_or("null")).into()), "@").into()), symbol.as_deref().unwrap_or("null"));
             resolvedMessageHashes.push(Value::from(messageHash.clone()));
             client.resolve(Value::Dict(parsedTicker), messageHash.as_str());
         }
@@ -4316,7 +4316,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 client.resolve(listenToken.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                { let __be_tmp = self.extend(options.clone(), &[Value::Map({
+                { let __be_tmp = self.extend(options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("lastAuthenticatedTime".to_string(), Value::Int(0));
     m
@@ -4435,7 +4435,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 let mut response: Option<crate::value::Dict> = None;
                 if isStock {
-                    let mut requestParams: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("type".into()), Value::Str("subType".into()), Value::Str("symbol".into()), Value::Str("timeframe".into())]), &[]);
+                    let mut requestParams: Value = self.omit(paramsOmitted.clone(), &["stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"], &[]);
                     response = self.parent.sapi_post_equity_listen_key(&[requestParams]).await.into_opt_dict();
                 }  else if isPortfolioMargin {
                     response = self.parent.papi_post_listen_key(&[paramsOmitted.clone()]).await.into_opt_dict();
@@ -4452,7 +4452,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (listenKey.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() received an empty listenKey")));
                 }
-                { let __be_tmp = self.extend(options.clone(), &[Value::Map({
+                { let __be_tmp = self.extend(options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("listenKey".to_string(), listenKey.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("lastAuthenticatedTime".to_string(), Value::from(time));
@@ -4535,13 +4535,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut paramsOmitted: Value = self.omit(&paramsPortfolioMargin, Value::from(vec![Value::Str("type".into()), Value::Str("symbol".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsPortfolioMargin, &["type", "symbol"], &[]);
         let mut time: i64 = self.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if isStock {
                 // the equity endpoint is create-or-renew: with an active key this
                 // POST extends the validity of that same key
-                let mut requestParams: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("subType".into()), Value::Str("timeframe".into())]), &[]);
+                let mut requestParams: Value = self.omit(paramsOmitted.clone(), &["stock", "name", "callerMethodName", "subType", "timeframe"], &[]);
                 self.parent.sapi_post_equity_listen_key(&[requestParams]).await;
             }  else if isPortfolioMargin {
                 let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
@@ -4600,7 +4600,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
             return Value::Null;
         }
-        { let __be_tmp = self.extend(options.clone(), &[Value::Map({
+        { let __be_tmp = self.extend(options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("listenKey".to_string(), listenKey.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastAuthenticatedTime".to_string(), Value::from(time));
@@ -5796,7 +5796,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 payload.insert("orderId".into(), Value::from(self.number_to_string(id)));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsReturnRateLimits, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsReturnRateLimits, &["origClientOrderId", "clientOrderId", "stop", "trigger", "conditional"], &[]).into_dict();
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), messageHash.clone());
@@ -6252,7 +6252,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     m.insert("id".to_string(), Value::from(stockRequestId));
                 m
             });
-            let mut stockQuery: crate::value::Dict = self.omit(&paramsStock, Value::from(vec![Value::Str("stock".into()), Value::Str("name".into()), Value::Str("callerMethodName".into()), Value::Str("type".into()), Value::Str("subType".into()), Value::Str("symbol".into()), Value::Str("timeframe".into())]), &[]).into_dict();
+            let mut stockQuery: crate::value::Dict = self.omit(&paramsStock, &["stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"], &[]).into_dict();
             let mut stockSubscribe: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(stockRequestId));

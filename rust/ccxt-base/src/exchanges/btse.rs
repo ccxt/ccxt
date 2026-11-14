@@ -1817,10 +1817,10 @@ impl Btse {
                 // each tier's floor is the previous tier's cap (0 for the first)
                 let mut minNotional: Option<f64> = None;
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_483: bool = true;
-                    while { if !__for_first_483 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_483 = false; j.as_f64().unwrap_or(f64::NAN) < ((levels.len() as i64) as f64) } {
-                    let mut level: crate::value::Dict = levels.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    while { if !__for_first_483 { j += 1; } __for_first_483 = false; j < (levels.len() as i64) } {
+                    let mut level: crate::value::Dict = levels.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut maxNotional: Option<f64> = self.safe_number_k(&level, "value", &[]).as_f64();
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
@@ -1829,7 +1829,7 @@ impl Btse {
                             m.insert("tier".to_string(), self.safe_integer_k(&level, "level", &[]));
                             m.insert("symbol".to_string(), symbol.clone());
                             m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&market, "settle"));
-                            m.insert("minNotional".to_string(), (if (j.as_f64() == Some(0.0)) { Value::Int(0) } else { Value::from(minNotional) }));
+                            m.insert("minNotional".to_string(), (if (j == 0) { Value::Int(0) } else { Value::from(minNotional) }));
                             m.insert("maxNotional".to_string(), Value::from(maxNotional));
                             m.insert("maintenanceMarginRate".to_string(), Value::Null);
                             m.insert("maxLeverage".to_string(), Value::Null);
@@ -2898,7 +2898,7 @@ impl Btse {
                 request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPriceToSend.map(Value::from).unwrap_or(Value::Null))));
                 let mut triggerPriceType: String = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                 request.insert("triggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                query = self.omit(query, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("triggerPriceType".into())]), &[]);
+                query = self.omit(query, &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]);
             }  else {
                 request.insert("orderType".into(), Value::from(typeValue.clone()));
                 if (typeValue == "OCO") {
@@ -2915,7 +2915,7 @@ impl Btse {
                     }
                     let mut triggerPriceType: String = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                     request.insert("stopLossTriggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit(query, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("triggerPriceType".into())]), &[]);
+                    query = self.omit(query, &["stopPrice", "triggerPrice", "triggerPriceType"], &[]);
                 }  else if (typeValue == "PEG") {
                     // the required stealth and optional deviation params pass through
                     request.insert("orderPrice".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
@@ -2931,7 +2931,7 @@ impl Btse {
                     }
                     let mut triggerPriceType: String = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                     request.insert("triggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit(query, Value::from(vec![Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("triggerPriceType".into())]), &[]);
+                    query = self.omit(query, &["trailingAmount", "trailingPercent", "triggerPriceType"], &[]);
                 }
             }
             let __ws_arg_13 = self.extend(Value::Map(request), &[query]);
@@ -3067,7 +3067,7 @@ impl Btse {
                     request.insert("stopLossTriggerType".into(), self.encode_trigger_price_type(stopLossTriggerPriceType.as_deref()).map(Value::from).unwrap_or(Value::Null));
                 }
             }
-            query = self.omit(query, Value::from(vec![Value::Str("takeProfit".into()), Value::Str("stopLoss".into())]), &[]);
+            query = self.omit(query, &["takeProfit", "stopLoss"], &[]);
         }
         let mut response: Value = Value::Null;
         if !isAlgoOrder {
@@ -3119,7 +3119,7 @@ impl Btse {
                 if isLimitOrder {
                     request.insert("orderPrice".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
                 }
-                query = self.omit(query, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("triggerPriceType".into())]), &[]);
+                query = self.omit(query, &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]);
             }  else {
                 request.insert("orderType".into(), Value::from(typeValue.clone()));
                 if (typeValue == "OCO") {
@@ -3136,7 +3136,7 @@ impl Btse {
                     }
                     let mut triggerPriceType: String = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("stopLossTriggerType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit(query, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("triggerPriceType".into())]), &[]);
+                    query = self.omit(query, &["stopPrice", "triggerPrice", "triggerPriceType"], &[]);
                 }  else if (typeValue == "PEG") {
                     // the required deviation and stealth params pass through, the
                     // optional price argument becomes a worst-price bound
@@ -3155,7 +3155,7 @@ impl Btse {
                     }
                     let mut triggerPriceType: String = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
                     request.insert("trailTriggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit(query, Value::from(vec![Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("triggerPriceType".into())]), &[]);
+                    query = self.omit(query, &["trailingAmount", "trailingPercent", "triggerPriceType"], &[]);
                 }
             }
             let __ws_arg_15 = self.extend(Value::Map(request), &[query]);
@@ -5020,17 +5020,17 @@ impl Btse {
         if !success {
             let mut spotErrorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
             let mut spotMessage: Option<String> = self.safe_string_k(response.clone(), "msg", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), spotErrorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), spotMessage.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), spotErrorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), spotMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "errorCode", &[]).as_str().map(str::to_owned);
         if (errorCode.is_some()) {
             let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         //
@@ -5049,9 +5049,9 @@ impl Btse {
         let mut legacyEnumCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
         if (legacyErrorText.is_some()) && (legacyEnumCode.is_some()) {
             let mut legacyMessage: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), legacyEnumCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), legacyMessage.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), legacyEnumCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), legacyMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let mut rows: Value = Value::from(vec![]);
@@ -5072,9 +5072,9 @@ impl Btse {
                 if (embedded != Value::Null) {
                     message = self.safe_string_k(embedded, "default_msg", &[message.clone()]);
                 }
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), status.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, feedback);
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), status.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, Value::from(feedback));
             }
         }
         }

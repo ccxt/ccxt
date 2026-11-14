@@ -2015,7 +2015,7 @@ impl Apex {
         let mut clientOrderId: Option<String> = self.safe_string_n(&paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut accountId: Option<String> = self.get_account_id().await.as_str().map(str::to_owned);
         let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(Value::from(accountId.as_deref())).map(Value::from).unwrap_or(Value::Null) });
-        let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
+        let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted2, &["clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"], &[]).into_dict();
         let mut finalOrderPrice: Value = orderPrice; // java req
         let mut orderToSign: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2140,16 +2140,16 @@ impl Apex {
             m
         });
         let mut isContract: bool = (if let Some(__s) = fromAccount.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() == Some("contract");
-        let mut assets: Value = self.safe_list_k(&spotConfig, "assets", &[Value::from(vec![])]);
+        let mut assets: crate::value::List = self.safe_list_k(&spotConfig, "assets", &[Value::from(vec![])]).into_list();
         if isContract {
-            assets = self.safe_list_k(&contractConfig, "assets", &[Value::from(vec![])]);
+            assets = self.safe_list_k(&contractConfig, "assets", &[Value::from(vec![])]).into_list();
         }
-        let mut numAssets: f64 = ((assets.len() as i64) as f64);
+        let mut numAssets: i64 = assets.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_227: bool = true;
-            while { if !__for_first_227 { i += 1; } __for_first_227 = false; (i as f64) < numAssets } {
-            let mut asset: Value = self.safe_dict(assets.clone(), Value::Int(i), &[Value::Map({
+            while { if !__for_first_227 { i += 1; } __for_first_227 = false; i < numAssets } {
+            let mut asset: Value = self.safe_dict(&assets, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2168,7 +2168,7 @@ impl Apex {
         let mut timestampSeconds: Option<i64> = self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[])).map(Value::from).unwrap_or(Value::Null) });
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[]).into_dict();
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();
             let mut zkSignAccountId: Option<String> = crate::precise::Precise::stringMod(&Value::from(accountId), &Value::from(formattedUint32)).as_str().map(str::to_owned);
@@ -2371,7 +2371,7 @@ impl Apex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[self.omit(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[])]);
+            let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[self.omit(params.clone(), &["clientId", "clientOrderId", "client_order_id"], &[])]);
             response = self.private_post_v3_delete_client_order_id(&[__ws_arg_15]).await.into_opt_dict();
         }  else {
             request.insert("id".into(), id);
@@ -2422,7 +2422,7 @@ impl Apex {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderId.is_some()) {
             request.insert("id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[self.omit(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[])]);
+            let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[self.omit(params.clone(), &["clientId", "clientOrderId", "client_order_id"], &[])]);
             response = self.private_get_v3_order_by_client_order_id(&[__ws_arg_17]).await.into_opt_dict();
         }  else {
             request.insert("id".into(), id);
@@ -2524,7 +2524,7 @@ impl Apex {
         if (endTimeExclusive.is_some()) {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v3_history_orders(&[__ws_arg_19]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
@@ -2576,7 +2576,7 @@ impl Apex {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "clientId"], &[]).into_dict();
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v3_order_fills(&[__ws_arg_20]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
@@ -2639,7 +2639,7 @@ impl Apex {
         if (endTimeExclusive.is_some()) {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v3_fills(&[__ws_arg_21]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
@@ -2701,7 +2701,7 @@ impl Apex {
         if (endTimeExclusive.is_some()) {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v3_funding(&[__ws_arg_22]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({

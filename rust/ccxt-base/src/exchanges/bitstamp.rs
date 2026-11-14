@@ -2198,7 +2198,7 @@ impl Bitstamp {
             //            "market_type": "SPOT"
             //        },
             //
-            { let __be_tmp = self.extend(options.clone(), &[Value::Map({
+            { let __be_tmp = self.extend(options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("response".to_string(), response);
         m.insert("timestamp".to_string(), Value::from(now));
@@ -2487,7 +2487,7 @@ impl Bitstamp {
         if (currencyId.is_some()) {
             return currencyId.map(Value::from).unwrap_or(Value::Null);
         }
-        let mut transactionOmitted: crate::value::Dict = self.omit(transaction, Value::from(vec![Value::Str("fee".into()), Value::Str("price".into()), Value::Str("datetime".into()), Value::Str("type".into()), Value::Str("status".into()), Value::Str("id".into())]), &[]).into_dict();
+        let mut transactionOmitted: crate::value::Dict = self.omit(transaction, &["fee", "price", "datetime", "type", "status", "id"], &[]).into_dict();
         let mut ids: Vec<Value> = Value::Array(transactionOmitted.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -2508,7 +2508,7 @@ impl Bitstamp {
 }
 
     pub fn get_market_from_trade(&self, mut trade: Value) -> Value {
-        let mut tradeOmitted: Value = self.omit(trade, Value::from(vec![Value::Str("fee".into()), Value::Str("price".into()), Value::Str("datetime".into()), Value::Str("tid".into()), Value::Str("type".into()), Value::Str("order_id".into()), Value::Str("side".into())]), &[]);
+        let mut tradeOmitted: Value = self.omit(trade, &["fee", "price", "datetime", "tid", "type", "order_id", "side"], &[]);
         let mut currencyIds: Vec<Value> = Value::Array(tradeOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut numCurrencyIds: i64 = currencyIds.len() as i64;
         if numCurrencyIds > 2 {
@@ -3230,7 +3230,7 @@ impl Bitstamp {
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["clientOrderId"], &[]) } else { params }).into_dict();
         let mut response: Value = Value::Null;
         let mut capitalizedSide: Option<String> = self.capitalize(side).as_str().map(str::to_owned);
         if (type_var.as_str() == Some("market")) {
@@ -3319,7 +3319,7 @@ impl Bitstamp {
         }  else {
             request.insert("id".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["clientOrderId"], &[]) } else { params }).into_dict();
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_replace_order(&[__ws_arg_11]).await.into_dict();
         let mut order: indexmap::IndexMap<String, Value> = self.parse_order(&response, Some(&market)).as_map().cloned().unwrap_or_default();
@@ -3465,7 +3465,7 @@ impl Bitstamp {
         }  else {
             request.insert("id".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId != Value::Null) { self.omit(params.clone(), &["client_order_id", "clientOrderId"], &[]) } else { params }).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_order_status(&[__ws_arg_15]).await.into_dict();
         return self.parse_order_status((self.safe_string_k(&response, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
@@ -3512,7 +3512,7 @@ impl Bitstamp {
         }  else {
             request.insert("id".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId != Value::Null) { self.omit(params.clone(), &["client_order_id", "clientOrderId"], &[]) } else { params }).into_dict();
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_order_status(&[__ws_arg_16]).await.into_dict();
         return self.parse_order(&response, market.as_ref());
@@ -4604,14 +4604,14 @@ impl Bitstamp {
             self.check_required_credentials(&[]);
             let mut xAuth: String = format!("{}{}", "BITSTAMP ", self.apiKey.clone());
             let mut xAuthNonce: String = self.uuid(&[]);
-            let mut xAuthTimestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+            let mut xAuthTimestamp: String = format!("{}", self.milliseconds());
             let mut xAuthVersion: String = "v2".to_string();
             let mut contentType: String = "".to_string();
             privateHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Auth".to_string(), Value::from(xAuth.clone()));
                     m.insert("X-Auth-Nonce".to_string(), Value::from(xAuthNonce.clone()));
-                    m.insert("X-Auth-Timestamp".to_string(), xAuthTimestamp.clone());
+                    m.insert("X-Auth-Timestamp".to_string(), Value::from(xAuthTimestamp.as_str()));
                     m.insert("X-Auth-Version".to_string(), Value::from(xAuthVersion.clone()));
                 m
             });

@@ -1973,7 +1973,7 @@ impl Hollaex {
     m
 }));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"], &[]).into_dict();
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_order(&[__ws_arg_10]).await.into_dict();
         return self.parse_order(&response, Some(&market));
@@ -2681,11 +2681,11 @@ impl Hollaex {
         let mut withdrawalFees: Value = self.safe_dict_k(fee, "withdrawal_fees", &[]);
         if (withdrawalFees != Value::Null) {
             let mut keys: Vec<Value> = Value::Array(withdrawalFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-            let mut keysLength: f64 = ((keys.len() as i64) as f64);
+            let mut keysLength: i64 = keys.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_765: bool = true;
-                while { if !__for_first_765 { i += 1; } __for_first_765 = false; (i as f64) < keysLength } {
+                while { if !__for_first_765 { i += 1; } __for_first_765 = false; i < keysLength } {
                 let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut value: crate::value::Dict = self.safe_dict(withdrawalFees.clone(), Value::from(key.as_deref()), &[]).into_dict();
                 let mut currencyId: Option<String> = self.safe_string_k(&value, "symbol", &[]).as_str().map(str::to_owned);

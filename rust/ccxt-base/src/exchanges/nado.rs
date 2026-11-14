@@ -881,12 +881,12 @@ impl Nado {
             if (triggerDirection.as_deref() == Some("ascending")) {
                 directionSuffix = "above".to_string();
             }
-            let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.as_deref()).map(Value::from).unwrap_or(Value::Null);
+            let mut triggerPriceX18: Option<String> = self.convert_to_x18(triggerPrice.as_deref());
             let mut priceRequirement: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            priceRequirement.insert(format!("{}{}", "oracle_price_", directionSuffix), triggerPriceX18.clone());
+            priceRequirement.insert(format!("{}{}", "oracle_price_", directionSuffix), triggerPriceX18.map(Value::from).unwrap_or(Value::Null));
             let mut trigger: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price_trigger".to_string(), Value::Map({
@@ -934,11 +934,10 @@ impl Nado {
         order.insert("appendix".into(), appendix);
         let mut contracts: crate::value::Dict = self.query_contracts(&[]).await.into_dict();
         let mut chainId: Option<String> = self.safe_string_k(&contracts, "chain_id", &[]).as_str().map(str::to_owned);
-        let mut signature: Value = self.sign_order(Value::Map(order.clone()), productId, chainId.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Option<String> = self.sign_order(Value::Map(order.clone()), productId, chainId.as_deref());
         placeOrder.insert("order".into(), Value::Map(order));
-        placeOrder.insert("signature".into(), signature);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, Value::from(vec![Value::Str("expiration".into()), Value::Str("nonce".into()), Value::Str("appendix".into()), Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("id".into()), Value::Str("spotLeverage".into()),
-            Value::Str("spot_leverage".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerDirection".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+        placeOrder.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, &["expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("place_order".to_string(), Value::Map(placeOrder));
@@ -1092,8 +1091,7 @@ impl Nado {
         let mut requestId: Option<i64> = self.safe_integer_k(&paramsRecvWindow, "id", &[]).as_i64();
         let mut spotLeverage: Option<bool> = self.safe_bool2(Value::from(&paramsRecvWindow), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]).as_bool();
         let mut placeRequiresUnfilled: Option<bool> = self.safe_bool2(Value::from(&paramsRecvWindow), Value::Str("placeRequiresUnfilled".into()), Value::Str("place_requires_unfilled".into()), &[self.safe_bool_k(&editOrderOptions, "placeRequiresUnfilled", &[Value::Bool(true)])]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, Value::from(vec![Value::Str("expiration".into()), Value::Str("nonce".into()), Value::Str("appendix".into()), Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("id".into()), Value::Str("spotLeverage".into()),
-            Value::Str("spot_leverage".into()), Value::Str("placeRequiresUnfilled".into()), Value::Str("place_requires_unfilled".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, &["expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled"], &[]).into_dict();
         let mut sender: Value = self.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
         let mut cancelTx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1214,7 +1212,7 @@ impl Nado {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[Value::Dict(paramsOmitted)]).await.into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
@@ -1288,7 +1286,7 @@ impl Nado {
         }
         let mut signature: Option<String> = self.sign_cancellation_products(Value::Map(tx.clone()), chainId.as_deref(), endpointAddress.as_deref());
         let mut requestId: Option<i64> = self.safe_integer_k(&paramsRecvWindow, "id", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, Value::from(vec![Value::Str("id".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, &["id"], &[]).into_dict();
         let mut cancelProductOrders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), Value::Map(tx));
@@ -1341,7 +1339,7 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[Value::Dict(paramsOmitted)]).await.into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
@@ -1424,7 +1422,7 @@ impl Nado {
         let mut requestId: Option<i64> = self.safe_integer_k(&paramsRecvWindow, "id", &[]).as_i64();
         let mut requiredUnfilledAmountRaw: Option<String> = self.safe_string_k(&paramsRecvWindow, "required_unfilled_amount", &[]).as_str().map(str::to_owned);
         let mut requiredUnfilledAmount: Option<String> = self.safe_string_k(&paramsRecvWindow, "requiredUnfilledAmount", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, Value::from(vec![Value::Str("id".into()), Value::Str("requiredUnfilledAmount".into()), Value::Str("required_unfilled_amount".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, &["id", "requiredUnfilledAmount", "required_unfilled_amount"], &[]).into_dict();
         let mut cancelOrders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), Value::Map(tx));
@@ -1551,7 +1549,7 @@ impl Nado {
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut sender: Option<String> = self.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubaccount), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsSubaccount, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsSubaccount, &["stop", "trigger"], &[]).into_dict();
         if (trigger != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOrders only support trigger")));
         }
@@ -1577,8 +1575,8 @@ impl Nado {
         let mut contracts: crate::value::Dict = self.query_contracts(&[]).await.into_dict();
         let mut chainId: Option<String> = self.safe_string_k(&contracts, "chain_id", &[]).as_str().map(str::to_owned);
         let mut endpointAddress: Option<String> = self.safe_string_k(&contracts, "endpoint_addr", &[]).as_str().map(str::to_owned);
-        let mut signature: Value = self.sign_fetch_trigger_orders(Value::Map(tx), chainId.as_deref(), endpointAddress.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        request.insert("signature".into(), signature);
+        let mut signature: Option<String> = self.sign_fetch_trigger_orders(Value::Map(tx), chainId.as_deref(), endpointAddress.as_deref());
+        request.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsRecvWindow]);
         let mut response: crate::value::Dict = self.trigger_private_post_query(&[__ws_arg_5]).await.into_dict();
         //

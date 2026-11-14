@@ -228,8 +228,8 @@ impl Xt {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "get_listen_key" => { crate::exchange_stubs::enqueue_spawn("get_listen_key", args.to_vec()); crate::Value::Null },
@@ -667,9 +667,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("topic".to_string(), topic);
             m
         });
-        let mut symbolsAndTimeframes: Value = self.safe_list_k(subscriptionParams.clone(), "symbolsAndTimeframes", &[]);
-        if (symbolsAndTimeframes != Value::Null) {
-            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
+        let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k(subscriptionParams.clone(), "symbolsAndTimeframes", &[]).into_opt_list();
+        if (symbolsAndTimeframes.is_some()) {
+            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes.map_or(Value::Null, Value::Arr));
         }
         let mut subscriptionParamsOmitted: crate::value::Dict = self.omit(subscriptionParams, Value::Str("symbolsAndTimeframes".into()), &[]).into_dict();
         let __ws_arg_0 = self.extend(request, &[&paramsMarketType]);

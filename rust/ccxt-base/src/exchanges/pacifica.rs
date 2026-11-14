@@ -1718,8 +1718,8 @@ if _try_result.is_err() {
     pub fn parse_account_settings(&self, mut settings: Value) -> Value {
         let __settings_empty = Vec::new();
         let settings = settings.as_array().unwrap_or(&__settings_empty);
-        let mut settingsLen: f64 = ((settings.len() as i64) as f64);
-        if (settingsLen == 0.0) {
+        let mut settingsLen: i64 = settings.len() as i64;
+        if (settingsLen == 0) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1732,7 +1732,7 @@ if _try_result.is_err() {
         {
                         let mut i: i64 = 0;
             let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; (i as f64) < settingsLen } {
+            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < settingsLen } {
             let mut setting: crate::value::Dict = settings.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&setting, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -2411,8 +2411,7 @@ if _try_result.is_err() {
         let requestoperationTypeVariable: Vec<Value> = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params.clone()]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestoperationTypeVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut operationType: Option<String> = requestoperationTypeVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clientOrderId".into()), Value::Str("stopLimitPrice".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossCloid".into()),
-            Value::Str("stopLossPrice".into()), Value::Str("stopLossLimitPrice".into()), Value::Str("takeProfitCloid".into()), Value::Str("takeProfitPrice".into()), Value::Str("takeProfitLimitPrice".into()), Value::Str("expiryWindow".into()), Value::Str("slippage".into()), Value::Str("slippage_percent".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (operationType.as_deref() == Some("create_market_order")) {
             let __ws_arg_8 = self.extend(&request, &[&paramsOmitted]);
@@ -2517,7 +2516,7 @@ if _try_result.is_err() {
         let mut isTakeProfitOrder: bool = takeProfitPrice.is_some();
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
         let mut isStopOrder: bool = triggerPrice.is_some();
-        let mut timeInForce: Value = self.map_time_in_force(tifRaw.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut timeInForce: Option<String> = self.map_time_in_force(tifRaw.as_deref());
         if isMarket {
             operationType = "create_market_order".to_string();
             sigPayload.insert("reduce_only".into(), Value::Bool(reduceOnly));
@@ -2546,7 +2545,7 @@ if _try_result.is_err() {
         }  else {
             operationType = "create_order".to_string();
             sigPayload.insert("reduce_only".into(), Value::Bool(reduceOnly));
-            sigPayload.insert("tif".into(), timeInForce);
+            sigPayload.insert("tif".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         }
         if isTakeProfitOrder {
             let mut tpPayload: indexmap::IndexMap<String, Value> = ({
@@ -2576,7 +2575,7 @@ if _try_result.is_err() {
         if (amount != Value::Null) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")) {
             sigPayload.insert("amount".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
-        let mut paramsClientOrderId: crate::value::Dict = (if (operationType == "create_stop_order") { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let mut paramsClientOrderId: crate::value::Dict = (if (operationType == "create_stop_order") { self.omit(params.clone(), &["clientOrderId"], &[]) } else { params }).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_k(&paramsClientOrderId, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             sigPayload.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -2792,7 +2791,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a \"symbol\" argument!")));
         }
         let mut request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[params.clone()]).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("expiryWindow".into()), Value::Str("clientOrderIds".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow", "clientOrderIds"], &[]).into_dict();
         let __ws_arg_13 = self.extend(request, &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_orders_batch(&[__ws_arg_13]).await.into_dict();
         //
@@ -2924,7 +2923,7 @@ if _try_result.is_err() {
         }
         self.initialize_client().await;
         let mut request: Value = self.cancel_all_orders_request(symbol.as_str(), &[params.clone()]);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("excludeReduceOnly".into()), Value::Str("expiryWindow".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["excludeReduceOnly", "expiryWindow"], &[]).into_dict();
         let __ws_arg_15 = self.extend(request, &[&paramsOmitted]);
         let mut response: Value = self.private_post_orders_cancel_all(&[__ws_arg_15]).await;
         return Value::from(vec![self.safe_order(Value::Map({
@@ -2997,7 +2996,7 @@ if _try_result.is_err() {
         }
         let mut request: Value = self.cancel_order_request(id.clone(), symbol.as_str(), &[params.clone()]);
         let mut isStopOrder: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("expiryWindow".into()), Value::Str("trigger".into()), Value::Str("stop".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow", "trigger", "stop", "clientOrderId"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isStopOrder {
             let __ws_arg_16 = self.extend(request.clone(), &[&paramsOmitted]);
@@ -3098,7 +3097,7 @@ if _try_result.is_err() {
         self.initialize_client().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[params.clone()]);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("expiryWindow".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow", "clientOrderId"], &[]).into_dict();
         let __ws_arg_18 = self.extend(request, &[&paramsOmitted]);
         let mut response: Value = self.private_post_orders_edit(&[__ws_arg_18]).await;
         //
@@ -4231,7 +4230,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone()).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("expiryWindow".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow"], &[]).into_dict();
         let __ws_arg_24 = self.extend(request, &[&paramsOmitted]);
         let mut response: Value = self.private_post_account_withdraw(&[__ws_arg_24]).await;
         return Value::Map({
@@ -4943,7 +4942,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone()).into_dict();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("expiryWindow".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow"], &[]).into_dict();
         let __ws_arg_31 = self.extend(&request, &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_account_subaccount_transfer(&[__ws_arg_31]).await.into_dict();
         //

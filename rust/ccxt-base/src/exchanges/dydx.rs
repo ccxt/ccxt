@@ -2200,8 +2200,7 @@ impl Dydx {
                 m.insert("value".to_string(), Value::Map(orderPayload));
             m
         });
-        let mut paramsOmitted: Value = self.omit(&paramsGoodTillBlockTimeInSeconds, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clientOrderId".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()),
-            Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("latestBlockHeight".into()), Value::Str("goodTillBlock".into()), Value::Str("goodTillBlockTimeInSeconds".into()), Value::Str("subaccountId".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsGoodTillBlockTimeInSeconds, &["reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"], &[]);
         let mut walletAddress: Option<String> = self.get_wallet_address().as_str().map(str::to_owned);
         let mut clobPairId: i64 = self.safe_integer_k(Value::Map(marketInfo), "clobPairId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut subaccountIdValue: Option<i64> = (if (subaccountIdOption.is_none()) { Some(0) } else { subaccountIdOption });
@@ -2386,7 +2385,7 @@ impl Dydx {
     m
 }));
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["trigger", "stop"], &[]).into_dict();
         if (!isTrigger) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }

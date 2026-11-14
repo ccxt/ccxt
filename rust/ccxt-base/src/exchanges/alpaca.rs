@@ -1282,7 +1282,7 @@ impl Alpaca {
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["loc", "method"], &[]).into_dict();
         let mut symbolTrades: Value = Value::Null;
         if (method == "marketPublicGetV1beta3CryptoLocTrades") {
             if (since != Value::Null) {
@@ -1491,7 +1491,7 @@ impl Alpaca {
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
-        query = self.omit(query, Value::from(vec![Value::Str("loc".into()), Value::Str("method".into())]), &[]);
+        query = self.omit(query, &["loc", "method"], &[]);
         let mut ohlcvs: Value = Value::Null;
         if (method == "marketPublicGetV1beta3CryptoLocBars") {
             if (limit != Value::Null) {
@@ -2007,9 +2007,9 @@ impl Alpaca {
         let mut paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request.insert("time_in_force".into(), (if (defaultTIF.is_some()) { defaultTIF.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null) } else { defaultTIF.clone().map(Value::from).unwrap_or(Value::Null) }));
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTimeInForce, &["timeInForce", "triggerPrice"], &[]).into_dict();
         request.insert("client_order_id".into(), self.generate_client_order_id(&paramsOmitted).map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, &["clientOrderId"], &[])]);
         let mut order: crate::value::Dict = self.trader_private_post_v2_orders(&[__ws_arg_11]).await.into_dict();
         return self.parse_order(&order, Some(&market));
         Value::Null
@@ -2326,7 +2326,7 @@ impl Alpaca {
             request.insert("time_in_force".into(), timeInForce.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
         }
         request.insert("client_order_id".into(), self.generate_client_order_id(Value::from(&paramsTimeInForce)).map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsTimeInForce, &["clientOrderId"], &[])]);
         let mut response: crate::value::Dict = self.trader_private_patch_v2_orders_order_id(&[__ws_arg_17]).await.into_dict();
         return self.parse_order(&response, market.as_ref());
         Value::Null
@@ -2949,7 +2949,7 @@ impl Alpaca {
         let mut addressFrom: Option<String> = None;
         let mut type_var: Value = Value::Null;
         let mut amount: Option<f64> = None;
-        let mut code: Value = Value::Null;
+        let mut code: Option<String> = None;
         let mut status: Value = Value::Null;
         let mut comment: Option<String> = None;
         let mut internal: Option<bool> = None;
@@ -2967,11 +2967,11 @@ impl Alpaca {
             // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
             let mut activityCurrencyId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("symbol".into()), Value::Str("asset".into()), &[]).as_str().map(str::to_owned);
             if (activityCurrencyId.is_some()) {
-                code = self.safe_currency_code(activityCurrencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                code = self.safe_currency_code(activityCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
             }  else if (activityType.as_deref() == Some("CSD")) || (activityType.as_deref() == Some("CSW")) {
-                code = Value::Str("USD".into());
+                code = Some("USD".to_string());
             }  else {
-                code = self.safe_currency_code(Value::Null, currency).map(Value::from).unwrap_or(Value::Null);
+                code = self.safe_currency_code(Value::Null, currency);
             }
             status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
             comment = activityType.clone();
@@ -2986,8 +2986,8 @@ impl Alpaca {
             type_var = self.parse_transaction_type((self.safe_string_k(transaction.clone(), "direction", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
             amount = self.parse_number(self.safe_string_k(transaction.clone(), "amount", &[]), &[]).as_f64();
             let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
-            code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null);
-            network = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[]), code.clone()]);
+            code = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
+            network = self.network_id_to_code(&[self.safe_string_k(transaction.clone(), "chain", &[]), Value::from(code.as_deref())]);
             status = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
             let mut fees: Option<String> = self.safe_string_k(transaction.clone(), "fees", &[]).as_str().map(str::to_owned);
             let mut networkFee: Option<String> = self.safe_string_k(transaction.clone(), "network_fee", &[]).as_str().map(str::to_owned);
@@ -2995,7 +2995,7 @@ impl Alpaca {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(totalFee.map(Value::from).unwrap_or(Value::Null), &[]));
-                    m.insert("currency".to_string(), code.clone());
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -3015,7 +3015,7 @@ impl Alpaca {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), Value::from(amount));
-        m.insert("currency".to_string(), code);
+        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status);
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), comment.map(Value::from).unwrap_or(Value::Null));

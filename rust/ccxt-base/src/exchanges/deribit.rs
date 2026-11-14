@@ -2446,7 +2446,7 @@ impl Deribit {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut code: Option<String> = self.safe_string2(params.clone(), Value::Str("code".into()), Value::Str("currency".into()), &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("code".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["code"], &[]).into_dict();
         if (symbolsNormalized.is_some()) {
             {
                                 let mut i: i64 = 0;
@@ -2775,7 +2775,7 @@ impl Deribit {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }; // default 10
         }
         let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until"], &[]) } else { params }).into_dict();
         if (until.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), Value::from(until)); }
         }
@@ -3407,7 +3407,7 @@ impl Deribit {
                 request.insert("time_in_force".into(), Value::Str("fill_or_kill".into()));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("postOnly".into()), Value::Str("reduceOnly".into()), Value::Str("trailingAmount".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (self.capitalize(side).as_str() == Some("Buy")) {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -4897,7 +4897,7 @@ impl Deribit {
             m
         });
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
-        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]) } else { Value::from(&paramsPaginate) });
+        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]) } else { Value::from(&paramsPaginate) });
         let mut endTimestamp: Option<i64> = time;
         if (until.is_some()) {
             endTimestamp = self.parse_to_int(Value::from(until));

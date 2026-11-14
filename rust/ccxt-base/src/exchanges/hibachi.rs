@@ -1448,7 +1448,7 @@ impl Hibachi {
         if (triggerPrice.is_some()) {
             request.insert("triggerPrice".into(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -2160,10 +2160,10 @@ impl Hibachi {
         //     ]
         // }
         //
-        let mut trades: Value = self.safe_list_k(&response, "trades", &[]);
+        let mut trades: Option<crate::value::List> = self.safe_list_k(&response, "trades", &[]).into_opt_list();
         let mut tradesList: Value = Value::from(vec![]);
-        if (trades != Value::Null) {
-            tradesList = trades;
+        if (trades.is_some()) {
+            tradesList = trades.map_or(Value::Null, Value::Arr);
         }
         return self.parse_trades(tradesList, market.as_ref(), &[since, limit, params]);
         Value::Null

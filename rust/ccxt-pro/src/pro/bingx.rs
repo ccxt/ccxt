@@ -220,8 +220,8 @@ impl Bingx {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "get_order_book_limit_by_market_type" => self.get_order_book_limit_by_market_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -446,9 +446,9 @@ impl Bingx {
                 m.insert("topic".to_string(), topic);
             m
         });
-        let mut symbolsAndTimeframes: Value = self.safe_list_k(&query, "symbolsAndTimeframes", &[]);
-        if (symbolsAndTimeframes != Value::Null) {
-            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
+        let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k(&query, "symbolsAndTimeframes", &[]).into_opt_list();
+        if (symbolsAndTimeframes.is_some()) {
+            subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes.map_or(Value::Null, Value::Arr));
             query = self.omit(&query, Value::Str("symbolsAndTimeframes".into()), &[]).into_dict();
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[&query]);

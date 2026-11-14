@@ -245,8 +245,8 @@ impl Nado {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
@@ -799,8 +799,8 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+        let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
+        if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -810,7 +810,7 @@ impl Nado {
         {
                         let mut i: i64 = 0;
             let mut __for_first_506: bool = true;
-            while { if !__for_first_506 { i += 1; } __for_first_506 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_506 { i += 1; } __for_first_506 = false; i < symbolsLength } {
             let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut marketSymbol: Option<String> = self.safe_string(&symbolAndTimeframe, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
@@ -887,8 +887,8 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
-        if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
+        let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
+        if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -898,7 +898,7 @@ impl Nado {
         {
                         let mut i: i64 = 0;
             let mut __for_first_507: bool = true;
-            while { if !__for_first_507 { i += 1; } __for_first_507 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_507 { i += 1; } __for_first_507 = false; i < symbolsLength } {
             let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut marketSymbol: Option<String> = self.safe_string(&symbolAndTimeframe, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
@@ -2628,7 +2628,7 @@ impl Nado {
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(message, None).into_dict();
-        let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -2639,8 +2639,8 @@ impl Nado {
             m
         });
         if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-        client.resolve(Value::from(&ticker), &(Value::Str(format!("{}{}", "bidask:", symbol.clone().map(Value::from).unwrap_or(Value::Null)).into())));
-        client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", "ticker:", symbol.map(Value::from).unwrap_or(Value::Null)).into())));
+        client.resolve(Value::from(&ticker), &(Value::Str(format!("{}{}", "bidask:", symbol.as_deref().unwrap_or("null")).into())));
+        client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null")).into())));
         client.resolve(tickers.clone(), "bidask");
         client.resolve(tickers, "ticker");
 }
@@ -3063,8 +3063,8 @@ impl Nado {
                 m.insert("position_change".to_string(), Value::Str("handle_position".into()).clone());
             m
         });
-        let mut handler: Value = self.safe_value(&methods, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
-        if (handler != Value::Null) {
+        let mut handler: Option<String> = self.safe_value(&methods, type_var.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (handler.is_some()) {
             self.dispatch_ws_handler(&handler, &[client, message]);
         }
 }

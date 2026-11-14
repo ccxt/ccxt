@@ -4045,7 +4045,7 @@ impl Htx {
             let mut spot: bool = !(matches!(&contract, Value::Bool(true)));
             let mut swap: Value = Value::Bool(false);
             let mut future: Value = Value::Bool(false);
-            let mut linear: Value = Value::Null;
+            let mut linear: Option<bool> = None;
             let mut inverse: Option<bool> = None;
             // check if parsed market is contract
             if matches!(&contract, Value::Bool(true)) {
@@ -4059,8 +4059,8 @@ impl Htx {
                 let mut business_type: Option<String> = self.safe_string_k(&market, "business_type", &[]).as_str().map(str::to_owned);
                 future = Value::Bool(delivery_date.is_some());
                 swap = Value::Bool(!(future.as_bool() == Some(true)));
-                linear = Value::Bool(business_type.is_some());
-                inverse = Some(!(linear.as_bool() == Some(true)));
+                linear = Some(business_type.is_some());
+                inverse = Some(!(linear == Some(true)));
                 if swap.as_bool() == Some(true) {
                     marketType = Some("swap".to_string());
                     let mut parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
@@ -4114,7 +4114,7 @@ impl Htx {
             if matches!(&contract, Value::Bool(true)) {
                 if (inverse == Some(true)) {
                     symbol.push_str(&format!("{}{}", ":", base.as_deref().unwrap_or("null")));
-                }  else if (linear.as_bool() == Some(true)) {
+                }  else if (linear == Some(true)) {
                     symbol.push_str(&format!("{}{}", ":", quote.as_deref().unwrap_or("null")));
                 }
                 if future.as_bool() == Some(true) {
@@ -4127,7 +4127,7 @@ impl Htx {
             let mut maxAmount: Option<f64> = self.safe_number_k(&market, "max-order-amt", &[]).as_f64();
             let mut minAmount: Option<f64> = self.safe_number_k(&market, "min-order-amt", &[]).as_f64();
             if matches!(&contract, Value::Bool(true)) {
-                if (linear.as_bool() == Some(true)) {
+                if (linear == Some(true)) {
                     minAmount = contractSize;
                 }  else if (inverse == Some(true)) {
                     minCost = contractSize;
@@ -4201,7 +4201,7 @@ impl Htx {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contract".to_string(), contract);
-                    m.insert("linear".to_string(), linear);
+                    m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
                     m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("taker".to_string(), Value::from(taker));
                     m.insert("maker".to_string(), Value::from(maker));
@@ -5495,7 +5495,7 @@ impl Htx {
             m
         });
         let mut priceType: Option<String> = self.safe_string2(Value::from(&paramsPaginate), Value::Str("priceType".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("priceType".into()), Value::Str("price".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["priceType", "price"], &[]).into_dict();
         let untilParamparamsUntilVariable: Vec<Value> = self.handle_param_integer(&paramsOmitted, Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut untilParam: Option<i64> = untilParamparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilParamparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6069,8 +6069,8 @@ impl Htx {
                 }
             }  else {
                 self.load_accounts(&[]).await;
-                let mut accountId: Value = self.fetch_account_id_by_type(type_var.as_deref().unwrap_or_default(), None, None, &[Value::from(&paramsMarginMode)]).await;
-                request.insert("account-id".into(), accountId);
+                let mut accountId: Option<String> = self.fetch_account_id_by_type(type_var.as_deref().unwrap_or_default(), None, None, &[Value::from(&paramsMarginMode)]).await.as_str().map(str::to_owned);
+                request.insert("account-id".into(), accountId.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_45 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
                 response = self.spot_private_get_v1_account_accounts_account_id_balance(&[__ws_arg_45]).await;
             }
@@ -6390,9 +6390,9 @@ impl Htx {
             let mut takeProfit: bool = self.safe_bool_k(&paramsMarketType, "takeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut trailing: bool = self.safe_bool_k(&paramsMarketType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut isAlgo: bool = (((((trigger == Some(true)) || stopLoss) || takeProfit) || stopLossTakeProfit) || trailing);
-            let mut paramsOmitted: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
+            let mut paramsOmitted: Value = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]);
             let mut clientOrderId: Option<String> = self.safe_string_n_opt(paramsOmitted.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]);
-            let mut paramsClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]) } else { paramsOmitted }).into_dict();
+            let mut paramsClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(paramsOmitted.clone(), &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]) } else { paramsOmitted }).into_dict();
             if (clientOrderId.is_none()) {
                 if isAlgo {
                     request.insert("algo_id".into(), id.clone());
@@ -6711,7 +6711,7 @@ impl Htx {
         let mut takeProfit: bool = self.safe_bool_k(params.clone(), "takeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut trailing: bool = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isAlgo: bool = (((((trigger == Some(true)) || stopLoss) || takeProfit) || stopLossTakeProfit) || trailing);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_dict();
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
         }
@@ -7116,7 +7116,7 @@ impl Htx {
             let mut stopLoss: bool = self.safe_bool_k(&paramsSubType, "stopLoss", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut takeProfit: bool = self.safe_bool_k(&paramsSubType, "takeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsSubType, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsSubType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_dict();
             if isLinear {
                 if (trigger == Some(true)) || trailing || stopLossTakeProfit || stopLoss || takeProfit {
                     if (trigger == Some(true)) {
@@ -8004,7 +8004,7 @@ impl Htx {
         if (matches!(orderType.as_deref(), Some(__k) if limitOrderTypes.contains_key(__k))) {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsCost, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop-price".into()), Value::Str("clientOrderId".into()), Value::Str("client-order-id".into()), Value::Str("operator".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsCost, &["triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -8139,7 +8139,7 @@ impl Htx {
         if isLinear && (isTrailingPercentOrder || isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
             if (clientOrderId.is_some()) {
                 request.insert("algo_client_order_id".into(), Value::from(clientOrderId));
-                query = self.omit(query, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
+                query = self.omit(query, &["clientOrderId", "client_order_id"], &[]);
             }
         }
         if isTrigger {
@@ -8189,7 +8189,7 @@ impl Htx {
         }  else {
             if (clientOrderId.is_some()) {
                 request.insert("client_order_id".into(), Value::from(clientOrderId));
-                query = self.omit(query, Value::from(vec![Value::Str("clientOrderId".into())]), &[]);
+                query = self.omit(query, &["clientOrderId"], &[]);
             }
             if (orderType.as_deref() == Some("limit")) || (orderType.as_deref() == Some("ioc")) || (orderType.as_deref() == Some("fok")) || (orderType.as_deref() == Some("post_only")) {
                 if (price != Value::Null) {
@@ -8218,8 +8218,7 @@ impl Htx {
 })]).into_dict();
         let mut brokerId: Option<String> = self.safe_string_k(&broker, "id", &[]).as_str().map(str::to_owned);
         request.insert("channel_code".into(), brokerId.map(Value::from).unwrap_or(Value::Null));
-        let mut paramsOmitted: crate::value::Dict = self.omit(query, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerType".into()), Value::Str("leverRate".into()), Value::Str("timeInForce".into()),
-            Value::Str("leverage".into()), Value::Str("trailingPercent".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("hedged".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(query, &["reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice", "hedged"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -8704,7 +8703,7 @@ impl Htx {
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut stopLossTakeProfit: Option<bool> = self.safe_bool_n(Value::from(&paramsSubType), Value::from(vec![Value::Str("stopLossTakeProfit".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut query: Value = self.omit(&paramsSubType, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
+        let mut query: Value = self.omit(&paramsSubType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]);
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
             let mut clientOrderId: Option<String> = self.safe_string2(query.clone(), Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
@@ -8714,7 +8713,7 @@ impl Htx {
                 response = self.spot_private_post_v1_order_orders_order_id_submitcancel(&[__ws_arg_80]).await;
             }  else {
                 request.insert("client-order-id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                query = self.omit(query, Value::from(vec![Value::Str("client-order-id".into()), Value::Str("clientOrderId".into())]), &[]);
+                query = self.omit(query, &["client-order-id", "clientOrderId"], &[]);
                 let __ws_arg_81 = self.extend(Value::Map(request.clone()), &[query.clone()]);
                 response = self.spot_private_post_v1_order_orders_submit_cancel_client_order(&[__ws_arg_81]).await;
             }
@@ -8728,7 +8727,7 @@ impl Htx {
                     request.insert("order_id".into(), id.clone());
                 }  else {
                     request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit(query, Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]);
+                    query = self.omit(query, &["client_order_id", "clientOrderId"], &[]);
                 }
             }
             if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -8748,7 +8747,7 @@ impl Htx {
                         query = self.omit(query, Value::Str("algo_id".into()), &[]);
                     }  else {
                         requestItem.insert("algo_client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                        query = self.omit(query, Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]);
+                        query = self.omit(query, &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]);
                     }
                     let mut requestBody: Value = Value::from(vec![self.extend(Value::Map(requestItem), &[query.clone()])]);
                     response = self.contract_private_post_v5_algo_cancel_orders(&[requestBody]).await;
@@ -8908,7 +8907,7 @@ impl Htx {
         });
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut query: Value = self.omit(&paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trigger".into())]), &[]);
+        let mut query: Value = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trigger"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
             let mut clientOrderIds: Value = self.safe_value2(query.clone(), Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]);
@@ -8925,7 +8924,7 @@ impl Htx {
                 }  else {
                     request.insert("client-order-ids".into(), clientOrderIds.clone());
                 }
-                query = self.omit(query, Value::from(vec![Value::Str("client-order-id".into()), Value::Str("client-order-ids".into()), Value::Str("clientOrderId".into()), Value::Str("clientOrderIds".into())]), &[]);
+                query = self.omit(query, &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]);
             }
             let __ws_arg_92 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.spot_private_post_v1_order_orders_batchcancel(&[__ws_arg_92]).await.into_opt_dict();
@@ -8935,7 +8934,7 @@ impl Htx {
             }
             let mut clientOrderIds: Value = self.safe_value2(query.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
             clientOrderIds = self.safe_value2(query.clone(), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[clientOrderIds.clone()]);
-            query = self.omit(query, Value::from(vec![Value::Str("client_order_id".into()), Value::Str("client_order_ids".into()), Value::Str("clientOrderId".into()), Value::Str("clientOrderIds".into())]), &[]);
+            query = self.omit(query, &["client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"], &[]);
             if !matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (clientOrderIds == Value::Null) {
                     request.insert("order_id".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
@@ -9252,7 +9251,7 @@ impl Htx {
             let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
             let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut trailing: bool = self.safe_bool_k(&paramsMarketType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trailing", "trigger"], &[]).into_dict();
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_101 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.contract_private_post_v5_trade_cancel_all_orders(&[__ws_arg_101]).await.into_opt_dict();
@@ -10983,11 +10982,11 @@ impl Htx {
             let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
             if (status.as_deref() == Some("error")) {
                 let mut codeError: Option<String> = self.safe_string2(response.clone(), Value::Str("err-code".into()), Value::Str("err_code".into()), &[]).as_str().map(str::to_owned);
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), Value::from(feedback.as_str()));
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                 let mut message: Option<String> = self.safe_string2(response.clone(), Value::Str("err-msg".into()), Value::Str("err_msg".into()), &[]).as_str().map(str::to_owned);
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
@@ -11531,7 +11530,7 @@ impl Htx {
         }  else {
             account = self.safe_dict(data, Value::Int(0), &[]);
         }
-        let mut omitted: crate::value::Dict = self.omit(account.clone(), Value::from(vec![Value::Str("positions".into())]), &[]).into_dict();
+        let mut omitted: crate::value::Dict = self.omit(account.clone(), &["positions"], &[]).into_dict();
         let mut positions: crate::value::List = self.safe_list_k(account, "positions", &[Value::from(vec![])]).into_list();
         let mut position: Value = Value::Null;
         if (market).future && ((market).inverse == Some(true)) {
@@ -12965,7 +12964,7 @@ impl Htx {
         if !((market).linear == Some(true)) {
             request.insert("trade_type".into(), Value::from(tradeType));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("trade_type".into()), Value::Str("tradeType".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["trade_type", "tradeType"], &[]).into_dict();
         if (since != Value::Null) {
             request.insert("start_time".into(), since.clone());
         }
@@ -13137,7 +13136,7 @@ impl Htx {
             }
             request.insert("volume".into(), Value::from(self.amount_to_precision(symbol, amount.map(Value::from).unwrap_or(Value::Null))));
             request.insert("direction".into(), side);
-            let mut paramsVolume: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("volume".into()), Value::Str("amount".into())]), &[]).into_dict();
+            let mut paramsVolume: crate::value::Dict = self.omit(&paramsOmitted, &["volume", "amount"], &[]).into_dict();
             if (market).swap {
                 let __ws_arg_163 = self.extend(Value::Map(request.clone()), &[&paramsVolume]);
                 response = self.contract_private_post_swap_api_v1_swap_lightning_close_position(&[__ws_arg_163]).await;

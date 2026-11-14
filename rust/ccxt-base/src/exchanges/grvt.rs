@@ -1384,13 +1384,13 @@ impl Grvt {
         //
         let mut currentBuilders: crate::value::Dict = self.safe_dict(results, Value::Int(0), &[]).into_dict();
         let mut approvedBuilder: crate::value::List = self.safe_list_k(&currentBuilders, "results", &[Value::from(vec![])]).into_list();
-        let mut length: f64 = ((approvedBuilder.len() as i64) as f64);
+        let mut length: i64 = approvedBuilder.len() as i64;
         let mut found: bool = false;
         let mut builderId: Option<String> = self.safe_string_k(self.options.clone(), "builder", &[]).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
             let mut __for_first_721: bool = true;
-            while { if !__for_first_721 { i += 1; } __for_first_721 = false; (i as f64) < length } {
+            while { if !__for_first_721 { i += 1; } __for_first_721 = false; i < length } {
             let mut builderInfo: crate::value::Dict = self.safe_dict(&approvedBuilder, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3178,7 +3178,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (clientOrderId.is_none()) {
             clientOrderId = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", self.nonce()).into()), Value::Str("000".into())).into()), Value::Str(format!("{}", Value::Int(self.request_id())).into())));
         }
-        let mut paramsOmitted3: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted3: crate::value::Dict = self.omit(params, &["clientOrderId"], &[]).into_dict();
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut subAccountId: Option<String> = self.get_sub_account_id(&paramsOmitted3);
         let mut isReduceOnly: bool = self.safe_bool_k(&paramsOmitted3, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -3223,7 +3223,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 timeInForce = Some("IMMEDIATE_OR_CANCEL".to_string());
             }
         }
-        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted3, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted3, &["reduceOnly", "postOnly", "timeInForce"], &[]).into_dict();
         // Trigger & SL & TP
         let triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable: Vec<Value> = self.handle_trigger_prices_and_params(symbol, &paramsOmitted2, &[]).as_array().cloned().unwrap_or_default();
         let mut triggerPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -3278,7 +3278,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut paramsTrigger: Value = paramsTriggerPrices.clone();
         if isTriggerOrder {
-            paramsTrigger = self.omit(paramsTriggerPrices, Value::from(vec![Value::Str("triggerDirection".into()), Value::Str("triggerPriceType".into()), Value::Str("closePosition".into())]), &[]);
+            paramsTrigger = self.omit(paramsTriggerPrices, &["triggerDirection", "triggerPriceType", "closePosition"], &[]);
         }
         let mut eipType: String = "EIP712_ORDER_TYPE".to_string();
         let mut builderFee: Option<bool> = self.safe_bool_k(paramsTrigger.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]).as_bool();
@@ -3287,7 +3287,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             orderRequest.insert("builder".into(), self.safe_string_k(self.options.clone(), "builder", &[]));
             orderRequest.insert("builder_fee".into(), self.safe_string_k(self.options.clone(), "builderRate", &[]));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTrigger, Value::from(vec![Value::Str("builderFee".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTrigger, &["builderFee"], &[]).into_dict();
         let mut signedOrderRequest: Value = self.create_signed_request(&mut orderRequest, eipType.as_str(), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4754,7 +4754,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (until.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(self.number_to_string(Value::from(self.parse_to_int((match (&(Value::from(until)), &(multiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
                 (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))))); }
-            return Value::from(vec![request.clone(), self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[])]);
+            return Value::from(vec![request.clone(), self.omit(params.clone(), &["until", "till"], &[])]);
         }
         return Value::from(vec![request, params]);
 
@@ -4863,19 +4863,19 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else {
             let mut errorCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
             if (errorCode.is_some()) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }  else {
                 let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
                 if (message.is_some()) {
-                    let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-                    self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                    let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+                    self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
                     panic!("{}", crate::exchange_errors::exchange_error(feedback));
                 }  else {
                     let mut status: Option<String> = self.safe_string_k(response, "status", &[]).as_str().map(str::to_owned);
                     if (status.is_some()) && (status.as_deref() != Some("success")) {
-                        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
+                        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
                         panic!("{}", crate::exchange_errors::exchange_error(feedback));
                     }
                 }

@@ -2758,7 +2758,7 @@ impl Xt {
             request.insert("limit".into(), Value::Int(1000));
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["until"], &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
@@ -4159,7 +4159,7 @@ impl Xt {
         if postOnly {
             timeInForce = Some("GTX".to_string());
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, &["timeInForce", "postOnly"], &[]).into_dict();
         if (side.as_str() == Some("sell")) || (type_var.as_str() == Some("limit")) {
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
@@ -4211,7 +4211,7 @@ impl Xt {
         if postOnly {
             timeInForce = Some("GTX".to_string());
         }
-        let mut paramsOmitted4: crate::value::Dict = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]).into_dict();
+        let mut paramsOmitted4: crate::value::Dict = self.omit(&paramsPostOnly, &["timeInForce", "postOnly"], &[]).into_dict();
         if (timeInForce.is_some()) {
             request.insert("timeInForce".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         }
@@ -4271,7 +4271,7 @@ impl Xt {
             if (trailingTriggerPrice.is_some()) {
                 request.insert("activationPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(trailingTriggerPrice))));
             }
-            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into())]), &[]).into_dict();
+            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsMarginMode, &["trailingPercent", "trailingAmount", "trailingTriggerPrice"], &[]).into_dict();
             if ((market).linear == Some(true)) {
                 let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
                 response = self.private_linear_post_future_trade_v1_entrust_create_track(&[__ws_arg_22]).await;
@@ -4303,7 +4303,7 @@ impl Xt {
             }  else {
                 request.insert("triggerProfitPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfit))));
             }
-            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOmitted4, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOmitted4, &["stopLoss", "takeProfit"], &[]).into_dict();
             if ((market).linear == Some(true)) {
                 let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_linear_post_future_trade_v1_entrust_create_profit(&[__ws_arg_26]).await;
@@ -4393,7 +4393,7 @@ impl Xt {
             request.insert("orderId".into(), id);
         }
         if (trigger == Some(true)) {
-            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsSubType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsSubType, &["trigger", "stop"], &[]).into_dict();
             if (subType.as_deref() == Some("inverse")) {
                 let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
                 response = self.private_inverse_get_future_trade_v1_entrust_plan_detail(&[__ws_arg_30]).await.into_opt_dict();
@@ -4618,7 +4618,7 @@ impl Xt {
             }
         }
         if (trigger == Some(true)) {
-            let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsSubType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+            let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsSubType, &["trigger", "stop"], &[]).into_dict();
             if (subType.as_deref() == Some("inverse")) {
                 let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
                 response = self.private_inverse_get_future_trade_v1_entrust_plan_list_history(&[__ws_arg_39]).await.into_opt_dict();
@@ -4818,7 +4818,7 @@ impl Xt {
             // the track endpoints do not accept a state filter, and a server-side
             // size would truncate the mixed-state page before the local status
             // filter runs, so the limit is only applied locally after filtering
-            request = self.omit(Value::Map(request.clone()), Value::from(vec![Value::Str("state".into()), Value::Str("size".into())]), &[]).as_map().cloned().unwrap_or_default();
+            request = self.omit(Value::Map(request.clone()), &["state", "size"], &[]).as_map().cloned().unwrap_or_default();
         }  else if (status.as_str() == Some("open")) {
             if (trigger == Some(true)) || stopLossTakeProfit {
                 request.insert("state".into(), Value::Str("NOT_TRIGGERED".into()));
@@ -4849,7 +4849,7 @@ impl Xt {
             }
         }
         if (trigger == Some(true)) {
-            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsSubType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsSubType, &["stop", "trigger"], &[]).into_dict();
             if (subType.as_deref() == Some("inverse")) {
                 let __ws_arg_46 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
                 response = self.private_inverse_get_future_trade_v1_entrust_plan_list(&[__ws_arg_46]).await.into_opt_dict();
@@ -5289,7 +5289,7 @@ impl Xt {
             request.insert("orderId".into(), id);
         }
         if (trigger == Some(true)) {
-            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsSubType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsSubType, &["trigger", "stop"], &[]).into_dict();
             if (subType.as_deref() == Some("inverse")) {
                 let __ws_arg_58 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
                 response = self.private_inverse_post_future_trade_v1_entrust_cancel_plan(&[__ws_arg_58]).await;
@@ -5412,7 +5412,7 @@ impl Xt {
             }
         }
         if (trigger == Some(true)) {
-            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsSubType, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+            let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsSubType, &["trigger", "stop"], &[]).into_dict();
             if (subType.as_deref() == Some("inverse")) {
                 let __ws_arg_67 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
                 response = self.private_inverse_post_future_trade_v1_entrust_cancel_all_plan(&[__ws_arg_67]).await;
@@ -7960,7 +7960,7 @@ impl Xt {
         });
         let mut stopLoss: Option<f64> = self.safe_number2(params.clone(), Value::Str("stopLoss".into()), Value::Str("triggerStopPrice".into()), &[]).as_f64();
         let mut takeProfit: Option<f64> = self.safe_number2(params.clone(), Value::Str("takeProfit".into()), Value::Str("triggerProfitPrice".into()), &[]).as_f64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stopLoss", "takeProfit"], &[]).into_dict();
         let mut isStopLoss: bool = stopLoss.is_some();
         let mut isTakeProfit: bool = takeProfit.is_some();
         if isStopLoss || isTakeProfit {
@@ -8124,7 +8124,7 @@ impl Xt {
         let mut signedBody: Option<String> = None;
         if signed {
             self.check_required_credentials(&[]);
-            let mut recvWindow: Value = self.safe_string_k(query.clone(), "recvWindow", &[self.safe_string(self.options.clone(), Value::Str("recvWindow".into()), &[Value::Str("5000".into())])]);
+            let mut recvWindow: Option<String> = self.safe_string_k(query.clone(), "recvWindow", &[self.safe_string(self.options.clone(), Value::Str("recvWindow".into()), &[Value::Str("5000".into())])]).as_str().map(str::to_owned);
             let mut timestamp: Option<String> = self.number_to_string(self.nonce());
             if (payload.as_str() == Some("/v4/order")) || (payload.as_str() == Some("/future/trade/v1/order/create")) || (payload.as_str() == Some("/future/trade/v1/entrust/create-plan")) || (payload.as_str() == Some("/future/trade/v1/entrust/create-profit")) || (payload.as_str() == Some("/future/trade/v1/order/create-batch")) {
                 let mut id: String = "CCXT".to_string();
@@ -8141,9 +8141,9 @@ impl Xt {
             let mut jsonBody: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
             signedBody = (if isUndefinedBody { None } else { jsonBody.clone() });
             let mut payloadString: String = "".to_string();
+            let mut timestampPart: String = format!("{}{}", Value::Str(format!("{}{}", "&xt-validate-t", "imestamp=").into()), timestamp.as_deref().unwrap_or("null")); // we can't glue timestamp, breaks in php
             if (endpoint.as_deref() == Some("spot")) || (endpoint.as_deref() == Some("user")) {
-                let mut spotPrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", self.apiKey.clone()).into()), "&xt-validate-recvwindow=").into()), recvWindow).into()),
-                    "&xt-validate-t").into()), "imestamp=").into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut spotPrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", self.apiKey.clone()).into()), "&xt-validate-recvwindow=").into()), recvWindow.as_deref().unwrap_or("null")).into()), timestampPart);
                 if isUndefinedBody {
                     if (urlencoded != "") {
                         url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload).into()), "?").into()), urlencoded);
@@ -8155,9 +8155,9 @@ impl Xt {
                     payloadString = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", spotPrefix, "#").into()), method).into()), "#").into()), payload).into()), "#").into()), jsonBody.as_deref().unwrap_or("null"));
                 }
                 headersValue.insert("xt-validate-algorithms".into(), Value::Str("HmacSHA256".into()));
-                headersValue.insert("xt-validate-recvwindow".into(), recvWindow);
+                headersValue.insert("xt-validate-recvwindow".into(), recvWindow.map(Value::from).unwrap_or(Value::Null));
             }  else {
-                let mut futurePrefix: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "xt-validate-appkey=", self.apiKey.clone()).into()), "&xt-validate-t").into()), "imestamp=").into()), timestamp.as_deref().unwrap_or("null")); // we can't glue timestamp, breaks in php
+                let mut futurePrefix: String = format!("{}{}", Value::Str(format!("{}{}", "xt-validate-appkey=", self.apiKey.clone()).into()), timestampPart);
                 if (method.as_str() == Some("GET")) {
                     if (urlencoded != "") {
                         url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload).into()), "?").into()), urlencoded);

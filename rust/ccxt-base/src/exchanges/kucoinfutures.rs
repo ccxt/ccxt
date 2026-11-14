@@ -310,10 +310,10 @@ impl Kucoinfutures {
                 m.insert("amount".to_string(), amountToPrecision.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut toAccountString: Value = self.parse_transfer_type(toAccount.as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut toAccountString: Option<String> = self.parse_transfer_type(toAccount.as_str());
         let mut response: Option<crate::value::Dict> = None;
-        if (toAccountString.as_str() == Some("TRADE")) || (toAccountString.as_str() == Some("MAIN")) {
-            request.insert("recAccountType".into(), toAccountString);
+        if (toAccountString.as_deref() == Some("TRADE")) || (toAccountString.as_deref() == Some("MAIN")) {
+            request.insert("recAccountType".into(), toAccountString.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.parent.futures_private_post_transfer_out(&[__ws_arg_0]).await.into_opt_dict();
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {

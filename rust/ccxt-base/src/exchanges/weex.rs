@@ -2439,7 +2439,7 @@ impl Weex {
             m
         });
         let mut priceType: Option<String> = self.safe_string_upper_k(&paramsHistorical, "price", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsHistorical, Value::from(vec![Value::Str("historical".into()), Value::Str("until".into()), Value::Str("price".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsHistorical, &["historical", "until", "price"], &[]).into_dict();
         let mut response: Option<crate::value::List> = None;
         // hardcap threshold
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Null } else { crate::runtime::Math::min(&limit, &Value::Int(1000)) });
@@ -2451,9 +2451,9 @@ impl Weex {
             if (priceType.is_some()) {
                 request.insert("priceType".into(), priceType.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let mut now: Value = Value::Int(self.milliseconds());
-            let mut startTime: Value = since.clone();
-            let mut endTime: Value = now.clone();
+            let mut now: i64 = self.milliseconds();
+            let mut startTime: Option<i64> = since.as_i64();
+            let mut endTime: Value = Value::from(now);
             if (until.is_some()) {
                 endTime = Value::from(until);
             }
@@ -2469,23 +2469,23 @@ impl Weex {
                 }
                 let mut timeDelta: Option<i64> = self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (historyLimit, duration) { Some(__l * __r) } else { None })));
                 if (since == Value::Null) && (until.is_none()) {
-                    endTime = now.clone();
-                    startTime = (match (&(now), &(Value::from(timeDelta))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                    endTime = Value::from(now);
+                    startTime = (if let Some(__r) = timeDelta { Some(now - __r) } else { None });
                 }  else if (since == Value::Null) {
                     if (until.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOHLCV() requires a since or until argument")));
                     }
-                    startTime = Value::from((if let (Some(__l), Some(__r)) = (until, timeDelta) { Some(__l - __r) } else { None }));
+                    startTime = (if let (Some(__l), Some(__r)) = (until, timeDelta) { Some(__l - __r) } else { None });
                 }  else {
                     // this.sum, a bare + is string concatenation in the php port
                     endTime = self.sum(&[since.clone(), Value::from(timeDelta)]);
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if endTime.as_f64().unwrap_or(f64::NAN) > now.as_f64().unwrap_or(f64::NAN) {
-                endTime = now;
+            if endTime.as_f64().unwrap_or(f64::NAN) > (now as f64) {
+                endTime = Value::from(now);
             }
-            request.insert("startTime".into(), startTime);
+            request.insert("startTime".into(), Value::from(startTime));
             request.insert("endTime".into(), endTime);
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.contract_get_capi_v3_market_history_klines(&[__ws_arg_6]).await.into_opt_list();
@@ -3497,8 +3497,7 @@ impl Weex {
                 }
             }
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("takeProfit".into()), Value::Str("stopLoss".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPriceType".into()), Value::Str("stopLossPriceType".into()), Value::Str("takeProfitPriceType".into()),
-            Value::Str("clientOrderId".into()), Value::Str("callerMethodName".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -3560,7 +3559,7 @@ impl Weex {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_k(&paramsMarketType, "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["clientOrderId", "trigger"], &[]).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("origClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else if (id == Value::Null) {
@@ -5765,7 +5764,7 @@ impl Weex {
         if (isolatedPositionId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " modifyMarginHelper() requires a positionId parameter")));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("positionId".into()), Value::Str("id".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["positionId", "id"], &[]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

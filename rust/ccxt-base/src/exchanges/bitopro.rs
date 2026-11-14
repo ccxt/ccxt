@@ -1341,8 +1341,8 @@ impl Bitopro {
         }
         let mut i: i64 = 0;
         let mut candleLength: i64 = candles.len() as i64;
-        let mut resultLength: Value = Value::Int(0);
-        while (resultLength.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN)) && (i < candleLength) {
+        let mut resultLength: i64 = 0;
+        while ((resultLength as f64) < limit.as_f64().unwrap_or(f64::NAN)) && (i < candleLength) {
             let mut candle: Value = self.safe_list(candles.clone(), Value::from(i), &[Value::from(vec![])]);
             if is_equal(&candle.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &timestamp) {
                 std::sync::Arc::make_mut(&mut result).push(candle.clone());
@@ -1353,8 +1353,8 @@ impl Bitopro {
                 std::sync::Arc::make_mut(&mut result).push(Value::from(vec![timestamp.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), closeValue.clone(), self.parse_number(Value::Str("0".into()), &[])]));
             }
             timestamp = self.sum(&[timestamp.clone(), distanceInMs.clone()]);
-            resultLength = Value::Int(result.len() as i64);
-            copyFrom = self.safe_list(&result, (match (&(resultLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
+            resultLength = result.len() as i64;
+            copyFrom = self.safe_list(&result, Value::Int((resultLength - 1)), &[]);
         }
         return Value::Arr(result);
 
@@ -1607,7 +1607,7 @@ impl Bitopro {
                 request.insert("condition".into(), condition.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), &["triggerPrice", "stopPrice"], &[]) } else { params }).into_dict();
         let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[Value::from(&paramsOmitted)]);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
@@ -2313,7 +2313,7 @@ impl Bitopro {
         let mut hasNetwork: bool = paramsWithdrawTag.contains_key("network");
         let mut paramsOmitted: Value = Value::from(&paramsWithdrawTag);
         if hasNetwork {
-            paramsOmitted = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("network".into())]), &[]);
+            paramsOmitted = self.omit(&paramsWithdrawTag, &["network"], &[]);
         }
         if hasNetwork {
             let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({

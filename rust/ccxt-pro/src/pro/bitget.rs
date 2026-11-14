@@ -231,8 +231,8 @@ impl Bitget {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "get_inst_type" => self.get_inst_type(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
@@ -1420,9 +1420,9 @@ impl Bitget {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut symbolsLength: f64 = ((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64);
+        let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         let mut isStockSpot: bool = false;
-        if symbolsLength > ((0i64) as f64) {
+        if symbolsLength > 0 {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
             isStockSpot = isStock.as_bool() == Some(true) && ((market).spot);
@@ -1444,7 +1444,7 @@ impl Bitget {
         {
                         let mut i: i64 = 0;
             let mut __for_first_113: bool = true;
-            while { if !__for_first_113 { i += 1; } __for_first_113 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_113 { i += 1; } __for_first_113 = false; i < symbolsLength } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOrderBookForSymbols".into()), Some(&market), &[Value::Bool(isStockOrUta.clone()), paramsCursor.clone()]).as_array().cloned().unwrap_or_default();
@@ -1586,21 +1586,21 @@ impl Bitget {
             if !isSnapshot && (checksum == Some(true)) && (responseChecksum != Value::Null) {
                 let mut storedAsks: Value = storedOrderBook.book_field("asks");
                 let mut storedBids: Value = storedOrderBook.book_field("bids");
-                let mut asksLength: Value = get_array_length(&storedAsks);
-                let mut bidsLength: Value = get_array_length(&storedBids);
+                let mut asksLength: i64 = get_array_length(&storedAsks).as_i64().unwrap_or_default();
+                let mut bidsLength: i64 = get_array_length(&storedBids).as_i64().unwrap_or_default();
                 let mut payloadArray: Vec<Value> = Vec::new();
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_114: bool = true;
-                    while { if !__for_first_114 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_114 = false; i.as_f64().unwrap_or(f64::NAN) < ((25i64) as f64) } {
-                    if i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) {
-                        let mut bidLevel: Value = get_value(&storedBids, &i);
+                    while { if !__for_first_114 { i += 1; } __for_first_114 = false; (i as f64) < ((25i64) as f64) } {
+                    if i < bidsLength {
+                        let mut bidLevel: Value = get_value(&storedBids, &Value::Int(i));
                         let mut bidParts: Value = get_value(&bidLevel, &Value::Int(2));
                         payloadArray.push(get_value(&bidParts, &Value::Int(0)));
                         payloadArray.push(get_value(&bidParts, &Value::Int(1)));
                     }
-                    if i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) {
-                        let mut askLevel: Value = get_value(&storedAsks, &i);
+                    if i < asksLength {
+                        let mut askLevel: Value = get_value(&storedAsks, &Value::Int(i));
                         let mut askParts: Value = get_value(&askLevel, &Value::Int(2));
                         payloadArray.push(get_value(&askParts, &Value::Int(0)));
                         payloadArray.push(get_value(&askParts, &Value::Int(1)));
@@ -3159,14 +3159,14 @@ impl Bitget {
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut length: f64 = ((data.len() as i64) as f64);
+        let mut length: i64 = data.len() as i64;
         let mut messageHash: String = "myTrades".to_string();
         let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
         let mut instType: Option<String> = self.safe_string_lower_k(&arg, "instType", &[]).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
             let mut __for_first_122: bool = true;
-            while { if !__for_first_122 { i += 1; } __for_first_122 = false; (i as f64) < length } {
+            while { if !__for_first_122 { i += 1; } __for_first_122 = false; i < length } {
             let mut trade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut market: Option<crate::types::Market> = None;
             if (instType.as_deref() == Some("uta")) {
@@ -3676,7 +3676,7 @@ impl Bitget {
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 let mut msg: String = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(msg), Value::from(feedback.clone()));
-                panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
@@ -3829,8 +3829,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
         let mut topic: String = self.safe_string2(&arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut method: Value = self.safe_value(&methods, Value::from(topic.clone()), &[]);
-        if (method != Value::Null) {
+        let mut method: Option<String> = self.safe_value(&methods, Value::from(topic.clone()), &[]).as_str().map(str::to_owned);
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }
         if topic.contains("candle") {

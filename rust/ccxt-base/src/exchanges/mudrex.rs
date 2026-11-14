@@ -640,7 +640,7 @@ impl Mudrex {
         let mut startTime: Option<i64> = self.parse_to_int((if (since != Value::Null) { ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::from(defaultStart) }));
         let mut windowEnd: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = startTime { Some(__l + ((duration * requestLimit))) } else { None })));
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["price", "until"], &[]).into_dict();
         let mut cappedEnd: Option<i64> = (if (windowEnd > Some(now)) { Some(now) } else { windowEnd });
         let mut endTime: Option<i64> = self.parse_to_int((if (until.is_some()) { (Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))) } else { Value::from(cappedEnd) }));
         request.insert("start_time".into(), Value::from(startTime));
@@ -869,14 +869,14 @@ impl Mudrex {
     m
 }));
         let mut aggregated: Vec<Value> = Vec::new();
-        let mut offset: Value = Value::Int(0);
+        let mut offset: i64 = 0;
         let mut pageLimit: i64 = 100;
         let mut paging: bool = true;
         while paging {
             let mut q: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("limit".to_string(), Value::Int(pageLimit.clone()));
-                    m.insert("offset".to_string(), offset.clone());
+                    m.insert("limit".to_string(), Value::from(pageLimit));
+                    m.insert("offset".to_string(), Value::from(offset));
                 m
             }), &[params.clone()]).into_dict();
             let mut response: crate::value::Dict = self.private_get_futures(&[Value::Dict(q)]).await.into_dict();
@@ -896,23 +896,23 @@ impl Mudrex {
             }  else {
                 items = self.to_array(data);
             }
-            let mut numItems: f64 = ((items.len() as i64) as f64);
-            if (numItems == 0.0) {
+            let mut numItems: i64 = items.len() as i64;
+            if (numItems == 0) {
                 paging = false;
                 break;
             }
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_970: bool = true;
-                while { if !__for_first_970 { i += 1; } __for_first_970 = false; (i as f64) < numItems } {
+                while { if !__for_first_970 { i += 1; } __for_first_970 = false; i < numItems } {
                 aggregated.push(items.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            if numItems < (pageLimit as f64) {
+            if numItems < pageLimit {
                 paging = false;
             }  else {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = self.sum(&[offset.clone(), Value::Int(pageLimit.clone())]);
+                offset = (offset + pageLimit);
             }
         }
         let mut result: Vec<Value> = Vec::new();
@@ -1034,7 +1034,7 @@ impl Mudrex {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut requested: Option<String> = self.safe_string_n(Value::from(&paramsMarketType), Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["trade_currency", "tradeCurrency", "currency"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1187,7 +1187,7 @@ impl Mudrex {
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("marginType".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["marginType"], &[]).into_dict();
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_futures_asset_id_leverage(&[__ws_arg_9]).await;
         return response;
@@ -1246,7 +1246,7 @@ impl Mudrex {
             if (positionId.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")));
             }
-            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("positionId".into()), Value::Str("position_id".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["stopLossPrice", "takeProfitPrice", "positionId", "position_id"], &[]).into_dict();
             let mut riskRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("position_id".to_string(), positionId.map(Value::from).unwrap_or(Value::Null));
@@ -1292,7 +1292,7 @@ impl Mudrex {
             request.insert("is_stoploss".into(), Value::Bool(true));
             request.insert("stoploss_price".into(), Value::from(self.price_to_precision(symbol, self.safe_string_n(&stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))));
         }
-        let mut orderParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("leverage".into()), Value::Str("reduceOnly".into()), Value::Str("takeProfit".into()), Value::Str("stopLoss".into())]), &[]).into_dict();
+        let mut orderParams: crate::value::Dict = self.omit(params, &["leverage", "reduceOnly", "takeProfit", "stopLoss"], &[]).into_dict();
         let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&orderParams]);
         let mut response: Value = self.private_post_futures_asset_id_order(&[__ws_arg_11]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
@@ -1921,13 +1921,13 @@ impl Mudrex {
             if (orderType == "LIMIT") && (lp.is_some()) {
                 request.insert("limit_price".into(), lp.map(Value::from).unwrap_or(Value::Null));
             }
-            let mut partialParams: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("order_type".into()), Value::Str("limit_price".into()), Value::Str("amount".into()), Value::Str("position_id".into())]), &[]).into_dict();
+            let mut partialParams: crate::value::Dict = self.omit(params.clone(), &["order_type", "limit_price", "amount", "position_id"], &[]).into_dict();
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&partialParams]);
             let mut partialResponse: Value = self.private_post_futures_positions_position_id_close_partial(&[__ws_arg_17]).await;
             let mut partialData: Value = self.safe_dict_k(partialResponse.clone(), "data", &[partialResponse.clone()]);
             return self.parse_order(partialData, Some(&market));
         }
-        let mut closeParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]).into_dict();
+        let mut closeParams: crate::value::Dict = self.omit(params, &["position_id"], &[]).into_dict();
         let __ws_arg_18 = self.extend(Value::Map(request), &[&closeParams]);
         let mut response: Value = self.private_post_futures_positions_position_id_close(&[__ws_arg_18]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
@@ -1981,7 +1981,7 @@ impl Mudrex {
                 m.insert("margin".to_string(), Value::from(self.cost_to_precision(symbol, amount)));
             m
         });
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("position_id".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["position_id"], &[]).into_dict();
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_19]).await.into_dict();
         return self.extend(response, &[Value::Map({

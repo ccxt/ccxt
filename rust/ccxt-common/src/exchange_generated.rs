@@ -967,19 +967,18 @@ pub trait ExchangeBase:
         let mut key = get_arg(optional_args, 1, Value::Str("timestamp".into()));
         let mut fromStart = get_arg(optional_args, 2, Value::Bool(false));
         if (limit != Value::Null) && (limit != Value::Null) {
-            let mut arrayLength: Value = Value::Int(array.len() as i64);
-            if arrayLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+            let mut arrayLength: i64 = array.len() as i64;
+            if arrayLength > 0 {
                 let mut ascending: bool = true;
                 if (in_op(&array.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &key)) {
                     let mut first: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), key.clone(), &[]).as_f64();
-                    let mut last: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| match &((match (&(arrayLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                        Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null), key, &[]).as_f64();
+                    let mut last: Option<f64> = self.safe_float(array.as_array().and_then(|__arr| match &(Value::Int((arrayLength - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null), key, &[]).as_f64();
                     if (first.is_some()) && (last.is_some()) {
                         ascending = (last.is_some() && first.is_some() && last >= first); // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 if fromStart.as_bool() == Some(true) {
-                    let mut limitResolved: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > arrayLength.as_f64().unwrap_or(f64::NAN)) { arrayLength } else { limit.clone() });
+                    let mut limitResolved: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > (arrayLength as f64)) { Value::from(arrayLength) } else { limit.clone() });
                     if ascending {
                         return self.array_slice(array.clone(), Value::Int(0), &[limitResolved.clone()]);
                     }
@@ -2693,12 +2692,12 @@ pub trait ExchangeBase:
     m
 })]).into_dict();
         let mut keys: Vec<Value> = Value::Array(networks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-        let mut length: f64 = ((keys.len() as i64) as f64);
-        if (length != 0.0) {
+        let mut length: i64 = keys.len() as i64;
+        if (length != 0) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_85: bool = true;
-                while { if !__for_first_85 { i += 1; } __for_first_85 = false; (i as f64) < length } {
+                while { if !__for_first_85 { i += 1; } __for_first_85 = false; i < length } {
                 let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut network: crate::value::Dict = self.safe_dict(&networks, key.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3139,7 +3138,7 @@ pub trait ExchangeBase:
 }
 
     fn safe_balance(&self, mut balance: Value) -> Value {
-        let mut balances: indexmap::IndexMap<String, Value> = self.omit(balance.clone(), Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]), &[]).as_map().cloned().unwrap_or_default();
+        let mut balances: indexmap::IndexMap<String, Value> = self.omit(balance.clone(), &["info", "timestamp", "datetime", "free", "used", "total"], &[]).as_map().cloned().unwrap_or_default();
         let mut codes: Vec<Value> = Value::Array(balances.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut freeBalance: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3338,18 +3337,18 @@ pub trait ExchangeBase:
             if (reducedFees == Value::Null) {
                 reducedFees = Value::from(vec![]);
             }
-            let mut reducedLength: f64 = ((reducedFees.len() as i64) as f64);
+            let mut reducedLength: i64 = reducedFees.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_95: bool = true;
-                while { if !__for_first_95 { i += 1; } __for_first_95 = false; (i as f64) < reducedLength } {
+                while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < reducedLength } {
                 { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("cost".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("cost".into()), __be_tmp); };
                 if (in_op(&reducedFees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &Value::Str("rate".into()))) {
                     { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("rate".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("rate".into()), __be_tmp); };
                 }
             }
             }
-            if !(parseFee) && (reducedLength == 0.0) {
+            if !(parseFee) && (reducedLength == 0) {
                 // copy fee to avoid modification by reference
                 let mut feeCopy: Value = self.deep_extend(fee, &[]);
                 { let __be_tmp = self.safe_number_k(feeCopy.clone(), "cost", &[]); add_element_to_object(&mut feeCopy, &Value::Str("cost".into()), __be_tmp); };
@@ -3359,7 +3358,7 @@ pub trait ExchangeBase:
                 append_to_array(&mut reducedFees, feeCopy);
             }
             add_element_to_object(&mut orderDict, &Value::Str("fees".into()), reducedFees.clone());
-            if parseFee && (reducedLength == 1.0) {
+            if parseFee && (reducedLength == 1) {
                 add_element_to_object(&mut orderDict, &Value::Str("fee".into()), reducedFees.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             }
         }
@@ -3745,18 +3744,18 @@ pub trait ExchangeBase:
             if (reducedFees == Value::Null) {
                 reducedFees = Value::from(vec![]);
             }
-            let mut reducedLength: f64 = ((reducedFees.len() as i64) as f64);
+            let mut reducedLength: i64 = reducedFees.len() as i64;
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_99: bool = true;
-                while { if !__for_first_99 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_99 = false; i.as_f64().unwrap_or(f64::NAN) < reducedLength } {
+                while { if !__for_first_99 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_99 = false; i.as_f64().unwrap_or(f64::NAN) < (reducedLength as f64) } {
                 { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &i)); add_element_to_object(&mut reducedFees, &i, __be_tmp); };
             }
             }
             fees = reducedFees.clone();
-            if (reducedLength == 1.0) {
+            if (reducedLength == 1) {
                 fee = reducedFees.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            }  else if (reducedLength == 0.0) {
+            }  else if (reducedLength == 0) {
                 fee = Value::Null;
             }
         }
@@ -3789,19 +3788,18 @@ pub trait ExchangeBase:
 
     fn find_nearest_ceiling(&self, mut arr: Value, mut providedValue: Value) -> Value {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-        let mut length: Value = Value::Int(arr.len() as i64);
+        let mut length: i64 = arr.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_100: bool = true;
-            while { if !__for_first_100 { i += 1; } __for_first_100 = false; (i as f64) < length.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < length } {
             let mut current: Value = arr.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if providedValue.as_f64().unwrap_or(f64::NAN) <= current.as_f64().unwrap_or(f64::NAN) {
                 return current;
             }
         }
         }
-        return arr.as_array().and_then(|__arr| match &((match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null })) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null);
+        return arr.as_array().and_then(|__arr| match &(Value::Int((length - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -4799,7 +4797,7 @@ pub trait ExchangeBase:
     fn handle_network_code_and_params(&self, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
         let mut networkCodeInParams: Option<String> = self.safe_string2(params.clone(), Value::Str("networkCode".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = (if (networkCodeInParams.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("networkCode".into()), Value::Str("network".into())]), &[]) } else { params });
+        let mut paramsOmitted: Value = (if (networkCodeInParams.is_some()) { self.omit(params.clone(), &["networkCode", "network"], &[]) } else { params });
         return Value::from(vec![networkCodeInParams.map(Value::from).unwrap_or(Value::Null), paramsOmitted]);
 
     Value::Null
@@ -5972,8 +5970,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut i_close: Value = Value::Int(4);
         let mut i_volume: Value = Value::Int(5);
         let mut i_count: Value = Value::Int(6);
-        let mut tradesLength: Value = Value::Int(trades.len() as i64);
-        let mut oldest: Value = crate::runtime::Math::min(&tradesLength, &limit);
+        let mut tradesLength: i64 = trades.len() as i64;
+        let mut oldest: Value = crate::runtime::Math::min(&Value::from(tradesLength), &limit);
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "buildOHLCVC", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6744,7 +6742,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // type from param
         let mut type_var: Option<String> = self.safe_string2(params.clone(), Value::Str("defaultType".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
         if (type_var.is_some()) {
-            let mut paramsOmitted: Value = self.omit(params.clone(), Value::from(vec![Value::Str("defaultType".into()), Value::Str("type".into())]), &[]);
+            let mut paramsOmitted: Value = self.omit(params.clone(), &["defaultType", "type"], &[]);
             return Value::from(vec![type_var.map(Value::from).unwrap_or(Value::Null), paramsOmitted]);
         }
         // type from market
@@ -6786,7 +6784,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (subTypeInParams.as_deref() == Some("linear")) || (subTypeInParams.as_deref() == Some("inverse")) {
                 subType = subTypeInParams.map(Value::from).unwrap_or(Value::Null);
             }
-            let mut paramsOmitted: Value = self.omit(params.clone(), Value::from(vec![Value::Str("subType".into()), Value::Str("defaultSubType".into())]), &[]);
+            let mut paramsOmitted: Value = self.omit(params.clone(), &["subType", "defaultSubType"], &[]);
             return Value::from(vec![subType.clone(), paramsOmitted]);
         }  else {
             // at first, check from market object
@@ -7183,7 +7181,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("stopLoss".into(), Value::Map(stopLossRequest)); }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("takeProfitType".into()), Value::Str("takeProfitPriceType".into()), Value::Str("takeProfitLimitPrice".into()), Value::Str("takeProfitAmount".into()), Value::Str("stopLossType".into()), Value::Str("stopLossPriceType".into()), Value::Str("stopLossLimitPrice".into()), Value::Str("stopLossAmount".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(params, &["takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"], &[]);
         return paramsOmitted;
 
     Value::Null
@@ -8452,7 +8450,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn handle_trigger_and_params(&self, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut paramsOmitted: Value = (if (isTrigger == Some(true)) { self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]) } else { params });
+        let mut paramsOmitted: Value = (if (isTrigger == Some(true)) { self.omit(params.clone(), &["trigger", "stop"], &[]) } else { params });
         return Value::from(vec![isTrigger.map_or(Value::Null, Value::Bool), paramsOmitted]);
 
     Value::Null
@@ -9028,8 +9026,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {object} A deposit withdraw fee structure
          */
         let mut networkKeys: Vec<Value> = object_keys(&fee.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
-        let mut numNetworks: f64 = ((networkKeys.len() as i64) as f64);
-        if (numNetworks == 1.0) {
+        let mut numNetworks: i64 = networkKeys.len() as i64;
+        if (numNetworks == 1) {
             { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(0).cloned().unwrap_or(Value::Null)), "withdraw"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("withdraw".into(), __be_tmp); } }
             { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(0).cloned().unwrap_or(Value::Null)), "deposit"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("deposit".into(), __be_tmp); } }
             return fee;
@@ -9038,7 +9036,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: i64 = 0;
             let mut __for_first_158: bool = true;
-            while { if !__for_first_158 { i += 1; } __for_first_158 = false; (i as f64) < numNetworks } {
+            while { if !__for_first_158 { i += 1; } __for_first_158 = false; i < numNetworks } {
             let mut network: Option<String> = networkKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (network == currencyCode) {
                 { let __be_tmp = crate::value::get_value_k(&get_value(&crate::value::get_value_k(&fee, "networks"), &networkKeys.get(i as usize).cloned().unwrap_or(Value::Null)), "withdraw"); if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("withdraw".into(), __be_tmp); } }
@@ -9396,15 +9394,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // pagination always walks forward internally, so strip it here to avoid leaking an
         // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMaxEntriesPerRequest, Value::Str("paginationDirection".into()), &[]).into_dict();
-        let mut current: Value = Value::Int(self.milliseconds());
+        let mut current: i64 = self.milliseconds();
         let mut tasks: Vec<Value> = Vec::new();
         let mut time: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
         let mut maxEntriesPerRequestValue: Value = self.require_value(maxEntriesPerRequestOption, &[Value::Str("fetchPaginatedCallDeterministic() maxEntriesPerRequest is required".into())]);
         let mut step: Value = (match (&(Value::from(time)), &(Value::from(self.parse_to_int(maxEntriesPerRequestValue.clone())))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut until: Value = self.safe_integer2(&paramsOmitted, Value::Str("until".into()), Value::Str("till".into()), &[]); // do not omit it here
-        let mut currentSince: Value = (match (&((match (&(current), &(((match (&(maxCallsLimit), &(step)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-            _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x),
-            Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut currentSince: Value = (match (&((match (&(Value::from(current)), &(((match (&(maxCallsLimit), &(step)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
+            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
+            &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         if (since != Value::Null) {
             if (until != Value::Null) {
                 // the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -9436,7 +9434,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (until != Value::Null) && (currentSince.as_f64().unwrap_or(f64::NAN) >= until.as_f64().unwrap_or(f64::NAN)) {
                 break;
             }
-            if currentSince.as_f64().unwrap_or(f64::NAN) >= current.as_f64().unwrap_or(f64::NAN) {
+            if currentSince.as_f64().unwrap_or(f64::NAN) >= (current as f64) {
                 break;
             }
             tasks.push(self.safe_deterministic_call(method.clone(), &[symbol.clone(), currentSince.clone(), maxEntriesPerRequestValue.clone(), timeframe.clone(), Value::from(&paramsOmitted)]).await);
@@ -9751,7 +9749,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(self.parse_to_int((match (&(Value::from(until)), &(multiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                 Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))); }
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]) } else { params });
+        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), &["until", "till"], &[]) } else { params });
         return Value::from(vec![request, paramsOmitted]);
 
     Value::Null

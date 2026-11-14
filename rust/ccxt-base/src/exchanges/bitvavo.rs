@@ -2072,10 +2072,10 @@ impl Bitvavo {
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(false), &[params.clone()]);
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned); // trigger when price crosses from above to below this value
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned); // trigger when price crosses from below to above this value
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(params, &["timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"], &[]);
         let mut paramsCost: Value = paramsOmitted.clone();
         if isMarketOrder {
-            paramsCost = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("cost".into())]), &[]);
+            paramsCost = self.omit(paramsOmitted.clone(), &["cost"], &[]);
         }
         if isMarketOrder {
             let mut cost: Option<f64> = None;
@@ -2212,7 +2212,7 @@ impl Bitvavo {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut amountRemaining: Option<f64> = self.safe_number_k(params.clone(), "amountRemaining", &[]).as_f64();
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("amountRemaining".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"], &[]).into_dict();
         if (price != Value::Null) {
             std::sync::Arc::make_mut(&mut request).insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }

@@ -227,8 +227,8 @@ impl Poloniex {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "cancel_all_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_all_orders_ws", args.to_vec()); crate::Value::Null },
@@ -1693,8 +1693,8 @@ impl Poloniex {
                         add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                     }
                     let mut rawState: Option<String> = self.safe_string_k(&order, "state", &[]).as_str().map(str::to_owned);
-                    let mut state: Value = self.parse_status(rawState.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-                    add_element_to_object(&mut previousOrder, &Value::Str("status".into()), state);
+                    let mut state: Option<String> = self.parse_status(rawState.map(Value::from).unwrap_or(Value::Null));
+                    add_element_to_object(&mut previousOrder, &Value::Str("status".into()), state.map(Value::from).unwrap_or(Value::Null));
                     // update the newUpdates count
                     orders.append(previousOrder);
                 }
@@ -2122,12 +2122,12 @@ impl Poloniex {
                 m.insert("auth".to_string(), Value::Str("handle_authenticate".into()).clone());
             m
         });
-        let mut method: Value = self.safe_value(&methods, type_var.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut method: Option<String> = self.safe_value(&methods, type_var.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("auth")) {
             self.handle_authenticate(client.clone(), message.clone());
         }  else if (type_var.is_none()) {
             self.handle_order_request(client.clone(), message.clone());
-        }  else if (method != Value::Null) {
+        }  else if (method.is_some()) {
             let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
             let mut dataLength: i64 = data.len() as i64;
             if dataLength > 0 {
@@ -2225,7 +2225,7 @@ impl Poloniex {
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-                panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_instance(&e, &Value::Str("AuthenticationError".into())) {

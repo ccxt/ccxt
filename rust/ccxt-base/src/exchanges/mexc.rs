@@ -2901,7 +2901,7 @@ impl Mexc {
             }
             let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTradesMethod", &[Value::Str("spotPublicGetAggTrades".into())]).as_str().map(str::to_owned);
             method = self.safe_string_k(params.clone(), "method", &[method.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned); // AggTrades, HistoricalTrades, Trades
-            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("method".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["method"], &[]).into_dict();
             if (method.as_deref() == Some("spotPublicGetAggTrades")) {
                 let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 trades = self.spot_public_get_agg_trades(&[__ws_arg_2]).await;
@@ -3160,7 +3160,7 @@ impl Mexc {
         let mut omitUntil: bool = (until.is_some()) && (since == Value::Null);
         let mut paramsUntil: Value = Value::from(&paramsPaginate);
         if omitUntil {
-            paramsUntil = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+            paramsUntil = self.omit(&paramsPaginate, &["until"], &[]);
         }
         if (market).spot {
             if (since != Value::Null) {
@@ -3800,7 +3800,7 @@ impl Mexc {
         if (clientOrderId.is_some()) {
             request.insert("newClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsWithoutClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&paramsWithoutCost, Value::from(vec![Value::Str("type".into()), Value::Str("clientOrderId".into())]), &[]).into_dict() } else { paramsWithoutCost });
+        let mut paramsWithoutClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&paramsWithoutCost, &["type", "clientOrderId"], &[]).into_dict() } else { paramsWithoutCost });
         if (marginMode != Value::Null) {
             if (marginMode.as_str() != Some("isolated")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support marginMode ").into()), marginMode).into()), " for spot-margin trading")));
@@ -4010,7 +4010,7 @@ impl Mexc {
             request.insert("externalOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut triggerPrice: Option<f64> = self.safe_number2(Value::from(&paramsReduceOnly), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsReduceOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("externalOid".into()), Value::Str("postOnly".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("hedged".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsReduceOnly, &["clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) && (triggerPrice != Some(0.0)) {
             request.insert("triggerPrice".into(), Value::from(self.price_to_precision(Value::from(symbol), Value::from(triggerPrice))));
@@ -4551,7 +4551,7 @@ impl Mexc {
             return self.parse_orders(&response, market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
             let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-            let mut swapParams: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+            let mut swapParams: crate::value::Dict = self.omit(&paramsMarketType, &["stop", "trigger"], &[]).into_dict();
             if (limit == Value::Null) {
                 request.insert("page_size".into(), Value::Int(100)); // max
             }
@@ -5572,7 +5572,7 @@ impl Mexc {
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut marginMode: Option<String> = self.safe_string_k(&paramsMarketType, "marginMode", &[]).as_str().map(str::to_owned);
         let mut isMargin: bool = self.safe_bool_k(&paramsMarketType, "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsMarketType, Value::from(vec![Value::Str("margin".into()), Value::Str("marginMode".into())]), &[]).into_dict();
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsMarketType, &["margin", "marginMode"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) || isMargin || (marketType.as_deref() == Some("margin")) {
             let mut parsedSymbols: Value = Value::Null;
@@ -5590,7 +5590,7 @@ impl Mexc {
             self.check_required_argument(Value::Str("fetchBalance".into()), parsedSymbols.clone(), Value::Str("symbol or symbols".into()), &[]);
             marketType = Some("margin".to_string());
             request.insert("symbols".into(), parsedSymbols);
-            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOmitted2, Value::from(vec![Value::Str("symbol".into()), Value::Str("symbols".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOmitted2, &["symbol", "symbols"], &[]).into_dict();
             let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.spot_private_get_margin_isolated_account(&[__ws_arg_37]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("spot")) {
@@ -7603,7 +7603,7 @@ impl Mexc {
         if (network.is_some()) {
             request.insert("netWork".into(), network.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("network".into()), Value::Str("netWork".into())]), &[]).into_dict() } else { paramsWithdrawTag });
+        let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(&paramsWithdrawTag, &["network", "netWork"], &[]).into_dict() } else { paramsWithdrawTag });
         let __ws_arg_59 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.spot_private_post_capital_withdraw(&[__ws_arg_59]).await.into_dict();
         return self.parse_transaction(&response, Some(&currency));

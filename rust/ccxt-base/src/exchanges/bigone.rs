@@ -2299,7 +2299,7 @@ impl Bigone {
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        query = self.omit(query, Value::from(vec![Value::Str("stop_price".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("timeInForce".into()), Value::Str("clientOrderId".into())]), &[]);
+        query = self.omit(query, &["stop_price", "stopPrice", "triggerPrice", "timeInForce", "clientOrderId"], &[]);
         let __ws_arg_6 = self.extend(Value::Map(request), &[query]);
         let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_6]).await.into_dict();
         //

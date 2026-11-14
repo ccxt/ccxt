@@ -232,8 +232,8 @@ impl Hyperliquid {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "cancel_order_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_order_ws", args.to_vec()); crate::Value::Null },
             "cancel_orders_ws" => { crate::exchange_stubs::enqueue_spawn("cancel_orders_ws", args.to_vec()); crate::Value::Null },
@@ -1440,8 +1440,8 @@ impl Hyperliquid {
             }
         }
         }
-        let mut newLiquidationsLength: f64 = ((newLiquidations.len() as i64) as f64);
-        if (newLiquidationsLength == 0.0) {
+        let mut newLiquidationsLength: i64 = newLiquidations.len() as i64;
+        if (newLiquidationsLength == 0) {
             return;
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.myLiquidations.clone();
@@ -1452,7 +1452,7 @@ impl Hyperliquid {
         {
                         let mut i: i64 = 0;
             let mut __for_first_403: bool = true;
-            while { if !__for_first_403 { i += 1; } __for_first_403 = false; (i as f64) < newLiquidationsLength } {
+            while { if !__for_first_403 { i += 1; } __for_first_403 = false; i < newLiquidationsLength } {
             let mut liquidation: Value = newLiquidations.get(i as usize).cloned().unwrap_or(Value::Null);
             cache.append(liquidation.clone());
             symbols.insert(crate::runtime::stringify_param(&(liquidation.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Bool(true));
@@ -2196,9 +2196,9 @@ impl Hyperliquid {
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut dexName: Value = self.parent.get_dex_from_symbols("watchPositions", &[symbolsNormalized.clone()]).map(Value::from).unwrap_or(Value::Null);
-        if (dexName != Value::Null) {
-            subscription.insert("dex".into(), dexName);
+        let mut dexName: Option<String> = self.parent.get_dex_from_symbols("watchPositions", &[symbolsNormalized.clone()]);
+        if (dexName.is_some()) {
+            subscription.insert("dex".into(), dexName.map(Value::from).unwrap_or(Value::Null));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

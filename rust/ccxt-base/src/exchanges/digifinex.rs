@@ -2882,7 +2882,7 @@ impl Digifinex {
             }
             request.insert("order_type".into(), Value::from(orderType));
             request.insert("size".into(), amount.clone()); // swap orders require the amount to be the number of contracts
-            paramsRequest = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
+            paramsRequest = self.omit(&paramsMarginMode, &["reduceOnly", "timeInForce", "postOnly"], &[]);
         }  else {
             postOnlyParsed = (if postOnly { 1 } else { 2 });
             request.insert("market".into(), (if (marginMode.is_some()) { Value::Str("margin".into()) } else { marketTypeRaw.map(Value::from).unwrap_or(Value::Null) }));
@@ -5284,23 +5284,23 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut market: Option<crate::types::Market> = None;
         let mut marketType: Option<String> = None;
-        if (symbolsNormalized != Value::Null) {
+        if (symbolsNormalized.is_some()) {
             let mut symbol: Value = Value::Null;
-            if (matches!(&symbolsNormalized, Value::Arr(_))) {
-                let mut symbolsLength: i64 = symbolsNormalized.len() as i64;
+            if (symbolsNormalized.is_some()) {
+                let mut symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
                 if symbolsLength > 1 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchPositions() symbols argument cannot contain more than 1 symbol")));
                 }
-                symbol = symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                symbol = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null);
             }  else {
-                symbol = symbolsNormalized.clone();
+                symbol = symbolsNormalized.clone().map_or(Value::Null, Value::Arr);
             }
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
@@ -5395,7 +5395,7 @@ impl Digifinex {
             result.push(self.parse_position(positions.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()));
         }
         }
-        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

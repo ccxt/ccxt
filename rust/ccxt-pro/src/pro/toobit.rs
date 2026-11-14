@@ -220,8 +220,8 @@ impl Toobit {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -405,8 +405,8 @@ impl Toobit {
             while { if !__for_first_663 { i += 1; } __for_first_663 = false; i < (message.len() as i64) } {
             let mut item: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut event: Option<String> = self.safe_string_k(item.clone(), "e", &[]).as_str().map(str::to_owned);
-            let mut method: Value = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method != Value::Null) {
+            let mut method: Option<String> = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), item]);
             }
         }
@@ -482,8 +482,8 @@ impl Toobit {
                 m.insert("outboundContractPositionInfo".to_string(), Value::Str("handle_positions".into()).clone());
             m
         });
-        let mut method: Value = self.safe_value(&methods, topic.map(Value::from).unwrap_or(Value::Null), &[]);
-        if (method != Value::Null) {
+        let mut method: Option<String> = self.safe_value(&methods, topic.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }
 }
@@ -1173,14 +1173,14 @@ impl Toobit {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut length: f64 = ((data.len() as i64) as f64);
-        if (length == 0.0) {
+        let mut length: i64 = data.len() as i64;
+        if (length == 0) {
             return;
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_672: bool = true;
-            while { if !__for_first_672 { i += 1; } __for_first_672 = false; (i as f64) < length } {
+            while { if !__for_first_672 { i += 1; } __for_first_672 = false; i < length } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "s", &[]).as_str().map(str::to_owned);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
@@ -1655,12 +1655,12 @@ impl Toobit {
         let mut messageHash: String = "".to_string();
         let mut symbolsNormalized: Value = symbols.clone();
         if !(self.is_empty(symbols.clone()).as_bool() == Some(true)) {
-            let mut marketSymbols: Value = self.market_symbols(&[symbols]);
-            if (marketSymbols == Value::Null) {
+            let mut marketSymbols: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
+            if (marketSymbols.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchPositions() symbols is required")));
             }
-            symbolsNormalized = marketSymbols.clone();
-            messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(marketSymbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+            symbolsNormalized = marketSymbols.clone().map_or(Value::Null, Value::Arr);
+            messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(marketSymbols.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
         messageHash = format!("{}{}", Value::Str(format!("{}{}", type_var, ":positions").into()), messageHash);
         let mut url: Option<String> = self.get_user_stream_url();

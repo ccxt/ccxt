@@ -66,25 +66,25 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
     }
     }
     let mut durationMs: Value = (match (&(Value::Int(exchange.parse_timeframe(timeframe))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-    let mut barsLength: Value = Value::Int(ohlcvs.len() as i64);
+    let mut barsLength: i64 = ohlcvs.len() as i64;
     // check bars amounts, to be between 0 and limit
     // less then limit
     if (limit != Value::Null) {
-        assert!(ccxt::runtime::is_true(&((barsLength.as_f64().unwrap_or(f64::NAN) <= limit.as_f64().unwrap_or(f64::NAN)))));
+        assert!(ccxt::runtime::is_true(&(((barsLength as f64) <= limit.as_f64().unwrap_or(f64::NAN)))));
     }
     // ensure bars amount is more than zero
-    if (barsLength.as_f64() == Some(0.0)) {
+    if (barsLength == 0) {
         // zero-amount of bars should not be tolerated for major exchanges, because it would indicate implementation issue
         // so unless the target exchange (probably mostly lower end exchanges) is skipped, we should assert that
         if !(in_op(&skippedProperties, &Value::Str("compareAmountToZero".into()))) {
-            assert!(ccxt::runtime::is_true(&((barsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+            assert!(ccxt::runtime::is_true(&((barsLength > 0))));
         }
         return;
     }
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1586: bool = true;
-        while { if !__for_first_1586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1586 = false; i.as_f64().unwrap_or(f64::NAN) < barsLength.as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1586 = false; i.as_f64().unwrap_or(f64::NAN) < (barsLength as f64) } {
         let mut ohlcv: Value = ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let mut barTs: Value = get_value(&ohlcv, &Value::Int(0));
         // if this is the first bar, then ensure its timestamp is not earlier than requested "since"
@@ -97,7 +97,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
             }
         }
         // if this is the last bar, then check if it's <= now
-        if (i.as_f64() == (match (&(barsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
+        if (i.as_f64() == Value::Int((barsLength - 1)).as_f64()) {
             if !(in_op(&skippedProperties, &Value::Str("compareToNow".into()))) {
                 assert!(ccxt::runtime::is_true(&(((match (&(barTs), &(now)) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64),
                     Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x < __y, _ => matches!((__a, __b), (Value::Str(__x), Value::Str(__y)) if __x < __y) }) || (match (__a, __b) { (Value::Null, Value::Null) => true,

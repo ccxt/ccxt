@@ -1953,7 +1953,7 @@ impl Tokocrypto {
         let mut maxLimit: Value = Value::Int(1500);
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("price".into()), Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["price", "until"], &[]).into_dict();
         let mut limitValue: Value = Value::from(defaultLimit);
         if (limit != Value::Null) {
             limitValue = crate::runtime::Math::min(&limit, &maxLimit);
@@ -2021,9 +2021,9 @@ impl Tokocrypto {
         if (matches!(&response, Value::Arr(_))) {
             data = response.clone();
         }  else {
-            let mut dataList: Value = self.safe_list_k(response.clone(), "data", &[]);
-            if (dataList != Value::Null) {
-                data = dataList;
+            let mut dataList: Option<crate::value::List> = self.safe_list_k(response.clone(), "data", &[]).into_opt_list();
+            if (dataList.is_some()) {
+                data = dataList.map_or(Value::Null, Value::Arr);
             }  else {
                 let mut dataDict: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2379,9 +2379,9 @@ impl Tokocrypto {
         let mut initialUppercaseType: String = typeResolved.to_uppercase();
         let mut uppercaseType: String = initialUppercaseType.clone();
         let mut triggerPrice: Value = self.safe_value2(params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-        let mut paramsRequest: Value = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into())]), &[]);
+        let mut paramsRequest: Value = self.omit(&paramsPostOnly, &["clientId", "clientOrderId", "timeInForce"], &[]);
         if (triggerPrice != Value::Null) {
-            paramsRequest = self.omit(paramsRequest, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
+            paramsRequest = self.omit(paramsRequest, &["triggerPrice", "stopPrice"], &[]);
             if postOnly {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() does not support post only trigger orders, the venue has no post only trigger order type")));
             }
@@ -2462,7 +2462,7 @@ impl Tokocrypto {
                 { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsRequest.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
                     paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
                 let mut cost: Option<f64> = self.safe_number2(paramsRequest.clone(), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), &[]).as_f64();
-                paramsRequest = self.omit(paramsRequest, Value::from(vec![Value::Str("cost".into()), Value::Str("quoteOrderQty".into())]), &[]);
+                paramsRequest = self.omit(paramsRequest, &["cost", "quoteOrderQty"], &[]);
                 if (cost.is_some()) {
                     quoteAmount = Value::from(cost);
                 }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
@@ -2918,7 +2918,7 @@ impl Tokocrypto {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
-        let mut paramsOmitted: crate::value::Dict = (if (endTime.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (endTime.is_some()) { self.omit(params.clone(), &["endTime", "until"], &[]) } else { params }).into_dict();
         if (endTime.is_some()) {
             request.insert("endTime".into(), Value::from(endTime));
         }

@@ -4513,7 +4513,7 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut markets: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
+        let mut markets: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
         let mut paginationCursor: Option<String> = self.safe_string_k(&data, "nextPageCursor", &[]).as_str().map(str::to_owned);
         if (paginationCursor.is_some()) {
             while (paginationCursor.is_some()) {
@@ -4533,7 +4533,7 @@ impl Bybit {
                 if (rawMarketsLength == 0) {
                     break;
                 }
-                markets = self.array_concat(Value::Arr(rawMarkets), markets);
+                markets = self.array_concat(Value::Arr(rawMarkets), Value::Arr(markets)).into_list();
                 paginationCursor = self.safe_string_k(&dataNew, "nextPageCursor", &[]).as_str().map(str::to_owned);
             }
         }
@@ -4586,14 +4586,14 @@ impl Bybit {
     m
 })]).into_dict();
         let mut preLaunchMarketsList: crate::value::List = self.safe_list_k(&preLaunchData, "list", &[Value::from(vec![])]).into_list();
-        markets = self.array_concat(markets, &preLaunchMarketsList);
+        markets = self.array_concat(Value::Arr(markets), &preLaunchMarketsList).into_list();
         let mut result: Vec<Value> = Vec::new();
         let mut category: Option<String> = self.safe_string_k(&data, "category", &[]).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
             let mut __for_first_503: bool = true;
             while { if !__for_first_503 { i += 1; } __for_first_503 = false; i < (markets.len() as i64) } {
-            let mut market: crate::value::Dict = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             if (category.is_none()) {
                 category = self.safe_string_k(&market, "category", &[]).as_str().map(str::to_owned);
             }
@@ -4751,7 +4751,7 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut markets: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
+        let mut markets: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
         let mut loadAllOptions: Option<bool> = self.handle_option(Value::Str("fetchMarkets".into()), Value::Str("loadAllOptions".into()), &[]).as_bool();
         if (loadAllOptions == Some(true)) {
             request.insert("limit".into(), Value::Int(1000));
@@ -4776,7 +4776,7 @@ impl Bybit {
                     if (rawMarketsLength == 0) {
                         break;
                     }
-                    markets = self.array_concat(Value::Arr(rawMarkets), markets);
+                    markets = self.array_concat(Value::Arr(rawMarkets), Value::Arr(markets)).into_list();
                     paginationCursor = self.safe_string_k(&dataNew, "nextPageCursor", &[]).as_str().map(str::to_owned);
                 }
             }
@@ -4821,7 +4821,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_504: bool = true;
             while { if !__for_first_504 { i += 1; } __for_first_504 = false; i < (markets.len() as i64) } {
-            let mut market: crate::value::Dict = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             let mut baseId: Option<String> = self.safe_string_k(&market, "baseCoin", &[]).as_str().map(str::to_owned);
             let mut quoteId: Option<String> = self.safe_string_k(&market, "quoteCoin", &[]).as_str().map(str::to_owned);
@@ -5217,7 +5217,7 @@ impl Bybit {
         });
         let mut paramsOmitted: Value = params.clone();
         if hasOptionSymbol {
-            paramsOmitted = self.omit(params, Value::from(vec![Value::Str("code".into()), Value::Str("currency".into())]), &[]);
+            paramsOmitted = self.omit(params, &["code", "currency"], &[]);
         }
         let categoryparamsCategoryVariable: Vec<Value> = self.get_bybit_type("fetchTickers", market.as_ref(), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
         let mut category: Option<String> = categoryparamsCategoryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -5722,7 +5722,7 @@ impl Bybit {
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsValue, "until", &[]).as_i64(); // unified in milliseconds
         let mut endTime: Option<i64> = self.safe_integer_k(&paramsValue, "endTime", &[Value::from(until)]).as_i64(); // exchange-specific in milliseconds
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, &["endTime", "until"], &[]).into_dict();
         if (endTime.is_some()) {
             request.insert("endTime".into(), Value::from(endTime));
         }  else {
@@ -7059,7 +7059,7 @@ impl Bybit {
                 }  else {
                     request.insert("tpslMode".into(), tpslModeTp.map(Value::from).unwrap_or(Value::Null));
                 }
-                query = self.omit(query, Value::from(vec![Value::Str("stopLossLimitPrice".into()), Value::Str("takeProfitLimitPrice".into()), Value::Str("tradingStopEndpoint".into())]), &[]);
+                query = self.omit(query, &["stopLossLimitPrice", "takeProfitLimitPrice", "tradingStopEndpoint"], &[]);
             }
         }  else {
             request.insert("side".into(), self.capitalize(side.clone()));
@@ -7156,7 +7156,7 @@ impl Bybit {
             request.insert("trailingStop".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
         }  else if isTriggerOrder && !endpointIsTradingStop {
             let mut triggerDirection: Option<String> = self.safe_string_k(query.clone(), "triggerDirection", &[]).as_str().map(str::to_owned);
-            query = self.omit(query, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerDirection".into())]), &[]);
+            query = self.omit(query, &["triggerPrice", "stopPrice", "triggerDirection"], &[]);
             if (market).spot {
                 if (triggerDirection.is_some()) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() : trigger order does not support triggerDirection for spot markets yet")));
@@ -7236,8 +7236,7 @@ impl Bybit {
             }
             request.insert("positionIdx".into(), (if isBuyPosition { Value::Int(1) } else { Value::Int(2) }));
         }
-        query = self.omit(query, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("timeInForce".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("postOnly".into()), Value::Str("clientOrderId".into()), Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()),
-            Value::Str("trailingAmount".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("hedged".into())]), &[]);
+        query = self.omit(query, &["stopPrice", "timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId", "triggerPrice", "stopLoss", "takeProfit", "trailingAmount", "trailingTriggerPrice", "hedged"], &[]);
         return self.extend(Value::Map(request), &[query]);
 
     Value::Null
@@ -7603,7 +7602,7 @@ impl Bybit {
         if (id != Value::Null) {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = (if (market).spot { self.omit(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (market).spot { self.omit(params.clone(), &["stop", "trigger"], &[]) } else { params }).into_dict();
         let categoryparamsCategoryVariable: Vec<Value> = self.get_bybit_type("cancelOrderRequest", Some(&market), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut category: Option<String> = categoryparamsCategoryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsCategory: crate::value::Dict = categoryparamsCategoryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -7711,7 +7710,7 @@ impl Bybit {
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut clientOrderIds: crate::value::List = self.safe_list2(Value::from(&paramsValue), Value::Str("clientOrderIds".into()), Value::Str("clientOids".into()), &[Value::from(vec![])]).into_list();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOids".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, &["clientOrderIds", "clientOids"], &[]).into_dict();
         {
                         let mut i: i64 = 0;
             let mut __for_first_515: bool = true;
@@ -8008,7 +8007,7 @@ impl Bybit {
             }
         }
         let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsValue), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, &["stop", "trigger"], &[]).into_dict();
         if isTrigger {
             request.insert("orderFilter".into(), Value::Str("StopOrder".into()));
         }
@@ -8291,7 +8290,7 @@ impl Bybit {
         }
         request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsValue), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, &["trigger", "stop"], &[]).into_dict();
         if isTrigger {
             request.insert("orderFilter".into(), Value::Str("StopOrder".into()));
         }
@@ -8303,7 +8302,7 @@ impl Bybit {
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64(); // unified in milliseconds
         let mut endTime: Option<i64> = self.safe_integer_k(&paramsOmitted, "endTime", &[Value::from(until)]).as_i64(); // exchange-specific in milliseconds
-        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, &["endTime", "until"], &[]).into_dict();
         if (endTime.is_some()) {
             request.insert("endTime".into(), Value::from(endTime));
         }
@@ -8526,7 +8525,7 @@ impl Bybit {
         let mut paramsValue: crate::value::Dict = type_varparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsValue), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, &["trigger", "stop"], &[]).into_dict();
         if isTrigger {
             request.insert("orderFilter".into(), Value::Str("StopOrder".into()));
         }
@@ -8538,7 +8537,7 @@ impl Bybit {
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64(); // unified in milliseconds
         let mut endTime: Option<i64> = self.safe_integer_k(&paramsOmitted, "endTime", &[Value::from(until)]).as_i64(); // exchange-specific in milliseconds
-        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, &["endTime", "until"], &[]).into_dict();
         if (endTime.is_some()) {
             request.insert("endTime".into(), Value::from(endTime));
         }
@@ -8768,7 +8767,7 @@ impl Bybit {
         }
         request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         let mut isTrigger: bool = self.safe_bool2(Value::from(&paramsValue), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, &["stop", "trigger"], &[]).into_dict();
         if isTrigger {
             request.insert("orderFilter".into(), Value::Str("StopOrder".into()));
         }
@@ -8883,7 +8882,7 @@ impl Bybit {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("orderLinkId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "orderLinkId"], &[]).into_dict();
         let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
         return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_38).await);
         Value::Null
@@ -10002,7 +10001,7 @@ impl Bybit {
         if (self.safe_integer_k(&paramsValue, "limit", &[]) == Value::Null) {
             request.insert("limit".into(), Value::Int(200)); // max limit
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, Value::from(vec![Value::Str("type".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsValue, &["type"], &[]).into_dict();
         request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v5_position_list(&[__ws_arg_48]).await.into_dict();
@@ -10482,7 +10481,7 @@ impl Bybit {
                     if (sellLeverage == Value::Null) {
                         sellLeverage = buyLeverage.clone();
                     }
-                    paramsOmitted = self.omit(&paramsType, Value::from(vec![Value::Str("buy_leverage".into()), Value::Str("sell_leverage".into()), Value::Str("sellLeverage".into()), Value::Str("buyLeverage".into())]), &[]);
+                    paramsOmitted = self.omit(&paramsType, &["buy_leverage", "sell_leverage", "sellLeverage", "buyLeverage"], &[]);
                 }  else {
                     sellLeverage = leverage.clone().map(Value::from).unwrap_or(Value::Null);
                     buyLeverage = leverage.map(Value::from).unwrap_or(Value::Null);
@@ -10655,7 +10654,7 @@ impl Bybit {
             request.insert("startTime".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64(); // unified in milliseconds
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["until"], &[]).into_dict();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }  else if (since != Value::Null) {
@@ -11101,7 +11100,7 @@ impl Bybit {
         let mut sinceResolved: Option<i64> = (if (since == Value::Null) { Some(((self.milliseconds()) - 2592000000)) } else { since.as_i64() }); // last 30 days
         request.insert("startTime".into(), Value::from(sinceResolved));
         let mut endTime: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["until"], &[]).into_dict();
         if (endTime.is_none()) {
             endTime = (if let Some(__l) = sinceResolved { Some(__l + 2592000000) } else { None }); // since + 30 days
         }
@@ -11804,7 +11803,7 @@ impl Bybit {
         //    }
         //
         let mut chains: crate::value::List = self.safe_list_k(fee.clone(), "chains", &[Value::from(vec![])]).into_list();
-        let mut chainsLength: f64 = ((chains.len() as i64) as f64);
+        let mut chainsLength: i64 = chains.len() as i64;
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fee);
@@ -11826,11 +11825,11 @@ impl Bybit {
 }));
             m
         });
-        if (chainsLength != 0.0) {
+        if (chainsLength != 0) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_520: bool = true;
-                while { if !__for_first_520 { i += 1; } __for_first_520 = false; (i as f64) < chainsLength } {
+                while { if !__for_first_520 { i += 1; } __for_first_520 = false; i < chainsLength } {
                 let mut chain: crate::value::Dict = self.safe_dict(&chains, Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
@@ -11853,7 +11852,7 @@ impl Bybit {
     m
 })); }
                 }
-                if (chainsLength == 1.0) {
+                if (chainsLength == 1) {
                     if let Value::Dict(__d) = result.entry("withdraw".into()).or_default() { std::sync::Arc::make_mut(__d).insert("fee".into(), self.safe_number_k(&chain, "withdrawFee", &[])); }
                     if let Value::Dict(__d) = result.entry("withdraw".into()).or_default() { std::sync::Arc::make_mut(__d).insert("percentage".into(), Value::Bool(false)); }
                 }
@@ -13293,10 +13292,10 @@ impl Bybit {
         //    }
         //
         let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
-        let mut rawPositions: Value = self.safe_list_k(&result, "list", &[]);
+        let mut rawPositions: Option<crate::value::List> = self.safe_list_k(&result, "list", &[]).into_opt_list();
         let mut rawPositionsList: Value = Value::from(vec![]);
-        if (rawPositions != Value::Null) {
-            rawPositionsList = rawPositions;
+        if (rawPositions.is_some()) {
+            rawPositionsList = rawPositions.map_or(Value::Null, Value::Arr);
         }
         let mut positions: crate::value::List = self.parse_positions(rawPositionsList, &[symbols, Value::Dict(paramsOmitted)]).into_list();
         return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[]);

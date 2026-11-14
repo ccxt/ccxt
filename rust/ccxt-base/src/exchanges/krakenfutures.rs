@@ -1740,13 +1740,12 @@ impl Krakenfutures {
             let mut elements: crate::value::List = self.safe_list_k(&response, "elements", &[Value::from(vec![])]).into_list();
             // we need to reverse the list to fix chronology
             rawTrades = std::sync::Arc::new(Vec::new());
-            let mut length: Value = Value::Int(elements.len() as i64);
+            let mut length: i64 = elements.len() as i64;
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_871: bool = true;
-                while { if !__for_first_871 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_871 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
-                let mut index: Value = (match (&((match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
-                    &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                while { if !__for_first_871 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_871 = false; i.as_f64().unwrap_or(f64::NAN) < (length as f64) } {
+                let mut index: Value = (match (&(Value::Int((length - 1))), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 let mut element: crate::value::Dict = self.safe_dict(&elements, index, &[]).into_dict();
                 let mut event: crate::value::Dict = self.safe_dict_k(&element, "event", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2039,7 +2038,7 @@ impl Krakenfutures {
         if (priceValue != Value::Null) && !isMarketOrder {
             request.insert("limitPrice".into(), Value::from(self.price_to_precision(symbolValue.map(Value::from).unwrap_or(Value::Null), priceValue)));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, &["clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -2718,7 +2717,7 @@ impl Krakenfutures {
         }
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut response: Option<crate::value::Dict> = None;
-        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["trigger", "stop"], &[]).into_dict();
         if isTrigger {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.history_get_triggers(&[__ws_arg_12]).await.into_opt_dict();
@@ -2811,7 +2810,7 @@ impl Krakenfutures {
         }
         let mut response: Option<crate::value::Dict> = None;
         let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["trigger", "stop"], &[]).into_dict();
         if isTrigger {
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.history_get_triggers(&[__ws_arg_14]).await.into_opt_dict();
@@ -3889,7 +3888,7 @@ impl Krakenfutures {
         }
         let mut type_var: Option<String> = self.safe_string2(params.clone(), Value::Str("type".into()), Value::Str("account".into()), &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_string_k(params.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("type".into()), Value::Str("account".into()), Value::Str("symbol".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["type", "account", "symbol"], &[]).into_dict();
         let mut response: Value = self.private_get_accounts(&[Value::Dict(paramsOmitted)]).await;
         //
         //    {

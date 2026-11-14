@@ -208,8 +208,8 @@ impl Bithumb {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "build_gen2_subscription_request" => self.build_gen2_subscription_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -423,16 +423,16 @@ impl Bithumb {
         let mut generation: Option<i64> = generationparamsGenerationVariable.get(0).and_then(Value::as_i64);
         let mut paramsGeneration: crate::value::Dict = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isGenerationTwo: bool = generation == Some(2);
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut symbolsLength: i64 = (if (symbolsNormalized == Value::Null) { 0 } else { symbolsNormalized.len() as i64 });
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_opt_list();
+        let mut symbolsLength: i64 = (if (symbolsNormalized.is_none()) { 0 } else { symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64 });
         if isGenerationTwo && (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchTickers() requires symbols for the generation 2 API")));
         }
         let mut symbolsResolved: Value = Value::Arr(self.symbols.clone());
-        if (symbolsNormalized != Value::Null) {
-            symbolsResolved = symbolsNormalized;
+        if (symbolsNormalized.is_some()) {
+            symbolsResolved = symbolsNormalized.map_or(Value::Null, Value::Arr);
         }
-        let mut symbolsLengthDefined: f64 = ((symbolsResolved.len() as i64) as f64);
+        let mut symbolsLengthDefined: i64 = symbolsResolved.len() as i64;
         let mut wsUrls: crate::value::Dict = self.safe_dict(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -446,7 +446,7 @@ impl Bithumb {
         {
                         let mut i: i64 = 0;
             let mut __for_first_126: bool = true;
-            while { if !__for_first_126 { i += 1; } __for_first_126 = false; (i as f64) < symbolsLengthDefined } {
+            while { if !__for_first_126 { i += 1; } __for_first_126 = false; i < symbolsLengthDefined } {
             let mut symbol: Option<String> = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut streamMarketId: Value = Value::Null;
@@ -1622,8 +1622,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     m.insert("myOrder".to_string(), Value::Str("handle_orders".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(&methods, topic.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method != Value::Null) {
+            let mut method: Option<String> = self.safe_value(&methods, topic.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client, message.clone()]);
             }
         }

@@ -3364,17 +3364,17 @@ impl Coinbaseinternational {
             request.insert("reject_post_only".into(), Value::Bool(true));
             request.insert("time_in_force".into(), Value::Str("good_til_cancelled".into()));
         }
-        let mut paramsOrder: Value = self.omit(&paramsResolved, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("tif".into()), Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
+        let mut paramsOrder: crate::value::Dict = self.omit(&paramsResolved, &["clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"], &[]).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOrder = self.omit(paramsOrder, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into())]), &[]);
+            paramsOrder = self.omit(Value::Dict(paramsOrder), &["reduceOnly", "reduce_only"], &[]).into_dict();
         }
         self.authenticate_v2(&[]).await;
         let mut response: Option<crate::value::Dict> = None;
         if (side.as_str() == Some("buy")) {
-            let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsOrder.clone()]);
+            let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsOrder]);
             response = self.private_get_buy(&[__ws_arg_11]).await.into_opt_dict();
         }  else {
-            let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOrder]);
+            let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOrder]);
             response = self.private_get_sell(&[__ws_arg_12]).await.into_opt_dict();
         }
         //
@@ -3836,7 +3836,7 @@ impl Coinbaseinternational {
         if (triggerPrice.is_some()) {
             request.insert("trigger_price".into(), Value::from(triggerPrice));
         }
-        let mut paramsOrder: crate::value::Dict = self.omit(&paramsResolved, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).into_dict();
+        let mut paramsOrder: crate::value::Dict = self.omit(&paramsResolved, &["triggerPrice", "stopPrice", "stop_price"], &[]).into_dict();
         self.authenticate_v2(&[]).await;
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOrder]);
         let mut response: crate::value::Dict = self.private_get_edit(&[__ws_arg_15]).await.into_dict();
@@ -4782,7 +4782,7 @@ impl Coinbaseinternational {
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("routeBackend".into(), deribit.clone()); }
         if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("fetchLeverage".into(), Value::Bool(!(deribit.as_bool() == Some(true)))); }
         if let Value::Dict(__d) = &mut self.has.clone() { std::sync::Arc::make_mut(__d).insert("setLeverage".into(), Value::Bool(!(deribit.as_bool() == Some(true)))); }
-        return self.omit(&paramsResolved, Value::from(vec![Value::Str("route".into()), Value::Str("defaultRoute".into()), Value::Str("callerMethodName".into())]), &[]);
+        return self.omit(&paramsResolved, &["route", "defaultRoute", "callerMethodName"], &[]);
 
     Value::Null
 }

@@ -5538,23 +5538,23 @@ impl Hashkey {
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                 m
             });
-            let mut signature: Value = Value::Null;
+            let mut signature: Option<String> = None;
             let mut bodySigned: Value = Value::Null;
             if (method.as_str() == Some("POST")) && ((path.as_str() == Some("api/v1/spot/batchOrders")) || (path.as_str() == Some("api/v1/futures/batchOrders"))) {
                 headersSigned.insert("Content-Type".into(), Value::Str("application/json".into()));
                 bodySigned = self.json(self.safe_list_k(params.clone(), "orders", &[]));
-                signature = Value::from(self.hmac(self.encode(self.custom_urlencode(&[Value::Map(additionalParams.clone())]).map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+                signature = Some(self.hmac(self.encode(self.custom_urlencode(&[Value::Map(additionalParams.clone())]).map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
                 let __ws_arg_44 = self.extend(Value::Map(additionalParams.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("signature".to_string(), signature.clone());
+        m.insert("signature".to_string(), Value::from(signature.as_deref()));
     m
 })]);
                 query = self.custom_urlencode(&[__ws_arg_44]).map(Value::from).unwrap_or(Value::Null);
                 url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path).into()), "?").into()), query);
             }  else {
                 let mut totalParams: crate::value::Dict = self.extend(Value::Map(additionalParams), &[params.clone()]).into_dict();
-                signature = Value::from(self.hmac(self.encode(self.custom_urlencode(&[Value::from(&totalParams)]).map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
-                std::sync::Arc::make_mut(&mut totalParams).insert("signature".into(), signature.clone());
+                signature = Some(self.hmac(self.encode(self.custom_urlencode(&[Value::from(&totalParams)]).map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]));
+                std::sync::Arc::make_mut(&mut totalParams).insert("signature".into(), Value::from(signature.as_deref()));
                 query = self.custom_urlencode(&[Value::Dict(totalParams)]).map(Value::from).unwrap_or(Value::Null);
                 if (method.as_str() == Some("GET")) {
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), path).into()), "?").into()), query);
@@ -5563,7 +5563,7 @@ impl Hashkey {
                 }
             }
             headersSigned.insert("INPUT-SOURCE".into(), self.safe_string_k(self.options.clone(), "broker", &[Value::Str("10000700011".into())]));
-            headersSigned.insert("broker_sign".into(), signature);
+            headersSigned.insert("broker_sign".into(), signature.map(Value::from).unwrap_or(Value::Null));
             let mut bodyResolved: Value = (if (method.as_str() == Some("GET")) { Value::Null } else { bodySigned });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -1308,15 +1308,15 @@ impl Gemini {
         }
         let mut table: String = self.safe_string(tables, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut rows: Vec<Value> = Value::Array(table.split("\n<tr>\n").map(Value::from).collect()).as_array().cloned().unwrap_or_default(); // eslint-disable-line quotes
-        let mut numRows: f64 = ((rows.len() as i64) as f64);
-        if numRows < ((2i64) as f64) {
+        let mut numRows: i64 = rows.len() as i64;
+        if numRows < 2 {
             panic!("{}", crate::exchange_errors::not_supported(error.clone()));
         }
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 1;
             let mut __for_first_711: bool = true;
-            while { if !__for_first_711 { i += 1; } __for_first_711 = false; (i as f64) < numRows } {
+            while { if !__for_first_711 { i += 1; } __for_first_711 = false; i < numRows } {
             let mut row: Option<String> = rows.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut cells: crate::value::List = Value::Array(if let Some(__s) = row.as_deref() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }).into_list(); // eslint-disable-line quotes
             let mut numCells: i64 = cells.len() as i64;
@@ -3165,10 +3165,10 @@ impl Gemini {
         if (result.as_deref() == Some("error")) {
             let mut reasonInner: Option<String> = self.safe_string_k(response.clone(), "reason", &[]).as_str().map(str::to_owned);
             let mut message: Option<String> = self.safe_string_k(response, "message", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), reasonInner.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null"));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), reasonInner.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

@@ -2253,7 +2253,7 @@ impl Coinsph {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "origClientOrderId"], &[]).into_dict();
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_openapi_v1_order(&[__ws_arg_13]).await.into_dict();
         return self.parse_order(&response, None);
@@ -2389,7 +2389,7 @@ impl Coinsph {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "origClientOrderId"], &[]).into_dict();
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_delete_openapi_v1_order(&[__ws_arg_16]).await.into_dict();
         return self.parse_order(&response, None);
@@ -3128,12 +3128,12 @@ impl Coinsph {
         let mut remainingQuery: Value = query.clone();
         let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_580: bool = true;
-            while { if !__for_first_580 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_580 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
-            let mut key: Option<String> = keys.get(i.as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
+            while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (keys.len() as i64) } {
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (matches!(&(if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Arr(_))) {
-                if (i.as_f64() != Some(0.0)) {
+                if (i != 0) {
                     encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, "&").into());
                 }
                 let mut innerArray: Value = (if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });

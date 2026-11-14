@@ -216,8 +216,8 @@ impl Bitfinex {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1267,7 +1267,7 @@ impl Bitfinex {
         if (book.is_none()) {
             return;
         }
-        let mut depth: f64 = ((25i64) as f64); // covers the first 25 bids and asks
+        let mut depth: i64 = 25; // covers the first 25 bids and asks
         let mut stringArray: Vec<Value> = Vec::new();
         let mut bids: Value = book.book_field("bids");
         let mut asks: Value = book.book_field("asks");
@@ -1277,7 +1277,7 @@ impl Bitfinex {
         {
                         let mut i: i64 = 0;
             let mut __for_first_104: bool = true;
-            while { if !__for_first_104 { i += 1; } __for_first_104 = false; (i as f64) < depth } {
+            while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < depth } {
             let mut bid: Option<crate::value::List> = self.safe_list(bids.clone(), Value::Int(i), &[]).into_opt_list();
             let mut ask: Option<crate::value::List> = self.safe_list(asks.clone(), Value::Int(i), &[]).into_opt_list();
             if (bid.is_some()) {
@@ -1931,8 +1931,8 @@ impl Bitfinex {
                     m.insert("auth".to_string(), Value::Str("handle_authentication_message".into()).clone());
                 m
             });
-            let mut method: Value = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method != Value::Null) {
+            let mut method: Option<String> = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client, message]);
             }
         }

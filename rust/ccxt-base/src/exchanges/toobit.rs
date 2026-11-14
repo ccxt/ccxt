@@ -2770,7 +2770,7 @@ impl Toobit {
                 request.insert("tpTriggerBy".into(), self.safe_string(&triggerPriceTypes, triggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[triggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
             }
         }
-        let mut paramsOmitted: Value = self.omit(paramsTrigger, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(paramsTrigger, &["stopLoss", "takeProfit"], &[]);
         if (self.safe_string_k(paramsOmitted.clone(), "newClientOrderId", &[]) == Value::Null) {
             request.insert("newClientOrderId".into(), Value::from(self.uuid(&[])));
         }

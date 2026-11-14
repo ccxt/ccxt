@@ -1543,7 +1543,7 @@ impl Foxbit {
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["timeInForce", "postOnly", "triggerPrice", "clientOrderId"], &[]).into_dict();
         let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_private_post_orders(&[__ws_arg_5]).await.into_dict();
         return self.parse_order(&response, Some(&market));
@@ -2913,15 +2913,15 @@ impl Foxbit {
                 url.push_str(&format!("{}{}", "?", query));
             }
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_679: bool = true;
-                while { if !__for_first_679 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_679 = false; i.as_f64().unwrap_or(f64::NAN) < ((paramKeys.len() as i64) as f64) } {
-                let mut key: Option<String> = paramKeys.get(i.as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
+                while { if !__for_first_679 { i += 1; } __for_first_679 = false; i < (paramKeys.len() as i64) } {
+                let mut key: Option<String> = paramKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut value: Option<String> = self.safe_string(paramsOmitted.clone(), key.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 if (value.is_some()) {
                     signatureQuery.push_str(&format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), value.as_deref().unwrap_or("null")));
                 }
-                if i.as_f64().unwrap_or(f64::NAN) < (lastKeyIndex as f64) {
+                if i < lastKeyIndex {
                     signatureQuery.push_str("&");
                 }
             }

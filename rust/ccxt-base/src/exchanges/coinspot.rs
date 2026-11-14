@@ -930,11 +930,11 @@ impl Coinspot {
         let mut balances: Value = self.safe_value2(response, Value::Str("balance".into()), Value::Str("balances".into()), &[]);
         if (matches!(&balances, Value::Arr(_))) {
             let mut rows: crate::value::List = self.to_array(balances.clone()).into_list();
-            let mut numRows: f64 = ((rows.len() as i64) as f64);
+            let mut numRows: i64 = rows.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_582: bool = true;
-                while { if !__for_first_582 { i += 1; } __for_first_582 = false; (i as f64) < numRows } {
+                while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < numRows } {
                 let mut currencies: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1542,7 +1542,7 @@ impl Coinspot {
         }
         let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("error")) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response)).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

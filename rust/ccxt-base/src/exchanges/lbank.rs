@@ -2455,7 +2455,7 @@ impl Lbank {
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("custom_id".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut paramsRequest: Value = self.omit(params, Value::from(vec![Value::Str("custom_id".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
+        let mut paramsRequest: Value = self.omit(params, &["custom_id", "clientOrderId", "timeInForce", "postOnly"], &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -3129,7 +3129,7 @@ impl Lbank {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["origClientOrderId", "clientOrderId"], &[]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3292,10 +3292,10 @@ impl Lbank {
                 m.insert("assetCode".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let mut network: Value = self.get_network_code_for_currency(code.as_str(), params.clone()).map(Value::from).unwrap_or(Value::Null);
-        let mut paramsOmitted: crate::value::Dict = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
-        if (network != Value::Null) {
-            request.insert("netWork".into(), network); // ... yes, really lol
+        let mut network: Option<String> = self.get_network_code_for_currency(code.as_str(), params.clone());
+        let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
+        if (network.is_some()) {
+            request.insert("netWork".into(), network.map(Value::from).unwrap_or(Value::Null)); // ... yes, really lol
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.spot_private_post_get_deposit_address(&[__ws_arg_21]).await;
@@ -3436,7 +3436,7 @@ impl Lbank {
         if (network.is_some()) {
             network = self.safe_string(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned);
         }
-        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("network".into()), Value::Str("networkName".into())]), &[]).into_dict();
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, &["network", "networkName"], &[]).into_dict();
         let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[]).into_dict();
         let mut networkId: Option<String> = self.safe_string(&networks, Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned);
         if (networkId.is_some()) {
@@ -3889,7 +3889,7 @@ impl Lbank {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut code: Option<String> = self.safe_string2(params.clone(), Value::Str("coin".into()), Value::Str("assetCode".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("coin".into()), Value::Str("assetCode".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["coin", "assetCode"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4330,7 +4330,7 @@ impl Lbank {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+            let mut timestamp: String = format!("{}", self.milliseconds());
             let mut echostr: String = format!("{}{}", self.uuid22(&[]), self.uuid16(&[]));
             let mut signedQuery: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4348,7 +4348,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
         m.insert("echostr".to_string(), Value::from(echostr.clone()));
         m.insert("signature_method".to_string(), finalSig.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("timestamp".to_string(), Value::from(timestamp.as_str()));
     m
 }), &[&signedQuery]), &[]);
             let mut auth: String = self.rawencode(__ws_arg_34, &[]);
@@ -4378,7 +4378,7 @@ impl Lbank {
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
-                    m.insert("timestamp".to_string(), timestamp);
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("signature_method".to_string(), signatureMethod.map(Value::from).unwrap_or(Value::Null));
                     m.insert("echostr".to_string(), Value::from(echostr));
                 m

@@ -2072,7 +2072,7 @@ impl Backpack {
 })]).into_dict();
         let mut quoteId: Option<String> = self.safe_string_k(&query, "quoteId", &[]).as_str().map(str::to_owned);
         if (quoteId.is_some()) {
-            let mut acceptParams: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("quoteId".into()), Value::Str("price".into()), Value::Str("baseAmount".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+            let mut acceptParams: crate::value::Dict = self.omit(&query, &["quoteId", "price", "baseAmount", "clientOrderId"], &[]).into_dict();
             let mut accepted: Value = self.accept_rfq_quote(id.as_str().unwrap_or_default(), quoteId.as_deref().unwrap_or_default(), (self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[])).as_str().unwrap_or_default(), &[Value::Dict(acceptParams)]).await;
             return self.parse_conversion(accepted, Some(&self.currency(fromCode.clone())), Some(&self.currency(toCode.clone())));
         }
@@ -2152,7 +2152,7 @@ impl Backpack {
     m
 }), Value::Str("id".into()), &[]).as_i64();
         }
-        let mut orderParams: indexmap::IndexMap<String, Value> = self.omit(&query, Value::from(vec![Value::Str("price".into()), Value::Str("baseAmount".into()), Value::Str("quoteId".into()), Value::Str("clientOrderId".into())]), &[]).as_map().cloned().unwrap_or_default();
+        let mut orderParams: indexmap::IndexMap<String, Value> = self.omit(&query, &["price", "baseAmount", "quoteId", "clientOrderId"], &[]).as_map().cloned().unwrap_or_default();
         if (clientOrderId.is_some()) {
             orderParams.insert("clientOrderId".into(), Value::from(clientOrderId));
         }
@@ -3016,7 +3016,7 @@ impl Backpack {
         if rfq && (market.is_some()) && (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() != Some("RFQ")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " fetchMyTrades() rfq requires an RFQ market symbol")));
         }
-        let mut accountParams: Value = self.omit(&query, Value::from(vec![Value::Str("rfq".into()), Value::Str("until".into())]), &[]);
+        let mut accountParams: Value = self.omit(&query, &["rfq", "until"], &[]);
         let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
         if rfq || aggregate {
             let mut rfqRequest: indexmap::IndexMap<String, Value> = ({
@@ -3029,12 +3029,12 @@ impl Backpack {
             if (limit != Value::Null) {
                 rfqRequest.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
             }
-            let mut rfqParams: crate::value::Dict = self.omit(accountParams.clone(), Value::from(vec![Value::Str("assetClass".into()), Value::Str("marketType".into()), Value::Str("from".into()), Value::Str("to".into())]), &[]).into_dict();
+            let mut rfqParams: crate::value::Dict = self.omit(accountParams.clone(), &["assetClass", "marketType", "from", "to"], &[]).into_dict();
             let __ws_arg_12 = self.extend(Value::Map(rfqRequest), &[&rfqParams]);
             let mut rfqResponse: crate::value::List = self.private_get_wapi_v1_history_rfq_fill(&[__ws_arg_12]).await.into_list();
             let mut rfqTrades: Value = self.parse_trades(&rfqResponse, market.as_ref(), &[since.clone()]);
             if aggregate {
-                let __ws_arg_13 = self.omit(accountParams.clone(), Value::from(vec![Value::Str("rfqId".into()), Value::Str("quoteId".into()), Value::Str("deferredSettlement".into())]), &[]);
+                let __ws_arg_13 = self.omit(accountParams.clone(), &["rfqId", "quoteId", "deferredSettlement"], &[]);
                 let mut venueParams: crate::value::Dict = self.extend(__ws_arg_13, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("assetClass".to_string(), Value::Str("STOCK".into()));
@@ -4222,7 +4222,7 @@ impl Backpack {
         let mut accountParams: crate::value::Dict = self.omit(&query, Value::Str("rfq".into()), &[]).into_dict();
         let mut response: Value = Value::from(vec![]);
         if !rfq {
-            let mut venueParams: crate::value::Dict = self.omit(&accountParams, Value::from(vec![Value::Str("rfqId".into()), Value::Str("deferredSettlement".into())]), &[]).into_dict();
+            let mut venueParams: crate::value::Dict = self.omit(&accountParams, &["rfqId", "deferredSettlement"], &[]).into_dict();
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&venueParams]);
             response = self.private_get_api_v1_orders(&[__ws_arg_22]).await;
         }
@@ -4562,7 +4562,7 @@ impl Backpack {
         let mut accountParams: crate::value::Dict = self.omit(&query, Value::Str("rfq".into()), &[]).into_dict();
         let mut response: Value = Value::from(vec![]);
         if !rfq {
-            let mut venueParams: crate::value::Dict = self.omit(&accountParams, Value::from(vec![Value::Str("rfqId".into()), Value::Str("status".into()), Value::Str("side".into()), Value::Str("deferredSettlement".into())]), &[]).into_dict();
+            let mut venueParams: crate::value::Dict = self.omit(&accountParams, &["rfqId", "status", "side", "deferredSettlement"], &[]).into_dict();
             let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[&venueParams]);
             response = self.private_get_wapi_v1_history_orders(&[__ws_arg_32]).await;
         }
@@ -4996,7 +4996,7 @@ impl Backpack {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut requestParams: Value = (if (matches!(&params, Value::Arr(_))) { params.clone() } else { self.omit(params.clone(), Value::from(vec![Value::Str("stock".into()), Value::Str("defaultStock".into()), Value::Str("rfq".into()), Value::Str("callerMethodName".into())]), &[]) });
+        let mut requestParams: Value = (if (matches!(&params, Value::Arr(_))) { params.clone() } else { self.omit(params.clone(), &["stock", "defaultStock", "rfq", "callerMethodName"], &[]) });
         let mut sortedParams: Value = (if (matches!(&requestParams, Value::Arr(_))) { requestParams.clone() } else { self.keysort(requestParams.clone(), &[]) });
         let mut headersSigned: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

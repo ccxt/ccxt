@@ -1022,7 +1022,7 @@ impl Blockchaincom {
         let mut orderType: Option<String> = self.safe_string_k(params.clone(), "ordType", &[type_var]).as_str().map(str::to_owned);
         let mut uppercaseOrderType: Option<String> = orderType.as_deref().map(str::to_uppercase);
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[Value::from(self.uuid16(&[]))]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("ordType".into()), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["ordType", "clientOrderId", "clOrdId"], &[]).into_dict();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1034,7 +1034,7 @@ impl Blockchaincom {
             m
         });
         let mut triggerPrice: Value = self.safe_value_n(&paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
-        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]).into_dict();
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, &["triggerPrice", "stopPx", "stopPrice"], &[]).into_dict();
         if (uppercaseOrderType.as_deref() == Some("STOP")) || (uppercaseOrderType.as_deref() == Some("STOPLIMIT")) {
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a stopPx or triggerPrice param for a ").into()), uppercaseOrderType.as_deref().unwrap_or("null")).into()), " order")));

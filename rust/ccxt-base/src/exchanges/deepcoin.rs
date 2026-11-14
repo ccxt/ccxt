@@ -1557,8 +1557,8 @@ impl Deepcoin {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
-        let mut productGroup: Value = self.get_product_group_from_market(Some(&market));
-        request.insert("productGroup".into(), productGroup);
+        let mut productGroup: Option<String> = self.get_product_group_from_market(Some(&market)).as_str().map(str::to_owned);
+        request.insert("productGroup".into(), productGroup.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_deepcoin_market_trades(&[__ws_arg_12]).await.into_dict();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
@@ -2072,13 +2072,13 @@ impl Deepcoin {
         }
         let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         let mut addressess: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), Value::Dict(paramsOmitted)).await);
-        let mut length: f64 = ((addressess.len() as i64) as f64);
+        let mut length: i64 = addressess.len() as i64;
         let mut index: Value = Value::Int(0);
-        if (network.is_some()) && (length > ((1i64) as f64)) {
+        if (network.is_some()) && (length > 1) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_611: bool = true;
-                while { if !__for_first_611 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
+                while { if !__for_first_611 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < (length as f64) } {
                 let mut entryNetwork: Option<String> = self.safe_string(self.safe_dict(addressess.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3561,7 +3561,7 @@ impl Deepcoin {
             if (takeProfitPrice.is_some()) {
                 request.insert("tpTriggerPx".into(), (if (symbolResolved.as_str() != Some("")) { Value::from(self.price_to_precision(symbolResolved.clone(), Value::from(takeProfitPrice))) } else { Value::from(self.number_to_string(Value::from(takeProfitPrice))) }));
             }
-            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["stopLossPrice", "takeProfitPrice"], &[]).into_dict();
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_deepcoin_trade_replace_order_sltp(&[__ws_arg_28]).await.into_opt_dict();
         }  else {

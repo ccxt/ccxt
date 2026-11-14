@@ -731,20 +731,20 @@ impl Kalshi {
         // maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
         // markets — then flatten those markets.
         if queriesLength > 0 {
-            let mut eventParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
+            let mut eventParams: Value = self.omit(params.clone(), &["limit"], &[]);
             let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(eventParams).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut eventsLength: f64 = ((events.len() as i64) as f64);
+            let mut eventsLength: i64 = events.len() as i64;
             let mut queryMarkets: Vec<Value> = Vec::new();
             {
                                 let mut ei: i64 = 0;
                 let mut __for_first_1259: bool = true;
-                while { if !__for_first_1259 { ei += 1; } __for_first_1259 = false; (ei as f64) < eventsLength } {
+                while { if !__for_first_1259 { ei += 1; } __for_first_1259 = false; ei < eventsLength } {
                 let mut eventMarkets: crate::value::List = self.safe_list_k(events.get(ei as usize).map(crate::Value::from).unwrap_or_default(), "markets", &[Value::from(vec![])]).into_list();
-                let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
+                let mut eventMarketsLength: i64 = eventMarkets.len() as i64;
                 {
                                         let mut mi: i64 = 0;
                     let mut __for_first_1258: bool = true;
-                    while { if !__for_first_1258 { mi += 1; } __for_first_1258 = false; (mi as f64) < eventMarketsLength } {
+                    while { if !__for_first_1258 { mi += 1; } __for_first_1258 = false; mi < eventMarketsLength } {
                     queryMarkets.push(eventMarkets.get(mi as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
@@ -752,7 +752,7 @@ impl Kalshi {
             }
             return Value::from(queryMarkets);
         }
-        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into())]), &[]).into_dict();
+        let mut rest: crate::value::Dict = self.omit(params.clone(), &["query", "queries", "limit"], &[]).into_dict();
         // no query: page the markets listing directly. Cap the total collected so an unscoped
         // loadMarkets cannot run away through every kalshi market via the cursor.
         let mut maxMarkets: Option<i64> = self.safe_integer_k(params, "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(1000)])]).as_i64();
@@ -953,11 +953,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut outcomeSymbolsLength: f64 = ((outcomeSymbols.len() as i64) as f64);
+        let mut outcomeSymbolsLength: i64 = outcomeSymbols.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1262: bool = true;
-            while { if !__for_first_1262 { i += 1; } __for_first_1262 = false; (i as f64) < outcomeSymbolsLength } {
+            while { if !__for_first_1262 { i += 1; } __for_first_1262 = false; i < outcomeSymbolsLength } {
             let mut outcomeSymbol: Value = outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null);
             if outcomeSymbol.as_str().unwrap_or("").contains(":") {
                 continue;
@@ -976,16 +976,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
         let mut chunkSize: i64 = self.safe_integer_k(self.options.clone(), "fetchOutcomesBatchSize", &[Value::Int(100)]).as_i64().unwrap_or(100);
-        let mut tickersLength: Value = Value::Int(tickers.len() as i64);
-        let mut lastTickerIndex: Value = (match (&(tickersLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut tickersLength: i64 = tickers.len() as i64;
+        let mut lastTickerIndex: i64 = (tickersLength - 1);
         let mut chunk: Value = Value::from(vec![]);
         {
-                        let mut ti: Value = Value::Int(0);
+                        let mut ti: i64 = 0;
             let mut __for_first_1264: bool = true;
-            while { if !__for_first_1264 { if let Value::Int(n) = &mut ti { *n += 1; } } __for_first_1264 = false; ti.as_f64().unwrap_or(f64::NAN) < tickersLength.as_f64().unwrap_or(f64::NAN) } {
-            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get((ti).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
+            while { if !__for_first_1264 { ti += 1; } __for_first_1264 = false; ti < tickersLength } {
+            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get(ti as usize).cloned().unwrap_or(Value::Null)); }
             let mut chunkLength: i64 = chunk.len() as i64;
-            if (chunkLength < chunkSize) && (ti.as_f64().unwrap_or(f64::NAN) < lastTickerIndex.as_f64().unwrap_or(f64::NAN)) {
+            if (chunkLength < chunkSize) && (ti < lastTickerIndex) {
                 continue;
             }
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1014,7 +1014,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1265: bool = true;
-            while { if !__for_first_1265 { i += 1; } __for_first_1265 = false; (i as f64) < outcomeSymbolsLength } {
+            while { if !__for_first_1265 { i += 1; } __for_first_1265 = false; i < outcomeSymbolsLength } {
             if !(self.has_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
                 self.fetch_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).await;
             }
@@ -1036,14 +1036,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut error: Option<crate::value::Dict> = self.safe_dict_k(response, "error", &[]).into_opt_dict();
         if (error.is_some()) {
             let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback);
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if (code.as_f64() == Some(400.0)) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             panic!("{}", crate::exchange_errors::bad_request(feedback));
         }
         return Value::Null;
@@ -1704,16 +1704,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tickersLength: Value = Value::Int(tickers.len() as i64);
-        let mut lastTickerIndex: Value = (match (&(tickersLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut tickersLength: i64 = tickers.len() as i64;
+        let mut lastTickerIndex: i64 = (tickersLength - 1);
         let mut chunk: Value = Value::from(vec![]);
         {
-                        let mut ti: Value = Value::Int(0);
+                        let mut ti: i64 = 0;
             let mut __for_first_1270: bool = true;
-            while { if !__for_first_1270 { if let Value::Int(n) = &mut ti { *n += 1; } } __for_first_1270 = false; ti.as_f64().unwrap_or(f64::NAN) < tickersLength.as_f64().unwrap_or(f64::NAN) } {
-            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get((ti).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
+            while { if !__for_first_1270 { ti += 1; } __for_first_1270 = false; ti < tickersLength } {
+            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get(ti as usize).cloned().unwrap_or(Value::Null)); }
             let mut chunkLength: i64 = chunk.len() as i64;
-            if (chunkLength < chunkSize) && (ti.as_f64().unwrap_or(f64::NAN) < lastTickerIndex.as_f64().unwrap_or(f64::NAN)) {
+            if (chunkLength < chunkSize) && (ti < lastTickerIndex) {
                 continue;
             }
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2236,12 +2236,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_fills(&[__ws_arg_7]).await.into_dict();
         let mut fills: crate::value::List = self.safe_list_k(&response, "fills", &[Value::from(vec![])]).into_list();
-        let mut fillsLength: f64 = ((fills.len() as i64) as f64);
+        let mut fillsLength: i64 = fills.len() as i64;
         let mut trades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1277: bool = true;
-            while { if !__for_first_1277 { i += 1; } __for_first_1277 = false; (i as f64) < fillsLength } {
+            while { if !__for_first_1277 { i += 1; } __for_first_1277 = false; i < fillsLength } {
             trades.push(self.parse_my_trade(fills.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref()));
         }
         }
@@ -2524,12 +2524,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_settlements(&[__ws_arg_8]).await.into_dict();
         let mut rawSettlements: crate::value::List = self.safe_list_k(&response, "settlements", &[Value::from(vec![])]).into_list();
-        let mut rawSettlementsLength: f64 = ((rawSettlements.len() as i64) as f64);
+        let mut rawSettlementsLength: i64 = rawSettlements.len() as i64;
         let mut parsed: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1281: bool = true;
-            while { if !__for_first_1281 { i += 1; } __for_first_1281 = false; (i as f64) < rawSettlementsLength } {
+            while { if !__for_first_1281 { i += 1; } __for_first_1281 = false; i < rawSettlementsLength } {
             parsed.push(self.parse_settlement(rawSettlements.get(i as usize).cloned().unwrap_or(Value::Null), None));
         }
         }
@@ -3228,12 +3228,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut restingResponse: crate::value::Dict = self.kalshi_private_get_portfolio_orders(&[Value::Map(request)]).await.into_dict();
         let mut restingOrders: crate::value::List = self.safe_list_k(&restingResponse, "orders", &[Value::from(vec![])]).into_list();
-        let mut restingOrdersLength: f64 = ((restingOrders.len() as i64) as f64);
+        let mut restingOrdersLength: i64 = restingOrders.len() as i64;
         let mut canceledOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1284: bool = true;
-            while { if !__for_first_1284 { i += 1; } __for_first_1284 = false; (i as f64) < restingOrdersLength } {
+            while { if !__for_first_1284 { i += 1; } __for_first_1284 = false; i < restingOrdersLength } {
             let mut restingOrder: crate::value::Dict = restingOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut orderId: Option<String> = self.safe_string_k(&restingOrder, "order_id", &[]).as_str().map(str::to_owned);
             if (orderId.is_some()) {
@@ -3286,7 +3286,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut queriesLength: i64 = queries.len() as i64;
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["query", "queries"], &[]).into_dict();
         let mut userLimit: Option<i64> = self.safe_integer_k(&paramsOmitted, "limit", &[]).as_i64();
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
         // category='Crypto' (hundreds of series) doesn't page every one of them
@@ -3307,7 +3307,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             status = Some("settled".to_string());
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-        let mut rest: Value = self.omit(&paramsOmitted, Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("maxPages".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("category".into()), Value::Str("series_ticker".into())]), &[]);
+        let mut rest: Value = self.omit(&paramsOmitted, &["status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"], &[]);
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
@@ -3329,21 +3329,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             rawEvents = self.fetch_series_events(Value::Arr(seriesTickers), status.as_deref(), Value::from(fetchCap), &[rest]).await;
         }
-        let mut rawEventsLength: f64 = ((rawEvents.len() as i64) as f64);
+        let mut rawEventsLength: i64 = rawEvents.len() as i64;
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut di: i64 = 0;
             let mut __for_first_1286: bool = true;
-            while { if !__for_first_1286 { di += 1; } __for_first_1286 = false; (di as f64) < rawEventsLength } {
+            while { if !__for_first_1286 { di += 1; } __for_first_1286 = false; di < rawEventsLength } {
             let mut parsedEvent: indexmap::IndexMap<String, Value> = self.parse_event(rawEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(di as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
             result.push(Value::Map(parsedEvent.clone()));
             // register the parsed markets so populateOutcomes can index their outcomes
             let mut parsedMarkets: Value = parsedEvent.get("markets").cloned().unwrap_or(Value::Null);
-            let mut parsedMarketsLength: f64 = ((parsedMarkets.len() as i64) as f64);
+            let mut parsedMarketsLength: i64 = parsedMarkets.len() as i64;
             {
                                 let mut mi: i64 = 0;
                 let mut __for_first_1285: bool = true;
-                while { if !__for_first_1285 { mi += 1; } __for_first_1285 = false; (mi as f64) < parsedMarketsLength } {
+                while { if !__for_first_1285 { mi += 1; } __for_first_1285 = false; mi < parsedMarketsLength } {
                 let mut m: Value = parsedMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(mi as usize).cloned().unwrap_or(Value::Null);
                 add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
             }
@@ -3354,7 +3354,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // scoping already happened server-side, so strip the resolved scopes before the client-side
         // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
         // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-        let mut postParams: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("tags".into()), Value::Str("category".into()), Value::Str("series_ticker".into())]), &[]).into_dict();
+        let mut postParams: crate::value::Dict = self.omit(&paramsOmitted, &["tags", "category", "series_ticker"], &[]).into_dict();
         return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), Value::from(vec![])]);
         Value::Null
         }).await?))
@@ -3384,11 +3384,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut eventTickers: Vec<Value> = Vec::new();
-        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
+        let mut queriesLength: i64 = queries.len() as i64;
         {
                         let mut qi: i64 = 0;
             let mut __for_first_1288: bool = true;
-            while { if !__for_first_1288 { qi += 1; } __for_first_1288 = false; (qi as f64) < queriesLength } {
+            while { if !__for_first_1288 { qi += 1; } __for_first_1288 = false; qi < queriesLength } {
             let mut searchResponse: crate::value::Dict = self.elections_public_get_search_series(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("query".to_string(), queries.get(qi as usize).cloned().unwrap_or(Value::Null));
@@ -3397,11 +3397,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await.into_dict();
             let mut page: crate::value::List = self.safe_list_k(&searchResponse, "current_page", &[Value::from(vec![])]).into_list();
-            let mut pageLength: f64 = ((page.len() as i64) as f64);
+            let mut pageLength: i64 = page.len() as i64;
             {
                                 let mut pi: i64 = 0;
                 let mut __for_first_1287: bool = true;
-                while { if !__for_first_1287 { pi += 1; } __for_first_1287 = false; (pi as f64) < pageLength } {
+                while { if !__for_first_1287 { pi += 1; } __for_first_1287 = false; pi < pageLength } {
                 let mut et: Option<String> = self.safe_string_k_opt(page.get(pi as usize).cloned().unwrap_or(Value::Null), "event_ticker", &[]);
                 if (et.is_some()) {
                     let mut already: Option<String> = self.safe_string(Value::Map(seen.clone()), et.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -3415,14 +3415,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         let mut rawEvents: Vec<Value> = Vec::new();
-        let mut eventTickersLength: f64 = ((eventTickers.len() as i64) as f64);
+        let mut eventTickersLength: i64 = eventTickers.len() as i64;
         let mut hasLimit: bool = limit != Value::Null;
         let mut limitOrZero: Value = (if hasLimit { limit } else { Value::Int(0) });
         let mut limitValue: Option<i64> = self.parse_to_int(limitOrZero);
         {
                         let mut ei: i64 = 0;
             let mut __for_first_1289: bool = true;
-            while { if !__for_first_1289 { ei += 1; } __for_first_1289 = false; (ei as f64) < eventTickersLength } {
+            while { if !__for_first_1289 { ei += 1; } __for_first_1289 = false; ei < eventTickersLength } {
             let mut collectedLength: i64 = rawEvents.len() as i64;
             if hasLimit && ((limitValue.is_some() && Some(collectedLength) >= limitValue)) {
                 break;
@@ -3499,22 +3499,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut collected: crate::value::List = std::sync::Arc::new(Vec::new());
         // tags / category -> documented /series listing
         let mut tags: crate::value::List = params.get("tags").cloned().unwrap_or_default().into_list();
-        let mut tagsLength: f64 = ((tags.len() as i64) as f64);
+        let mut tagsLength: i64 = tags.len() as i64;
         {
                         let mut ti: i64 = 0;
             let mut __for_first_1291: bool = true;
-            while { if !__for_first_1291 { ti += 1; } __for_first_1291 = false; (ti as f64) < tagsLength } {
+            while { if !__for_first_1291 { ti += 1; } __for_first_1291 = false; ti < tagsLength } {
             let mut seriesResponse: crate::value::Dict = self.kalshi_public_get_series(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tags".to_string(), tags.get(ti as usize).cloned().unwrap_or(Value::Null));
                 m
             })]).await.into_dict();
             let mut seriesList: crate::value::List = self.safe_list_k(&seriesResponse, "series", &[Value::from(vec![])]).into_list();
-            let mut seriesListLength: f64 = ((seriesList.len() as i64) as f64);
+            let mut seriesListLength: i64 = seriesList.len() as i64;
             {
                                 let mut si: i64 = 0;
                 let mut __for_first_1290: bool = true;
-                while { if !__for_first_1290 { si += 1; } __for_first_1290 = false; (si as f64) < seriesListLength } {
+                while { if !__for_first_1290 { si += 1; } __for_first_1290 = false; si < seriesListLength } {
                 let mut st: Option<String> = self.safe_string_k_opt(seriesList.get(si as usize).cloned().unwrap_or(Value::Null), "ticker", &[]);
                 if (st.is_some()) {
                     std::sync::Arc::make_mut(&mut collected).push(st.map(Value::from).unwrap_or(Value::Null));
@@ -3531,11 +3531,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             })]).await.into_dict();
             let mut seriesList: crate::value::List = self.safe_list_k(&seriesResponse, "series", &[Value::from(vec![])]).into_list();
-            let mut seriesListLength: f64 = ((seriesList.len() as i64) as f64);
+            let mut seriesListLength: i64 = seriesList.len() as i64;
             {
                                 let mut si: i64 = 0;
                 let mut __for_first_1292: bool = true;
-                while { if !__for_first_1292 { si += 1; } __for_first_1292 = false; (si as f64) < seriesListLength } {
+                while { if !__for_first_1292 { si += 1; } __for_first_1292 = false; si < seriesListLength } {
                 let mut st: Option<String> = self.safe_string_k_opt(seriesList.get(si as usize).cloned().unwrap_or(Value::Null), "ticker", &[]);
                 if (st.is_some()) {
                     std::sync::Arc::make_mut(&mut collected).push(st.map(Value::from).unwrap_or(Value::Null));
@@ -3547,11 +3547,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut seriesParam: Option<String> = (match params.get("series_ticker") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (seriesParam.is_some()) {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = seriesParam.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            let mut partsLength: f64 = ((parts.len() as i64) as f64);
+            let mut partsLength: i64 = parts.len() as i64;
             {
                                 let mut pi: i64 = 0;
                 let mut __for_first_1293: bool = true;
-                while { if !__for_first_1293 { pi += 1; } __for_first_1293 = false; (pi as f64) < partsLength } {
+                while { if !__for_first_1293 { pi += 1; } __for_first_1293 = false; pi < partsLength } {
                 std::sync::Arc::make_mut(&mut collected).push(parts.get(pi as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -3562,11 +3562,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut ordered: Vec<Value> = Vec::new();
-        let mut collectedLength: f64 = ((collected.len() as i64) as f64);
+        let mut collectedLength: i64 = collected.len() as i64;
         {
                         let mut ci: i64 = 0;
             let mut __for_first_1294: bool = true;
-            while { if !__for_first_1294 { ci += 1; } __for_first_1294 = false; (ci as f64) < collectedLength } {
+            while { if !__for_first_1294 { ci += 1; } __for_first_1294 = false; ci < collectedLength } {
             let mut st: Option<String> = self.safe_string_opt(&collected, Value::Int(ci), &[]);
             let mut already: Option<String> = self.safe_string(Value::Map(seen.clone()), st.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (st.is_some()) && (st.as_deref() != Some("")) && (already.is_none()) {
@@ -3600,7 +3600,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __seriesTickers_empty = Vec::new();
         let seriesTickers = seriesTickers.as_array().unwrap_or(&__seriesTickers_empty);
         let mut rawEvents: Vec<Value> = Vec::new();
-        let mut seriesTickersLength: f64 = ((seriesTickers.len() as i64) as f64);
+        let mut seriesTickersLength: i64 = seriesTickers.len() as i64;
         let mut pageLimit: Option<i64> = self.parse_to_int(self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(200)]));
         let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxEventPagesPerSeries", &[Value::Int(20)]);
         let mut hasLimit: bool = limit != Value::Null;
@@ -3609,7 +3609,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut si: i64 = 0;
             let mut __for_first_1297: bool = true;
-            while { if !__for_first_1297 { si += 1; } __for_first_1297 = false; (si as f64) < seriesTickersLength } {
+            while { if !__for_first_1297 { si += 1; } __for_first_1297 = false; si < seriesTickersLength } {
             let mut collectedLength: i64 = rawEvents.len() as i64;
             if hasLimit && ((limitValue.is_some() && Some(collectedLength) >= limitValue)) {
                 break;
@@ -3619,14 +3619,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut page: Value = Value::Int(0);
                 let mut __for_first_1296: bool = true;
                 while { if !__for_first_1296 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1296 = false; page.as_f64().unwrap_or(f64::NAN) < maxPages.as_f64().unwrap_or(f64::NAN) } {
-                let mut reqLimit: Value = Value::from(pageLimit);
+                let mut reqLimit: Option<i64> = pageLimit;
                 if hasLimit && (limitValue.is_some()) {
                     let mut collectedSoFar: i64 = rawEvents.len() as i64;
-                    let mut remaining: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = limitValue { Some(__l - collectedSoFar) } else { None }))));
-                    if remaining.as_f64().unwrap_or(f64::NAN) < reqLimit.as_f64().unwrap_or(f64::NAN) {
+                    let mut remaining: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = limitValue { Some(__l - collectedSoFar) } else { None })));
+                    if (remaining.is_some() && reqLimit.is_some() && remaining < reqLimit) {
                         reqLimit = remaining;
                     }
-                    if reqLimit.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
+                    if (reqLimit.is_some() && reqLimit <= Some(0)) {
                         break;
                     }
                 }
@@ -3635,7 +3635,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("series_ticker".to_string(), seriesTickers.get(si as usize).cloned().unwrap_or(Value::Null));
                         m.insert("status".to_string(), status.clone());
                         m.insert("with_nested_markets".to_string(), Value::Bool(true));
-                        m.insert("limit".to_string(), reqLimit.clone());
+                        m.insert("limit".to_string(), Value::from(reqLimit));
                     m
                 });
                 if (cursor.is_some()) {
@@ -3644,11 +3644,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_17 = self.extend(Value::Map(request), &[rest.clone()]);
                 let mut response: crate::value::Dict = self.kalshi_public_get_events(&[__ws_arg_17]).await.into_dict();
                 let mut pageEvents: crate::value::List = self.safe_list_k(&response, "events", &[Value::from(vec![])]).into_list();
-                let mut pageEventsLength: f64 = ((pageEvents.len() as i64) as f64);
+                let mut pageEventsLength: i64 = pageEvents.len() as i64;
                 {
                                         let mut ei: i64 = 0;
                     let mut __for_first_1295: bool = true;
-                    while { if !__for_first_1295 { ei += 1; } __for_first_1295 = false; (ei as f64) < pageEventsLength } {
+                    while { if !__for_first_1295 { ei += 1; } __for_first_1295 = false; ei < pageEventsLength } {
                     rawEvents.push(pageEvents.get(ei as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
@@ -3657,7 +3657,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if hasLimit && ((limitValue.is_some() && Some(collectedAfterPage) >= limitValue)) {
                     break;
                 }
-                if (cursor.is_none()) || (cursor.as_deref() == Some("")) || (pageEventsLength < reqLimit.as_f64().unwrap_or(f64::NAN)) {
+                if (cursor.is_none()) || (cursor.as_deref() == Some("")) || (Some(pageEventsLength) < reqLimit) {
                     break;
                 }
             }

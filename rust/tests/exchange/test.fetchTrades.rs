@@ -28,8 +28,8 @@ pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, 
     //
     // test if both sides are being returned
     //
-    let mut minTradesForBothSidesCheck: Value = Value::Int(99);
-    if !(in_op(&skippedProperties, &Value::Str("requireBothSides".into()))) && Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) > minTradesForBothSidesCheck.as_f64().unwrap_or(f64::NAN) {
+    let mut minTradesForBothSidesCheck: i64 = 99;
+    if !(in_op(&skippedProperties, &Value::Str("requireBothSides".into()))) && Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) > (minTradesForBothSidesCheck as f64) {
         //
         //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
         //  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)

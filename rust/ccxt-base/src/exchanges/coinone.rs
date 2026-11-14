@@ -971,7 +971,7 @@ impl Coinone {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: crate::value::Dict = self.omit(response, Value::from(vec![Value::Str("errorCode".into()), Value::Str("result".into()), Value::Str("normalWallets".into())]), &[]).into_dict();
+        let mut balances: crate::value::Dict = self.omit(response, &["errorCode", "result", "normalWallets"], &[]).into_dict();
         let mut currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;

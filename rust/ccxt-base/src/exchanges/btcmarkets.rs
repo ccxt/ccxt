@@ -844,16 +844,16 @@ impl Btcmarkets {
 })]).into_dict();
         let mut txid: Option<String> = self.safe_string_k(&cryptoPaymentDetail, "txId", &[]).as_str().map(str::to_owned);
         let mut addressRaw: Option<String> = self.safe_string_k(&cryptoPaymentDetail, "address", &[]).as_str().map(str::to_owned);
-        let mut address: Value = Value::Null;
-        let mut tag: Value = Value::Null;
+        let mut address: Option<String> = None;
+        let mut tag: Option<String> = None;
         if (addressRaw.is_some()) {
             let mut addressParts: Vec<Value> = Value::Array(if let Some(__s) = addressRaw.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut numParts: i64 = addressParts.len() as i64;
             if numParts > 1 {
-                address = addressParts.get(0).cloned().unwrap_or(Value::Null);
-                tag = addressParts.get(1).cloned().unwrap_or(Value::Null);
+                address = addressParts.get(0).and_then(Value::as_str).map(str::to_owned);
+                tag = addressParts.get(1).and_then(Value::as_str).map(str::to_owned);
             }  else {
-                address = addressRaw.map(Value::from).unwrap_or(Value::Null);
+                address = addressRaw.take();
             }
         }
         let mut fee: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
@@ -871,11 +871,11 @@ impl Btcmarkets {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address.clone());
-        m.insert("addressTo".to_string(), address);
+        m.insert("address".to_string(), Value::from(address.as_deref()));
+        m.insert("addressTo".to_string(), Value::from(address.as_deref()));
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("tag".to_string(), tag.clone());
-        m.insert("tagTo".to_string(), tag);
+        m.insert("tag".to_string(), Value::from(tag.as_deref()));
+        m.insert("tagTo".to_string(), Value::from(tag.as_deref()));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));

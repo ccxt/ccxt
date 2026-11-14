@@ -2359,7 +2359,7 @@ impl Blofin {
             request.insert("positionSide".into(), (if (side.as_str() == Some("buy")) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
         }
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
-        query = self.omit(&query, Value::from(vec![Value::Str("timeInForce".into())]), &[]).into_dict();
+        query = self.omit(&query, &["timeInForce"], &[]).into_dict();
         let mut ioc: bool = (timeInForce.as_deref() == Some("IOC")) || (type_var.as_str() == Some("ioc"));
         let mut marketIOC: bool = isMarketOrder && ioc;
         if isMarketOrder || marketIOC {
@@ -2378,7 +2378,7 @@ impl Blofin {
         }
         let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&query, "stopLoss", &[]).into_opt_dict();
         let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&query, "takeProfit", &[]).into_opt_dict();
-        query = self.omit(&query, Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("hedged".into())]), &[]).into_dict();
+        query = self.omit(&query, &["stopLoss", "takeProfit", "hedged"], &[]).into_dict();
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
         if hasStopLoss || hasTakeProfit {
@@ -2403,7 +2403,7 @@ impl Blofin {
             if (triggerPriceSlTp.is_some()) {
                 request.insert("reduceOnly".into(), Value::Bool(true));
             }
-            query = self.omit(&query, Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
+            query = self.omit(&query, &["stopLossPrice", "takeProfitPrice", "triggerPrice"], &[]).into_dict();
         }
         return self.extend(Value::Map(request), &[&query]);
 
@@ -2767,7 +2767,7 @@ impl Blofin {
                 request.insert("algoId".into(), Value::from(self.number_to_string(id.clone())));
             }
         }
-        let mut query: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("orderId".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(params.clone(), &["orderId", "clientOrderId", "stop", "trigger", "tpsl"], &[]).into_dict();
         if isTpsl {
             let mut tpslResponse: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut first: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tpslResponse), Value::Int(0), &[]).into_opt_dict();
@@ -2883,7 +2883,7 @@ impl Blofin {
         }  else {
             request.insert("orderId".into(), id.clone());
         }
-        let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(params, &["clientOrderId", "tpsl", "TPSL"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isTpsl {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&query]);
@@ -2955,7 +2955,7 @@ impl Blofin {
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPaginate, Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersPending".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut query: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(&paramsMethod, &["method", "stop", "trigger", "tpsl", "TPSL"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isTpSl || (method.as_deref() == Some("privateGetTradeOrdersTpslPending")) {
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&query]);
@@ -3439,7 +3439,7 @@ impl Blofin {
         });
         // same reads as handleNetworkCodeAndParams, kept as typed locals
         let mut networkCode: Option<String> = self.safe_string2(params.clone(), Value::Str("networkCode".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
-        let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("networkCode".into()), Value::Str("network".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(params, &["networkCode", "network"], &[]).into_dict();
         let mut chain: Option<String> = self.safe_string_k(&query, "chain", &[]).as_str().map(str::to_owned);
         if (chain.is_none()) {
             if (networkCode.is_none()) {
@@ -4877,7 +4877,7 @@ impl Blofin {
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPaginate, Value::Str("fetchClosedOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersHistory".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut query: crate::value::Dict = self.omit(&paramsMethod, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(&paramsMethod, &["method", "stop", "trigger", "tpsl", "TPSL"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isTrigger || (method.as_deref() == Some("privateGetTradeOrdersTpslHistory")) {
             let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[&query]);
@@ -5233,13 +5233,13 @@ impl Blofin {
             }
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+            let mut timestamp: String = format!("{}", self.milliseconds());
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-PASSPHRASE".to_string(), self.password.clone());
-                    m.insert("ACCESS-TIMESTAMP".to_string(), timestamp.clone());
-                    m.insert("ACCESS-NONCE".to_string(), timestamp.clone());
+                    m.insert("ACCESS-TIMESTAMP".to_string(), Value::from(timestamp.as_str()));
+                    m.insert("ACCESS-NONCE".to_string(), Value::from(timestamp.as_str()));
                 m
             });
             let mut sign_body: Option<String> = Some("".to_string());

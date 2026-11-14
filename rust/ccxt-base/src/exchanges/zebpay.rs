@@ -1344,7 +1344,7 @@ impl Zebpay {
             m
         });
         let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("endtime".into()), &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("endtime".into()), Value::Str("endTime".into()), Value::Str("interval".into()), Value::Str("startTime".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["until", "endtime", "endTime", "interval", "startTime"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if (market).spot {
@@ -1742,7 +1742,7 @@ impl Zebpay {
         let mut upperCaseType: String = type_var.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
-        let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("marginAsset".into()), Value::Str("takeProfitPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(params, &["marginAsset", "takeProfitPrice", "takeProfitPrice"], &[]).into_dict();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1811,7 +1811,7 @@ impl Zebpay {
         let mut quoteOrderQty: Value = self.safe_string2(params.clone(), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[Value::Null]);
         let mut timeInForce: String = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().unwrap_or("GTC").to_string();
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("cost".into()), Value::Str("timeInForce".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stopLossPrice", "cost", "timeInForce", "clientOrderId"], &[]).into_dict();
         request.insert("type".into(), Value::from(upperCaseType.clone()));
         request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         request.insert("timeInForce".into(), Value::from(timeInForce));
@@ -2927,7 +2927,7 @@ impl Zebpay {
         }
         let mut tail: String = format!("{}{}", Value::Str("/api/".into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         let mut suffix: String = "".to_string();
-        let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+        let mut timestamp: String = format!("{}", self.milliseconds());
         let mut signature: String = "".to_string();
         let mut query: Value = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]);
         let mut access: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -2959,7 +2959,7 @@ impl Zebpay {
             let mut isSpot: bool = marketType == "spot";
             let mut paramsSigned: Option<crate::value::Dict> = self.extend(paramsOmitted, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), timestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
     m
 })]).into_opt_dict();
             if (method.as_str() == Some("GET")) || ((method.as_str() == Some("DELETE")) && isSpot) {

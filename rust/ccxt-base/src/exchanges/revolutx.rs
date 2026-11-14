@@ -1681,8 +1681,7 @@ impl Revolutx {
                 m.insert("order_configuration".to_string(), Value::Map(orderConfiguration));
             m
         });
-        let __ws_arg_6 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("cost".into()), Value::Str("quote_size".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("executionInstructions".into()),
-            Value::Str("execution_instructions".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[])]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[self.omit(params, &["cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"], &[])]);
         let mut response: Value = self.private_post10_orders(&[__ws_arg_6]).await;
         //
         //     {
@@ -1955,7 +1954,7 @@ impl Revolutx {
         if (side.is_some()) {
             request.insert("side".into(), side.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into()), Value::Str("side".into()), Value::Str("trigger".into())]), &[])]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[self.omit(params, &["cursor", "orderStates", "order_states", "orderTypes", "order_types", "side", "trigger"], &[])]);
         let mut response: crate::value::Dict = self.private_get10_orders_active(&[__ws_arg_10]).await.into_dict();
         //
         //     {
@@ -2055,7 +2054,7 @@ impl Revolutx {
         if (orderTypes.is_some()) {
             request.insert("order_types".into(), Value::Str(orderTypes.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into()), Value::Str("trigger".into())]), &[])]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(params, &["until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger"], &[])]);
         let mut response: crate::value::Dict = self.private_get10_orders_historical(&[__ws_arg_11]).await.into_dict();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
@@ -2100,7 +2099,7 @@ impl Revolutx {
     m
 }));
         let mut orderStates: crate::value::List = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[Value::from(vec![Value::Str("filled".into()), Value::Str("cancelled".into()), Value::Str("rejected".into()), Value::Str("replaced".into())])]).into_list();
-        let __ws_arg_12 = self.omit(params, Value::from(vec![Value::Str("orderStates".into()), Value::Str("order_states".into())]), &[]);
+        let __ws_arg_12 = self.omit(params, &["orderStates", "order_states"], &[]);
         let mut requestParams: crate::value::Dict = self.extend(__ws_arg_12, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_states".to_string(), Value::Arr(orderStates));
@@ -2219,7 +2218,7 @@ impl Revolutx {
         if (cursor.is_some()) {
             request.insert("cursor".into(), cursor.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_13 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("until".into())]), &[])]);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[self.omit(params, &["until"], &[])]);
         let mut response: crate::value::Dict = self.private_get10_trades_private_symbol(&[__ws_arg_13]).await.into_dict();
         //
         //     {
@@ -2312,7 +2311,7 @@ impl Revolutx {
         if (executionInstructions != Value::Null) {
             request.insert("execution_instructions".into(), executionInstructions);
         }
-        let __ws_arg_14 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("cost".into()), Value::Str("quote_size".into()), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("executionInstructions".into()), Value::Str("execution_instructions".into())]), &[])]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[self.omit(params, &["clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"], &[])]);
         let mut response: crate::value::Dict = self.private_put10_orders_venue_order_id(&[__ws_arg_14]).await.into_dict();
         //
         //     {

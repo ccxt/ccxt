@@ -5913,8 +5913,7 @@ impl Okx {
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[paramsReduceOnly]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut orderParams: Value = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("currency".into()), Value::Str("ccy".into()), Value::Str("marginMode".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("clientOrderId".into()), Value::Str("stopLossPrice".into()),
-            Value::Str("takeProfitPrice".into()), Value::Str("slOrdPx".into()), Value::Str("tpOrdPx".into()), Value::Str("margin".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPrice".into())]), &[]);
+        let mut orderParams: Value = self.omit(&paramsPostOnly, &["currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice"], &[]);
         let mut ioc: bool = (timeInForce.as_deref() == Some("IOC")) || (type_var.as_str() == Some("ioc"));
         let mut fok: bool = (timeInForce.as_deref() == Some("FOK")) || (type_var.as_str() == Some("fok"));
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
@@ -5936,7 +5935,7 @@ impl Okx {
                     let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
                     let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
                     let mut notional: Value = self.safe_number2(Value::from(&paramsRequiresPrice), Value::Str("cost".into()), Value::Str("sz".into()), &[]);
-                    orderParams = self.omit(&paramsRequiresPrice, Value::from(vec![Value::Str("cost".into()), Value::Str("sz".into())]), &[]);
+                    orderParams = self.omit(&paramsRequiresPrice, &["cost", "sz"], &[]);
                     if createMarketBuyOrderRequiresPrice {
                         if (price != Value::Null) {
                             if (notional == Value::Null) {
@@ -6111,9 +6110,9 @@ impl Okx {
             }
         }
         // unified stp
-        let mut selfTradePrevention: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(orderParams.clone(), Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).as_array().cloned().unwrap_or_default(); selfTradePrevention = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); orderParams = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (selfTradePrevention != Value::Null) {
+        let mut selfTradePrevention: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(orderParams.clone(), Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).as_array().cloned().unwrap_or_default(); selfTradePrevention = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); orderParams = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (selfTradePrevention.is_some()) {
             let mut stpModes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("EXPIRE_MAKER".to_string(), Value::Str("cancel_maker".into()));
@@ -6121,11 +6120,11 @@ impl Okx {
                     m.insert("EXPIRE_BOTH".to_string(), Value::Str("cancel_both".into()));
                 m
             });
-            let mut selfTradePreventionUpper: Option<String> = selfTradePrevention.as_str().map(str::to_uppercase);
+            let mut selfTradePreventionUpper: Option<String> = selfTradePrevention.as_deref().map(str::to_uppercase);
             if (selfTradePreventionUpper.as_deref() == Some("NONE")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order")));
             }
-            let mut stpMode: Value = self.safe_string(&stpModes, selfTradePreventionUpper.map(Value::from).unwrap_or(Value::Null), &[(if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })]);
+            let mut stpMode: Option<String> = self.safe_string(&stpModes, selfTradePreventionUpper.map(Value::from).unwrap_or(Value::Null), &[selfTradePrevention.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut algoOrderTypes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6134,10 +6133,10 @@ impl Okx {
             if (requestOrdType.is_some()) && (matches!(requestOrdType.as_deref(), Some(__k) if algoOrderTypes.contains_key(__k))) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint")));
             }
-            if (stpMode.as_str() == Some("cancel_both")) && (requestOrdType.as_deref() == Some("fok")) {
+            if (stpMode.as_deref() == Some("cancel_both")) && (requestOrdType.as_deref() == Some("fok")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders")));
             }
-            request.insert("stpMode".into(), stpMode);
+            request.insert("stpMode".into(), stpMode.map(Value::from).unwrap_or(Value::Null));
         }
         if (clientOrderId.is_none()) {
             let mut brokerId: Option<String> = self.safe_string_k(self.options.clone(), "brokerId", &[]).as_str().map(str::to_owned);
@@ -6147,7 +6146,7 @@ impl Okx {
             }
         }  else {
             request.insert("clOrdId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            orderParams = self.omit(orderParams, Value::from(vec![Value::Str("clOrdId".into()), Value::Str("clientOrderId".into())]), &[]);
+            orderParams = self.omit(orderParams, &["clOrdId", "clientOrderId"], &[]);
         }
         return self.extend(Value::Map(request), &[orderParams]);
 
@@ -6425,7 +6424,7 @@ impl Okx {
                 request.insert("newPx".into(), Value::from(self.price_to_precision(symbol, price)));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly", "triggerPrice"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -6653,7 +6652,7 @@ impl Okx {
         }  else {
             request.insert("ordId".into(), id);
         }
-        let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clOrdId".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(params, &["clOrdId", "clientOrderId"], &[]).into_dict();
         let __ws_arg_36 = self.extend(Value::Map(request), &[&query]);
         let mut response: crate::value::Dict = self.private_post_trade_cancel_order(&[__ws_arg_36]).await.into_dict();
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
@@ -6826,8 +6825,8 @@ impl Okx {
         let mut ordersData: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
         // request would otherwise come back as a list under the unified string field
-        let mut orderParams: Value = self.omit(params, Value::from(vec![Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), Value::Str("algoId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into()), Value::Str("method".into())]), &[]);
-        return self.parse_orders(&ordersData, Some(&market), &[Value::Null, Value::Null, orderParams]);
+        let mut orderParams: crate::value::Dict = self.omit(params, &["clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method"], &[]).into_dict();
+        return self.parse_orders(&ordersData, Some(&market), &[Value::Null, Value::Null, Value::Dict(orderParams)]);
         Value::Null
         }).await?))
     }
@@ -7362,7 +7361,7 @@ impl Okx {
                 request.insert("ordId".into(), id);
             }
         }
-        let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(params, &["method", "clOrdId", "clientOrderId", "stop", "trigger", "trailing"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrderAlgo")) {
             let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[&query]);
@@ -7548,7 +7547,7 @@ impl Okx {
         }  else if isTrigger && (ordType.is_none()) {
             request.insert("ordType".into(), Value::Str("trigger".into()));
         }
-        let mut query: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(&paramsPaginate, &["method", "stop", "trigger", "trailing"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoPending")) {
             let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[&query]);
@@ -7743,10 +7742,10 @@ impl Okx {
             let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
             if (until.is_some()) {
                 request.insert("end".into(), Value::from(until));
-                query = self.omit(&query, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+                query = self.omit(&query, &["until"], &[]).into_dict();
             }
         }
-        let mut send: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
+        let mut send: crate::value::Dict = self.omit(&query, &["method", "stop", "trigger", "trailing"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&send]);
@@ -7949,11 +7948,11 @@ impl Okx {
             let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
             if (until.is_some()) {
                 request.insert("end".into(), Value::from(until));
-                query = self.omit(&query, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+                query = self.omit(&query, &["until"], &[]).into_dict();
             }
             request.insert("state".into(), Value::Str("filled".into()));
         }
-        let mut send: crate::value::Dict = self.omit(&query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
+        let mut send: crate::value::Dict = self.omit(&query, &["method", "stop", "trigger", "trailing"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_44 = self.extend(Value::Map(request.clone()), &[&send]);
@@ -10719,7 +10718,7 @@ impl Okx {
         if (lever.is_none()) || ((lever.is_some() && lever < Some(1))) || (lever > Some(125)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " setMarginMode() params[\"lever\"] should be between 1 and 125")));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("leverage".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["leverage"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("lever".to_string(), Value::from(lever));
@@ -11043,7 +11042,7 @@ impl Okx {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut posSide: String = self.safe_string_k(params.clone(), "posSide", &[Value::Str("net".into())]).as_str().unwrap_or("net").to_string();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("posSide".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["posSide"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
@@ -11855,7 +11854,7 @@ impl Okx {
             if (until.is_some()) {
                 request.insert("end".into(), Value::from(until));
             }
-            let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsMarketType, Value::from(vec![Value::Str("until".into())]), &[]).into_dict() } else { paramsMarketType });
+            let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsMarketType, &["until"], &[]).into_dict() } else { paramsMarketType });
             let __ws_arg_84 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.public_get_rubik_stat_contracts_open_interest_volume(&[__ws_arg_84]).await.into_opt_dict();
         }
@@ -12643,7 +12642,7 @@ impl Okx {
                 request.insert("expTime".into(), self.safe_string(&optionParts, Value::Int(2), &[]));
             }
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("uly".into()), Value::Str("instFamily".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["uly", "instFamily"], &[]).into_dict();
         let __ws_arg_92 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_public_opt_summary(&[__ws_arg_92]).await.into_dict();
         //
@@ -13678,7 +13677,7 @@ impl Okx {
         }
         let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut instType: Option<String> = self.safe_string_upper_k(params.clone(), "instType", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("marginMode".into()), Value::Str("instType".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["until", "marginMode", "instType"], &[]).into_dict();
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

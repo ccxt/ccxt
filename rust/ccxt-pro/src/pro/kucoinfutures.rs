@@ -195,8 +195,8 @@ impl Kucoinfutures {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "fetch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("fetch_bids_asks", args.to_vec()); crate::Value::Null },
             "transfer" => { crate::exchange_stubs::enqueue_spawn("transfer", args.to_vec()); crate::Value::Null },
@@ -322,10 +322,10 @@ impl Kucoinfutures {
                 m.insert("amount".to_string(), amountToPrecision.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut toAccountString: Value = self.parse_transfer_type(toAccount.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut toAccountString: Option<String> = self.parse_transfer_type(toAccount.clone());
         let mut response: Option<crate::value::Dict> = None;
-        if (toAccountString.as_str() == Some("TRADE")) || (toAccountString.as_str() == Some("MAIN")) {
-            request.insert("recAccountType".into(), toAccountString);
+        if (toAccountString.as_deref() == Some("TRADE")) || (toAccountString.as_deref() == Some("MAIN")) {
+            request.insert("recAccountType".into(), toAccountString.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.parent.parent.futures_private_post_transfer_out(&[__ws_arg_1]).await.into_opt_dict();
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {

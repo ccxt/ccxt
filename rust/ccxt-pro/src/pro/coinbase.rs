@@ -217,8 +217,8 @@ impl Coinbase {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "create_ws_auth" => self.create_ws_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_heartbeats" => self.handle_heartbeats(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -588,8 +588,8 @@ impl Coinbase {
             let mut tokenExpiry: Option<i64> = (if let Some(__l) = tokenTimestamp { Some(__l + 90) } else { None });
             if (currentToken.is_none()) || (tokenExpiry.is_some() && tokenExpiry < Some(seconds)) {
                 // we should generate new token
-                let mut token: Value = self.parent.create_auth_token(Value::from(seconds), "", None, &[self.parent.is_eddsa_api_key()]);
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".into(), token); }
+                let mut token: Option<String> = self.parent.create_auth_token(Value::from(seconds), "", None, &[self.parent.is_eddsa_api_key()]).as_str().map(str::to_owned);
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".into(), token.map(Value::from).unwrap_or(Value::Null)); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsTokenTimestamp".into(), Value::from(seconds)); }
             }
             subscribe.insert("jwt".into(), self.safe_string_k(self.options.clone(), "wsToken", &[]));
@@ -1712,8 +1712,8 @@ impl Coinbase {
             }
             panic!("{}", crate::exchange_errors::exchange_error(errorMessageValue.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut method: Value = self.safe_value(&methods, channel.map(Value::from).unwrap_or(Value::Null), &[]);
-        if (method != Value::Null) {
+        let mut method: Option<String> = self.safe_value(&methods, channel.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }
 }

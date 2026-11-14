@@ -2704,7 +2704,7 @@ impl Bingx {
             request.insert("limit".into(), requestLimit.clone());
         }
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
-        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict() } else { paramsPaginate });
+        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]).into_dict() } else { paramsPaginate });
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }  else if ((market).inverse == Some(true)) && (since != Value::Null) {
@@ -3570,7 +3570,7 @@ impl Bingx {
             request.insert("limit".into(), limit.clone());
         }
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
-        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict() } else { paramsPaginate });
+        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]).into_dict() } else { paramsPaginate });
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
@@ -4942,7 +4942,7 @@ impl Bingx {
         }
         let mut paramsOrder: Value = Value::Null;
         if isSpot {
-            paramsOrder = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("cost".into()), Value::Str("quoteOrderQty".into())]), &[]);
+            paramsOrder = self.omit(&paramsPostOnly, &["cost", "quoteOrderQty"], &[]);
             if (cost.is_some()) {
                 request.insert("quoteOrderQty".into(), self.parse_to_numeric(Value::from(self.cost_to_precision(symbol.clone(), cost.clone().map(Value::from).unwrap_or(Value::Null)))));
             }  else {
@@ -5139,8 +5139,7 @@ impl Bingx {
                 request.insert("quantity".into(), amountReq); // precision not available for inverse contracts
             }
         }
-        let mut paramsRequest: Value = self.omit(paramsOrder, Value::from(vec![Value::Str("hedged".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingType".into()),
-            Value::Str("trailingTriggerPrice".into()), Value::Str("activationPrice".into()), Value::Str("clientOrderId".into()), Value::Str("cost".into()), Value::Str("quoteOrderQty".into()), Value::Str("triggerPriceType".into()), Value::Str("workingType".into())]), &[]);
+        let mut paramsRequest: Value = self.omit(paramsOrder, &["hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty", "triggerPriceType", "workingType"], &[]);
         return self.extend(Value::Map(request), &[paramsRequest]);
 
     Value::Null
@@ -5979,7 +5978,7 @@ impl Bingx {
                 m
             });
             let mut clientOrderId: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clientOrderId".into()), Value::Str("clientOrderID".into()), &[]).as_str().map(str::to_owned);
-            let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOrderID".into())]), &[]).into_dict();
+            let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, &["clientOrderId", "clientOrderID"], &[]).into_dict();
             let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), market.as_ref(), &[Value::Dict(paramsOmitted2)]).as_array().cloned().unwrap_or_default();
             let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6222,12 +6221,12 @@ impl Bingx {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut clientOrderIds: Value = self.safe_list_k(params.clone(), "clientOrderIds", &[]);
+        let mut clientOrderIds: Option<crate::value::List> = self.safe_list_k(params.clone(), "clientOrderIds", &[]).into_opt_list();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("clientOrderIds".into()), &[]).into_dict();
         let mut idsToParse: Value = ids;
-        let mut areClientOrderIds: bool = clientOrderIds != Value::Null;
+        let mut areClientOrderIds: bool = clientOrderIds.is_some();
         if areClientOrderIds {
-            idsToParse = clientOrderIds;
+            idsToParse = clientOrderIds.map_or(Value::Null, Value::Arr);
         }
         let mut parsedIds: Value = Value::from(vec![]);
         {
@@ -6370,7 +6369,7 @@ impl Bingx {
                 m
             });
             let mut clientOrderId: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clientOrderId".into()), Value::Str("clientOrderID".into()), &[]).as_str().map(str::to_owned);
-            let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOrderID".into())]), &[]).into_dict();
+            let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, &["clientOrderId", "clientOrderID"], &[]).into_dict();
             let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), market.as_ref(), &[Value::Dict(paramsOmitted2)]).as_array().cloned().unwrap_or_default();
             let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6886,7 +6885,7 @@ impl Bingx {
             if (until.is_some()) {
                 request.insert("endTime".into(), Value::from(until));
             }
-            let mut paramsSpot: crate::value::Dict = self.omit(&paramsStandard, Value::from(vec![Value::Str("until".into()), Value::Str("till".into())]), &[]).into_dict();
+            let mut paramsSpot: crate::value::Dict = self.omit(&paramsStandard, &["until", "till"], &[]).into_dict();
             if (limit != Value::Null) {
                 request.insert("pageSize".into(), limit.clone());
             }
@@ -7059,7 +7058,7 @@ impl Bingx {
         if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code, since.clone(), limit.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("fromAccount".into()), Value::Str("toAccount".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["fromAccount", "toAccount"], &[]).into_dict();
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
@@ -7218,7 +7217,7 @@ impl Bingx {
     m
 }));
         let mut network: Option<String> = self.safe_string_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("network".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(params, &["network"], &[]);
         let mut addressStructures: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), paramsOmitted).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (network.is_some()) {
             return self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), network.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -7688,16 +7687,16 @@ impl Bingx {
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) && (positionSide.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMargin() requires a positionSide parameter for Coin-M markets")));
         }
-        let mut amountString: Value = Value::Null;
+        let mut amountString: Option<String> = None;
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
-            amountString = Value::from(self.currency_to_precision(Value::from((market).settle.as_deref()), amount.clone(), &[]));
+            amountString = self.currency_to_precision(Value::from((market).settle.as_deref()), amount.clone(), &[]);
         }  else {
-            amountString = Value::from(self.amount_to_precision(Value::from((market).symbol.clone()), amount));
+            amountString = self.amount_to_precision(Value::from((market).symbol.clone()), amount);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), amountString.clone());
+                m.insert("amount".to_string(), Value::from(amountString.as_deref()));
                 m.insert("type".to_string(), Value::from(type_var));
             m
         });
@@ -7725,7 +7724,7 @@ impl Bingx {
 })]);
             responseData = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("amount".to_string(), amountString);
+                    m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), Value::from(type_var));
                 m
             }), &[__ws_arg_61]);
@@ -8029,7 +8028,7 @@ impl Bingx {
         //
         let mut networks: crate::value::Dict = fee.get("networks").cloned().unwrap_or_default().into_dict();
         let mut networkCodes: Vec<Value> = Value::Array(networks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-        let mut networksLength: f64 = ((networkCodes.len() as i64) as f64);
+        let mut networksLength: i64 = networkCodes.len() as i64;
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::from(&networks));
@@ -8051,11 +8050,11 @@ impl Bingx {
 }));
             m
         });
-        if (networksLength != 0.0) {
+        if (networksLength != 0) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_322: bool = true;
-                while { if !__for_first_322 { i += 1; } __for_first_322 = false; (i as f64) < networksLength } {
+                while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < networksLength } {
                 let mut networkCode: Value = self.safe_string(&networkCodes, Value::Int(i), &[Value::Str("".into())]);
                 let mut network: crate::value::Dict = self.safe_dict(&networks, networkCode.clone(), &[]).into_dict();
                 if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -8074,7 +8073,7 @@ impl Bingx {
 }));
     m
 })); }
-                if (networksLength == 1.0) {
+                if (networksLength == 1) {
                     result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(&network, "fee", &[]));
@@ -8198,7 +8197,7 @@ impl Bingx {
         if (tagWithdrawTag.is_some()) {
             request.insert("addressTag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWalletType, Value::from(vec![Value::Str("walletType".into()), Value::Str("network".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWalletType, &["walletType", "network"], &[]).into_dict();
         let __ws_arg_69 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.wallets_v1_private_post_capital_withdraw_apply(&[__ws_arg_69]).await.into_dict();
         let mut data: Option<crate::value::Dict> = self.safe_dict_k(&response, "data", &[]).into_opt_dict();
@@ -8212,21 +8211,21 @@ impl Bingx {
         let mut copied: Value = self.clone_value(params.clone());
         let mut sortedParams: indexmap::IndexMap<String, Value> = self.keysort(params, &[]).as_map().cloned().unwrap_or_default();
         let mut rawKeys: Vec<Value> = Value::Array(sortedParams.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
-        let mut rawKeysLength: f64 = ((rawKeys.len() as i64) as f64);
+        let mut rawKeysLength: i64 = rawKeys.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_325: bool = true;
-            while { if !__for_first_325 { i += 1; } __for_first_325 = false; (i as f64) < rawKeysLength } {
+            while { if !__for_first_325 { i += 1; } __for_first_325 = false; i < rawKeysLength } {
             let mut key: Value = rawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = sortedParams.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Str("[".into());
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_324: bool = true;
-                    while { if !__for_first_324 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_324 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
-                    let mut arrayElement: Value = value.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                    if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                    while { if !__for_first_324 { j += 1; } __for_first_324 = false; j < (value.len() as i64) } {
+                    let mut arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+                    if j > 0 {
                         arrStr = Value::Str(format!("{}{}", arrStr, ",").into());
                     }
                     arrStr = Value::Str(format!("{}{}", arrStr, to_string_val(&arrayElement)).into());
@@ -8702,7 +8701,7 @@ impl Bingx {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " editOrder() is not supported for inverse swap markets")));
         }
         let mut cancelClientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("cancelClientOrderId".into()), Value::Str("cancelClientOrderID".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("cancelClientOrderId".into()), Value::Str("cancelClientOrderID".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["cancelClientOrderId", "cancelClientOrderID"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::from(&paramsOmitted)]).as_map().cloned().unwrap_or_default();
         if (cancelClientOrderId.is_some()) {
             let mut cancelClientOrderIdRequest: String = "cancelClientOrderId".to_string();
@@ -8925,31 +8924,31 @@ impl Bingx {
         let mut params: Value = params.into();
         let mut sortedParams: Value = self.keysort(params, &[]);
         let mut rawKeys: Vec<Value> = Value::Array(sortedParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut rawKeysLength: f64 = ((rawKeys.len() as i64) as f64);
+        let mut rawKeysLength: i64 = rawKeys.len() as i64;
         let mut adjustedValue: Value = Value::Null;
         let mut result: Value = Value::Null;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_328: bool = true;
-            while { if !__for_first_328 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_328 = false; i.as_f64().unwrap_or(f64::NAN) < rawKeysLength } {
-            let mut key: Value = rawKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_328 { i += 1; } __for_first_328 = false; i < rawKeysLength } {
+            let mut key: Value = rawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = get_value(&sortedParams, &key);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Null;
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_327: bool = true;
-                    while { if !__for_first_327 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_327 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
-                    let mut arrayElement: Value = value.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_327 { j += 1; } __for_first_327 = false; j < (value.len() as i64) } {
+                    let mut arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut isString: bool = matches!(&arrayElement, Value::Str(_));
                     if isString {
-                        if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                        if j > 0 {
                             arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ",", "\"").into()), Value::Str(format!("{}", arrayElement).into())).into()), "\"").into())).into());
                         }  else {
                             arrStr = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("\"".into()), Value::Str(format!("{}", arrayElement).into())).into()), "\"").into());
                         }
                     }  else {
-                        if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                        if j > 0 {
                             arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(",".into()), to_string_val(&arrayElement)).into())).into());
                         }  else {
                             arrStr = to_string_val(&arrayElement);
@@ -8960,7 +8959,7 @@ impl Bingx {
                 adjustedValue = Value::Str(format!("{}{}", Value::Str(format!("{}{}", "[", arrStr).into()), "]").into());
                 value = adjustedValue.clone();
             }
-            if (i.as_f64() == Some(0.0)) {
+            if (i == 0) {
                 result = Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, "=").into()), value).into());
             }  else {
                 result = Value::Str(format!("{}{}", result, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", key).into()), "=").into()), value).into())).into());

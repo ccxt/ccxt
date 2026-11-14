@@ -221,8 +221,8 @@ impl Modetrade {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_auth" => { self.handle_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1248,7 +1248,7 @@ impl Modetrade {
         if trigger {
             topic = "algoexecutionreport".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut messageHash: String = topic.clone();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
@@ -1497,11 +1497,11 @@ impl Modetrade {
         if dataIsArray {
             // algoexecutionreport
             let mut dataList: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-            let mut dataListLength: f64 = ((dataList.len() as i64) as f64);
+            let mut dataListLength: i64 = dataList.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_495: bool = true;
-                while { if !__for_first_495 { i += 1; } __for_first_495 = false; (i as f64) < dataListLength } {
+                while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < dataListLength } {
                 let mut order: crate::value::Dict = dataList.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut tradeIdStr: Option<String> = self.safe_string_k_opt(data.clone(), "tradeId", &[]);
                 let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
@@ -1543,9 +1543,9 @@ impl Modetrade {
                 if (fee != Value::Null) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fee".into(), fee);
                 }
-                let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[]);
-                if (fees != Value::Null) {
-                    std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees);
+                let mut fees: Option<crate::value::List> = self.safe_list_k(order.clone(), "fees", &[]).into_opt_list();
+                if (fees.is_some()) {
+                    std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees.map_or(Value::Null, Value::Arr));
                 }
                 std::sync::Arc::make_mut(&mut parsed).insert("trades".into(), self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]));
                 std::sync::Arc::make_mut(&mut parsed).insert("timestamp".into(), self.safe_integer_k(order.clone(), "timestamp", &[]));

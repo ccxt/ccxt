@@ -1879,7 +1879,7 @@ impl Coinbaseexchange {
         if (until.is_some()) {
             request.insert("end_date".into(), self.iso8601(Value::from(until)));
         }
-        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict() } else { paramsPaginate });
+        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]).into_dict() } else { paramsPaginate });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_fills(&[__ws_arg_9]).await.into_list();
         return self.parse_trades(&response, Some(&market), &[since, limit]);
@@ -2044,7 +2044,7 @@ impl Coinbaseexchange {
             request.insert("granularity".into(), timeframe.clone());
         }
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["until"], &[]).into_dict();
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
         let mut cappedLimit: Option<i64> = self.parse_to_int((if (limit == Value::Null) { Value::Int(300) } else { crate::runtime::Math::min(&limit, &Value::Int(300)) }));
         let mut limitResolved: Option<i64> = (if (since != Value::Null) { cappedLimit } else { limit.as_i64() });
@@ -2231,7 +2231,7 @@ impl Coinbaseexchange {
             response = self.private_get_orders_id(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
             request.insert("client_oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]).into_dict();
+            let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "client_oid"], &[]).into_dict();
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await.into_opt_dict();
         }
@@ -2374,7 +2374,7 @@ impl Coinbaseexchange {
         if (until.is_some()) {
             request.insert("end_date".into(), self.iso8601(Value::from(until)));
         }
-        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict() } else { paramsPaginate });
+        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]).into_dict() } else { paramsPaginate });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_orders(&[__ws_arg_16]).await.into_list();
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
@@ -2473,12 +2473,12 @@ impl Coinbaseexchange {
         if postOnly {
             request.insert("post_only".into(), Value::Bool(true));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into()), Value::Str("clientOrderId".into()), Value::Str("client_oid".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("triggerPrice".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(params, &["timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"], &[]);
         let mut costParam: Option<f64> = self.safe_number2(paramsOmitted.clone(), Value::Str("cost".into()), Value::Str("funds".into()), &[]).as_f64();
         let mut omitCost: bool = (type_var.as_str() == Some("market")) && (costParam.is_some());
         let mut paramsCost: Value = paramsOmitted.clone();
         if omitCost {
-            paramsCost = self.omit(paramsOmitted, Value::from(vec![Value::Str("cost".into()), Value::Str("funds".into())]), &[]);
+            paramsCost = self.omit(paramsOmitted, &["cost", "funds"], &[]);
         }
         if (type_var.as_str() == Some("limit")) {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
@@ -2534,7 +2534,7 @@ impl Coinbaseexchange {
         }  else {
             request.insert("client_oid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_oid".into())]), &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["clientOrderId", "client_oid"], &[]) } else { params }).into_dict();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2822,7 +2822,7 @@ impl Coinbaseexchange {
         if (until.is_some()) {
             request.insert("end_date".into(), self.iso8601(Value::from(until)));
         }
-        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), &["until"], &[]) } else { params }).into_dict();
         let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::List = self.private_get_accounts_id_ledger(&[__ws_arg_25]).await.into_list();
         let mut entries: Value = self.to_array(&response);

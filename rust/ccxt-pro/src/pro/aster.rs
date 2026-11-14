@@ -232,8 +232,8 @@ impl Aster {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "get_market_from_order" => self.get_market_from_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -1839,11 +1839,11 @@ impl Aster {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
+        let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         let methodNameparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("watchOHLCVForSymbols".into())]).as_array().cloned().unwrap_or_default();
         let mut methodName: Option<String> = methodNameparamsCallerMethodNameVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsCallerMethodName: crate::value::Dict = methodNameparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (symbolsLength == 0.0) {
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName.map(Value::from).unwrap_or(Value::Null)).into()), "() requires a non-empty array of symbols")));
         }
         let mut symbols: crate::value::List = self.get_list_from_object_values(symbolsAndTimeframes.clone(), Value::Int(0)).into_list();
@@ -1865,7 +1865,7 @@ impl Aster {
         {
                         let mut i: i64 = 0;
             let mut __for_first_28: bool = true;
-            while { if !__for_first_28 { i += 1; } __for_first_28 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < symbolsLength } {
             let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut symbolString: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (symbolString.is_none()) {
@@ -1918,11 +1918,11 @@ impl Aster {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
+        let mut symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         let methodNameparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("unWatchOHLCVForSymbols".into())]).as_array().cloned().unwrap_or_default();
         let mut methodName: Option<String> = methodNameparamsCallerMethodNameVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsCallerMethodName: crate::value::Dict = methodNameparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (symbolsLength == 0.0) {
+        if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName.map(Value::from).unwrap_or(Value::Null)).into()), "() requires a non-empty array of symbols")));
         }
         let mut symbols: crate::value::List = self.get_list_from_object_values(symbolsAndTimeframes.clone(), Value::Int(0)).into_list();
@@ -1944,7 +1944,7 @@ impl Aster {
         {
                         let mut i: i64 = 0;
             let mut __for_first_29: bool = true;
-            while { if !__for_first_29 { i += 1; } __for_first_29 = false; (i as f64) < symbolsLength } {
+            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < symbolsLength } {
             let mut data: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut symbolString: Option<String> = self.safe_string(&data, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (symbolString.is_none()) {

@@ -2555,7 +2555,7 @@ impl Modetrade {
             request.insert("start_t".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64(); // unified in milliseconds
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["until"], &[]).into_dict();
         if (until.is_some()) {
             request.insert("end_t".into(), Value::from(until));
         }
@@ -3134,8 +3134,7 @@ impl Modetrade {
             outterOrder.insert("child_orders".into(), childOrders);
             request.insert("child_orders".into(), Value::from(vec![Value::Map(outterOrder)]));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()),
-            Value::Str("triggerPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
@@ -3359,10 +3358,10 @@ impl Modetrade {
         if (amount != Value::Null) {
             request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol, amount)));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("trailingTriggerPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isConditional {
-            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.v1_private_put_algo_order(&[__ws_arg_9]).await.into_opt_dict();
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
@@ -3370,9 +3369,9 @@ impl Modetrade {
                 request.insert("side".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             }
             let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
-            let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOmitted.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
+            let mut timeInForce: Option<String> = self.safe_string_lower_k(&paramsOmitted, "timeInForce", &[]).as_str().map(str::to_owned);
             let mut isMarket: bool = orderType == "MARKET";
-            let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[paramsOmitted.clone()]);
+            let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[Value::from(&paramsOmitted)]);
             if postOnly {
                 request.insert("order_type".into(), Value::Str("POST_ONLY".into()));
             }  else if (timeInForce.as_deref() == Some("fok")) {
@@ -3382,8 +3381,8 @@ impl Modetrade {
             }  else {
                 request.insert("order_type".into(), Value::from(orderType));
             }
-            let mut clientOrderId: Option<String> = self.safe_string_n(paramsOmitted.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-            let mut paramsOrder: crate::value::Dict = self.omit(paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
+            let mut clientOrderId: Option<String> = self.safe_string_n(&paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
+            let mut paramsOrder: crate::value::Dict = self.omit(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"], &[]).into_dict();
             if (clientOrderId.is_some()) {
                 request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
@@ -3439,7 +3438,7 @@ impl Modetrade {
     m
 }));
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         if (!trigger) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
@@ -3458,7 +3457,7 @@ impl Modetrade {
         let mut clientOrderIdUnified: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut clientOrderIdExchangeSpecific: Option<String> = self.safe_string_k(&paramsOmitted, "client_order_id", &[clientOrderIdUnified.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut isByClientOrder: bool = clientOrderIdExchangeSpecific.is_some();
-        let mut paramsClientOrder: crate::value::Dict = self.omit(&paramsOmitted, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
+        let mut paramsClientOrder: crate::value::Dict = self.omit(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if trigger {
             if isByClientOrder {
@@ -3548,7 +3547,7 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut clientOrderIds: Option<crate::value::List> = self.safe_list_n(params.clone(), Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]).into_opt_list();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clOrdIDs", "clientOrderIds", "client_order_ids"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3598,7 +3597,7 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3664,7 +3663,7 @@ impl Modetrade {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"], &[]).into_dict();
         let mut response: Value = Value::Null;
         if trigger {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
@@ -3766,7 +3765,7 @@ impl Modetrade {
             m
         });
         let mut market: Option<crate::types::Market> = None;
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["stop", "trigger"], &[]).into_dict();
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
@@ -5112,7 +5111,7 @@ impl Modetrade {
             if isPostOrPut && isOrder {
                 paramsSigned = self.keysort(paramsSorted, &[]);
             }
-            let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
+            let mut ts: String = format!("{}", self.nonce());
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
             let mut apiKey: Value = self.apiKey.clone();
             if !self.apiKey.as_str().unwrap_or("").contains("ed25519:") {
@@ -5122,7 +5121,7 @@ impl Modetrade {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderly-account-id".to_string(), self.accountId.clone());
                     m.insert("orderly-key".to_string(), apiKey);
-                    m.insert("orderly-timestamp".to_string(), ts.clone());
+                    m.insert("orderly-timestamp".to_string(), Value::from(ts.as_str()));
                 m
             });
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), pathWithParams).into());

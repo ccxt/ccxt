@@ -221,8 +221,8 @@ impl Woofipro {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &crate::Value, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name { crate::Value::Str(s) => s.as_ref(), _ => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
+        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
             "handle_auth" => { self.handle_auth(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1208,7 +1208,7 @@ impl Woofipro {
         if trigger {
             topic = "algoexecutionreport".to_string();
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut messageHash: String = topic.clone();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
@@ -1501,9 +1501,9 @@ impl Woofipro {
                 if (fee != Value::Null) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fee".into(), fee);
                 }
-                let mut fees: Value = self.safe_list_k(&order, "fees", &[]);
-                if (fees != Value::Null) {
-                    std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees);
+                let mut fees: Option<crate::value::List> = self.safe_list_k(&order, "fees", &[]).into_opt_list();
+                if (fees.is_some()) {
+                    std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees.map_or(Value::Null, Value::Arr));
                 }
                 std::sync::Arc::make_mut(&mut parsed).insert("trades".into(), self.safe_list_k(&order, "trades", &[Value::from(vec![])]));
                 std::sync::Arc::make_mut(&mut parsed).insert("timestamp".into(), self.safe_integer_k(&order, "timestamp", &[]));
@@ -1989,15 +1989,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut method: Value = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
-        if (method != Value::Null) {
+        let mut method: Option<String> = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
         }
         let mut topic: Option<String> = match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
         if (topic.is_some()) {
-            method = self.safe_value(&methods, topic.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if (method != Value::Null) {
+            method = self.safe_value(&methods, topic.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
             }
@@ -2008,16 +2008,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (name.is_none()) {
                     return;
                 }
-                method = self.safe_value(&methods, name.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                if (method != Value::Null) {
+                method = self.safe_value(&methods, name.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                if (method.is_some()) {
                     self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                     return;
                 }
                 let mut splitName: crate::value::List = Value::Array(if let Some(__s) = name.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
                 let mut splitNameLength: i64 = splitTopic.len() as i64;
                 if (splitNameLength == 2) {
-                    method = self.safe_value(&methods, self.safe_string(&splitName, Value::Int(0), &[]), &[]);
-                    if (method != Value::Null) {
+                    method = self.safe_value(&methods, self.safe_string(&splitName, Value::Int(0), &[]), &[]).as_str().map(str::to_owned);
+                    if (method.is_some()) {
                         self.dispatch_ws_handler(&method, &[client, message.clone()]);
                     }
                 }

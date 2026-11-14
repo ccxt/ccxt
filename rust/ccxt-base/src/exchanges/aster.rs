@@ -3538,7 +3538,7 @@ impl Aster {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOid".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "clientOid"], &[]).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("origClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -3591,7 +3591,7 @@ impl Aster {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("clientOid".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "clientOid"], &[]).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("origClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -3807,14 +3807,14 @@ impl Aster {
         self.load_markets_and_sign_in().await;
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut orderSymbols: Vec<Value> = Vec::new();
-        let mut ordersLength: f64 = ((orders.len() as i64) as f64);
-        if ordersLength > ((5i64) as f64) {
+        let mut ordersLength: i64 = orders.len() as i64;
+        if ordersLength > 5 {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrders() order list max 5 orders")));
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_231: bool = true;
-            while { if !__for_first_231 { i += 1; } __for_first_231 = false; (i as f64) < ordersLength } {
+            while { if !__for_first_231 { i += 1; } __for_first_231 = false; i < ordersLength } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut currentMarket: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4120,7 +4120,7 @@ impl Aster {
         }  else {
             request.insert("orderId".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["origClientOrderId", "clientOrderId"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -4173,9 +4173,9 @@ impl Aster {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut clientOrderIdList: Value = self.safe_list_k(params.clone(), "origClientOrderIdList", &[]);
-        if (clientOrderIdList != Value::Null) {
-            request.insert("origClientOrderIdList".into(), clientOrderIdList);
+        let mut clientOrderIdList: Option<crate::value::List> = self.safe_list_k(params.clone(), "origClientOrderIdList", &[]).into_opt_list();
+        if (clientOrderIdList.is_some()) {
+            request.insert("origClientOrderIdList".into(), clientOrderIdList.map_or(Value::Null, Value::Arr));
         }  else {
             // the api takes LONG[] order ids
             let mut orderIdList: Vec<Value> = vec![];
@@ -5581,7 +5581,7 @@ impl Aster {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw require fee parameter")));
         }
         request.insert("fee".into(), fee.map(Value::from).unwrap_or(Value::Null));
-        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("fee".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, &["chainId", "network", "fee"], &[]).into_dict();
         request.insert("amount".into(), Value::from(self.currency_to_precision(code, amount, &[Value::from(network.as_deref())])));
         { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
         let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -5977,13 +5977,13 @@ impl Aster {
         //    ]
         //
         let mut approvedBuilders: crate::value::List = self.to_array(&result).into_list();
-        let mut length: f64 = ((approvedBuilders.len() as i64) as f64);
+        let mut length: i64 = approvedBuilders.len() as i64;
         let mut found: bool = false;
         let mut builderAddress: Option<String> = self.safe_string_k(self.options.clone(), "builder", &[]).as_str().map(str::to_owned);
         {
                         let mut i: i64 = 0;
             let mut __for_first_242: bool = true;
-            while { if !__for_first_242 { i += 1; } __for_first_242 = false; (i as f64) < length } {
+            while { if !__for_first_242 { i += 1; } __for_first_242 = false; i < length } {
             let mut builderInfo: crate::value::Dict = self.safe_dict(&approvedBuilders, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
