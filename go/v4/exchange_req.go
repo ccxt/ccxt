@@ -32,6 +32,30 @@ func mockBodyForUrl(responsesByUrl any, url any) any {
 			return byUrl[fragment]
 		}
 	}
+	// Go urlencodes a map[string]any in random key order, while the fixtures spell
+	// fragments in TS insertion order: match a query fragment as a set of k=v pairs
+	queryPairs := map[string]bool{}
+	if q := strings.IndexByte(urlStr, '?'); q >= 0 {
+		for _, pair := range strings.Split(urlStr[q+1:], "&") {
+			queryPairs[pair] = true
+		}
+	}
+	for _, fragment := range fragments {
+		pairs := strings.Split(fragment, "&")
+		if len(pairs) < 2 {
+			continue
+		}
+		matched := true
+		for _, pair := range pairs {
+			if !queryPairs[pair] {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			return byUrl[fragment]
+		}
+	}
 	if len(fragments) > 0 {
 		return byUrl[fragments[0]]
 	}
