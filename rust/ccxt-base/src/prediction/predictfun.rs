@@ -1920,10 +1920,10 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1469: bool = true;
             while { if !__for_first_1469 { i += 1; } __for_first_1469 = false; i < rawOutcomesLength } {
-            let mut candidate: Value = rawOutcomes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut candidateIndexSet: Option<i64> = self.safe_integer_k(candidate.clone(), "indexSet", &[]).as_i64();
+            let mut candidate: Option<crate::value::Dict> = rawOutcomes.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut candidateIndexSet: Option<i64> = self.safe_integer_k(&candidate, "indexSet", &[]).as_i64();
             if (candidateIndexSet == indexSet) {
-                rawOutcome = candidate;
+                rawOutcome = candidate.map_or(Value::Null, Value::Dict);
                 outcomeFound = true;
                 break;
             }
@@ -2217,14 +2217,14 @@ impl Predictfun {
                                         let mut j: i64 = 0;
                     let mut __for_first_1472: bool = true;
                     while { if !__for_first_1472 { j += 1; } __for_first_1472 = false; j < makersLength } {
-                    let mut maker: Value = makers.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut makerOutcome: crate::value::Dict = self.safe_dict_k(maker.clone(), "outcome", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+                    let mut maker: Option<crate::value::Dict> = makers.get(j as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+                    let mut makerOutcome: crate::value::Dict = self.safe_dict_k(&maker, "outcome", &[Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                        m
+                    })]).into_dict();
                     let mut makerIndexSet: Option<i64> = self.safe_integer_k(&makerOutcome, "indexSet", &[]).as_i64();
                     if (makerIndexSet == outcomeIndexSet) {
-                        partyToParse = maker;
+                        partyToParse = maker.map_or(Value::Null, Value::Dict);
                         partyToParse = self.extend(partyToParse, &[Value::Map(makerParty.clone())]);
                         flattenTrades.push(self.extend(&entry, &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
@@ -3028,7 +3028,7 @@ impl Predictfun {
         let mut unrealizedPnl: Option<String> = pnl.clone();
         if resolved {
             realizedPnl = pnl.take();
-            unrealizedPnl = None.clone();
+            unrealizedPnl = None;
         }
         return self.safe_prediction_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4719,7 +4719,7 @@ impl Predictfun {
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheByOutcomeById::new(limit));
+            self.orders = Some(ArrayCacheByOutcomeById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         stored.append(order);
@@ -4744,7 +4744,7 @@ impl Predictfun {
         let mut trade: crate::value::Dict = self.parse_wallet_event_trade(event, order).into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheByOutcomeById::new(limit));
+            self.myTrades = Some(ArrayCacheByOutcomeById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         stored.append(Value::from(&trade));

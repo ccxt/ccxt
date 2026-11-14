@@ -1651,9 +1651,7 @@ impl Ndax {
         let mut now: i64 = self.milliseconds();
         if (since == Value::Null) {
             if (limit != Value::Null) {
-                request.insert("FromDate".into(), self.ymdhms((match (&(Value::from(now)), &((match (&((match (&(Value::from(duration)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]));
+                request.insert("FromDate".into(), self.ymdhms(Value::from((if let Some(__r) = ((if let Some(__l) = ((if let Some(__r) = limit.as_i64() { Some(duration * __r) } else { None })) { Some(__l * 1000) } else { None })) { Some(now - __r) } else { None })), &[]));
                 request.insert("ToDate".into(), self.ymdhms(Value::from(now), &[]));
             }
         }  else {
@@ -1661,8 +1659,7 @@ impl Ndax {
             if (limit == Value::Null) {
                 request.insert("ToDate".into(), self.ymdhms(Value::from(now), &[]));
             }  else {
-                request.insert("ToDate".into(), self.ymdhms(self.sum(&[since.clone(), (match (&((match (&(Value::from(duration)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]), &[]));
+                request.insert("ToDate".into(), self.ymdhms(Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = ((if let Some(__r) = limit.as_i64() { Some(duration * __r) } else { None })) { Some(__l * 1000) } else { None }))) { Some((__m0 + __m1)) } else { None })), &[]));
             }
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);

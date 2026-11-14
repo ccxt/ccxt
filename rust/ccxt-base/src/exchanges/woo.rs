@@ -5694,7 +5694,7 @@ impl Woo {
         let mut marginMode: Option<String> = self.safe_string_lower_k(leverage.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut spotLeverage: Option<i64> = self.safe_integer_k(leverage.clone(), "leverage", &[]).as_i64();
         if (spotLeverage == Some(0)) {
-            spotLeverage = None.clone();
+            spotLeverage = None;
         }
         let mut longLeverage: Option<i64> = spotLeverage;
         let mut shortLeverage: Option<i64> = spotLeverage;

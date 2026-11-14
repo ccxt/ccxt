@@ -465,7 +465,7 @@ impl Bitopro {
         let mut tradesCache: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesCache.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            tradesCache = Some(ArrayCache::new(limit));
+            tradesCache = Some(ArrayCache::new(Value::from(limit)));
         }
         {
                         let mut i: i64 = 0;
@@ -570,7 +570,7 @@ impl Bitopro {
         let mut messageHash: Option<String> = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut parsed: crate::value::Dict = self.parse_ws_trade(&data, None).into_dict();
@@ -608,11 +608,11 @@ impl Bitopro {
         let mut quoteId: Option<String> = self.safe_string_k(trade.clone(), "quote", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into())));
+            symbol = Some(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into())));
         }
-        let mut marketResolved: crate::types::Market = self.safe_market(symbol.clone(), market, &[]);
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::from(symbol.as_deref()), market, &[]);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_lower_k(trade.clone(), "orderType", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -652,7 +652,7 @@ impl Bitopro {
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -847,13 +847,10 @@ impl Bitopro {
         //     }
         //
         let mut event: Option<String> = (match __pro_message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.safe_string_k(message, "datetime", &[]).as_str().map(str::to_owned);
-        let mut currencies: Vec<Value> = object_keys(&data).as_array().cloned().unwrap_or_default();
+        let mut currencies: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         // merge updates into the existing balance object instead of building a
         // fresh one: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while
@@ -866,7 +863,7 @@ impl Bitopro {
                 m
             });
         }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.map(Value::from).unwrap_or(Value::Null)); }
         {
@@ -874,7 +871,7 @@ impl Bitopro {
             let mut __for_first_132: bool = true;
             while { if !__for_first_132 { i += 1; } __for_first_132 = false; i < (currencies.len() as i64) } {
             let mut currency: Option<String> = self.safe_string(&currencies, Value::Int(i), &[]).as_str().map(str::to_owned);
-            let mut balance: crate::value::Dict = self.safe_dict(data.clone(), currency.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut balance: crate::value::Dict = self.safe_dict(&data, currency.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();

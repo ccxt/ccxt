@@ -1155,7 +1155,7 @@ impl Opinion {
         let mut last: Option<f64> = self.safe_number_k(&priceResult, "price", &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(&priceResult, "timestamp", &[]).as_i64();
         if (timestamp == Some(0)) {
-            timestamp = None.clone(); // the venue reports timestamp 0 for outcomes that have not traded yet
+            timestamp = None; // the venue reports timestamp 0 for outcomes that have not traded yet
         }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3173,7 +3173,7 @@ if _try_result.is_err() {
 }), &[outcomeObj]);
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheByOutcomeById::new(limit));
+            self.orders = Some(ArrayCacheByOutcomeById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         stored.append(order);
@@ -3277,7 +3277,7 @@ if _try_result.is_err() {
 }), &[outcomeObj]);
         if (self.myTrades.is_none()) {
             let mut myTradesLimit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheByOutcomeById::new(myTradesLimit));
+            self.myTrades = Some(ArrayCacheByOutcomeById::new(Value::from(myTradesLimit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         stored.append(trade);
@@ -3327,7 +3327,7 @@ if _try_result.is_err() {
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "opinion")]);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
         let mut existingHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3368,8 +3368,8 @@ if _try_result.is_err() {
         }
         let mut bodyValue: Option<String> = None;
         if (method.as_str() == Some("GET")) {
-            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else {
             bodyValue = json_stringify(&query).as_str().map(str::to_owned);

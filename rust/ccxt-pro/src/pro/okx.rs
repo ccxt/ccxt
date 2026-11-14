@@ -1528,7 +1528,7 @@ impl Okx {
             let mut symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.liquidations = Some(ArrayCache::new(limit));
+                self.liquidations = Some(ArrayCache::new(Value::from(limit)));
             }
             let mut cache: Option<crate::pro::cache::Cache> = self.liquidations.clone();
             cache.append(Value::from(&liquidation));
@@ -1664,7 +1664,7 @@ impl Okx {
             let mut symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.liquidations = Some(ArrayCache::new(limit));
+                self.liquidations = Some(ArrayCache::new(Value::from(limit)));
             }
             let mut cache: Option<crate::pro::cache::Cache> = self.liquidations.clone();
             cache.append(Value::from(&liquidation));
@@ -2023,7 +2023,7 @@ impl Okx {
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                stored = Some(ArrayCacheByTimestamp::new(limit));
+                stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
                 if (symbol != Value::Null) && (timeframe != Value::Null) {
                     CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
                 }
@@ -3183,7 +3183,7 @@ impl Okx {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             if (self.orders.is_none()) {
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
-                self.triggerOrders = Value::from(ArrayCacheBySymbolById::new(limit));
+                self.triggerOrders = Value::from(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
             let mut stored: Value = (if (channel.as_deref() == Some("orders-algo")) { self.triggerOrders.clone() } else { Value::from(&self.orders) });
             let mut marketIds: Vec<Value> = Vec::new();
@@ -3292,7 +3292,7 @@ impl Okx {
         }
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut symbols: indexmap::IndexMap<String, Value> = ({

@@ -1838,7 +1838,7 @@ impl Upbit {
         let mut response: Option<crate::value::List> = None;
         if (since != Value::Null) {
             // convert `since` to `to` value
-            request.insert("to".into(), self.iso8601(self.sum(&[since.clone(), Value::Int((((timeframePeriod * limitResolved)) * 1000))])));
+            request.insert("to".into(), self.iso8601(Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((((timeframePeriod * limitResolved)) * 1000)))) } else { None }))));
         }
         if (timeframeValue.as_deref() == Some("minutes")) {
             let mut numMinutes: f64 = f64::round((((timeframePeriod as f64) / 60.0)));
@@ -2613,7 +2613,7 @@ impl Upbit {
         if (type_var.as_deref() == Some("price")) {
             type_var = Some("market".to_string());
             cost = price.clone();
-            price = None.clone();
+            price = None;
         }
         let mut average: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;

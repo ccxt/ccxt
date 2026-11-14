@@ -2004,13 +2004,13 @@ impl Bitfinex {
 })]).into_dict();
         let mut fromId: Option<String> = self.safe_string(&accountsByType, fromAccount.clone(), &[]).as_str().map(str::to_owned);
         if (fromId.is_none()) {
-            let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " transfer() fromAccount must be one of ").into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+            let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " transfer() fromAccount must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut toId: Option<String> = self.safe_string(&accountsByType, toAccount.clone(), &[]).as_str().map(str::to_owned);
         if (toId.is_none()) {
-            let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " transfer() toAccount must be one of ").into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+            let mut keys: crate::value::List = Value::Array(accountsByType.keys().cloned().map(Value::from).collect()).into_list();
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " transfer() toAccount must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut fromCurrencyId: Option<String> = self.convert_derivatives_id(crate::Value::from(Some(&currency)), fromAccount.as_str().unwrap_or_default()).as_str().map(str::to_owned);
@@ -2757,7 +2757,7 @@ impl Bitfinex {
         let mut price: Option<String> = self.safe_string(&orderList, Value::Int(16), &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<String> = None;
         if (orderType.as_deref() == Some("EXCHANGE STOP")) || (orderType.as_deref() == Some("EXCHANGE STOP LIMIT")) {
-            price = None.clone();
+            price = None;
             triggerPrice = self.safe_string(&orderList, Value::Int(16), &[]).as_str().map(str::to_owned);
             if (orderType.as_deref() == Some("EXCHANGE STOP LIMIT")) {
                 price = self.safe_string(&orderList, Value::Int(19), &[]).as_str().map(str::to_owned);
@@ -4526,7 +4526,7 @@ impl Bitfinex {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut request: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         if (apiName.as_deref() == Some("v1")) {
             request = format!("{}{}", "v1", request);
         }  else {
@@ -4540,8 +4540,8 @@ impl Bitfinex {
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("public")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         if (apiName.as_deref() == Some("private")) {

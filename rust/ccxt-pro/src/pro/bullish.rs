@@ -504,7 +504,7 @@ impl Bullish {
         let mut trades: crate::value::List = self.parse_trades(&rawTrades, Some(&market), &[]).into_list();
         if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut tradesArrayCache: crate::pro::cache::Cache = ArrayCache::new(limit);
+            let mut tradesArrayCache: crate::pro::cache::Cache = ArrayCache::new(Value::from(limit));
             CacheStore::put(&mut self.trades, &symbol, tradesArrayCache);
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
@@ -854,7 +854,7 @@ impl Bullish {
         if numRawOrders > 0 {
             if (self.orders.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.orders = Some(ArrayCacheBySymbolById::new(limit));
+                self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
             let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
             let mut symbols: indexmap::IndexMap<String, Value> = ({
@@ -995,7 +995,7 @@ impl Bullish {
         if numRawTrades > 0 {
             if (self.myTrades.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+                self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
             let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
             let mut symbols: indexmap::IndexMap<String, Value> = ({

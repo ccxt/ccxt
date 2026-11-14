@@ -5319,13 +5319,13 @@ impl Okx {
         let mut timezone: String = self.safe_string_k(&options, "timezone", &[Value::Str("UTC".into())]).as_str().unwrap_or("UTC").to_string();
         let mut limitIsUndefined: bool = limit == Value::Null;
         // default 100, max 300, only 100 if 'mark' or 'index'
-        let mut requestMaxLimit: Value = Value::Int(300);
+        let mut requestMaxLimit: i64 = 300;
         if isMarkOrIndex {
-            requestMaxLimit = Value::Int(100);
+            requestMaxLimit = 100;
         }
-        let mut limitResolved: Value = Value::Int(100);
+        let mut limitResolved: Option<i64> = Some(100);
         if (limit != Value::Null) {
-            limitResolved = crate::runtime::Math::min(&limit, &requestMaxLimit);
+            limitResolved = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, requestMaxLimit)) } else { None });
         }
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
         let mut bar: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
@@ -5336,7 +5336,7 @@ impl Okx {
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("bar".to_string(), bar);
-                m.insert("limit".to_string(), limitResolved.clone());
+                m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
         let mut defaultType: Option<String> = Some("Candles".to_string());
@@ -5349,11 +5349,9 @@ impl Okx {
                 // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                 defaultType = Some("HistoryCandles".to_string());
             }
-            let mut startTime: Value = (if (since.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64)) { ((match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { Value::Int(0) });
-            request.insert("before".into(), startTime);
-            request.insert("after".into(), self.sum(&[since.clone(), (match (&(Value::from(durationInMilliseconds)), &(limitResolved)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            let mut startTime: Option<i64> = (if (since.as_f64().unwrap_or(f64::NAN) > ((1i64) as f64)) { (if let Some(__l) = since.as_i64() { Some(__l - 1) } else { None }) } else { Some(0) });
+            request.insert("before".into(), Value::from(startTime));
+            request.insert("after".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__r) = limitResolved { Some(durationInMilliseconds * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })));
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPrice, "until", &[]).as_i64();
         if (until.is_some()) {
@@ -5388,8 +5386,8 @@ impl Okx {
             }
         }  else {
             if isHistoryCandles {
-                if limitIsUndefined && (limitResolved.as_f64() == Some(100.0)) {
-                    limitResolved = Value::Int(300);
+                if limitIsUndefined && (limitResolved == Some(100)) {
+                    limitResolved = Some(300);
                     request.insert("limit".into(), Value::Int(300)); // reassign to 300, but this whole logic needs to be simplified...
                 }
                 let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&paramsType]);
@@ -5411,7 +5409,7 @@ impl Okx {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -7252,7 +7250,7 @@ impl Okx {
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clOrdId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) && (((clientOrderId.as_deref().unwrap_or_default().chars().count() as i64)) < 1) {
-            clientOrderId = None.clone(); // fix empty clientOrderId string
+            clientOrderId = None; // fix empty clientOrderId string
         }
         let mut stopLossPrice: Option<f64> = self.safe_number2(order.clone(), Value::Str("slTriggerPx".into()), Value::Str("slOrdPx".into()), &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number2(order.clone(), Value::Str("tpTriggerPx".into()), Value::Str("tpOrdPx".into()), &[]).as_f64();
@@ -7513,12 +7511,12 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut maxLimit: Value = Value::Int(100);
+        let mut maxLimit: i64 = 100;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchOpenOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7530,7 +7528,7 @@ impl Okx {
             request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         if (limit != Value::Null) {
-            request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit)); // default 100, max 100
+            request.insert("limit".into(), Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None }))); // default 100, max 100
         }
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchOpenOrders", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7902,12 +7900,12 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut maxLimit: Value = Value::Int(100);
+        let mut maxLimit: i64 = 100;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7923,7 +7921,7 @@ impl Okx {
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsPaginate)]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         request.insert("instType".into(), self.convert_to_instrument_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         if (limit != Value::Null) {
-            request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit)); // default 100, max 100
+            request.insert("limit".into(), Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None }))); // default 100, max 100
         }
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchClosedOrders", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9651,7 +9649,7 @@ impl Okx {
                     }  else if crate::precise::Precise::stringLt(&pos, &Value::Str("0".into())).as_bool() == Some(true) {
                         side = Some("short".to_string());
                     }  else {
-                        side = None.clone();
+                        side = None;
                     }
                 }
             }
@@ -11938,7 +11936,7 @@ impl Okx {
             }  else {
                 windowDuration = (if let Some(__l) = ((if let Some(__l) = effectiveLimit { Some(__l * (self.parse_timeframe((if let Some(__s) = unitPeriod.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })))) } else { None })) { Some(__l * 1000) } else { None });
             }
-            let mut windowEnd: Value = self.sum(&[since, Value::from(windowDuration)]);
+            let mut windowEnd: Value = Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), windowDuration) { Some((__m0 + __m1)) } else { None }));
             end = (if (end == Value::Null) { windowEnd.clone() } else { crate::runtime::Math::min(&end, &windowEnd) });
         }
         if (end != Value::Null) {

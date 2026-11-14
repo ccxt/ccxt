@@ -1354,18 +1354,18 @@ impl Hyperliquid {
             m
         })]).into_dict();
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[Value::Int(self.milliseconds())]).as_i64();
-        let mut startTime: Value = since.clone();
+        let mut startTime: Option<i64> = since.as_i64();
         if (since == Value::Null) {
             let mut tf: i64 = self.parse_timeframe(timeframe.clone());
             let mut candleCount: i64 = limit.as_i64().unwrap_or(100);
             let mut startOffset: i64 = (((tf * candleCount)) * -1000);
-            let mut shiftedStart: Value = Value::from((if let Some(__m0) = until { Some((__m0 + startOffset)) } else { None }));
-            startTime = shiftedStart.clone();
-            if (startTime == Value::Null) {
+            let mut shiftedStart: Option<i64> = (if let Some(__m0) = until { Some((__m0 + startOffset)) } else { None });
+            startTime = shiftedStart;
+            if (startTime.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOHLCV() missing startTime")));
             }
-            if shiftedStart.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
-                startTime = Value::Int(0);
+            if (shiftedStart.is_some() && shiftedStart < Some(0)) {
+                startTime = Some(0);
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1375,7 +1375,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
         m.insert("coin".to_string(), self.safe_string_k(&info, "coinName", &[]));
         m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-        m.insert("startTime".to_string(), startTime);
+        m.insert("startTime".to_string(), Value::from(startTime));
         m.insert("endTime".to_string(), Value::from(until));
     m
 }));

@@ -1296,7 +1296,7 @@ impl Hitbtc {
             let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), Some(&market), &[]).as_str().map(str::to_owned);
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (stored.is_none()) {
-                stored = Some(ArrayCache::new(tradesLimit));
+                stored = Some(ArrayCache::new(Value::from(tradesLimit)));
                 CacheStore::put(&mut self.trades, &symbol, stored.clone());
             }
             let mut trades: Vec<Value> = self.parse_ws_trades(crate::value::KeyRead::read(&&data, &Value::from(marketId)), Some(&market), &[]).as_array().cloned().unwrap_or_default();
@@ -1523,7 +1523,7 @@ impl Hitbtc {
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                stored = Some(ArrayCacheByTimestamp::new(limit));
+                stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
             // parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
@@ -1671,7 +1671,7 @@ impl Hitbtc {
         //
         if (self.orders.is_none()) {
             let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]).as_i64();
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut data: Value = (match __pro_message.get("params").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::from(vec![]), Some(__v) => __v, None => Value::from(vec![]) });
         if (matches!(&data, Value::Arr(_))) {

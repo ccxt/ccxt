@@ -2139,10 +2139,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[Value::from(now)]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["until"], &[]).into_dict();
         if (since != Value::Null) {
-            request.insert("start_ts".into(), (match (&(since), &(Value::Int((duration * 1000)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("start_ts".into(), Value::from((if let Some(__l) = since.as_i64() { Some(__l - ((duration * 1000))) } else { None })));
             if (limit != Value::Null) {
                 let mut countLimit: Option<i64> = self.parse_to_int(crate::runtime::Math::min(&limit, &Value::Int(300)));
-                request.insert("end_ts".into(), self.sum(&[since.clone(), Value::from((if let Some(__l) = ((if let Some(__r) = countLimit { Some(duration * __r) } else { None })) { Some(__l * 1000) } else { None }))]));
+                request.insert("end_ts".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = ((if let Some(__r) = countLimit { Some(duration * __r) } else { None })) { Some(__l * 1000) } else { None }))) { Some((__m0 + __m1)) } else { None })));
             }  else {
                 request.insert("end_ts".into(), Value::from(until));
             }

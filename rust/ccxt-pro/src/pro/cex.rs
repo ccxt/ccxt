@@ -420,15 +420,12 @@ impl Cex {
         // to this.balance, and Client.resolve is a no-op while nobody is
         // awaiting, so a replaced object would make responses landing in that
         // window invisible to the consumer forever (same class as issue #26773)
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut freeBalance: crate::value::Dict = self.safe_dict_k(data.clone(), "balance", &[Value::Map({
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut freeBalance: crate::value::Dict = self.safe_dict_k(&data, "balance", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut usedBalance: crate::value::Dict = self.safe_dict_k(data.clone(), "obalance", &[Value::Map({
+        let mut usedBalance: crate::value::Dict = self.safe_dict_k(&data, "obalance", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -438,7 +435,7 @@ impl Cex {
                 m
             });
         }
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Dict(data)); }
         let mut currencyIds: Vec<Value> = Value::Array(freeBalance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1075,7 +1072,7 @@ impl Cex {
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut trade: crate::value::Dict = self.parse_ws_trade(&data, None).into_dict();
@@ -1252,7 +1249,7 @@ impl Cex {
         remains = self.currency_from_precision(base.map(Value::from).unwrap_or(Value::Null), remains.map(Value::from).unwrap_or(Value::Null));
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut storedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut ordersBySymbol: crate::value::Dict = self.safe_dict(storedOrders.hashmap(), Value::from(symbol.clone()), &[Value::Map({
@@ -1449,7 +1446,7 @@ impl Cex {
         let mut rawOrders: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut myOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
         {
@@ -1756,7 +1753,7 @@ impl Cex {
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&(Value::Str("unknown".into())));
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &(Value::Str("unknown".into())), stored.clone());
         }
         let mut sorted: Vec<Value> = self.sort_by(Value::Arr(data), Value::Int(0), &[]).as_array().cloned().unwrap_or_default();

@@ -370,7 +370,7 @@ impl Luno {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbolValue);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbolValue, stored.clone());
         }
         {
@@ -399,11 +399,11 @@ impl Luno {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if (market.is_none()) {
-            symbol = Value::Null;
+            symbol = None;
         }  else {
-            symbol = crate::value::KeyRead::key_read(&market, "symbol");
+            symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -411,7 +411,7 @@ impl Luno {
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Null);

@@ -1408,7 +1408,7 @@ impl Mudrex {
         let mut takeProfitPrice: Option<String> = None;
         if isRiskOrder {
             triggerPrice = priceString.clone();
-            orderPrice = None.clone();
+            orderPrice = None;
             if (rawSide.as_deref() == Some("STOPLOSS")) {
                 stopLossPrice = priceString.clone();
             }  else {
@@ -2057,11 +2057,11 @@ impl Mudrex {
         let mut maxCalls: Option<i64> = maxCallsparamsPaginationCallsVariable.get(0).and_then(Value::as_i64);
         let mut paramsPaginationCalls: crate::value::Dict = maxCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-        let mut pageSize: Value = (if (limit == Value::Null) { Value::Int(0) } else { (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) });
+        let mut pageSize: Option<i64> = (if (limit == Value::Null) { Some(0) } else { (if let Some(__l) = limit.as_i64() { Some(__l * 2) } else { None }) });
         let mut allRows: Vec<Value> = Vec::new();
         let mut transactionsCount: Option<i64> = self.parse_to_int(Value::Int(0));
         let mut calls: Option<i64> = self.parse_to_int(Value::Int(0));
-        let mut offset: Value = Value::Int(0);
+        let mut offset: Option<i64> = Some(0);
         let mut paging: bool = true;
         while paging {
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2069,8 +2069,8 @@ impl Mudrex {
                 m
             });
             if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
-                request.insert("limit".into(), pageSize.clone());
-                request.insert("offset".into(), offset.clone());
+                request.insert("limit".into(), Value::from(pageSize));
+                request.insert("offset".into(), Value::from(offset));
             }
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginationCalls]);
             let mut response: crate::value::Dict = self.private_get_futures_fee_history(&[__ws_arg_20]).await.into_dict();
@@ -2093,10 +2093,10 @@ impl Mudrex {
             calls = self.parse_to_int(Value::from((if let Some(__l) = calls { Some(__l + 1) } else { None })));
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if (limit != Value::Null) && ((Some(dataLength as f64) == pageSize.as_f64())) {
+            if (limit != Value::Null) && (Some(dataLength) == pageSize) {
                 if ((transactionsCount.is_some() && limit.as_i64().is_some() && transactionsCount < limit.as_i64())) && ((calls.is_some() && maxCalls.is_some() && calls < maxCalls)) {
                     // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                    offset = self.sum(&[offset.clone(), pageSize.clone()]);
+                    offset = (if let (Some(__m0), Some(__m1)) = (offset, pageSize) { Some((__m0 + __m1)) } else { None });
                     paging = true;
                 }
             }

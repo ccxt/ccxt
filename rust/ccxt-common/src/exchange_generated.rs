@@ -3011,29 +3011,29 @@ pub trait ExchangeBase:
                                 let mut i: i64 = 0;
                 let mut __for_first_88: bool = true;
                 while { if !__for_first_88 { i += 1; } __for_first_88 = false; i < (values.len() as i64) } {
-                let mut market: Value = values.get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut market: crate::value::Dict = values.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut defaultCurrencyPrecision: Value = (if (self.precisionMode.as_f64() == Value::Int(crate::runtime::DECIMAL_PLACES).as_f64()) { Value::Int(8) } else { self.parse_number(Value::Str("1e-8".into()), &[]) });
-                let mut marketPrecision: crate::value::Dict = self.safe_dict_k(market.clone(), "precision", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-                if (matches!(&market, Value::Dict(__d) if __d.contains_key("base"))) {
+                let mut marketPrecision: crate::value::Dict = self.safe_dict_k(&market, "precision", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
+                if (market.contains_key("base")) {
                     let mut currency: Value = self.safe_currency_structure(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("baseId".into()), Value::Str("base".into()), &[]));
-                            m.insert("numericId".to_string(), self.safe_integer_k(market.clone(), "baseNumericId", &[]));
-                            m.insert("code".to_string(), self.safe_string_k(market.clone(), "base", &[]));
+                            m.insert("id".to_string(), self.safe_string2(&market, Value::Str("baseId".into()), Value::Str("base".into()), &[]));
+                            m.insert("numericId".to_string(), self.safe_integer_k(&market, "baseNumericId", &[]));
+                            m.insert("code".to_string(), self.safe_string_k(&market, "base", &[]));
                             m.insert("precision".to_string(), self.safe_value2(&marketPrecision, Value::Str("base".into()), Value::Str("amount".into()), &[defaultCurrencyPrecision.clone()]));
                         m
                     }));
                     std::sync::Arc::make_mut(&mut baseCurrencies).push(currency);
                 }
-                if (matches!(&market, Value::Dict(__d) if __d.contains_key("quote"))) {
+                if (market.contains_key("quote")) {
                     let mut currency: Value = self.safe_currency_structure(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("quoteId".into()), Value::Str("quote".into()), &[]));
-                            m.insert("numericId".to_string(), self.safe_integer_k(market.clone(), "quoteNumericId", &[]));
-                            m.insert("code".to_string(), self.safe_string_k(market, "quote", &[]));
+                            m.insert("id".to_string(), self.safe_string2(&market, Value::Str("quoteId".into()), Value::Str("quote".into()), &[]));
+                            m.insert("numericId".to_string(), self.safe_integer_k(&market, "quoteNumericId", &[]));
+                            m.insert("code".to_string(), self.safe_string_k(&market, "quote", &[]));
                             m.insert("precision".to_string(), self.safe_value2(&marketPrecision, Value::Str("quote".into()), Value::Str("price".into()), &[defaultCurrencyPrecision]));
                         m
                     }));
@@ -3428,10 +3428,10 @@ pub trait ExchangeBase:
             price = average.clone();
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_97: bool = true;
-            while { if !__for_first_97 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_97 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
-            let mut entry: Value = get_value(&trades, &i);
+            while { if !__for_first_97 { i += 1; } __for_first_97 = false; i < (trades.len() as i64) } {
+            let mut entry: Value = get_value(&trades, &Value::Int(i));
             { let __be_tmp = self.safe_number_k(entry.clone(), "amount", &[]); add_element_to_object(&mut entry, &Value::Str("amount".into()), __be_tmp); };
             { let __be_tmp = self.safe_number_k(entry.clone(), "price", &[]); add_element_to_object(&mut entry, &Value::Str("price".into()), __be_tmp); };
             { let __be_tmp = self.safe_number_k(entry.clone(), "cost", &[]); add_element_to_object(&mut entry, &Value::Str("cost".into()), __be_tmp); };

@@ -7298,12 +7298,12 @@ if _try_result.is_err() {
             pathPart = "api/v3".to_string();
         }
         let mut fullPath: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", pathPart).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut savedPath: String = fullPath.clone();
-        let mut queryLength: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
+        let mut queryLength: f64 = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64);
         if (method.as_str() == Some("GET")) {
             if queryLength > ((0i64) as f64) {
-                fullPath.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode_with_array_repeat(query.clone())));
+                fullPath.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode_with_array_repeat(&query)));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
@@ -7330,7 +7330,7 @@ if _try_result.is_err() {
                 }  else {
                     if !isV3 {
                         if queryLength > ((0i64) as f64) {
-                            payload = Some(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                            payload = Some(format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
                         }
                     }
                 }

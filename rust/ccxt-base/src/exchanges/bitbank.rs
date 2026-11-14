@@ -1029,12 +1029,11 @@ impl Bitbank {
         let mut windowLimit: i64 = limit.as_i64().unwrap_or(1000);
         let mut limitResolved: Option<i64> = (if (since == Value::Null) { Some(windowLimit) } else { limit.as_i64() });
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-        let mut windowMs: Value = Value::Int((((duration * 1000)) * 1000));
+        let mut windowMs: Option<i64> = Some((((duration * 1000)) * 1000));
         if (limit != Value::Null) {
-            windowMs = (match (&(Value::Int((duration * 1000))), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            windowMs = (if let Some(__r) = limit.as_i64() { Some(((duration * 1000)) * __r) } else { None });
         }
-        let mut sinceResolved: Value = (if (since == Value::Null) { (match (&(Value::Int(self.milliseconds())), &(windowMs)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { since });
+        let mut sinceResolved: Option<i64> = (if (since == Value::Null) { (if let Some(__r) = windowMs { Some((self.milliseconds()) - __r) } else { None }) } else { since.as_i64() });
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1043,7 +1042,7 @@ impl Bitbank {
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
                 m.insert("candletype".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("yyyymmdd".to_string(), self.yyyymmdd(sinceResolved.clone(), &[Value::Str("".into())]));
+                m.insert("yyyymmdd".to_string(), self.yyyymmdd(Value::from(sinceResolved), &[Value::Str("".into())]));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
@@ -1076,7 +1075,7 @@ impl Bitbank {
     m
 })]).into_dict();
         let mut ohlcv: crate::value::List = self.safe_list_k(&first, "ohlcv", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlcv, Some(&market), &[timeframe, sinceResolved, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&ohlcv, Some(&market), &[timeframe, Value::from(sinceResolved), Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

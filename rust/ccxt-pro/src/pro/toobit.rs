@@ -785,7 +785,7 @@ impl Toobit {
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("OHLCVLimit".into()), &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             if (timeframe.is_some()) {
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
@@ -1452,7 +1452,7 @@ impl Toobit {
         //
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut order: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
@@ -1583,7 +1583,7 @@ impl Toobit {
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trade: crate::value::Dict = self.parse_my_trade(message, None).into_dict();
         myTrades.append(Value::from(&trade));

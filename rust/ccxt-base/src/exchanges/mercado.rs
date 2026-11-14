@@ -1667,7 +1667,7 @@ impl Mercado {
         }
         let mut requestBody: Option<String> = Some(privateBody);
         if isPublic {
-            requestBody = None.clone();
+            requestBody = None;
         }
         let mut requestHeaders: Option<crate::value::Dict> = privateHeaders;
         if isPublic {

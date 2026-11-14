@@ -1931,7 +1931,7 @@ impl Blofin {
         if (since != Value::Null) {
             let mut durationInMilliseconds: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
             request.insert("before".into(), crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)));
-            request.insert("after".into(), self.sum(&[since.clone(), Value::Int((durationInMilliseconds * limitResolved))]));
+            request.insert("after".into(), Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((durationInMilliseconds * limitResolved)))) } else { None })));
         }
         let mut until: Option<i64> = self.safe_integer_k(&query, "until", &[]).as_i64();
         if (until.is_some()) {
@@ -2516,7 +2516,7 @@ impl Blofin {
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) && (((clientOrderId.as_deref().unwrap_or_default().chars().count() as i64)) < 1) {
-            clientOrderId = None.clone(); // fix empty clientOrderId string
+            clientOrderId = None; // fix empty clientOrderId string
         }
         // unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
         let mut stopLossPrice: Option<f64> = self.safe_number_k(order.clone(), "slTriggerPrice", &[]).as_f64();
@@ -3495,7 +3495,7 @@ impl Blofin {
         let mut networkId: Option<String> = self.safe_string_k(depositAddress.clone(), "chain", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(depositAddress.clone(), "tag", &[]).as_str().map(str::to_owned);
         if (tag.as_deref() == Some("")) {
-            tag = None.clone();
+            tag = None;
         }
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -4467,7 +4467,7 @@ impl Blofin {
                 }  else if crate::precise::Precise::stringLt(&pos, &Value::Str("0".into())).as_bool() == Some(true) {
                     side = Some("short".to_string());
                 }  else {
-                    side = None.clone();
+                    side = None;
                 }
             }
         }

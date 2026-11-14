@@ -3774,7 +3774,7 @@ impl Modetrade {
             request.insert("start_t".into(), since.clone());
         }
         if (limit != Value::Null) {
-            request.insert("size".into(), crate::runtime::Math::min(&limit, &Value::from(maxLimit)));
+            request.insert("size".into(), Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None })));
         }  else {
             request.insert("size".into(), Value::from(maxLimit));
         }

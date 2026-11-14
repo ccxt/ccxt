@@ -896,7 +896,7 @@ impl Coinbaseexchange {
             let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (tradesArray.is_none()) {
                 let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                tradesArray = Some(ArrayCache::new(tradesLimit));
+                tradesArray = Some(ArrayCache::new(Value::from(tradesLimit)));
                 if (symbol.is_some()) {
                     CacheStore::put(&mut self.trades, &symbol, tradesArray.clone());
                 }
@@ -919,7 +919,7 @@ impl Coinbaseexchange {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", type_var, ":").into()), marketId.as_deref().unwrap_or("null"));
             if (self.myTrades.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+                self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
             let mut tradesArray: Option<crate::pro::cache::Cache> = self.myTrades.clone();
             tradesArray.append(trade);
@@ -1121,7 +1121,7 @@ impl Coinbaseexchange {
         //
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });

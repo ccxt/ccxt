@@ -2796,7 +2796,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             }
             if (self.myTrades.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+                self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
             let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
             myTrades.append(Value::from(&trade));
@@ -2886,7 +2886,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut market: Value = self.get_market_from_order(client.clone(), message.clone());
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut parsed: crate::value::Dict = self.parse_ws_order(message, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).into_dict();

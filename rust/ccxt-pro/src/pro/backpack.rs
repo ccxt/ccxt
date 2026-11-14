@@ -1402,7 +1402,7 @@ impl Backpack {
         }
         if !(self.ohlcvs.shelf(&symbol).has(&timeframe)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut stored: crate::pro::cache::Cache = ArrayCacheByTimestamp::new(limit);
+            let mut stored: crate::pro::cache::Cache = ArrayCacheByTimestamp::new(Value::from(limit));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored);
         }
         let mut ohlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
@@ -1614,7 +1614,7 @@ impl Backpack {
         let mut symbol: String = (market).symbol.clone();
         if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut stored: crate::pro::cache::Cache = ArrayCache::new(limit);
+            let mut stored: crate::pro::cache::Cache = ArrayCache::new(Value::from(limit));
             CacheStore::put(&mut self.trades, &symbol, stored);
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
@@ -2120,7 +2120,7 @@ impl Backpack {
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         if (orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            orders = Some(ArrayCacheBySymbolById::new(limit));
+            orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             self.orders = orders.clone();
         }
         orders.append(parsed);
@@ -2603,7 +2603,7 @@ impl Backpack {
             }
         }  else {
             hedged = Value::Null;
-            side = None.clone();
+            side = None;
         }
         let mut microseconds: i64 = self.safe_integer_k(position.clone(), "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));

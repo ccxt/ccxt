@@ -466,7 +466,7 @@ impl Revolutx {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Value = Value::Null;
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
-        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
@@ -657,9 +657,9 @@ impl Revolutx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
-        if (region != Value::Null) {
-            request.insert("region".into(), region);
+        let mut region: Option<String> = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (region.is_some()) {
+            request.insert("region".into(), region.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get10_public_configuration_pairs(&[__ws_arg_0]).await;
@@ -790,9 +790,9 @@ impl Revolutx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
-        if (region != Value::Null) {
-            request.insert("region".into(), region);
+        let mut region: Option<String> = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (region.is_some()) {
+            request.insert("region".into(), region.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get10_public_configuration_currencies(&[__ws_arg_1]).await;
@@ -934,9 +934,9 @@ impl Revolutx {
             }
             request.insert("symbols".into(), Value::Str(marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into()));
         }
-        let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
-        if (region != Value::Null) {
-            request.insert("region".into(), region);
+        let mut region: Option<String> = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (region.is_some()) {
+            request.insert("region".into(), region.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get10_public_tickers(&[__ws_arg_2]).await.into_dict();
@@ -1068,9 +1068,9 @@ impl Revolutx {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit);
         }
-        let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
-        if (region != Value::Null) {
-            request.insert("region".into(), region);
+        let mut region: Option<String> = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (region.is_some()) {
+            request.insert("region".into(), region.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get20_public_order_book_symbol(&[__ws_arg_3]).await.into_dict();
@@ -1167,13 +1167,13 @@ impl Revolutx {
             request.insert("until".into(), Value::from(until));
         }
         if (since != Value::Null) && (until.is_none()) {
-            request.insert("until".into(), self.sum(&[since.clone(), Value::Int((limitValue * duration))]));
+            request.insert("until".into(), Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((limitValue * duration)))) } else { None })));
         }  else if (since == Value::Null) && (until.is_some()) {
             request.insert("since".into(), Value::from((if let Some(__l) = until { Some(__l - ((limitValue * duration))) } else { None })));
         }
-        let mut region: Value = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]);
-        if (region != Value::Null) {
-            request.insert("region".into(), region);
+        let mut region: Option<String> = self.safe_string2(params.clone(), Value::Str("region".into()), Value::Str("region".into()), &[self.options.as_map().and_then(|__m| __m.get("region")).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        if (region.is_some()) {
+            request.insert("region".into(), region.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get10_public_candles_symbol(&[__ws_arg_4]).await.into_dict();
@@ -1465,7 +1465,7 @@ impl Revolutx {
             }  else if (stopLoss != Value::Null) && (takeProfit == Value::Null) {
                 leg = stopLoss.clone();
             }
-            orderType = None.clone();
+            orderType = None;
             if (leg != Value::Null) {
                 orderType = self.safe_string_lower_k(leg.clone(), "type", &[]).as_str().map(str::to_owned);
                 if (price.is_none()) {
@@ -2033,8 +2033,7 @@ impl Revolutx {
         }  else if (since != Value::Null) {
             let mut now: i64 = self.milliseconds();
             let mut thirtyDaysAgo: i64 = (now - thirtyDays);
-            request.insert("end_date".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(thirtyDaysAgo))) { (match (&(since), &(Value::from(thirtyDays))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::from(now) }));
+            request.insert("end_date".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(thirtyDaysAgo))) { Value::from((if let Some(__l) = since.as_i64() { Some(__l + thirtyDays) } else { None })) } else { Value::from(now) }));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -2209,8 +2208,7 @@ impl Revolutx {
         }  else if (since != Value::Null) {
             let mut now: i64 = self.milliseconds();
             let mut thirtyDaysAgo: i64 = (now - thirtyDays);
-            request.insert("end_date".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(thirtyDaysAgo))) { (match (&(since), &(Value::from(thirtyDays))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::from(now) }));
+            request.insert("end_date".into(), (if ((since.as_i64().is_some() && since.as_i64() < Some(thirtyDaysAgo))) { Value::from((if let Some(__l) = since.as_i64() { Some(__l + thirtyDays) } else { None })) } else { Value::from(now) }));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit);

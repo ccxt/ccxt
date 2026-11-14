@@ -2915,7 +2915,7 @@ impl Zebpay {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("defaultType".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("defaultType".into()), &[]).into_dict();
         let mut isV1: bool = path.as_str().unwrap_or("").contains("v1/");
         let mut marketType: String = "spot".to_string();
         if isV1 {
@@ -2925,11 +2925,11 @@ impl Zebpay {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut tail: String = format!("{}{}", Value::Str("/api/".into()), self.implode_params(path.clone(), paramsOmitted.clone()));
+        let mut tail: String = format!("{}{}", Value::Str("/api/".into()), self.implode_params(path.clone(), Value::from(&paramsOmitted)));
         let mut suffix: String = "".to_string();
         let mut timestamp: String = format!("{}", self.milliseconds());
         let mut signature: String = "".to_string();
-        let mut query: crate::value::Dict = self.omit(paramsOmitted.clone(), self.extract_params(path), &[]).into_dict();
+        let mut query: crate::value::Dict = self.omit(&paramsOmitted, self.extract_params(path), &[]).into_dict();
         let mut access: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         if (access.as_deref() == Some("public")) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
@@ -2937,8 +2937,8 @@ impl Zebpay {
                     suffix = format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[]));
                 }
             }  else {
-                let mut priceType: Option<String> = self.safe_string_k(paramsOmitted.clone(), "priceType", &[]).as_str().map(str::to_owned);
-                let mut paramsBody: Option<crate::value::Dict> = self.omit(paramsOmitted.clone(), Value::Str("priceType".into()), &[]).into_opt_dict();
+                let mut priceType: Option<String> = self.safe_string_k(&paramsOmitted, "priceType", &[]).as_str().map(str::to_owned);
+                let mut paramsBody: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("priceType".into()), &[]).into_dict();
                 if (priceType.is_some()) {
                     suffix = format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();

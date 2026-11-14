@@ -2020,11 +2020,11 @@ impl Nado {
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut id: i64 = self.request_id();
         let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
-        let mut expiration: Value = Value::from((if let Some(__m1) = recvWindow { Some(((self.milliseconds()) + __m1)) } else { None }));
+        let mut expiration: Option<i64> = (if let Some(__m1) = recvWindow { Some(((self.milliseconds()) + __m1)) } else { None });
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
-                m.insert("expiration".to_string(), Value::from(self.number_to_string(expiration)));
+                m.insert("expiration".to_string(), Value::from(self.number_to_string(Value::from(expiration))));
             m
         });
         let mut contracts: crate::value::Dict = self.parent.query_contracts(&[]).await.into_dict();
@@ -2355,7 +2355,7 @@ impl Nado {
         let mut trades: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (trades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            trades = Some(ArrayCache::new(limit));
+            trades = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, trades.clone());
         }
         let mut trade: crate::value::Dict = self.parse_ws_trade(message, Some(&market)).into_dict();
@@ -2367,7 +2367,7 @@ impl Nado {
         let mut trade: crate::value::Dict = self.parse_ws_my_trade(message, None).into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         trades.append(Value::from(&trade));
@@ -2405,7 +2405,7 @@ impl Nado {
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
         let mut parsed: crate::value::List = self.parse_ohlcv(message, Some(&market)).into_list();
@@ -2487,7 +2487,7 @@ impl Nado {
         let mut order: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         orders.append(Value::from(&order));

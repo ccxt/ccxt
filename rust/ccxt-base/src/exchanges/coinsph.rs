@@ -1761,9 +1761,9 @@ impl Coinsph {
             if (until.is_some()) {
                 request.insert("endTime".into(), Value::from(until));
             }  else {
-                let mut endTimeByLimit: Value = self.sum(&[since.clone(), Value::Int(((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1))))]);
-                let mut now: Value = Value::Int(self.milliseconds());
-                request.insert("endTime".into(), crate::runtime::Math::min(&endTimeByLimit, &now));
+                let mut endTimeByLimit: Option<i64> = (if let Some(__m0) = since.as_i64() { Some((__m0 + (((((self.parse_timeframe(timeframe.clone())) * 1000)) * ((limitResolved - 1)))))) } else { None });
+                let mut now: i64 = self.milliseconds();
+                request.insert("endTime".into(), Value::from((if let Some(__m0) = endTimeByLimit { Some(i64::min(__m0, now)) } else { None })));
             }
         }  else if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
@@ -2516,7 +2516,7 @@ impl Coinsph {
         let mut trades: Option<crate::value::List> = self.safe_list_k(order.clone(), "fills", &[]).into_opt_list();
         let mut triggerPrice: Option<String> = self.safe_string_k(order.clone(), "stopPrice", &[]).as_str().map(str::to_owned);
         if crate::precise::Precise::stringEq(&triggerPrice, &Value::Str("0".into())).as_bool() == Some(true) {
-            triggerPrice = None.clone();
+            triggerPrice = None;
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2976,7 +2976,7 @@ impl Coinsph {
         let mut tag: Option<String> = self.safe_string_k(transaction.clone(), "addressTag", &[]).as_str().map(str::to_owned);
         if (tag.is_some()) {
             if ((tag.as_deref().unwrap_or_default().chars().count() as i64)) < 1 {
-                tag = None.clone();
+                tag = None;
             }
         }
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txId", &[]).as_str().map(str::to_owned);

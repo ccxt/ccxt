@@ -1971,7 +1971,7 @@ impl Bybit {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         {
@@ -2288,7 +2288,7 @@ impl Bybit {
         }
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut symbols: indexmap::IndexMap<String, Value> = ({
@@ -2691,7 +2691,7 @@ impl Bybit {
                 let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
                 let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(&rawLiquidation, Some(&market)).into_dict();
                 if (self.liquidations.is_none()) {
-                    let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64();
+                    let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                     self.liquidations = Some(ArrayCache::new(Value::from(limit)));
                 }
                 let mut cache: Value = Value::from(&self.liquidations);
@@ -2707,8 +2707,8 @@ impl Bybit {
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(&rawLiquidation, Some(&market)).into_dict();
             if (self.liquidations.is_none()) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
-                self.liquidations = Some(ArrayCache::new(limit));
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
+                self.liquidations = Some(ArrayCache::new(Value::from(limit)));
             }
             let mut cache: Value = Value::from(&self.liquidations);
             cache.append(Value::from(&liquidation));
@@ -2981,7 +2981,7 @@ impl Bybit {
         //
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut rawOrders: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });

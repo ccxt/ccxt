@@ -577,7 +577,7 @@ impl Bitrue {
         let mut parsed: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         orders.append(Value::Dict(parsed));
@@ -956,7 +956,7 @@ impl Bitrue {
             while { if !__for_first_136 { i += 1; } __for_first_136 = false; i < (data.len() as i64) } {
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                stored = Some(ArrayCache::new(limit));
+                stored = Some(ArrayCache::new(Value::from(limit)));
                 CacheStore::put(&mut self.trades, &symbol, stored.clone());
             }
             let mut trade: crate::value::Dict = self.parse_ws_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).into_dict();

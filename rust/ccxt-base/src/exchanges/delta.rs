@@ -2374,10 +2374,10 @@ impl Delta {
         });
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
         let mut limitValue: Option<i64> = Some(2000);
-        let mut windowSeconds: Value = Value::Int((2000 * duration));
+        let mut windowSeconds: Option<i64> = Some((2000 * duration));
         if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
             limitValue = limit.as_i64(); // max 2000
-            windowSeconds = (match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            windowSeconds = (if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None });
         }
         let mut until: Option<i64> = self.safe_integer_product_k(params.clone(), "until", Value::Float(0.001), &[]).as_i64();
         if (since == Value::Null) {
@@ -2386,11 +2386,11 @@ impl Delta {
                 end = self.parse_to_int(Value::from(until));
             }
             request.insert("end".into(), Value::from(end));
-            request.insert("start".into(), (match (&(Value::from(end)), &(windowSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("start".into(), Value::from((if let (Some(__l), Some(__r)) = (end, windowSeconds) { Some(__l - __r) } else { None })));
         }  else {
             let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("start".into(), Value::from(start));
-            request.insert("end".into(), (if (until.is_some()) { Value::from(until) } else { self.sum(&[Value::from(start), windowSeconds]) }));
+            request.insert("end".into(), (if (until.is_some()) { Value::from(until) } else { Value::from((if let (Some(__m0), Some(__m1)) = (start, windowSeconds) { Some((__m0 + __m1)) } else { None })) }));
         }
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -5421,12 +5421,12 @@ impl Delta {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath);
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Value = Value::Null;
         if (apiName.as_deref() == Some("public")) {
-            if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if !(self.is_empty(&query).as_bool() == Some(true)) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -5439,8 +5439,8 @@ impl Delta {
             });
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath);
             if (method.as_str() == Some("GET")) {
-                if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                    let mut queryString: String = format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[]));
+                if !(self.is_empty(&query).as_bool() == Some(true)) {
+                    let mut queryString: String = format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[]));
                     auth = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath).into()), queryString);
                     url.push_str(&queryString);
                 }

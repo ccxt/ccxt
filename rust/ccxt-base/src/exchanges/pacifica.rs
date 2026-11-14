@@ -2337,7 +2337,7 @@ if _try_result.is_err() {
         }
         // public trades have no orderId
         if (orderId.is_none()) {
-            takerOrMaker = None.clone();
+            takerOrMaker = None;
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5364,14 +5364,14 @@ if _try_result.is_err() {
         }
         let mut host: Option<String> = self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", host.as_deref().unwrap_or("null"), "/api/").into()), self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
         });
-        if (method.as_str() == Some("GET")) && (((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64)) {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
+        if (method.as_str() == Some("GET")) && (((Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64)) {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
             headersValue.insert("Accept".into(), Value::Str("*/*".into()));
         }
         if (method.as_str() == Some("POST")) {

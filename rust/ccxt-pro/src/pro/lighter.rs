@@ -1114,7 +1114,7 @@ impl Lighter {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut dataLength: i64 = data.len() as i64;
@@ -1354,7 +1354,7 @@ impl Lighter {
         }
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCache::new(limit));
+            self.myTrades = Some(ArrayCache::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("myTrades".into()), &[]);
@@ -1595,7 +1595,7 @@ impl Lighter {
         let mut stored: Value = self.safe_value(Value::from(&self.liquidations), Value::from(symbol.as_deref()), &[]);
         if (stored == Value::Null) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.liquidations = Some(ArrayCache::new(limit));
+            self.liquidations = Some(ArrayCache::new(Value::from(limit)));
             stored = Value::from(&self.liquidations);
         }
         let mut dataLength: i64 = data.len() as i64;
@@ -2132,7 +2132,7 @@ impl Lighter {
         }
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCache::new(limit));
+            self.orders = Some(ArrayCache::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orders".into()), &[]);

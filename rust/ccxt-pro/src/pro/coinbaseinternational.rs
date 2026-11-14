@@ -788,7 +788,7 @@ impl Coinbaseinternational {
         let mut data: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trades: crate::value::List = self.parse_trades(&data, None, &[]).into_list();
         let mut tradesLength: i64 = trades.len() as i64;
@@ -951,7 +951,7 @@ impl Coinbaseinternational {
         let message = message.as_map().unwrap_or(&__message_empty);
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
@@ -2076,7 +2076,7 @@ impl Coinbaseinternational {
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (true) && !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut tradesArrayCache: crate::pro::cache::Cache = ArrayCache::new(limit);
+            let mut tradesArrayCache: crate::pro::cache::Cache = ArrayCache::new(Value::from(limit));
             CacheStore::put(&mut self.trades, &symbol, tradesArrayCache);
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);

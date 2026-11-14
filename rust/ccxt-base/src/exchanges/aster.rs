@@ -4909,7 +4909,7 @@ impl Aster {
         let mut markPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(self.safe_string_k(position.clone(), "markPrice", &[]))), &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updateTime", &[]).as_i64();
         if (timestamp == Some(0)) {
-            timestamp = None.clone();
+            timestamp = None;
         }
         let mut maintenanceMarginPercentage: Option<f64> = self.parse_number(maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut maintenanceMarginString: Option<String> = crate::precise::Precise::stringMul(&maintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &notionalStringAbs).as_str().map(str::to_owned);
@@ -5216,7 +5216,7 @@ impl Aster {
         let mut unrealizedPnl: Option<f64> = self.parse_number(unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "updateTime", &[]).as_i64();
         if (timestamp == Some(0)) {
-            timestamp = None.clone();
+            timestamp = None;
         }
         let mut isolatedRaw: Option<bool> = self.safe_bool_k(position.clone(), "isolated", &[]).as_bool();
         let mut isolated: bool = false;
@@ -5247,7 +5247,7 @@ impl Aster {
         let mut contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
         let mut contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         if crate::precise::Precise::stringEquals(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) {
-            entryPrice = None.clone();
+            entryPrice = None;
         }  else {
             side = (if crate::precise::Precise::stringLt(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) { Some("short".to_string()) } else { Some("long".to_string()) });
             marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
@@ -5302,7 +5302,7 @@ impl Aster {
             if (truncatedLiquidationPrice.as_deref().unwrap_or_default().starts_with("-")) {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
-                truncatedLiquidationPrice = None.clone();
+                truncatedLiquidationPrice = None;
             }
             liquidationPrice = self.parse_number(truncatedLiquidationPrice.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }

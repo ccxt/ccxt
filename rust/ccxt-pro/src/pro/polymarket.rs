@@ -916,7 +916,7 @@ impl Polymarket {
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut stored: crate::pro::cache::Cache = ArrayCache::new(limit);
+            let mut stored: crate::pro::cache::Cache = ArrayCache::new(Value::from(limit));
             CacheStore::put(&mut self.trades, &symbol, stored);
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
@@ -1116,7 +1116,7 @@ impl Polymarket {
         }
         if !(self.ohlcvs.shelf(&symbol).has(&timeframe)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut stored: crate::pro::cache::Cache = ArrayCacheByTimestamp::new(limit);
+            let mut stored: crate::pro::cache::Cache = ArrayCacheByTimestamp::new(Value::from(limit));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored);
         }
         let mut ohlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
@@ -1274,7 +1274,7 @@ impl Polymarket {
         }
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut symbols: indexmap::IndexMap<String, Value> = ({
@@ -1401,7 +1401,7 @@ impl Polymarket {
         }
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut symbols: indexmap::IndexMap<String, Value> = ({

@@ -945,7 +945,7 @@ impl Bingx {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         {
@@ -2345,7 +2345,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut parsedOrder: crate::value::Dict = self.parse_order(Value::Dict(data), None).into_dict();
@@ -2450,7 +2450,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cachedTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (cachedTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            cachedTrades = Some(ArrayCacheBySymbolById::new(limit));
+            cachedTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             self.myTrades = cachedTrades.clone();
         }
         let mut type_var: String = "swap".to_string();

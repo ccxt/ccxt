@@ -1440,14 +1440,14 @@ impl Independentreserve {
                         let mut i: i64 = 0;
             let mut __for_first_834: bool = true;
             while { if !__for_first_834 { i += 1; } __for_first_834 = false; i < (rows.len() as i64) } {
-            let mut fee: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currencyId: Option<String> = self.safe_string_k(fee.clone(), "CurrencyCode", &[]).as_str().map(str::to_owned);
+            let mut fee: Option<crate::value::Dict> = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&fee, "CurrencyCode", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-            let mut tradingFee: Option<f64> = self.safe_number_k(fee.clone(), "Fee", &[]).as_f64();
+            let mut tradingFee: Option<f64> = self.safe_number_k(&fee, "Fee", &[]).as_f64();
             if (code.is_some()) {
                 fees.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), fee);
+        m.insert("info".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("fee".to_string(), Value::from(tradingFee));
     m
 }));

@@ -1162,7 +1162,7 @@ impl Polymarket {
         if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("inactive")) {
             eventsStatus = Some("closed".to_string());
         }  else if (status.as_deref() == Some("all")) {
-            eventsStatus = None.clone();
+            eventsStatus = None;
         }
         let mut rest: crate::value::Dict = self.omit(params.clone(), &["limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"], &[]).into_dict();
         let mut seen: indexmap::IndexMap<String, Value> = ({
@@ -1553,7 +1553,7 @@ impl Polymarket {
                     continue;
                 }
                 let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventSlug.clone(), Value::from(marketSlug.as_deref()), outcomeLabel.clone()).as_str().map(str::to_owned);
-                let mut winnerRaw: Value = Value::Null;
+                let mut winnerRaw: Option<bool> = None;
                 let mut settleFractionRaw: Option<i64> = None;
                 if matches!(&marketResolved, Value::Bool(true)) && (outcomePrice.is_some()) {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
@@ -1561,17 +1561,17 @@ impl Polymarket {
                     // prices — don't report a fractional mid as a final settleFraction; leave the
                     // outcome-level fields undefined until a decisive price exists
                     if outcomePrice >= Some(0.99) {
-                        winnerRaw = Value::Bool(true);
+                        winnerRaw = Some(true);
                         settleFractionRaw = Some(1);
                         resolvedOutcome = outcomeHandle.clone();
                     }  else if (outcomePrice.is_some() && Some(0.01) >= outcomePrice) {
-                        winnerRaw = Value::Bool(false);
+                        winnerRaw = Some(false);
                         settleFractionRaw = Some(0);
                     }
                 }
                 // effectively-final copies: Java emits the object literal below as an anonymous
                 // inner class, which cannot capture a reassigned local
-                let mut winner: Value = winnerRaw;
+                let mut winner: Value = winnerRaw.map(Value::from).unwrap_or(Value::Null);
                 let mut settleFraction: Option<i64> = settleFractionRaw;
                 outcomes.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -2231,8 +2231,7 @@ impl Polymarket {
         if (since != Value::Null) {
             startS = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
             if (limit != Value::Null) {
-                let mut endBound: Value = self.sum(&[startS.clone(), (match (&((match (&(limit), &(Value::from(fidelityMin))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+                let mut endBound: Value = self.sum(&[startS.clone(), Value::from((if let Some(__l) = ((if let Some(__l) = limit.as_i64() { Some(__l * fidelityMin) } else { None })) { Some(__l * 60) } else { None }))]);
                 endS = (if (endBound.as_f64().unwrap_or(f64::NAN) < nowS.as_f64().unwrap_or(f64::NAN)) { endBound } else { nowS.clone() });
             }
         }  else {
@@ -2287,8 +2286,8 @@ impl Polymarket {
                 continue;
             }
             let mut rawMs: Option<i64> = (if let Some(__l) = t { Some(__l * 1000) } else { None });
-            let __yd1: Option<i64> = self.parse_to_int((match ((Value::from(rawMs)).as_f64(), (Value::from(resolutionMs)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            let mut snappedMs: Value = (match (&(Value::from(__yd1)), &(Value::from(resolutionMs))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let __yd0: Option<i64> = self.parse_to_int((match ((Value::from(rawMs)).as_f64(), (Value::from(resolutionMs)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+            let mut snappedMs: Value = (match (&(Value::from(__yd0)), &(Value::from(resolutionMs))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             let mut vol: Option<f64> = self.safe_number_k(&item, "s", &[]).as_f64();
@@ -4369,12 +4368,12 @@ impl Polymarket {
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
             // encoder capitalizes booleans ("False") under the C# base
             let mut hasArrayParam: bool = false;
-            let mut queryKeys: Value = object_keys(&query);
+            let mut queryKeys: crate::value::List = object_keys(&query).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1449: bool = true;
                 while { if !__for_first_1449 { i += 1; } __for_first_1449 = false; i < (queryKeys.len() as i64) } {
-                if (matches!(&get_value(&query, &queryKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)), Value::Arr(_))) {
+                if (matches!(&get_value(&query, &queryKeys.get(i as usize).cloned().unwrap_or(Value::Null)), Value::Arr(_))) {
                     hasArrayParam = true;
                 }
             }
@@ -4391,7 +4390,7 @@ impl Polymarket {
         }  else if isArrayBody {
             bodyValue = json_stringify(&params);
         }  else {
-            let mut queryKeys: Value = object_keys(&query);
+            let mut queryKeys: crate::value::List = object_keys(&query).into_list();
             let mut queryKeysLength: i64 = queryKeys.len() as i64;
             if queryKeysLength > 0 {
                 bodyValue = json_stringify(&query);
@@ -4903,7 +4902,7 @@ if _try_result.is_err() {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&outcome);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &outcome, stored.clone());
         }
         stored.append(trade);
@@ -5223,7 +5222,7 @@ if _try_result.is_err() {
     pub fn handle_order(&mut self, mut client: Value, mut event: Value) {
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheByOutcomeById::new(limit));
+            self.orders = Some(ArrayCacheByOutcomeById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut parsed: crate::value::Dict = self.parse_prediction_order(event, None).into_dict();
@@ -5238,7 +5237,7 @@ if _try_result.is_err() {
     pub fn handle_my_trade(&mut self, mut client: Value, mut event: Value) {
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheByOutcomeById::new(limit));
+            self.myTrades = Some(ArrayCacheByOutcomeById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut parsed: crate::value::Dict = self.parse_prediction_trade(event, None).into_dict();

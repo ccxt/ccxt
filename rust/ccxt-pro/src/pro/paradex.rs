@@ -2375,7 +2375,7 @@ if _try_result.is_err() {
         let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         self.orders.append(Value::Dict(parsed));
         let mut messageHash: String = "orders".to_string();
@@ -2477,7 +2477,7 @@ if _try_result.is_err() {
         let mut symbol: Option<String> = self.safe_string_k(&trade, "symbol", &[]).as_str().map(str::to_owned);
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         trades.append(Value::Dict(trade));

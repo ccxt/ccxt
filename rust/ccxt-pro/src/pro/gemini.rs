@@ -466,7 +466,7 @@ impl Gemini {
         let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
-            stored = Some(ArrayCache::new(tradesLimit));
+            stored = Some(ArrayCache::new(Value::from(tradesLimit)));
             if (symbol.is_some()) {
                 CacheStore::put(&mut self.trades, &symbol, stored.clone());
             }
@@ -524,7 +524,7 @@ impl Gemini {
             let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (stored.is_none()) {
-                stored = Some(ArrayCache::new(tradesLimit));
+                stored = Some(ArrayCache::new(Value::from(tradesLimit)));
                 CacheStore::put(&mut self.trades, &symbol, stored.clone());
             }
             {
@@ -683,7 +683,7 @@ impl Gemini {
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             if (symbol.is_some()) && (timeframe.is_some()) {
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
@@ -1203,7 +1203,7 @@ impl Gemini {
         let mut messageHash: String = "orders".to_string();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         {

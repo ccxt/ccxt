@@ -1448,10 +1448,10 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_868: bool = true;
             while { if !__for_first_868 { i += 1; } __for_first_868 = false; i < (feeSchedules.len() as i64) } {
-            let mut schedule: Value = feeSchedules.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut uid: Option<String> = self.safe_string_k(schedule.clone(), "uid", &[]).as_str().map(str::to_owned);
+            let mut schedule: Option<crate::value::Dict> = feeSchedules.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut uid: Option<String> = self.safe_string_k(&schedule, "uid", &[]).as_str().map(str::to_owned);
             if (uid.is_some()) {
-                schedulesByUid.insert(uid.as_deref().unwrap_or("null").to_string(), schedule.clone());
+                schedulesByUid.insert(uid.as_deref().unwrap_or("null").to_string(), schedule.map_or(Value::Null, Value::Dict));
             }
         }
         }
@@ -1685,9 +1685,9 @@ impl Krakenfutures {
                 request.insert("count".into(), limit.clone());
             }
             let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("before".into()), Value::Map(request.clone()), &paramsMethod, &[]).as_array().cloned().unwrap_or_default();
-            let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-            let __ws_arg_3 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+            let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let __ws_arg_3 = self.extend(requestUntil, &[&paramsUntil]);
             let mut response: crate::value::Dict = self.history_get_market_symbol_executions(&[__ws_arg_3]).await.into_dict();
             //
             //    {
@@ -1765,9 +1765,9 @@ impl Krakenfutures {
             }
         }  else {
             let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("lastTime".into()), Value::Map(request), &paramsMethod, &[]).as_array().cloned().unwrap_or_default();
-            let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-            let __ws_arg_4 = self.extend(requestUntil, &[paramsUntil]);
+            let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+            let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let __ws_arg_4 = self.extend(requestUntil, &[&paramsUntil]);
             let mut response: crate::value::Dict = self.public_get_history(&[__ws_arg_4]).await.into_dict();
             //
             //    {
@@ -5126,7 +5126,7 @@ impl Krakenfutures {
 })]).into_dict();
         let mut defaultVersion: Option<String> = self.safe_string(&methodVersions, path.clone(), &[self.version.clone()]).as_str().map(str::to_owned);
         let mut version: Option<String> = self.safe_string_k(params.clone(), "version", &[defaultVersion.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("version".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("version".into()), &[]).into_dict();
         let mut apiAccess: crate::value::Dict = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5136,17 +5136,17 @@ impl Krakenfutures {
     m
 })]).into_dict();
         let mut access: Option<String> = self.safe_string(&methodAccess, path.clone(), &[Value::Str("public".into())]).as_str().map(str::to_owned);
-        let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", version.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), paramsOmitted.clone()));
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted, self.extract_params(path.clone()), &[]);
+        let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", version.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), Value::from(&paramsOmitted)));
+        let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, self.extract_params(path.clone()), &[]).into_dict();
         let mut query: String = endpoint.clone();
         let mut postData: String = "".to_string();
         if (path.as_str() == Some("batchorder")) {
             postData = format!("{}{}", Value::Str("json=".into()), json_stringify(&paramsOmitted2));
-        }  else if ((Value::Array(paramsOmitted2.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-            if (matches!(&paramsOmitted2, Value::Dict(__d) if __d.contains_key("orderIds"))) {
-                postData = self.urlencode_with_array_repeat(paramsOmitted2.clone());
+        }  else if ((Value::Array(paramsOmitted2.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+            if (paramsOmitted2.contains_key("orderIds")) {
+                postData = self.urlencode_with_array_repeat(&paramsOmitted2);
             }  else {
-                postData = self.urlencode(paramsOmitted2, &[]);
+                postData = self.urlencode(&paramsOmitted2, &[]);
             }
             query.push_str(&format!("{}{}", "?", postData));
         }

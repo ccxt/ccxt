@@ -2127,11 +2127,10 @@ impl Luno {
         let mut maxRowBase: i64 = self.safe_integer_k(params.clone(), "max_row", &[Value::Int(0)]).as_i64().unwrap_or(0); // Default to most recent transactions
         let mut minRowBase: i64 = self.safe_integer_k(params.clone(), "min_row", &[Value::Int(-1000)]).as_i64().unwrap_or(-1000); // Maximum number of records supported
         let mut limitApplies: bool = (limit != Value::Null) && ((limit.as_i64().is_some() && Some(((maxRowBase - minRowBase))) > limit.as_i64()));
-        let mut min_row: Value = (if (limitApplies && (limit != Value::Null) && maxRowBase <= 0) { (match (&(Value::from(maxRowBase)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { Value::from(minRowBase) });
-        let mut max_row: Value = Value::from(maxRowBase);
+        let mut min_row: Option<i64> = (if (limitApplies && (limit != Value::Null) && maxRowBase <= 0) { (if let Some(__r) = limit.as_i64() { Some(maxRowBase - __r) } else { None }) } else { Some(minRowBase) });
+        let mut max_row: Option<i64> = Some(maxRowBase);
         if limitApplies && maxRowBase > 0 && minRowBase > 0 {
-            max_row = (match (&(Value::from(minRowBase)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            max_row = (if let Some(__r) = limit.as_i64() { Some(minRowBase + __r) } else { None });
         }
         let mut limitAdjusts: bool = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
         if (limitAdjusts && limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64)) || (!limitAdjusts && ((maxRowBase - minRowBase)) > 1000) {
@@ -2140,8 +2139,8 @@ impl Luno {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                m.insert("min_row".to_string(), min_row);
-                m.insert("max_row".to_string(), max_row);
+                m.insert("min_row".to_string(), Value::from(min_row));
+                m.insert("max_row".to_string(), Value::from(max_row));
             m
         });
         let __ws_arg_15 = self.extend(params, &[Value::Map(request)]);

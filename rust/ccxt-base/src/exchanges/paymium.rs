@@ -1029,11 +1029,11 @@ impl Paymium {
         }
         let mut baseUrl: Option<String> = baseApiUrl;
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut hasQuery: bool = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
+        let mut hasQuery: bool = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64);
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
             if hasQuery {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -1057,7 +1057,7 @@ impl Paymium {
                 }
             }  else {
                 if hasQuery {
-                    let mut queryString: String = self.urlencode(query, &[]);
+                    let mut queryString: String = self.urlencode(&query, &[]);
                     auth = format!("{}{}", Value::Str(format!("{}{}", nonce, url).into()), queryString);
                     url.push_str(&format!("{}{}", "?", queryString));
                 }

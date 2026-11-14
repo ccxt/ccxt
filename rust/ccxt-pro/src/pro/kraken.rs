@@ -1048,7 +1048,7 @@ impl Kraken {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol.clone().map(Value::from).unwrap_or(Value::Null), stored.clone());
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1102,7 +1102,7 @@ impl Kraken {
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
         let mut ohlcvsLength: i64 = data.len() as i64;
@@ -2043,7 +2043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if allTradesLength > 0 {
             if (self.myTrades.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.myTrades = Some(ArrayCache::new(limit));
+                self.myTrades = Some(ArrayCache::new(Value::from(limit)));
             }
             let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
             let mut symbols: indexmap::IndexMap<String, Value> = ({

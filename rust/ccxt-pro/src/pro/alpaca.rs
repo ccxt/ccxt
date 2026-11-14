@@ -513,7 +513,7 @@ impl Alpaca {
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&(Value::Str("1m".into())));
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &(Value::Str("1m".into())), stored.clone());
         }
         let mut parsed: crate::value::List = self.parse_ohlcv(message, None).into_list();
@@ -687,7 +687,7 @@ impl Alpaca {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut parsed: crate::value::Dict = self.parse_trade(message, None).into_dict();
@@ -872,7 +872,7 @@ impl Alpaca {
         })]).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None).into_dict();
@@ -944,7 +944,7 @@ impl Alpaca {
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trade: Value = self.parse_my_trade(&rawOrder, None);
         if (trade == Value::Null) {

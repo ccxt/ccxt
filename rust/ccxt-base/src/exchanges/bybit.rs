@@ -5735,9 +5735,9 @@ impl Bybit {
                     fundingInterval = (if let Some(__l) = ((if let Some(__l) = fundingTimeFrameMins { Some(__l * 60) } else { None })) { Some(__l * 1000) } else { None });
                 }
                 if (limit == Value::Null) {
-                    request.insert("endTime".into(), self.sum(&[since.clone(), Value::from((if let Some(__r) = fundingInterval { Some(200 * __r) } else { None }))]));
+                    request.insert("endTime".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__r) = fundingInterval { Some(200 * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })));
                 }  else {
-                    request.insert("endTime".into(), self.sum(&[since.clone(), (match (&(limit), &(Value::from(fundingInterval))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                    request.insert("endTime".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let (Some(__l), Some(__r)) = (limit.as_i64(), fundingInterval) { Some(__l * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })));
                 }
             }
         }
@@ -5969,7 +5969,7 @@ impl Bybit {
         }  else {
             let mut lastLiquidityInd: Option<String> = self.safe_string_k(trade.clone(), "lastLiquidityInd", &[]).as_str().map(str::to_owned);
             if (lastLiquidityInd.as_deref() == Some("UNKNOWN")) {
-                lastLiquidityInd = None.clone();
+                lastLiquidityInd = None;
             }
             if (lastLiquidityInd.is_some()) {
                 if (lastLiquidityInd.as_deref() == Some("TAKER")) || (lastLiquidityInd.as_deref() == Some("MAKER")) {
@@ -5981,7 +5981,7 @@ impl Bybit {
         }
         let mut orderType: Option<String> = self.safe_string_lower_k(trade.clone(), "orderType", &[]).as_str().map(str::to_owned);
         if (orderType.as_deref() == Some("unknown")) {
-            orderType = None.clone();
+            orderType = None;
         }
         let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "execFee", &[]).as_str().map(str::to_owned);
         let mut fee: Option<crate::value::Dict> = None;
@@ -6699,7 +6699,7 @@ impl Bybit {
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "orderLinkId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) && (((clientOrderId.as_deref().unwrap_or_default().chars().count() as i64)) < 1) {
-            clientOrderId = None.clone();
+            clientOrderId = None;
         }
         let mut avgPrice: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[]));
         let mut rawTimeInForce: Option<String> = self.safe_string_k(order.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
@@ -10218,7 +10218,7 @@ impl Bybit {
             }  else if (side.as_deref() == Some("Sell")) {
                 side = (if isHistory { Some("long".to_string()) } else { Some("short".to_string()) });
             }  else {
-                side = None.clone();
+                side = None;
             }
         }
         let mut notional: Option<String> = None;
@@ -10260,7 +10260,7 @@ impl Bybit {
                 }
                 let mut difference: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&price, &liquidationPrice)).as_str().map(str::to_owned);
                 collateralString = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&difference, &size), &maintenanceMarginString), &unrealisedPnl);
-                positionMarginString = None.clone(); // derived from collateral by safePosition
+                positionMarginString = None; // derived from collateral by safePosition
             }  else {
                 let mut bustPrice: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "bustPrice", &[]));
                 let mut closingFee: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "occClosingFee", &[]));

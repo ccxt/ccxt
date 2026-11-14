@@ -4037,7 +4037,7 @@ impl Htx {
             let mut baseId: Option<String> = None;
             let mut quoteId: Option<String> = None;
             let mut settleId: Option<String> = None;
-            let mut id: Value = Value::Null;
+            let mut id: Option<String> = None;
             let mut lowercaseId: Option<String> = None;
             let mut contract: Value = (Value::Bool(market.contains_key("contract_code")));
             let mut spot: bool = !(matches!(&contract, Value::Bool(true)));
@@ -4051,7 +4051,7 @@ impl Htx {
                 if (contractId.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " method() missing id")));
                 }
-                id = self.safe_string_k(&market, "contract_code", &[]);
+                id = self.safe_string_k(&market, "contract_code", &[]).as_str().map(str::to_owned);
                 lowercaseId = contractId.as_deref().map(str::to_lowercase);
                 let mut delivery_date: Option<String> = self.safe_string_k(&market, "delivery_date", &[]).as_str().map(str::to_owned);
                 let mut business_type: Option<String> = self.safe_string_k(&market, "business_type", &[]).as_str().map(str::to_owned);
@@ -4098,7 +4098,7 @@ impl Htx {
                 baseId = spotBaseId.clone();
                 quoteId = spotQuoteId.clone();
                 let mut spotId: String = format!("{}{}", spotBaseId.as_deref().unwrap_or("null"), spotQuoteId.as_deref().unwrap_or("null"));
-                id = Value::from(spotId.clone());
+                id = Some(spotId.clone());
                 lowercaseId = Some(spotId.to_lowercase());
             }
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -4182,7 +4182,7 @@ impl Htx {
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("lowercaseId".to_string(), lowercaseId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::from(symbol));
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
@@ -6263,11 +6263,11 @@ impl Htx {
                                                 let mut j: i64 = 0;
                         let mut __for_first_776: bool = true;
                         while { if !__for_first_776 { j += 1; } __for_first_776 = false; j < (balances.len() as i64) } {
-                        let mut balance: Value = crate::value::KeyRead::read(&&balances, &Value::Int(j));
-                        let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+                        let mut balance: Option<crate::value::Dict> = crate::value::KeyRead::read(&&balances, &Value::Int(j)).into_opt_dict();
+                        let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
                         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
                         if (code != Value::Null) {
-                            { let __be_tmp = self.parse_margin_balance_helper(balance, code.as_str().unwrap_or_default(), Value::Map(subResult.clone())); subResult.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+                            { let __be_tmp = self.parse_margin_balance_helper(balance.map_or(Value::Null, Value::Dict), code.as_str().unwrap_or_default(), Value::Map(subResult.clone())); subResult.insert(crate::runtime::stringify_param(&code), __be_tmp); }
                         }
                     }
                     }
@@ -6289,11 +6289,11 @@ impl Htx {
                                         let mut i: i64 = 0;
                     let mut __for_first_779: bool = true;
                     while { if !__for_first_779 { i += 1; } __for_first_779 = false; i < (balances.len() as i64) } {
-                    let mut balance: Value = crate::value::KeyRead::read(&&balances, &Value::Int(i));
-                    let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+                    let mut balance: Option<crate::value::Dict> = crate::value::KeyRead::read(&&balances, &Value::Int(i)).into_opt_dict();
+                    let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
                     if (code != Value::Null) {
-                        { let __be_tmp = self.parse_margin_balance_helper(balance, code.as_str().unwrap_or_default(), result.clone()); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+                        { let __be_tmp = self.parse_margin_balance_helper(balance.map_or(Value::Null, Value::Dict), code.as_str().unwrap_or_default(), result.clone()); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
                     }
                 }
                 }
@@ -7684,7 +7684,7 @@ impl Htx {
                 type_var = self.safe_string2(order.clone(), Value::Str("tp_type".into()), Value::Str("sl_type".into()), &[]).as_str().map(str::to_owned);
             }
             if (type_var.as_deref() == Some("0")) {
-                type_var = None.clone();
+                type_var = None;
             }
         }  else {
             let mut rawType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -9133,13 +9133,13 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_783: bool = true;
             while { if !__for_first_783 { i += 1; } __for_first_783 = false; i < (data.len() as i64) } {
-            let mut order: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut order: Option<crate::value::Dict> = data.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             result.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), order.clone());
-                    m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
+                    m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));
+                    m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
                     m.insert("status".to_string(), Value::Str("canceled".into()));
-                    m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client_order_id", &[]));
+                    m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
                 m
             }), None));
         }
@@ -9162,13 +9162,13 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_785: bool = true;
             while { if !__for_first_785 { i += 1; } __for_first_785 = false; i < (failed.len() as i64) } {
-            let mut order: Value = crate::value::KeyRead::read(&&failed, &Value::Int(i));
+            let mut order: Option<crate::value::Dict> = crate::value::KeyRead::read(&&failed, &Value::Int(i)).into_opt_dict();
             result.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), order.clone());
-                    m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
+                    m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));
+                    m.insert("id".to_string(), self.safe_string2(&order, Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
                     m.insert("status".to_string(), Value::Str("failed".into()));
-                    m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client-order-id", &[]));
+                    m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client-order-id", &[]));
                 m
             }), None));
         }
@@ -10370,12 +10370,12 @@ impl Htx {
             let mut cursor: Value = self.safe_value_k(data.clone(), "current_page", &[]);
             let mut result: Value = self.safe_list_k(data, "data", &[Value::from(vec![])]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_788: bool = true;
-                while { if !__for_first_788 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_788 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
-                let mut entry: Value = get_value(&result, &i);
+                while { if !__for_first_788 { i += 1; } __for_first_788 = false; i < (result.len() as i64) } {
+                let mut entry: Value = get_value(&result, &Value::Int(i));
                 add_element_to_object(&mut entry, &Value::Str("current_page".into()), cursor.clone());
-                crate::set_value(&mut result, &i, entry.clone());
+                crate::set_value(&mut result, &Value::Int(i), entry.clone());
                 let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "contract_code", &[]).as_str().map(str::to_owned);
                 let mut symbolInner: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
                 let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "funding_time", &[]).as_i64();
@@ -11544,9 +11544,9 @@ impl Htx {
                                 let mut i: i64 = 0;
                 let mut __for_first_790: bool = true;
                 while { if !__for_first_790 { i += 1; } __for_first_790 = false; i < (positions.len() as i64) } {
-                let mut entry: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
-                if (self.safe_string_k(entry.clone(), "contract_code", &[]).as_str() == marketId.as_deref()) {
-                    position = entry;
+                let mut entry: Option<crate::value::Dict> = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+                if (self.safe_string_k(&entry, "contract_code", &[]).as_str() == marketId.as_deref()) {
+                    position = entry.map_or(Value::Null, Value::Dict);
                     break;
                 }
             }

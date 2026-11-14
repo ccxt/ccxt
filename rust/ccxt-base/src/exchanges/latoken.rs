@@ -2651,7 +2651,7 @@ impl Latoken {
         let mut requestBody: Option<String> = None;
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
         let mut requestString: String = request.clone();
-        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut urlencodedQuery: String = self.urlencode(&query, &[]);
         if (method.as_str() == Some("GET")) {
             if (urlencodedQuery != "") {

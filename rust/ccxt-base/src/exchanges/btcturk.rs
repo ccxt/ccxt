@@ -836,9 +836,9 @@ impl Btcturk {
         if (open.is_some()) && (last.is_some()) && !(crate::precise::Precise::stringEq(&open, &Value::Str("0".into())).as_bool() == Some(true)) {
             // The reported daily fields can disagree with last - open.
             // Let safeTicker derive the unified change, percentage and average from these prices.
-            change = None.clone();
-            percentage = None.clone();
-            average = None.clone();
+            change = None;
+            percentage = None;
+            average = None;
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1622,11 +1622,11 @@ impl Btcturk {
                 url.push_str(&format!("{}{}", "?", query));
             }
         }
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         if isQueryMethod {
-            requestBody = Value::Null;
+            requestBody = None;
         }  else {
-            requestBody = json_stringify(&params);
+            requestBody = json_stringify(&params).as_str().map(str::to_owned);
         }
         let mut privateHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("private")) {
@@ -1647,7 +1647,7 @@ impl Btcturk {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), privateHeaders.map_or(Value::Null, Value::Dict));
     m
 });

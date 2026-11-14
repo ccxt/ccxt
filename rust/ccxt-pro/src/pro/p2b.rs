@@ -655,7 +655,7 @@ impl P2b {
         if (symbol.is_some()) {
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                stored = Some(ArrayCacheByTimestamp::new(limit));
+                stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
             stored.append(Value::Arr(parsed));
@@ -699,7 +699,7 @@ impl P2b {
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesArray.is_none()) {
             let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            tradesArray = Some(ArrayCache::new(tradesLimit));
+            tradesArray = Some(ArrayCache::new(Value::from(tradesLimit)));
             CacheStore::put(&mut self.trades, &symbol, tradesArray.clone());
         }
         {

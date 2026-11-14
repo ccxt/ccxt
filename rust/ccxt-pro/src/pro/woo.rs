@@ -1300,7 +1300,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             if (symbol.is_some()) && (timeframe.is_some()) {
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
@@ -1420,7 +1420,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesArray.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            tradesArray = Some(ArrayCache::new(limit));
+            tradesArray = Some(ArrayCache::new(Value::from(limit)));
         }
         tradesArray.append(Value::Dict(trade));
         CacheStore::put(&mut self.trades, &symbol, tradesArray.clone());
@@ -1913,7 +1913,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (symbol.is_some()) {
             if (self.orders.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                self.orders = Some(ArrayCacheBySymbolById::new(limit));
+                self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
             let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
             let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -1976,7 +1976,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trade: crate::value::Dict = self.parse_ws_trade(message, None).into_dict();
         myTrades.append(Value::from(&trade));

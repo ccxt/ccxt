@@ -3362,19 +3362,19 @@ impl Bitvavo {
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path, params));
         let mut getOrDelete: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"));
         if getOrDelete {
-            if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if !(self.is_empty(&query).as_bool() == Some(true)) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut payload: Option<String> = Some("".to_string());
             if !getOrDelete {
-                if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
+                if !(self.is_empty(&query).as_bool() == Some(true)) {
                     payload = json_stringify(&query).as_str().map(str::to_owned);
                     requestBody = payload.clone();
                 }

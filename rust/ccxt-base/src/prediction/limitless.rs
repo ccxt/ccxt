@@ -655,11 +655,11 @@ impl Limitless {
                                         let mut j: i64 = 0;
                     let mut __for_first_1299: bool = true;
                     while { if !__for_first_1299 { j += 1; } __for_first_1299 = false; j < (found.len() as i64) } {
-                    let mut raw: Value = found.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut slug: Option<String> = self.safe_string_k(raw.clone(), "slug", &[]).as_str().map(str::to_owned);
+                    let mut raw: Option<crate::value::Dict> = found.get(j as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+                    let mut slug: Option<String> = self.safe_string_k(&raw, "slug", &[]).as_str().map(str::to_owned);
                     if ((slug.is_some()) && (slug.as_deref() != Some(""))) && !(matches!(slug.as_deref(), Some(__k) if seen.contains_key(__k))) {
                         seen.insert(slug.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                        std::sync::Arc::make_mut(&mut allRaw).push(raw);
+                        std::sync::Arc::make_mut(&mut allRaw).push(raw.map_or(Value::Null, Value::Dict));
                     }
                 }
                 }
@@ -942,18 +942,18 @@ impl Limitless {
             }  else if (labelLower.as_deref() == Some("no")) {
                 legIndex = Value::Int(1);
             }
-            let mut winnerRaw: Value = Value::Null;
+            let mut winnerRaw: Option<bool> = None;
             let mut settleFractionRaw: Option<i64> = None;
             if matches!(&marketResolved, Value::Bool(true)) {
-                winnerRaw = (Value::Bool(legIndex.as_f64() == winningOutcomeIndex.as_f64()));
-                settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Some(1) } else { Some(0) });
-                if winnerRaw.as_bool() == Some(true) {
+                winnerRaw = Some(legIndex.as_f64() == winningOutcomeIndex.as_f64());
+                settleFractionRaw = (if (winnerRaw == Some(true)) { Some(1) } else { Some(0) });
+                if (winnerRaw == Some(true)) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
             }
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
-            let mut winner: Value = winnerRaw;
+            let mut winner: Value = winnerRaw.map(Value::from).unwrap_or(Value::Null);
             let mut settleFraction: Option<i64> = settleFractionRaw;
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4368,7 +4368,7 @@ if _try_result.is_err() {
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
         let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "limitless")]);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut querystring: String = self.urlencode_with_array_repeat(&query);
         if (method.as_str() == Some("GET")) && (querystring != "") {
             url.push_str(&format!("{}{}", "?", querystring));

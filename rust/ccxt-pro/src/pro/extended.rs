@@ -599,12 +599,9 @@ impl Extended {
                 m
             });
         }
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
-        let mut balance: Option<crate::value::Dict> = self.safe_dict_k(data.clone(), "balance", &[]).into_opt_dict();
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
+        let mut balance: Option<crate::value::Dict> = self.safe_dict_k(&data, "balance", &[]).into_opt_dict();
         if (balance.is_some()) {
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "collateralName", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -615,7 +612,7 @@ impl Extended {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
             }
         }
-        let mut spotBalances: crate::value::List = self.safe_list_k(data, "spotBalances", &[Value::from(vec![])]).into_list();
+        let mut spotBalances: crate::value::List = self.safe_list_k(&data, "spotBalances", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_307: bool = true;
@@ -722,7 +719,7 @@ impl Extended {
         //
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
@@ -923,7 +920,7 @@ impl Extended {
         //
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
@@ -1238,7 +1235,7 @@ impl Extended {
         if (stored.is_none()) {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[Value::from(defaultLimit)]).as_i64();
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut previousNonce: Option<i64> = self.safe_integer_k(subscription.clone(), "nonce", &[]).as_i64();
@@ -1370,7 +1367,7 @@ impl Extended {
         if (stored.is_none()) {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[Value::from(defaultLimit)]).as_i64();
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &cacheKey, stored.clone());
         }
         let mut previousNonce: Option<i64> = self.safe_integer_k(subscription.clone(), "nonce", &[]).as_i64();

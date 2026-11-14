@@ -523,7 +523,7 @@ impl Bittrade {
         let mut tradesCache: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesCache.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            tradesCache = Some(ArrayCache::new(limit));
+            tradesCache = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, tradesCache.clone());
         }
         {
@@ -652,7 +652,7 @@ impl Bittrade {
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
         let mut tick: Option<crate::value::Dict> = message.get("tick").cloned().unwrap_or_default().into_opt_dict();

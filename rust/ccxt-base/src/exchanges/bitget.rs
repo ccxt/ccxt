@@ -9186,7 +9186,7 @@ if _try_result.is_err() {
             calculatedStartTime = since.clone();
             request.insert("startTime".into(), since.clone());
             if (until.is_none()) {
-                calculatedEndTime = self.sum(&[since.clone(), Value::from(recentDuration)]);
+                calculatedEndTime = Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), recentDuration) { Some((__m0 + __m1)) } else { None }));
                 if matches!((since.as_i64(), ((if let Some(__r) = recentDuration { Some(now - __r) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) > (__r as f64)) {
                     calculatedEndTime = Value::from(now);
                 }

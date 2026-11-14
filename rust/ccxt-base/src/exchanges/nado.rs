@@ -2225,10 +2225,10 @@ impl Nado {
                                 let mut j: i64 = 0;
                 let mut __for_first_983: bool = true;
                 while { if !__for_first_983 { j += 1; } __for_first_983 = false; j < (txs.len() as i64) } {
-                let mut rawTx: Value = txs.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut txSubmissionIdx: Option<String> = self.safe_string_k(rawTx.clone(), "submission_idx", &[]).as_str().map(str::to_owned);
+                let mut rawTx: Option<crate::value::Dict> = txs.get(j as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+                let mut txSubmissionIdx: Option<String> = self.safe_string_k(&rawTx, "submission_idx", &[]).as_str().map(str::to_owned);
                 if (txSubmissionIdx == submissionIdx) {
-                    tx = rawTx;
+                    tx = rawTx.map_or(Value::Null, Value::Dict);
                     break;
                 }
             }
@@ -2340,10 +2340,10 @@ impl Nado {
                                 let mut j: i64 = 0;
                 let mut __for_first_985: bool = true;
                 while { if !__for_first_985 { j += 1; } __for_first_985 = false; j < (products.len() as i64) } {
-                let mut rawProduct: Value = products.get(j as usize).cloned().unwrap_or(Value::Null);
-                let mut rawProductId: Option<String> = self.safe_string_k(rawProduct.clone(), "product_id", &[]).as_str().map(str::to_owned);
+                let mut rawProduct: Option<crate::value::Dict> = products.get(j as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+                let mut rawProductId: Option<String> = self.safe_string_k(&rawProduct, "product_id", &[]).as_str().map(str::to_owned);
                 if (rawProductId == productId) {
-                    product = rawProduct;
+                    product = rawProduct.map_or(Value::Null, Value::Dict);
                     break;
                 }
             }
@@ -4432,7 +4432,7 @@ impl Nado {
             pathSuffix = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         }
         let mut url: String = format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), pathSuffix);
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4441,8 +4441,8 @@ impl Nado {
             headersValue.insert("Accept-Encoding".into(), Value::Str("gzip, br, deflate".into()));
         }
         if (method.as_str() == Some("GET")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), pathSuffix).into()), "?").into()), self.urlencode(query.clone(), &[]));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), pathSuffix).into()), "?").into()), self.urlencode(&query, &[]));
             }
         }  else {
             headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));

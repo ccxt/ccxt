@@ -5601,18 +5601,16 @@ impl Kucoin {
         // To obtain more data, please page the data by time.
         let mut windowLimit: Option<i64> = (if (limit == Value::Null) { self.safe_integer_k(self.options.clone(), "fetchOHLCVLimit", &[Value::from(maxLimit)]).as_i64() } else { limit.as_i64() });
         let mut limitResolved: Option<i64> = (if (since != Value::Null) { windowLimit } else { limit.as_i64() });
-        let mut sinceResolved: Value = since.clone();
+        let mut sinceResolved: Option<i64> = since.as_i64();
         if (since == Value::Null) && (limit != Value::Null) {
-            sinceResolved = (match (&(Value::from(now)), &((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            sinceResolved = (if let Some(__r) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some(now - __r) } else { None });
         }
-        let mut endAt: Option<i64> = (if (since != Value::Null) { self.parse_to_int(self.sum(&[since.clone(), Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))])) } else { Some(now) });
+        let mut endAt: Option<i64> = (if (since != Value::Null) { self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None }))) } else { Some(now) });
         if (since != Value::Null) {
             request.insert("startAt".into(), Value::from(self.parse_to_int(((match ((since).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null))));
         }  else if (limit != Value::Null) {
-            request.insert("startAt".into(), Value::from(self.parse_to_int(((match ((((match (&(Value::from(now)), &((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                _ => Value::Null }))).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null))));
+            request.insert("startAt".into(), Value::from(self.parse_to_int(((match (((Value::from((if let Some(__r) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some(now - __r) } else { None })))).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y),
+                _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null))));
         }
         request.insert("endAt".into(), Value::from(self.parse_to_int(((match ((Value::from(endAt)).as_f64(), (Value::from(denominator)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null))));
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsPaginate]);
@@ -5628,7 +5626,7 @@ impl Kucoin {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, sinceResolved, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, Value::from(sinceResolved), Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -5696,19 +5694,18 @@ impl Kucoin {
         // To obtain more data, please page the data by time.
         let mut windowLimit: Option<i64> = (if (limit == Value::Null) { self.safe_integer_k(self.options.clone(), "fetchOHLCVLimit", &[Value::from(maxLimit)]).as_i64() } else { limit.as_i64() });
         let mut limitResolved: Option<i64> = (if (since != Value::Null) { windowLimit } else { limit.as_i64() });
-        let mut sinceResolved: Value = since.clone();
+        let mut sinceResolved: Option<i64> = since.as_i64();
         if (since == Value::Null) && (limit != Value::Null) {
-            sinceResolved = (match (&(Value::from(now)), &((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            sinceResolved = (if let Some(__r) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some(now - __r) } else { None });
         }
-        let mut endAt: Value = Value::from(now);
+        let mut endAt: Option<i64> = Some(now);
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
-            endAt = self.sum(&[since, Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))]);
+            endAt = (if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None });
         }  else if (limit != Value::Null) {
-            request.insert("from".into(), sinceResolved.clone());
+            request.insert("from".into(), Value::from(sinceResolved));
         }
-        request.insert("to".into(), endAt);
+        request.insert("to".into(), Value::from(endAt));
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.futures_public_get_kline_query(&[__ws_arg_14]).await.into_dict();
         //
@@ -5722,7 +5719,7 @@ impl Kucoin {
         //    }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, sinceResolved, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, Value::from(sinceResolved), Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -9186,11 +9183,11 @@ impl Kucoin {
         // bool
         let mut isActive: Option<bool> = self.safe_bool_k(order.clone(), "isActive", &[]).as_bool();
         let mut cancelExist: bool = self.safe_bool_k(order.clone(), "cancelExist", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if (isActive.is_some()) {
-            status = (if (isActive == Some(true)) { Value::Str("open".into()) } else { Value::Str("closed".into()) });
+            status = (if (isActive == Some(true)) { Some("open".to_string()) } else { Some("closed".to_string()) });
         }
-        status = (if cancelExist { Value::Str("canceled".into()) } else { status.clone() });
+        status = (if cancelExist { Some("canceled".to_string()) } else { status.clone() });
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -9224,7 +9221,7 @@ impl Kucoin {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), order);
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
@@ -10294,7 +10291,7 @@ impl Kucoin {
         }
         let mut type_var: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("match")) {
-            type_var = None.clone();
+            type_var = None;
         }
         let mut costString: Option<String> = self.safe_string2(trade.clone(), Value::Str("funds".into()), Value::Str("dealValue".into()), &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
@@ -10430,7 +10427,7 @@ impl Kucoin {
         }
         let mut type_var: Option<String> = self.safe_string2(trade.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("match")) {
-            type_var = None.clone();
+            type_var = None;
         }
         let mut costString: Option<String> = self.safe_string2(trade.clone(), Value::Str("funds".into()), Value::Str("value".into()), &[]).as_str().map(str::to_owned);
         if (costString.is_none()) {
@@ -11500,11 +11497,11 @@ impl Kucoin {
                                 let mut i: i64 = 0;
                 let mut __for_first_897: bool = true;
                 while { if !__for_first_897 { i += 1; } __for_first_897 = false; i < (accounts.len() as i64) } {
-                let mut balance: Value = accounts.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "currency", &[]).as_str().map(str::to_owned);
+                let mut balance: crate::value::Dict = accounts.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
                 let mut codeInner: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 if (codeInner.is_some()) {
-                    std::sync::Arc::make_mut(&mut result).insert(codeInner.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(balance));
+                    std::sync::Arc::make_mut(&mut result).insert(codeInner.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(&balance));
                 }
             }
             }
@@ -12431,11 +12428,11 @@ if _try_result.is_err() {
             requestedType = Value::Str("UNIFIED".into());
         }
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), None, &[Value::from(&paramsRequest), requestedType.clone()]).as_array().cloned().unwrap_or_default(); requestedType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut marginMode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLedger".into()), &[Value::from(&paramsRequest)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut marginMode: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLedger".into()), &[Value::from(&paramsRequest)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if uta && (requestedType.as_str() == Some("margin")) {
-            marginMode = (if (marginMode == Value::Null) { Value::Str("cross".into()) } else { marginMode.clone() }); // default to cross margin for UTA if margin is requested but marginMode is not specified
-            requestedType = marginMode.clone();
+            marginMode = (if (marginMode.is_none()) { Some("cross".to_string()) } else { marginMode.clone() }); // default to cross margin for UTA if margin is requested but marginMode is not specified
+            requestedType = marginMode.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut accountsByType: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "accountsByType", &[]).into_opt_dict();
         if uta {
@@ -12493,7 +12490,7 @@ if _try_result.is_err() {
             let __ws_arg_110 = self.extend(&request, &[&paramsRequest]);
             response = self.uta_private_get_account_ledger(&[__ws_arg_110]).await.into_opt_dict();
         }  else if (hf == Some(true)) {
-            if (marginMode != Value::Null) {
+            if (marginMode.is_some()) {
                 let __ws_arg_111 = self.extend(&request, &[&paramsRequest]);
                 response = self.private_get_hf_margin_account_ledgers(&[__ws_arg_111]).await.into_opt_dict();
             }  else {
@@ -12597,8 +12594,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut defaultVersion: Value = self.safe_string(&methodVersions, path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
-        let mut version: Option<String> = self.safe_string_k(params.clone(), "version", &[defaultVersion]).as_str().map(str::to_owned);
+        let mut defaultVersion: Option<String> = self.safe_string(&methodVersions, path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut version: Option<String> = self.safe_string_k(params.clone(), "version", &[defaultVersion.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("utaV2")) && (path.as_str() == Some("market/orderbook")) {
             // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
             // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
@@ -15877,8 +15874,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut defaultVersion: Value = self.safe_string(&methodVersions, path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
-        let mut version: Option<String> = self.safe_string_k(params.clone(), "version", &[defaultVersion]).as_str().map(str::to_owned);
+        let mut defaultVersion: Option<String> = self.safe_string(&methodVersions, path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut version: Option<String> = self.safe_string_k(params.clone(), "version", &[defaultVersion.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("version".into()), &[]);
         let mut endpoint: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/api/", version.as_deref().unwrap_or("null")).into()), "/").into()), self.implode_params(path.clone(), paramsOmitted.clone()));
         if (apiName.as_deref() == Some("utaV2")) {

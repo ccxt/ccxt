@@ -971,7 +971,7 @@ impl Deribit {
         let mut cachedTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (cachedTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            cachedTrades = Some(ArrayCacheBySymbolById::new(limit));
+            cachedTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut parsed: crate::value::List = self.parse_trades(&trades, None, &[]).into_list();
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
@@ -1304,7 +1304,7 @@ impl Deribit {
         //
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut channel: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

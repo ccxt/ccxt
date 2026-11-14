@@ -1060,7 +1060,7 @@ impl Bithumb {
             let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[fallbackSymbol.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             if !(self.trades.has(&symbol)) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                let mut stored: crate::pro::cache::Cache = ArrayCache::new(limit);
+                let mut stored: crate::pro::cache::Cache = ArrayCache::new(Value::from(limit));
                 CacheStore::put(&mut self.trades, &symbol, stored);
             }
             let mut trades: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
@@ -1472,7 +1472,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // const orderId = this.safeString (parsed, 'id');
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
         cachedOrders.append(Value::from(&parsed));

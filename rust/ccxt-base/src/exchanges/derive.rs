@@ -1507,9 +1507,9 @@ impl Derive {
         let mut swapMarketsPromise: Value = self.fetch_swap_markets(&[params.clone()]).await;
         let mut optionMarketsPromise: Value = self.fetch_option_markets(&[params]).await;
         let spotMarketsswapMarketsoptionMarketsVariable: Vec<Value> = promise_all(&Value::from(vec![spotMarketsPromise, swapMarketsPromise, optionMarketsPromise])).await.as_array().cloned().unwrap_or_default();
-        let mut spotMarkets: Value = spotMarketsswapMarketsoptionMarketsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut swapMarkets: Value = spotMarketsswapMarketsoptionMarketsVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut optionMarkets: Value = spotMarketsswapMarketsoptionMarketsVariable.get(2).cloned().unwrap_or(Value::Null);
+        let mut spotMarkets: crate::value::List = spotMarketsswapMarketsoptionMarketsVariable.get(0).cloned().unwrap_or(Value::Null).into_list();
+        let mut swapMarkets: crate::value::List = spotMarketsswapMarketsoptionMarketsVariable.get(1).cloned().unwrap_or(Value::Null).into_list();
+        let mut optionMarkets: crate::value::List = spotMarketsswapMarketsoptionMarketsVariable.get(2).cloned().unwrap_or(Value::Null).into_list();
         //
         //     {
         //         "id": "dd959aa7-d878-45b8-926d-3a247376de90",
@@ -1559,8 +1559,8 @@ impl Derive {
         //         }
         //     }
         //
-        let mut result: Value = self.array_concat(spotMarkets, swapMarkets);
-        result = self.array_concat(result, optionMarkets);
+        let mut result: Value = self.array_concat(&spotMarkets, &swapMarkets);
+        result = self.array_concat(result, &optionMarkets);
         return result;
         Value::Null
         }).await?))
@@ -2479,9 +2479,8 @@ impl Derive {
         }
         if (limit != Value::Null) {
             // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-            let mut pageSize: Value = (if (limit.as_f64().unwrap_or(f64::NAN) > ((500i64) as f64)) { Value::Int(1000) } else { (match (&(limit), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }) }); // default 100, max 1000
-            request.insert("page_size".into(), pageSize);
+            let mut pageSize: Option<i64> = (if (limit.as_f64().unwrap_or(f64::NAN) > ((500i64) as f64)) { Some(1000) } else { (if let Some(__l) = limit.as_i64() { Some(__l * 2) } else { None }) }); // default 100, max 1000
+            request.insert("page_size".into(), Value::from(pageSize));
         }
         if (since != Value::Null) {
             request.insert("from_timestamp".into(), since.clone());
@@ -5803,7 +5802,7 @@ impl Derive {
         // tx_hash is the settling ethereum L1 transaction and stays null until the batch settles; deposits carry the sender's own L1 transaction in l1_tx_hash
         let mut txId: Option<String> = self.safe_string2(transaction.clone(), Value::Str("tx_hash".into()), Value::Str("l1_tx_hash".into()), &[]).as_str().map(str::to_owned);
         if (txId.as_deref() == Some("0x0")) {
-            txId = None.clone();
+            txId = None;
         }
         let mut feeCost: Option<f64> = self.safe_number_k(transaction.clone(), "fee", &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;

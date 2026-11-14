@@ -667,10 +667,10 @@ impl Gate {
         let mut query: crate::value::Dict = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let requestrequestParamsVariable: Vec<Value> = (if (type_var.as_deref() == Some("spot")) { self.parent.multi_order_spot_prepare_request(market.as_ref(), &[trigger.map_or(Value::Null, Value::Bool), Value::from(&query)]) } else { self.parent.prepare_request(market.as_ref(), &[type_var.clone().map(Value::from).unwrap_or(Value::Null),
             Value::from(&query)]) }).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut requestParams: Value = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+        let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
-        let __ws_arg_0 = self.extend(request, &[requestParams]);
+        let __ws_arg_0 = self.extend(request, &[&requestParams]);
         let mut rawOrders: Value = self.request_private(url.as_deref(), __ws_arg_0, channelOption.as_deref(), None).await;
         return self.parse_orders(rawOrders, market.as_ref(), &[]);
         Value::Null
@@ -717,14 +717,14 @@ impl Gate {
         let mut query: crate::value::Dict = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let requestrequestParamsVariable: Vec<Value> = (if ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"))) { self.parent.spot_order_prepare_request(market.as_ref(), &[Value::Bool(trigger), Value::from(&query)]) } else { self.parent.prepare_request(market.as_ref(), &[type_var.clone().map(Value::from).unwrap_or(Value::Null),
             Value::from(&query)]) }).as_array().cloned().unwrap_or_default();
-        let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut requestParams: Value = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+        let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Option<String> = self.get_type_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_cancel");
         let mut url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
-        add_element_to_object(&mut request, &Value::Str("order_id".into()), Value::Str(format!("{}", id).into()));
-        let __ws_arg_1 = self.extend(request, &[requestParams]);
+        std::sync::Arc::make_mut(&mut request).insert("order_id".into(), Value::Str(format!("{}", id).into()));
+        let __ws_arg_1 = self.extend(request, &[&requestParams]);
         let mut res: Value = self.request_private(url.as_deref(), __ws_arg_1, Some(channel.as_str()), None).await;
         return self.parse_order(res, market.as_ref());
         Value::Null
@@ -1571,10 +1571,10 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_322: bool = true;
             while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < (results.len() as i64) } {
-            let mut rawTicker: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(rawTicker.clone(), "s", &[]).as_str().map(str::to_owned);
+            let mut rawTicker: Option<crate::value::Dict> = results.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&rawTicker, "s", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::from(marketType.clone())]);
-            let mut parsedItem: crate::value::Dict = self.parse_ticker(rawTicker, Some(&market)).into_dict();
+            let mut parsedItem: crate::value::Dict = self.parse_ticker(rawTicker.map_or(Value::Null, Value::Dict), Some(&market)).into_dict();
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsedItem, "symbol").as_str().map(str::to_owned);
             if isTicker {
                 if (symbol.is_some()) {
@@ -1784,7 +1784,7 @@ impl Gate {
             let mut cachedTrades: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (cachedTrades.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                cachedTrades = Some(ArrayCache::new(limit));
+                cachedTrades = Some(ArrayCache::new(Value::from(limit)));
                 if (symbol.is_some()) {
                     CacheStore::put(&mut self.trades, &symbol, cachedTrades.clone());
                 }
@@ -1979,7 +1979,7 @@ impl Gate {
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                stored = Some(ArrayCacheByTimestamp::new(limit));
+                stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
                 if (symbol != Value::Null) && (timeframe.is_some()) {
                     CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
                 }
@@ -2105,7 +2105,7 @@ impl Gate {
         let mut cachedTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (cachedTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            cachedTrades = Some(ArrayCacheBySymbolById::new(limit));
+            cachedTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             self.myTrades = cachedTrades.clone();
         }
         let mut parsed: crate::value::List = self.parse_trades(Value::Arr(result), None, &[]).into_list();
@@ -2255,13 +2255,13 @@ impl Gate {
         //       ]
         //   }
         //
-        let mut result: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), result.clone()); }
+        let mut result: crate::value::List = message.get("result").cloned().unwrap_or_default().into_list();
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(result.clone())); }
         {
                         let mut i: i64 = 0;
             let mut __for_first_330: bool = true;
             while { if !__for_first_330 { i += 1; } __for_first_330 = false; i < (result.len() as i64) } {
-            let mut rawBalance: crate::value::Dict = self.safe_dict(result.clone(), Value::Int(i), &[]).into_dict();
+            let mut rawBalance: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut currencyId: String = self.safe_string_k(&rawBalance, "currency", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string(); // when not present it is USDT
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId), None);
@@ -2656,7 +2656,7 @@ impl Gate {
         let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         if (self.orders.is_none()) {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
-            self.triggerOrders = Value::from(ArrayCacheBySymbolById::new(limit));
+            self.triggerOrders = Value::from(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Value = (if isTrigger { self.triggerOrders.clone() } else { Value::from(&self.orders) });
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
@@ -2853,7 +2853,7 @@ impl Gate {
         let mut newLiquidations: crate::value::List = std::sync::Arc::new(Vec::new());
         if (self.liquidations.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.liquidations = Some(ArrayCache::new(limit));
+            self.liquidations = Some(ArrayCache::new(Value::from(limit)));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.liquidations.clone();
         {

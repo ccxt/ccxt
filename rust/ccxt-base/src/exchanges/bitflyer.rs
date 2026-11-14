@@ -958,7 +958,7 @@ impl Bitflyer {
         let mut side: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.is_some()) {
             if ((side.as_deref().unwrap_or_default().chars().count() as i64)) < 1 {
-                side = None.clone();
+                side = None;
             }
         }
         let mut order: Option<String> = None;

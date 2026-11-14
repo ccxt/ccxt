@@ -725,7 +725,7 @@ impl Bitstamp {
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesArray.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            tradesArray = Some(ArrayCache::new(limit));
+            tradesArray = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, tradesArray.clone());
         }
         tradesArray.append(Value::Dict(trade));
@@ -1017,7 +1017,7 @@ impl Bitstamp {
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut trade: crate::value::Dict = self.parse_ws_my_trade(&data, Some(&market)).into_dict();
@@ -1120,7 +1120,7 @@ impl Bitstamp {
         }
         let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         if (self.orders.is_none()) {
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1301,12 +1301,12 @@ impl Bitstamp {
         // subscribed keep their cached history
         if (topic.as_deref() == Some("orders")) && (self.orders.is_some()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut freshOrdersCache: crate::pro::cache::Cache = ArrayCacheBySymbolById::new(limit.clone());
+            let mut freshOrdersCache: crate::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::from(limit));
             self.prune_cached_by_symbols(Value::from(&freshOrdersCache), Value::from(&self.orders), Value::from(&symbols));
             self.orders = Some(freshOrdersCache);
         }  else if (topic.as_deref() == Some("myTrades")) && (self.myTrades.is_some()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut freshTradesCache: crate::pro::cache::Cache = ArrayCacheBySymbolById::new(limit);
+            let mut freshTradesCache: crate::pro::cache::Cache = ArrayCacheBySymbolById::new(Value::from(limit));
             self.prune_cached_by_symbols(Value::from(&freshTradesCache), Value::from(&self.myTrades), Value::Arr(symbols));
             self.myTrades = Some(freshTradesCache);
         }  else {
@@ -1330,10 +1330,10 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_139: bool = true;
             while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (entries.len() as i64) } {
-            let mut entry: Value = entries.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut entrySymbol: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut entry: Option<crate::value::Dict> = entries.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut entrySymbol: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             if !self.in_array(&entrySymbol, symbols.clone()) {
-                newCache.append(entry);
+                newCache.append(entry.map_or(Value::Null, Value::Dict));
             }
         }
         }

@@ -683,7 +683,7 @@ impl Upbit {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         stored.append(Value::Dict(trade));
@@ -1069,7 +1069,7 @@ impl Upbit {
         // see: parseWsOrder
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut trade: crate::value::Dict = self.parse_ws_trade(message, None).into_dict();
@@ -1087,7 +1087,7 @@ impl Upbit {
         let mut orderId: Option<String> = self.safe_string_k(&parsed, "id", &[]).as_str().map(str::to_owned);
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut orders: Value = (if (symbol.is_none()) { Value::Map({

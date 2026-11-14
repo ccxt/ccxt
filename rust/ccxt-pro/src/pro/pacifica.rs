@@ -1461,7 +1461,7 @@ impl Pacifica {
         //
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut symbols: indexmap::IndexMap<String, Value> = ({
@@ -1661,7 +1661,7 @@ impl Pacifica {
         let mut messageHash: String = format!("{}{}", "trade:", symbol.as_deref().unwrap_or("null"));
         if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut stored: crate::pro::cache::Cache = ArrayCache::new(limit);
+            let mut stored: crate::pro::cache::Cache = ArrayCache::new(Value::from(limit));
             CacheStore::put(&mut self.trades, &symbol, stored);
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
@@ -1742,7 +1742,7 @@ impl Pacifica {
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "i", &[]).as_str().map(str::to_owned);
         // public trades have no orderId
         if (orderId.is_none()) {
-            takerOrMaker = None.clone();
+            takerOrMaker = None;
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1942,7 +1942,7 @@ impl Pacifica {
         let mut ohlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
         if (ohlcv.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            ohlcv = Some(ArrayCacheByTimestamp::new(limit));
+            ohlcv = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ohlcv.clone());
         }
         let mut parsed: crate::value::List = self.parse_ohlcv(Value::Dict(data), None).into_list();
@@ -2126,7 +2126,7 @@ impl Pacifica {
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut dataLength: i64 = data.len() as i64;
         if (dataLength == 0) {

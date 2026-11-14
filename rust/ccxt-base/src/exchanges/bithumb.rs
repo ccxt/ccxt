@@ -2164,7 +2164,7 @@ impl Bithumb {
         }  else if (side.as_deref() == Some("ask")) {
             side = Some("sell".to_string());
         }  else {
-            side = None.clone();
+            side = None;
         }
         let mut id: Option<String> = self.safe_string2(trade.clone(), Value::Str("cont_no".into()), Value::Str("sequential_id".into()), &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "market", &[]).as_str().map(str::to_owned);
@@ -4310,8 +4310,8 @@ impl Bithumb {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.clone().map(Value::from).unwrap_or(Value::Null)), endpoint);
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut queryKeys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
+        let mut queryKeys: Vec<Value> = Value::Array(query.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut queryKeysLength: i64 = queryKeys.len() as i64;
         let mut hasQuery: bool = queryKeysLength > 0;
         if (apiName.as_deref() == Some("public")) {
@@ -4321,7 +4321,7 @@ impl Bithumb {
                 m
             });
             if hasQuery {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.clone().map(Value::from).unwrap_or(Value::Null)), endpoint).into()), "?").into()), self.urlencode(query.clone(), &[]));
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.clone().map(Value::from).unwrap_or(Value::Null)), endpoint).into()), "?").into()), self.urlencode(&query, &[]));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -4345,10 +4345,10 @@ impl Bithumb {
                     if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                     if hasQuery {
                         requestBody = json_stringify(&query);
-                        auth = self.urlencode_with_array_brackets(query.clone());
+                        auth = self.urlencode_with_array_brackets(&query);
                     }
                 }  else if hasQuery {
-                    auth = self.urlencode_with_array_brackets(query.clone());
+                    auth = self.urlencode_with_array_brackets(&query);
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), endpoint).into()), "?").into()), auth);
                 }
                 if hasQuery {
@@ -4362,7 +4362,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
         m.insert("endpoint".to_string(), Value::from(endpoint.clone()));
     m
-}), &[query]);
+}), &[&query]);
                 let mut encodedBody: String = self.urlencode(__ws_arg_49, &[]);
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 let mut bodyParts: crate::value::List = Value::Array(encodedBody.split("%20").map(Value::from).collect()).into_list();

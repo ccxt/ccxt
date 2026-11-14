@@ -1307,7 +1307,7 @@ impl Dydx {
             // the indexer returns the newest candles in the range, so the range ends where the limit does
             let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
             let mut count: i64 = i64::min(limit.as_i64().unwrap_or(1000), 1000);
-            request.insert("toISO".into(), self.iso8601(self.sum(&[since.clone(), Value::Int((duration * count))])));
+            request.insert("toISO".into(), self.iso8601(Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((duration * count)))) } else { None }))));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.indexer_get_candles_perpetual_markets_market(&[__ws_arg_2]).await.into_dict();
@@ -3620,8 +3620,8 @@ impl Dydx {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathWithParams);
-        let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut paramsSorted: Value = self.keysort(paramsOmitted, &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
+        let mut paramsSorted: Value = self.keysort(Value::Dict(paramsOmitted), &[]);
         if (method.as_str() == Some("GET")) {
             if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathWithParams).into()), "?").into()), self.urlencode(paramsSorted.clone(), &[]));

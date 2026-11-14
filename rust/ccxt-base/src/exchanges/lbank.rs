@@ -4308,7 +4308,7 @@ impl Lbank {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut paramsOmitted: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
@@ -4325,8 +4325,8 @@ impl Lbank {
             url = format!("{}{}", Value::Str(format!("{}{}", contractUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path, params));
         }
         if (api.get(1).cloned().unwrap_or(Value::Null).as_str() == Some("public")) {
-            if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(self.keysort(paramsOmitted.clone(), &[]), &[])));
+            if ((Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(self.keysort(Value::from(&paramsOmitted), &[]), &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -4336,7 +4336,7 @@ impl Lbank {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("api_key".to_string(), self.apiKey.clone());
                 m
-            }), &[paramsOmitted]).into_dict();
+            }), &[&paramsOmitted]).into_dict();
             let mut signatureMethod: Option<String> = None;
             if ((self.secret.len() as i64) as f64) > ((32i64) as f64) {
                 signatureMethod = Some("RSA".to_string());

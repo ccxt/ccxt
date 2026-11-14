@@ -711,7 +711,7 @@ impl Binance {
                 if (sortBy.as_deref() == Some("NEWEST")) {
                     sortBy = Some("CREATED_TIME".to_string());
                 }  else if (sortBy.as_deref() == Some("LIQUIDITY")) {
-                    sortBy = None.clone();
+                    sortBy = None;
                 }
                 if (sortBy.is_some()) {
                     listingRequest.insert("sortBy".into(), sortBy.map(Value::from).unwrap_or(Value::Null));

@@ -3092,7 +3092,7 @@ impl Gemini {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut headersSigned: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -3108,7 +3108,7 @@ impl Gemini {
                     m.insert("request".to_string(), Value::from(finalUrl));
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
-            }), &[query.clone()]).into_dict();
+            }), &[&query]).into_dict();
             let mut payload: Value = json_stringify(&request);
             payload = Value::from(self.string_to_base64(payload, &[]));
             let mut signature: String = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
@@ -3121,8 +3121,8 @@ impl Gemini {
                 m
             }));
         }  else {
-            if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if !(self.is_empty(&query).as_bool() == Some(true)) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);

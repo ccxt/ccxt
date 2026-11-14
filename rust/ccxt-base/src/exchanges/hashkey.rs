@@ -2694,7 +2694,7 @@ impl Hashkey {
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut tag: Option<String> = self.safe_string_k(depositAddress.clone(), "addressExt", &[]).as_str().map(str::to_owned);
         if (tag.as_deref() == Some("")) {
-            tag = None.clone();
+            tag = None;
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4494,7 +4494,7 @@ impl Hashkey {
         { let __destr_tmp: Vec<Value> = self.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
         let mut feeCurrncyId: Option<String> = self.safe_string_k(order.clone(), "feeCoin", &[]).as_str().map(str::to_owned);
         if (feeCurrncyId.as_deref() == Some("")) {
-            feeCurrncyId = None.clone();
+            feeCurrncyId = None;
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

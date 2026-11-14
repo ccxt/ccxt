@@ -1354,7 +1354,7 @@ impl Poloniex {
         if (symbol.is_some()) {
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                stored = Some(ArrayCacheByTimestamp::new(limit));
+                stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
                 if (symbol.is_some()) && (timeframe.is_some()) {
                     CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
                 }
@@ -1405,7 +1405,7 @@ impl Poloniex {
                 let mut tradesArray: Option<crate::pro::cache::Cache> = (if (symbol.is_none()) { None } else { self.trades.lookup(&symbol) });
                 if (tradesArray.is_none()) {
                     let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                    tradesArray = Some(ArrayCache::new(tradesLimit));
+                    tradesArray = Some(ArrayCache::new(Value::from(tradesLimit)));
                     if (symbol.is_some()) {
                         CacheStore::put(&mut self.trades, &symbol, tradesArray.clone());
                     }
@@ -1609,7 +1609,7 @@ impl Poloniex {
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
         if (self.orders.is_none()) {
             let mut limit: Option<i64> = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]).as_i64();
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut marketIds: Vec<Value> = Vec::new();
@@ -2066,7 +2066,7 @@ impl Poloniex {
         let mut symbol: String = self.safe_string_k(parsedTrade.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         trades.append(parsedTrade);

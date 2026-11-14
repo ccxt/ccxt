@@ -1998,16 +1998,16 @@ impl Coinone {
             self.check_required_credentials(&[]);
             url.push_str(&request.to_string());
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
-            let mut nonce: Value = Value::Null;
+            let mut nonce: Option<String> = None;
             if (apiName.as_deref() == Some("v2_1Private")) {
-                nonce = Value::from(self.uuid(&[]));
+                nonce = Some(self.uuid(&[]));
             }  else {
-                nonce = Value::from(self.number_to_string(self.nonce()));
+                nonce = self.number_to_string(self.nonce());
             }
             let __ws_arg_10 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("access_token".to_string(), self.apiKey.clone());
-        m.insert("nonce".to_string(), nonce);
+        m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[params]);
             let mut json: Option<String> = self.json(__ws_arg_10).as_str().map(str::to_owned);

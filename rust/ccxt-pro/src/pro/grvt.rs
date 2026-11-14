@@ -1229,7 +1229,7 @@ impl Grvt {
         let mut data: crate::value::Dict = message.get("feed").cloned().unwrap_or_default().into_dict();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trade: crate::value::Dict = self.parse_ws_my_trade(&data, None).into_dict();
         self.myTrades.append(Value::from(&trade));
@@ -1483,7 +1483,7 @@ impl Grvt {
         let mut data: Option<crate::value::Dict> = message.get("feed").cloned().unwrap_or_default().into_opt_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut order: crate::value::Dict = self.parse_ws_order(&data, None).into_dict();
         self.orders.append(Value::from(&order));

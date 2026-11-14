@@ -992,7 +992,7 @@ impl Derive {
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (tradesArray.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            tradesArray = Some(ArrayCache::new(limit));
+            tradesArray = Some(ArrayCache::new(Value::from(limit)));
         }
         {
                         let mut i: i64 = 0;
@@ -1196,7 +1196,7 @@ impl Derive {
             if (symbol.is_some()) {
                 if (self.orders.is_none()) {
                     let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                    self.orders = Some(ArrayCacheBySymbolById::new(limit));
+                    self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
                 }
                 let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
                 let mut orders: crate::value::Dict = self.safe_dict(cachedOrders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -1353,7 +1353,7 @@ impl Derive {
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             self.myTrades = myTrades.clone();
         }
         let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();

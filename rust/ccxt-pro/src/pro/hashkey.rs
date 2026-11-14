@@ -810,7 +810,7 @@ impl Hashkey {
         //
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut parsed: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
@@ -941,7 +941,7 @@ impl Hashkey {
         //
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut parsed: crate::value::Dict = self.parse_ws_trade(message, None).into_dict();

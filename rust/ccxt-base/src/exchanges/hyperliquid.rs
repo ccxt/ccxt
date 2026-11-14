@@ -2260,8 +2260,7 @@ impl Hyperliquid {
             if (limit != Value::Null) {
                 // optimization if limit is provided
                 let mut timeframeInMilliseconds: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
-                startTime = self.sum(&[Value::from(until), (match (&((match (&(Value::from(timeframeInMilliseconds)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(-1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+                startTime = Value::from((if let (Some(__m0), Some(__m1)) = (until, ((if let Some(__l) = ((if let Some(__r) = limit.as_i64() { Some(timeframeInMilliseconds * __r) } else { None })) { Some(__l * -1) } else { None }))) { Some((__m0 + __m1)) } else { None }));
                 if startTime.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
                     startTime = Value::Int(0);
                 }

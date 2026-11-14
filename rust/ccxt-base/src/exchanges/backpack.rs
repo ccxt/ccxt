@@ -1277,11 +1277,11 @@ impl Backpack {
             }
         }
         }
-        let mut active: Value = Value::Null;
+        let mut active: Option<bool> = None;
         let mut deposit: Option<bool> = None;
         let mut withdraw: Option<bool> = None;
         if self.is_empty(Value::Map(parsedNetworks.clone())).as_bool() == Some(true) {
-            active = (if (stock) { Value::Null } else { Value::Bool(false) });
+            active = (if (stock) { None } else { Some(false) });
             deposit = Some(false);
             withdraw = Some(false);
         }
@@ -1292,7 +1292,7 @@ impl Backpack {
         m.insert("precision".to_string(), Value::Null);
         m.insert("type".to_string(), (if (stock) { Value::Str("stock".into()) } else { Value::Str("crypto".into()) }));
         m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "displayName", &[]));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
         m.insert("deposit".to_string(), deposit.map(Value::from).unwrap_or(Value::Null));
         m.insert("withdraw".to_string(), withdraw.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
@@ -1431,8 +1431,8 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_247: bool = true;
                 while { if !__for_first_247 { i += 1; } __for_first_247 = false; i < (securities.len() as i64) } {
-                let mut security: Value = securities.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut assetId: Option<String> = self.safe_string_k(security.clone(), "asset", &[]).as_str().map(str::to_owned);
+                let mut security: Option<crate::value::Dict> = securities.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+                let mut assetId: Option<String> = self.safe_string_k(&security, "asset", &[]).as_str().map(str::to_owned);
                 if (assetId.is_none()) {
                     continue;
                 }
@@ -1445,7 +1445,7 @@ impl Backpack {
                             m.insert("quoteSymbol".to_string(), Value::Str("USDC".into()));
                             m.insert("marketType".to_string(), Value::Str("RFQ".into()));
                             m.insert("rwaMarketType".to_string(), Value::Str("STOCK".into()));
-                            m.insert("security".to_string(), security);
+                            m.insert("security".to_string(), security.map_or(Value::Null, Value::Dict));
                         m
                     }));
                     if (market != Value::Null) {
@@ -4850,7 +4850,7 @@ impl Backpack {
         }
         if (netCost.is_none()) {
             hedged = Value::Null;
-            side = None.clone();
+            side = None;
         }
         let mut unrealizedPnl: Option<f64> = self.safe_number_k(position.clone(), "pnlUnrealized", &[]).as_f64();
         let mut realizedPnl: Option<f64> = self.safe_number_k(position.clone(), "pnlRealized", &[]).as_f64();

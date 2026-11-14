@@ -1906,9 +1906,9 @@ impl Bitbns {
         }
         let mut baseUrl: Option<String> = self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut nonce: Option<String> = self.number_to_string(self.nonce());
-        let mut queryLength: f64 = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64);
+        let mut queryLength: f64 = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64);
         let mut postBody: Option<String> = Some("{}".to_string());
         if queryLength > ((0i64) as f64) {
             postBody = json_stringify(&query).as_str().map(str::to_owned);
@@ -1916,7 +1916,7 @@ impl Bitbns {
         let mut requestBody: Option<String> = (if (method.as_str() == Some("POST")) { postBody } else { None });
         if (method.as_str() == Some("GET")) {
             if queryLength > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else if (method.as_str() == Some("POST")) {
             let mut auth: indexmap::IndexMap<String, Value> = ({

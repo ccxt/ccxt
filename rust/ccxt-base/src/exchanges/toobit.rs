@@ -2056,10 +2056,9 @@ impl Toobit {
             // mark and index klines walk backwards from `to` and ignore a lone `from`
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             if (limit == Value::Null) {
-                request.insert("to".into(), self.sum(&[since.clone(), Value::Int((((duration * 2000)) * 1000))])); // exchange default limit
+                request.insert("to".into(), Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((((duration * 2000)) * 1000)))) } else { None }))); // exchange default limit
             }  else {
-                request.insert("to".into(), self.sum(&[since.clone(), (match (&((match (&(Value::from(duration)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                request.insert("to".into(), Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = ((if let Some(__r) = limit.as_i64() { Some(duration * __r) } else { None })) { Some(__l * 1000) } else { None }))) { Some((__m0 + __m1)) } else { None })));
             }
         }
         if (limit != Value::Null) {
@@ -2617,15 +2616,15 @@ impl Toobit {
         });
         if (market).spot {
             let requestparamsRequestVariable: Vec<Value> = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), params.clone()]).as_array().cloned().unwrap_or_default();
-            let mut request: Value = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsRequest: Value = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-            let __ws_arg_11 = self.extend(request.clone(), &[paramsRequest.clone()]);
+            let mut request: crate::value::Dict = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+            let mut paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let __ws_arg_11 = self.extend(request, &[&paramsRequest]);
             response = self.private_post_api_v1_spot_order(&[__ws_arg_11]).await;
         }  else {
             let requestparamsRequestVariable: Vec<Value> = self.create_contract_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
-            let mut request: Value = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsRequest: Value = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-            let __ws_arg_12 = self.extend(request, &[paramsRequest]);
+            let mut request: crate::value::Dict = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+            let mut paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let __ws_arg_12 = self.extend(request, &[&paramsRequest]);
             response = self.private_post_api_v1_futures_order(&[__ws_arg_12]).await;
         }
         return self.parse_order(response, Some(&market));

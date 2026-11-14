@@ -1496,7 +1496,7 @@ impl Paradex {
             // spot is quoted in "USD" but paid and received in the settlement token (USDC),
             // a spot market has no settle, so the token it trades against is the quote
             quoteId = settleId.clone();
-            settleId = None.clone();
+            settleId = None;
         }
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -1524,7 +1524,7 @@ impl Paradex {
             }
             makerFee = Some(0.0003_f64);
         }  else {
-            expiry = None.clone();
+            expiry = None;
         }
         let mut expireDatetime: Option<String> = (if (expiry == Some(0)) { None } else { self.iso8601(expiry).as_str().map(str::to_owned) });
         return self.safe_market_structure(&[Value::Map({
@@ -2750,7 +2750,7 @@ impl Paradex {
         // a client id is free text, omitZero would drop every non-numeric one in php
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "client_id", &[]).as_str().map(str::to_owned);
         if (clientOrderId.as_deref() == Some("")) {
-            clientOrderId = None.clone();
+            clientOrderId = None;
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);

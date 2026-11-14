@@ -1958,7 +1958,7 @@ impl Bigone {
         if (since != Value::Null) {
             // const start = this.parseToInt (since / 1000);
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-            let mut endByLimit: Option<i64> = self.parse_to_int(self.sum(&[since.clone(), Value::Int((((limitResolved * duration)) * 1000))]));
+            let mut endByLimit: Option<i64> = self.parse_to_int(Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + ((((limitResolved * duration)) * 1000)))) } else { None })));
             if (until.is_some()) {
                 request.insert("time".into(), self.iso8601(Value::from((if let (Some(__m0), Some(__m1)) = (endByLimit, ((if let Some(__l) = until { Some(__l + 1) } else { None }))) { Some(i64::min(__m0, __m1)) } else { None }))));
             }  else {
@@ -2110,7 +2110,7 @@ impl Bigone {
         }
         let mut triggerPrice: Option<String> = self.safe_string_k(order.clone(), "stop_price", &[]).as_str().map(str::to_owned);
         if crate::precise::Precise::stringEq(&triggerPrice, &Value::Str("0".into())).as_bool() == Some(true) {
-            triggerPrice = None.clone();
+            triggerPrice = None;
         }
         let mut immediateOrCancel: bool = self.safe_bool_k(order.clone(), "immediate_or_cancel", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut timeInForce: Option<String> = None;
@@ -2753,7 +2753,7 @@ impl Bigone {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut bodySigned: Option<String> = None;
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
@@ -2765,8 +2765,8 @@ impl Bigone {
             m
         });
         if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("webExchange")) || (apiName.as_deref() == Some("contractPublic")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -2781,8 +2781,8 @@ impl Bigone {
             let mut token: String = jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             headersValue.insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into()));
             if (method.as_str() == Some("GET")) {
-                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
                 }
             }  else if (method.as_str() == Some("POST")) {
                 headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));

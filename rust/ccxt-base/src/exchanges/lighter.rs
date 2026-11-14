@@ -2620,17 +2620,16 @@ if _try_result.is_err() {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["until"], &[]).into_dict();
         let mut now: i64 = self.milliseconds();
         let mut startTs: Value = Value::Null;
-        let mut endTs: Value = Value::Null;
+        let mut endTs: Option<i64> = None;
         if (since != Value::Null) {
             startTs = since.clone();
             if (until.is_some()) {
-                endTs = Value::from(until);
+                endTs = until;
             }  else if (limit != Value::Null) {
                 let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-                endTs = self.sum(&[since.clone(), (match (&((match (&(Value::from(duration)), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+                endTs = (if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__l) = ((if let Some(__r) = limit.as_i64() { Some(duration * __r) } else { None })) { Some(__l * 1000) } else { None }))) { Some((__m0 + __m1)) } else { None });
             }  else {
-                endTs = Value::from(now);
+                endTs = Some(now);
             }
         }  else {
             let mut count: i64 = self.safe_integer(Value::Map({
@@ -2641,10 +2640,10 @@ if _try_result.is_err() {
             let mut timeframeMs: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
             let mut span: i64 = (timeframeMs * count);
             if (until.is_some()) {
-                endTs = Value::from(until);
+                endTs = until;
                 startTs = Value::from((if let Some(__l) = until { Some(__l - span) } else { None }));
             }  else {
-                endTs = Value::from(now);
+                endTs = Some(now);
                 startTs = Value::Int((now - span));
             }
         }
@@ -2654,7 +2653,7 @@ if _try_result.is_err() {
                 m.insert("count_back".to_string(), Value::Int(0));
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("start_timestamp".to_string(), startTs);
-                m.insert("end_timestamp".to_string(), endTs);
+                m.insert("end_timestamp".to_string(), Value::from(endTs));
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);

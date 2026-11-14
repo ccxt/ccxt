@@ -1189,18 +1189,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1266 { oi += 1; } __for_first_1266 = false; oi < (outcomeLabels.len() as i64) } {
             let mut label: Option<&str> = outcomeLabels.get(oi as usize).and_then(Value::as_str);
             let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null), Value::from(label.as_deref())).as_str().map(str::to_owned);
-            let mut winnerRaw: Value = Value::Null;
+            let mut winnerRaw: Option<bool> = None;
             let mut settleFractionRaw: Option<i64> = None;
             if resolved && (result.is_some()) && (result.as_deref() != Some("")) {
-                winnerRaw = (Value::Bool((label.as_deref().map(str::to_lowercase)) == result));
-                settleFractionRaw = (if (winnerRaw).as_bool() == Some(true) { Some(1) } else { Some(0) });
-                if winnerRaw.as_bool() == Some(true) {
+                winnerRaw = Some((label.as_deref().map(str::to_lowercase)) == result);
+                settleFractionRaw = (if (winnerRaw == Some(true)) { Some(1) } else { Some(0) });
+                if (winnerRaw == Some(true)) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
             }
             // effectively-final copies for the object literal below (Java cannot capture a
             // reassigned local into the anonymous inner class it emits for a map literal)
-            let mut winner: Value = winnerRaw;
+            let mut winner: Value = winnerRaw.map(Value::from).unwrap_or(Value::Null);
             let mut settleFraction: Option<i64> = settleFractionRaw;
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1926,17 +1926,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("period_interval".to_string(), Value::from(periodMin));
             m
         });
-        let mut now: Value = Value::Int(self.seconds());
+        let mut now: i64 = self.seconds();
         let mut tf: i64 = self.parse_timeframe(timeframe.clone());
         if (since != Value::Null) {
             let mut sinceS: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("start_ts".into(), Value::from(sinceS));
             if (limit != Value::Null) {
-                let mut end: Value = self.sum(&[Value::from(sinceS), (match (&(limit), &(Value::from(tf))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-                request.insert("end_ts".into(), (if (end.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN)) { end } else { now.clone() }));
+                let mut end: Option<i64> = (if let (Some(__m0), Some(__m1)) = (sinceS, ((if let Some(__l) = limit.as_i64() { Some(__l * tf) } else { None }))) { Some((__m0 + __m1)) } else { None });
+                request.insert("end_ts".into(), (if ((end.is_some() && end < Some(now))) { Value::from(end) } else { Value::from(now) }));
             }  else {
                 // the candlesticks endpoint requires end_ts - default to now
-                request.insert("end_ts".into(), now.clone());
+                request.insert("end_ts".into(), Value::from(now));
             }
         }  else {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "defaultFetchOHLCVLimit", &[Value::Int(200)]).as_i64().unwrap_or(200);
@@ -1944,9 +1944,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (limit != Value::Null) {
                 candlesCount = limit.as_i64();
             }
-            request.insert("end_ts".into(), now.clone());
-            request.insert("start_ts".into(), (match (&(now), &((Value::from((if let Some(__l) = candlesCount { Some(__l * tf) } else { None }))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("end_ts".into(), Value::from(now));
+            request.insert("start_ts".into(), Value::from((if let Some(__r) = ((if let Some(__l) = candlesCount { Some(__l * tf) } else { None })) { Some(now - __r) } else { None })));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&[__ws_arg_5]).await.into_dict();
@@ -3911,7 +3910,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&baseUrls, "kalshi", &[Value::Str("".into())])]);
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), implodedPath);
-        let mut query: Option<crate::value::Dict> = self.omit(params, self.extract_params(path), &[]).into_opt_dict();
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut querystring: String = self.urlencode(&query, &[]);
         if (method.as_str() == Some("GET")) && (querystring != "") {
             url.push_str(&format!("{}{}", "?", querystring));

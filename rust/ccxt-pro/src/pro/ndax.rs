@@ -463,7 +463,7 @@ impl Ndax {
             let mut tradesArray: Option<crate::pro::cache::Cache> = (if (symbol.is_none()) { None } else { self.trades.lookup(&symbol.clone().map(Value::from).unwrap_or(Value::Null)) });
             if (tradesArray.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                tradesArray = Some(ArrayCache::new(limit));
+                tradesArray = Some(ArrayCache::new(Value::from(limit)));
             }
             tradesArray.append(Value::Dict(trade));
             if (symbol.is_some()) {
@@ -620,7 +620,7 @@ impl Ndax {
                 let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
                 if (stored.is_none()) {
                     let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                    stored = Some(ArrayCacheByTimestamp::new(limit));
+                    stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
                     CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
                 }
                 let mut length: i64 = Value::Int(CacheSlot::size(&stored)).as_i64().unwrap_or_default();

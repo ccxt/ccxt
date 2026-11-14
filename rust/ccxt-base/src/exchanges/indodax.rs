@@ -1136,9 +1136,7 @@ impl Indodax {
             if (limit == Value::Null) {
                 request.insert("from".into(), Value::Int((((now - ((1000 * duration)))) - 1)));
             }  else {
-                request.insert("from".into(), (match (&((match (&(Value::from(now)), &((match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
-                    &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+                request.insert("from".into(), Value::from((if let Some(__l) = ((if let Some(__r) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some(now - __r) } else { None })) { Some(__l - 1) } else { None })));
             }
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -2184,7 +2182,7 @@ impl Indodax {
         }
         let mut requestBody: Option<String> = privateBody;
         if isPublic {
-            requestBody = None.clone();
+            requestBody = None;
         }
         let mut requestHeaders: Option<crate::value::Dict> = privateHeaders;
         if isPublic {

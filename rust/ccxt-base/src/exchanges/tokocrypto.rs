@@ -1950,18 +1950,18 @@ impl Tokocrypto {
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         let mut defaultLimit: i64 = 500;
-        let mut maxLimit: Value = Value::Int(1500);
+        let mut maxLimit: i64 = 1500;
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["price", "until"], &[]).into_dict();
-        let mut limitValue: Value = Value::from(defaultLimit);
+        let mut limitValue: Option<i64> = Some(defaultLimit);
         if (limit != Value::Null) {
-            limitValue = crate::runtime::Math::min(&limit, &maxLimit);
+            limitValue = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-                m.insert("limit".to_string(), limitValue.clone());
+                m.insert("limit".to_string(), Value::from(limitValue));
             m
         });
         if (price.as_deref() == Some("index")) {
@@ -2032,7 +2032,7 @@ impl Tokocrypto {
                 data = self.safe_list_k(&dataDict, "list", &[Value::from(vec![])]).into_list();
             }
         }
-        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, limitValue]);
+        return self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitValue)]);
         Value::Null
         }).await?))
     }
@@ -2374,7 +2374,7 @@ impl Tokocrypto {
         // post only is expressed by the order type here, not by a time force
         let mut timeInForceResolved: Option<String> = requestedTimeInForce;
         if postOnly {
-            timeInForceResolved = None.clone();
+            timeInForceResolved = None;
         }
         let mut initialUppercaseType: String = typeResolved.to_uppercase();
         let mut uppercaseType: String = initialUppercaseType.clone();
@@ -3027,7 +3027,7 @@ impl Tokocrypto {
         let mut address: Option<String> = self.safe_string_k(&data, "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(&data, "addressTag", &[Value::Str("".into())]).as_str().map(str::to_owned);
         if (((tag.as_deref().unwrap_or_default().chars().count() as i64)) == 0) {
-            tag = None.clone();
+            tag = None;
         }
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -3076,7 +3076,7 @@ impl Tokocrypto {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         if (code != Value::Null) {
             currency = Some(self.currency(code));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3084,11 +3084,11 @@ impl Tokocrypto {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
-            let mut endTime: Value = self.sum(&[since.clone(), Value::Int(7776000000)]);
-            if (until != Value::Null) {
-                endTime = crate::runtime::Math::min(&endTime, &until);
+            let mut endTime: Option<i64> = (if let Some(__m0) = since.as_i64() { Some((__m0 + 7776000000)) } else { None });
+            if (until.is_some()) {
+                endTime = (if let (Some(__m0), Some(__m1)) = (endTime, until) { Some(i64::min(__m0, __m1)) } else { None });
             }
-            request.insert("endTime".into(), endTime);
+            request.insert("endTime".into(), Value::from(endTime));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -3290,7 +3290,7 @@ impl Tokocrypto {
         let mut tag: Option<String> = self.safe_string_k(transaction.clone(), "addressTag", &[]).as_str().map(str::to_owned); // set but unused
         if (tag.is_some()) {
             if ((tag.as_deref().unwrap_or_default().chars().count() as i64)) < 1 {
-                tag = None.clone();
+                tag = None;
             }
         }
         let mut txid: Option<String> = self.safe_string_k(transaction.clone(), "txId", &[]).as_str().map(str::to_owned);

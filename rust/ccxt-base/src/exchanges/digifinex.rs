@@ -2229,7 +2229,7 @@ impl Digifinex {
             }  else if (tradeRole.as_deref() == Some("2")) {
                 takerOrMaker = Some("maker".to_string());
             }  else {
-                takerOrMaker = None.clone();
+                takerOrMaker = None;
             }
             if (side.as_deref() == Some("1")) || (direction.as_deref() == Some("1")) {
                 // side = 'open long';
@@ -2526,21 +2526,18 @@ impl Digifinex {
             let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("period".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
-            let mut duration: Value = Value::Int(self.parse_timeframe(timeframe.clone()));
+            let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             if (since != Value::Null) || (limit != Value::Null) || (until.is_some()) {
                 let mut endTime: Option<i64> = (if (until.is_some()) { until } else { Some(self.milliseconds()) });
                 let mut startLimit: i64 = limit.as_i64().unwrap_or(200);
-                let mut startTime: Option<i64> = (if (since != Value::Null) { self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { self.parse_to_int((match ((((match (&(Value::from(endTime)), &(((match (&((match (&(Value::from(startLimit)),
-                    &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x),
-                    Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x),
-                    Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) });
+                let mut startTime: Option<i64> = (if (since != Value::Null) { self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y),
+                    _ => Value::Null })) } else { self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = endTime { Some(__l - ((((startLimit * duration)) * 1000))) } else { None })) { Some((__l as f64) / 1000.0) } else { None }))) });
                 request.insert("start_time".into(), Value::from(startTime));
                 if (limit != Value::Null) || (until.is_some()) {
                     if (until.is_some()) {
                         let mut endByUntil: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })));
                         if (limit != Value::Null) {
-                            let mut endByLimit: Option<i64> = self.parse_to_int(self.sum(&[Value::from(startTime), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                            let mut endByLimit: Option<i64> = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (startTime, ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None })));
                             request.insert("end_time".into(), (if ((endByLimit.is_some() && endByUntil.is_some() && endByLimit < endByUntil)) { Value::from(endByLimit) } else { Value::from(endByUntil) }));
                         }  else {
                             request.insert("end_time".into(), Value::from(endByUntil));
@@ -2549,7 +2546,7 @@ impl Digifinex {
                         if (limit == Value::Null) {
                             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOHLCV() requires a limit argument")));
                         }
-                        request.insert("end_time".into(), self.sum(&[Value::from(startTime), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                        request.insert("end_time".into(), Value::from((if let (Some(__m0), Some(__m1)) = (startTime, ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None })));
                     }
                 }
             }
@@ -4838,9 +4835,9 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_651: bool = true;
             while { if !__for_first_651 { i += 1; } __for_first_651 = false; i < (data.len() as i64) } {
-            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (self.safe_string_k(entry.clone(), "currency", &[]).as_str() == code.as_str()) {
-                result = entry;
+            let mut entry: Option<crate::value::Dict> = data.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            if (self.safe_string_k(&entry, "currency", &[]).as_str() == code.as_str()) {
+                result = entry.map_or(Value::Null, Value::Dict);
             }
         }
         }

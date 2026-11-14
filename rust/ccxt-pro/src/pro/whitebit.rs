@@ -426,7 +426,7 @@ impl Whitebit {
             }
             if !(self.ohlcvs.shelf(&symbol).has(&(Value::Str("unknown".into())))) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                let mut stored: crate::pro::cache::Cache = ArrayCacheByTimestamp::new(limit);
+                let mut stored: crate::pro::cache::Cache = ArrayCacheByTimestamp::new(Value::from(limit));
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &(Value::Str("unknown".into())), stored);
             }
             let mut ohlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&(Value::Str("unknown".into())));
@@ -785,7 +785,7 @@ impl Whitebit {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut data: crate::value::List = self.safe_list(&params, Value::Int(1), &[Value::from(vec![])]).into_list();
@@ -872,7 +872,7 @@ impl Whitebit {
         let mut trade: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCache::new(limit));
+            self.myTrades = Some(ArrayCache::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut parsed: crate::value::Dict = self.parse_ws_trade(trade, None).into_dict();
@@ -1037,7 +1037,7 @@ impl Whitebit {
         let mut data: crate::value::Dict = self.safe_dict(&params, Value::Int(1), &[]).into_dict();
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut status: Option<i64> = self.safe_integer(&params, Value::Int(0), &[]).as_i64();

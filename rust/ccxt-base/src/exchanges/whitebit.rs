@@ -3627,9 +3627,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // Fetch both open and closed orders in parallel
         let openOrdersclosedOrdersVariable: Vec<Value> = promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.fetch_open_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params.clone()).await), crate::types::IntoRaw::into_raw(self.fetch_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await)])).await.as_array().cloned().unwrap_or_default();
-        let mut openOrders: Value = openOrdersclosedOrdersVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut closedOrders: Value = openOrdersclosedOrdersVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut allOrders: crate::value::List = self.array_concat(openOrders, closedOrders).into_list();
+        let mut openOrders: crate::value::List = openOrdersclosedOrdersVariable.get(0).cloned().unwrap_or(Value::Null).into_list();
+        let mut closedOrders: crate::value::List = openOrdersclosedOrdersVariable.get(1).cloned().unwrap_or(Value::Null).into_list();
+        let mut allOrders: crate::value::List = self.array_concat(&openOrders, &closedOrders).into_list();
         // Sort by timestamp (most recent first)
         let mut sortedOrders: crate::value::List = self.sort_by(Value::Arr(allOrders), Value::Str("timestamp".into()), &[Value::Bool(true)]).into_list();
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
@@ -3969,7 +3969,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "left", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.as_deref() == Some("")) {
-            clientOrderId = None.clone();
+            clientOrderId = None;
         }
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "activation_price", &[]).as_f64();
@@ -3977,7 +3977,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut orderType: Option<String> = self.parse_order_type(type_var.as_deref());
         if (orderType.as_deref() == Some("market")) {
-            remaining = None.clone();
+            remaining = None;
         }
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut cost: Option<String> = self.safe_string_k(order.clone(), "dealMoney", &[]).as_str().map(str::to_owned);

@@ -1697,12 +1697,12 @@ impl Coinbaseinternational {
                 (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
             request.insert("end_timestamp".into(), Value::from(now));
         }  else {
-            let mut sinceResolved: Value = crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0));
-            request.insert("start_timestamp".into(), sinceResolved.clone());
+            let mut sinceResolved: Option<i64> = (if let Some(__m0) = ((if let Some(__l) = since.as_i64() { Some(__l - 1) } else { None })) { Some(i64::max(__m0, 0)) } else { None });
+            request.insert("start_timestamp".into(), Value::from(sinceResolved));
             if (limitResolved.is_none()) {
                 request.insert("end_timestamp".into(), Value::from(now));
             }  else {
-                request.insert("end_timestamp".into(), self.sum(&[sinceResolved, (match (&((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                request.insert("end_timestamp".into(), self.sum(&[Value::from(sinceResolved), (match (&((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
                     (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
             }
@@ -1813,8 +1813,8 @@ impl Coinbaseinternational {
             m
         });
         if (limit != Value::Null) {
-            let mut endTimestamp: Value = self.sum(&[Value::from(sinceResolved), (match (&(limit), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-            request.insert("end_timestamp".into(), endTimestamp);
+            let mut endTimestamp: Option<i64> = (if let (Some(__m0), Some(__m1)) = (sinceResolved, ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None });
+            request.insert("end_timestamp".into(), Value::from(endTimestamp));
         }
         let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
         if (until.is_some()) {
@@ -3562,7 +3562,7 @@ impl Coinbaseinternational {
             m
         });
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            lastTradeTimestamp = None.clone();
+            lastTradeTimestamp = None;
             if (filled.is_some()) && (filled > Some(0.0)) {
                 lastTradeTimestamp = lastUpdateTimestamp;
             }

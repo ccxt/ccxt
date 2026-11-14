@@ -1590,11 +1590,11 @@ impl Coincheck {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut hasQuery: bool = ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
+        let mut hasQuery: bool = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64);
         if (apiName.as_deref() == Some("public")) {
             if hasQuery {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -1602,11 +1602,11 @@ impl Coincheck {
             let mut queryString: String = "".to_string();
             if (method.as_str() == Some("GET")) {
                 if hasQuery {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(self.keysort(query.clone(), &[]), &[])));
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(self.keysort(Value::from(&query), &[]), &[])));
                 }
             }  else {
                 if hasQuery {
-                    queryString = self.urlencode(self.keysort(query, &[]), &[]);
+                    queryString = self.urlencode(self.keysort(Value::Dict(query), &[]), &[]);
                     bodySigned = Some(queryString.clone());
                 }
             }

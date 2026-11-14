@@ -2750,11 +2750,11 @@ impl Xt {
             request.insert("startTime".into(), (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)))), &(Value::from(duration))) { (Value::Int(x),
                 Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         }
-        let mut limitResolved: Value = limit.clone();
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit != Value::Null) {
             let mut maxLimit: i64 = (if (market).spot { 1000 } else { 1500 }); // spot : derivatives max limit
-            limitResolved = crate::runtime::Math::min(&limit, &Value::from(maxLimit));
-            request.insert("limit".into(), limitResolved.clone());
+            limitResolved = (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None });
+            request.insert("limit".into(), Value::from(limitResolved));
         }  else {
             request.insert("limit".into(), Value::Int(1000));
         }
@@ -2816,7 +2816,7 @@ impl Xt {
         //     }
         //
         let mut ohlcvs: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

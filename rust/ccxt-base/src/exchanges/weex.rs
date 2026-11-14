@@ -2407,7 +2407,7 @@ impl Weex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut maxHistoricalLimit: Value = Value::Int(100);
+        let mut maxHistoricalLimit: i64 = 100;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2417,7 +2417,7 @@ impl Weex {
                     m.insert("historical".to_string(), Value::Bool(true));
                 m
             })]).into_dict();
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::Dict(paramsExtended), maxHistoricalLimit.clone()]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::Dict(paramsExtended), Value::from(maxHistoricalLimit)]).await;
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         let historicalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsPaginate, Value::Str("fetchOHLCV".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -2442,7 +2442,7 @@ impl Weex {
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsHistorical, &["historical", "until", "price"], &[]).into_dict();
         let mut response: Option<crate::value::List> = None;
         // hardcap threshold
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::Null } else { crate::runtime::Math::min(&limit, &Value::Int(1000)) });
+        let mut limitResolved: Option<i64> = (if (limit == Value::Null) { None } else { (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, 1000)) } else { None }) });
         // the recent-klines endpoints ignore startTime and endTime and only ever return the
         // latest candles, so a request bounded by since or until has to go through the history
         // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
@@ -2453,9 +2453,9 @@ impl Weex {
             }
             let mut now: i64 = self.milliseconds();
             let mut startTime: Option<i64> = since.as_i64();
-            let mut endTime: Value = Value::from(now);
+            let mut endTime: Option<i64> = Some(now);
             if (until.is_some()) {
-                endTime = Value::from(until);
+                endTime = until;
             }
             if (since == Value::Null) || (until.is_none()) {
                 let mut duration: Option<i64> = self.parse_to_int((match (&(Value::Int(self.parse_timeframe(timeframe.clone()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
@@ -2463,13 +2463,13 @@ impl Weex {
                 // the history endpoint returns at most maxHistoricalLimit candles and serves the
                 // newest ones inside the window, so a wider window would silently drop the candles
                 // right after since, keep the window at what one call can return
-                let mut historyLimit: Option<i64> = self.parse_to_int(maxHistoricalLimit.clone());
+                let mut historyLimit: Option<i64> = self.parse_to_int(Value::from(maxHistoricalLimit));
                 if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
-                    historyLimit = self.parse_to_int(crate::runtime::Math::min(&limit, &maxHistoricalLimit));
+                    historyLimit = self.parse_to_int(Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxHistoricalLimit)) } else { None })));
                 }
                 let mut timeDelta: Option<i64> = self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (historyLimit, duration) { Some(__l * __r) } else { None })));
                 if (since == Value::Null) && (until.is_none()) {
-                    endTime = Value::from(now);
+                    endTime = Some(now);
                     startTime = (if let Some(__r) = timeDelta { Some(now - __r) } else { None });
                 }  else if (since == Value::Null) {
                     if (until.is_none()) {
@@ -2478,20 +2478,20 @@ impl Weex {
                     startTime = (if let (Some(__l), Some(__r)) = (until, timeDelta) { Some(__l - __r) } else { None });
                 }  else {
                     // this.sum, a bare + is string concatenation in the php port
-                    endTime = self.sum(&[since.clone(), Value::from(timeDelta)]);
+                    endTime = (if let (Some(__m0), Some(__m1)) = (since.as_i64(), timeDelta) { Some((__m0 + __m1)) } else { None });
                 }
             }
             // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
-            if endTime.as_f64().unwrap_or(f64::NAN) > (now as f64) {
-                endTime = Value::from(now);
+            if endTime > Some(now) {
+                endTime = Some(now);
             }
             request.insert("startTime".into(), Value::from(startTime));
-            request.insert("endTime".into(), endTime);
+            request.insert("endTime".into(), Value::from(endTime));
             let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.contract_get_capi_v3_market_history_klines(&[__ws_arg_6]).await.into_opt_list();
         }  else {
-            if (limitResolved != Value::Null) {
-                request.insert("limit".into(), limitResolved.clone());
+            if (limitResolved.is_some()) {
+                request.insert("limit".into(), Value::from(limitResolved));
             }
             if (priceType.as_deref() == Some("MARK")) {
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -2504,7 +2504,7 @@ impl Weex {
                 response = self.contract_get_capi_v3_market_klines(&[__ws_arg_9]).await.into_opt_list();
             }
         }
-        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(self.to_array(&response), Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -4132,12 +4132,12 @@ impl Weex {
         if !(market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOrders() supports spot markets only")));
         }
-        let mut maxLimit: Value = Value::Int(1000);
+        let mut maxLimit: i64 = 1000;
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[symbol, since.clone(), limit.clone(), Value::from(&paramsPaginate), maxLimit.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[symbol, since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4148,7 +4148,7 @@ impl Weex {
             request.insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
-            request.insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit));
+            request.insert("limit".into(), Value::from((if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None })));
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
@@ -4681,9 +4681,9 @@ impl Weex {
                 request.insert("limit".into(), limit.clone());
             }
             let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request.clone()), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
-            let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-            let __ws_arg_35 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+            let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let __ws_arg_35 = self.extend(requestUntil, &[&paramsUntil]);
             let mut contractResponse: crate::value::Dict = self.contract_private_post_capi_v3_account_income(&[__ws_arg_35]).await.into_dict();
             items = self.safe_list_k(&contractResponse, "items", &[Value::from(vec![])]);
         }  else if (accountType.as_deref() == Some("funding")) {
@@ -4694,9 +4694,9 @@ impl Weex {
                 request.insert("pageSize".into(), limit.clone());
             }
             let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request.clone()), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
-            let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-            let __ws_arg_36 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+            let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let __ws_arg_36 = self.extend(requestUntil, &[&paramsUntil]);
             let mut fundingResponse: crate::value::Dict = self.private_post_api_v3_account_funding_bills(&[__ws_arg_36]).await.into_dict();
             items = self.safe_list_k(&fundingResponse, "items", &[Value::from(vec![])]);
         }  else {
@@ -4707,9 +4707,9 @@ impl Weex {
                 request.insert("limit".into(), limit.clone());
             }
             let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("before".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
-            let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-            let __ws_arg_37 = self.extend(requestUntil, &[paramsUntil]);
+            let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
+            let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let __ws_arg_37 = self.extend(requestUntil, &[&paramsUntil]);
             let mut billsResponse: crate::value::List = self.private_post_api_v3_account_bills(&[__ws_arg_37]).await.into_list();
             items = self.to_array(&billsResponse);
         }
@@ -5945,11 +5945,11 @@ impl Weex {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut endpoint: String = self.implode_params(path.clone(), params.clone());
-        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
         let mut isBatch: bool = path.as_str().unwrap_or("").contains("batch");
         if !(isBatch) && ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) {
-            if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if !(self.is_empty(&query).as_bool() == Some(true)) {
+                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut isPrivate: bool = (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("contractPrivate"));

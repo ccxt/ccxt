@@ -2381,12 +2381,12 @@ impl Phemex {
         let mut marketSettle: Option<String> = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
         let mut isStableSettled: bool = (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC"));
         let mut usesSpecialFromToEndpoint: bool = (((market).linear == Some(true)) || isStableSettled) && ((since != Value::Null) || (until.is_some()));
-        let mut maxLimit: Value = Value::Int(1000);
+        let mut maxLimit: i64 = 1000;
         if usesSpecialFromToEndpoint {
-            maxLimit = Value::Int(2000);
+            maxLimit = 2000;
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { maxLimit.clone() } else { crate::runtime::Math::min(&limit, &maxLimit) });
-        request.insert("limit".into(), limitResolved);
+        let mut limitResolved: Option<i64> = (if (limit == Value::Null) { Some(maxLimit) } else { (if let Some(__m0) = limit.as_i64() { Some(i64::min(__m0, maxLimit)) } else { None }) });
+        request.insert("limit".into(), Value::from(limitResolved));
         let mut sinceSeconds: Value = Value::Null;
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) || isStableSettled {
@@ -2401,16 +2401,14 @@ impl Phemex {
                     }  else {
                         // when since is defined 'to' is mandatory
                         let mut now: i64 = self.seconds();
-                        let mut to: Option<i64> = self.parse_to_int((match (&(Value::from(self.parse_to_int(fromSeconds))), &(((match (&(maxLimit), &(Value::from(candleDuration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                            Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
+                        let mut to: Option<i64> = self.parse_to_int((match (&(Value::from(self.parse_to_int(fromSeconds))), &((Value::Int((maxLimit * candleDuration))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
                             (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                         request.insert("to".into(), (if (to > Some(now)) { Value::from(now) } else { Value::from(to) }));
                     }
                 }  else if (until.is_some()) {
                     // when 'to' is defined since is mandatory
                     let mut untilSeconds: Option<f64> = (if let Some(__x) = ((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })) { Some(f64::round(__x)) } else { None });
-                    sinceSeconds = (match (&(Value::from(untilSeconds)), &(((match (&(maxLimit), &(Value::from(candleDuration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                        Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                    sinceSeconds = Value::from((if let Some(__l) = untilSeconds { Some(__l - (((maxLimit * candleDuration)) as f64)) } else { None }));
                     request.insert("from".into(), sinceSeconds.clone());
                     request.insert("to".into(), Value::from(untilSeconds));
                 }
@@ -3517,7 +3515,7 @@ impl Phemex {
         let mut id: Option<String> = self.safe_string_k(order.clone(), "orderID", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clOrdID", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) && (((clientOrderId.as_deref().unwrap_or_default().chars().count() as i64)) < 1) {
-            clientOrderId = None.clone();
+            clientOrderId = None;
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
@@ -3690,7 +3688,7 @@ impl Phemex {
         let mut id: Option<String> = self.safe_string2(order.clone(), Value::Str("orderID".into()), Value::Str("orderId".into()), &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string2(order.clone(), Value::Str("clOrdID".into()), Value::Str("clOrdId".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) && (((clientOrderId.as_deref().unwrap_or_default().chars().count() as i64)) < 1) {
-            clientOrderId = None.clone();
+            clientOrderId = None;
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
@@ -3707,7 +3705,7 @@ impl Phemex {
         let mut remaining: Option<f64> = self.safe_number2(order.clone(), Value::Str("leavesQty".into()), Value::Str("leavesQtyRq".into()), &[]).as_f64();
         if (self.safe_string_k(order.clone(), "ordStatus", &[]).as_str() == Some("Untriggered")) {
             // an untriggered order cannot fill, so leaves reads zero while the whole amount is outstanding
-            remaining = None.clone();
+            remaining = None;
         }
         let mut timestamp: Option<i64> = self.safe_integer_product_k(order.clone(), "actionTimeNs", Value::Float(0.000001), &[]).as_i64();
         if (timestamp.is_none()) {
@@ -3716,7 +3714,7 @@ impl Phemex {
         let mut cost: Option<f64> = self.safe_number2(order.clone(), Value::Str("cumValue".into()), Value::Str("cumValueRv".into()), &[]).as_f64();
         let mut lastTradeTimestamp: Option<i64> = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]).as_i64();
         if (lastTradeTimestamp == Some(0)) {
-            lastTradeTimestamp = None.clone();
+            lastTradeTimestamp = None;
         }
         let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str());
         let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("stopPx".into()), Value::Str("stopPxRp".into()), &[]));

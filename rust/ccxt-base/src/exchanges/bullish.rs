@@ -2284,9 +2284,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut sinceKey = get_arg(optional_args, 1, Value::Str("createdAtDatetime[gte]".into()));
         let mut untilKey = get_arg(optional_args, 2, Value::Str("createdAtDatetime[lte]".into()));
         let mut untilParam: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut until: Value = Value::Null;
+        let mut until: Option<i64> = None;
         if (untilParam.is_some()) {
-            until = Value::from(untilParam);
+            until = untilParam;
         }
         let mut sinceFromUntil: bool = (since == Value::Null) && (untilParam.is_some());
         let mut paramsResult: Value = (if sinceFromUntil { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
@@ -2300,9 +2300,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut now: i64 = self.milliseconds();
                 let mut latestSince: i64 = (now - timeDelta);
                 if since.as_i64() > Some(latestSince) {
-                    until = Value::from(now);
+                    until = Some(now);
                 }  else {
-                    until = self.sum(&[since, Value::from(timeDelta)]);
+                    until = (if let Some(__m0) = since.as_i64() { Some((__m0 + timeDelta)) } else { None });
                 }
             }
             add_element_to_object(&mut paramsResult, &sinceKey, self.iso8601(sinceResolved));

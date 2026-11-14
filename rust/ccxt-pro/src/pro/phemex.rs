@@ -766,7 +766,7 @@ impl Phemex {
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCache::new(limit));
+            stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut trades: crate::value::List = self.safe_list2(message, Value::Str("trades".into()), Value::Str("trades_p".into()), &[Value::from(vec![])]).into_list();
@@ -827,7 +827,7 @@ impl Phemex {
             let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
             if (stored.is_none()) {
                 let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-                stored = Some(ArrayCacheByTimestamp::new(limit));
+                stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
             {
@@ -1579,7 +1579,7 @@ impl Phemex {
         let mut cachedTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         if (cachedTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            cachedTrades = Some(ArrayCacheBySymbolById::new(limit));
+            cachedTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1894,7 +1894,7 @@ impl Phemex {
             m
         });
         if (self.orders.is_none()) {
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut type_var: Value = Value::Null;
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
@@ -1902,9 +1902,9 @@ impl Phemex {
                         let mut i: i64 = 0;
             let mut __for_first_632: bool = true;
             while { if !__for_first_632 { i += 1; } __for_first_632 = false; i < (parsedOrders.len() as i64) } {
-            let mut parsed: Value = parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null);
-            stored.append(parsed.clone());
-            let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut parsed: Option<crate::value::Dict> = parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+            stored.append(parsed.clone().map_or(Value::Null, Value::Dict));
+            let mut symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (type_var == Value::Null) {
                 let mut isUsdt: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
@@ -2053,7 +2053,7 @@ impl Phemex {
         let mut id: Option<String> = self.safe_string_k(order.clone(), "orderID", &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clOrdID", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) && (((clientOrderId.as_deref().unwrap_or_default().chars().count() as i64)) < 1) {
-            clientOrderId = None.clone();
+            clientOrderId = None;
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
@@ -2070,7 +2070,7 @@ impl Phemex {
         let mut cost: Value = self.safe_string_k(order.clone(), "cumValueRv", &[self.from_ev(self.safe_string(order.clone(), Value::Str("cumValueEv".into()), &[]), &[marketValue.clone()])]);
         let mut lastTradeTimestamp: Option<i64> = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]).as_i64();
         if (lastTradeTimestamp == Some(0)) {
-            lastTradeTimestamp = None.clone();
+            lastTradeTimestamp = None;
         }
         let mut timeInForce: Option<String> = self.parent.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str());
         let mut stopPrice: Option<String> = self.safe_string_k(order.clone(), "stopPx", &[]).as_str().map(str::to_owned);

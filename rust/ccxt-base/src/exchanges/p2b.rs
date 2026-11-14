@@ -1596,7 +1596,7 @@ impl P2b {
         if (untilParam.is_some()) {
             until = self.parse_to_int(Value::from(untilParam));
             if (since != Value::Null) {
-                if ((match (&(Value::from(untilParam)), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
+                if ((if let (Some(__l), Some(__r)) = (untilParam, since.as_i64()) { Some(__l - __r) } else { None })) > Some(86400000) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")));
                 }
                 sinceResolved = self.parse_to_int(since.clone());
@@ -1704,7 +1704,7 @@ impl P2b {
         if (untilParam.is_some()) {
             until = self.parse_to_int(Value::from(untilParam));
             if (since != Value::Null) {
-                if ((match (&(Value::from(untilParam)), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
+                if ((if let (Some(__l), Some(__r)) = (untilParam, since.as_i64()) { Some(__l - __r) } else { None })) > Some(86400000) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")));
                 }
                 sinceResolved = self.parse_to_int(since.clone());

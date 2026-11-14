@@ -2846,13 +2846,13 @@ impl Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_451: bool = true;
             while { if !__for_first_451 { i += 1; } __for_first_451 = false; i < (failed.len() as i64) } {
-            let mut order: Value = crate::value::KeyRead::read(&&failed, &Value::Int(i));
+            let mut order: Option<crate::value::Dict> = crate::value::KeyRead::read(&&failed, &Value::Int(i)).into_opt_dict();
             result.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), order.clone());
-                    m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
+                    m.insert("info".to_string(), order.clone().map_or(Value::Null, Value::Dict));
+                    m.insert("id".to_string(), self.safe_string2(&order, Value::Str("order-id".into()), Value::Str("order_id".into()), &[]));
                     m.insert("status".to_string(), Value::Str("failed".into()));
-                    m.insert("clientOrderId".to_string(), self.safe_string_k(order, "client-order-id", &[]));
+                    m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client-order-id", &[]));
                 m
             }), None));
         }
@@ -3252,7 +3252,7 @@ impl Bittrade {
             url.push_str("v2");
         }
         url.push_str(&format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path), &[]).into_dict();
         if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("v2Private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.ymdhms(Value::Int(self.milliseconds()), &[Value::Str("T".into())]).as_str().map(str::to_owned);
@@ -3265,7 +3265,7 @@ impl Bittrade {
                 m
             }).into_dict();
             if (method.as_str() != Some("POST")) {
-                request = self.extend(request, &[query.clone()]).into_dict();
+                request = self.extend(request, &[&query]).into_dict();
             }
             let mut requestSorted: Value = self.keysort(Value::Dict(request), &[]);
             let mut auth: String = self.urlencode(requestSorted, &[]);

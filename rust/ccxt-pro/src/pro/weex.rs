@@ -801,15 +801,15 @@ impl Weex {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "C", &[]).as_i64();
         let mut close: Option<String> = self.safe_string_k(ticker.clone(), "c", &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if (market.is_none()) {
-            symbol = Value::Null;
+            symbol = None;
         }  else {
-            symbol = crate::value::KeyRead::key_read(&market, "symbol");
+            symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "h", &[]));
@@ -1083,11 +1083,11 @@ impl Weex {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "T", &[]).as_i64();
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if (market.is_none()) {
-            symbol = Value::Null;
+            symbol = None;
         }  else {
-            symbol = crate::value::KeyRead::key_read(&market, "symbol");
+            symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
         let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool(); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let mut side: Option<String> = None;
@@ -1102,7 +1102,7 @@ impl Weex {
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "t", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1379,7 +1379,7 @@ impl Weex {
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            stored = Some(ArrayCacheByTimestamp::new(limit));
+            stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             if (true) && (timeframe.is_some()) {
                 CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
             }
@@ -1811,15 +1811,15 @@ impl Weex {
 
     pub fn parse_ws_bid_ask(&self, mut message: Value, market: Option<&crate::types::Market>) -> Value {
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "E", &[]).as_i64();
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         if (market.is_none()) {
-            symbol = Value::Null;
+            symbol = None;
         }  else {
-            symbol = crate::value::KeyRead::key_read(&market, "symbol");
+            symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), self.safe_string_k(message.clone(), "a", &[]));
@@ -1990,7 +1990,7 @@ impl Weex {
         //
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
+            self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut data: crate::value::List = message.get("d").cloned().unwrap_or_default().into_list();
@@ -2262,7 +2262,7 @@ impl Weex {
         });
         if (self.orders.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            self.orders = Some(ArrayCacheBySymbolById::new(limit));
+            self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         {
