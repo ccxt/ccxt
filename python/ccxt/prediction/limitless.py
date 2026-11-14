@@ -2817,7 +2817,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         postParams = self.omit(searchParams, ['tags'])
         return self.apply_event_fetch_params(result, postParams, queries)
 
-    async def fetch_raw_active_markets(self, params: dict = {}, categoryId: Str = None) -> list[object]:
+    async def fetch_raw_active_markets(self, params: dict = {}, categoryId: Str = None) -> list[dict]:
         """
  @ignore
         pages the active-markets listing(or a single category's listing), bounded by limit (or options.fetchMarketsLimit)

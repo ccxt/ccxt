@@ -1274,7 +1274,7 @@ class backpack(Exchange, ImplicitAPI):
                 request['symbol'] = self.safe_string(market, 'id')
         return request
 
-    def filter_stock_structures(self, entries: list) -> list:
+    def filter_stock_structures(self, entries: list[dict]) -> list:
         """
  @ignore
         filters parsed account structures by securities metadata, never by RFQ execution alone
