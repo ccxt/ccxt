@@ -6835,9 +6835,10 @@ public partial class xt : Exchange
             string jsonBody = this.json(query);
             signedBody = isUndefinedBody ? null : jsonBody;
             string payloadString = "";
+            string timestampPart = (("&xt-validate-t" + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
             if ((endpoint == "spot") || (endpoint == "user"))
             {
-                string spotPrefix = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
+                string spotPrefix = (((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + timestampPart);
                 if (isUndefinedBody)
                 {
                     if (urlencoded != "")
@@ -6856,7 +6857,7 @@ public partial class xt : Exchange
                 headersValue["xt-validate-recvwindow"] = recvWindow;
             } else
             {
-                string futurePrefix = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
+                string futurePrefix = (("xt-validate-appkey=" + this.apiKey) + timestampPart);
                 if ((method == "GET"))
                 {
                     if (urlencoded != "")
