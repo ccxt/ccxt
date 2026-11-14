@@ -484,7 +484,7 @@ impl Opinion {
                 fetchedRawRows.push(Value::from(&raw));
                 let mut marketType: Option<i64> = self.safe_integer_k(&raw, "marketType", &[]).as_i64();
                 if (marketType == Some(1)) {
-                    let mut event: crate::value::Dict = self.parse_event(Value::from(&raw)).into_dict();
+                    let mut event: crate::value::Dict = self.parse_event(&raw).into_dict();
                     let mut childMarkets: crate::value::List = self.safe_list_k(&event, "markets", &[Value::from(vec![])]).into_list();
                     let mut childMarketsLength: f64 = ((childMarkets.len() as i64) as f64);
                     {
@@ -500,7 +500,7 @@ impl Opinion {
                         eventsList.push(Value::Dict(event));
                     }
                 }  else {
-                    flatMarkets.push(self.parse_opinion_market(Value::Dict(raw), None));
+                    flatMarkets.push(self.parse_opinion_market(&raw, None));
                 }
             }
             }
@@ -552,7 +552,8 @@ impl Opinion {
  * @param {string} [eventSlug] the slug of the parent event
  * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
  */
-    pub fn parse_opinion_market(&self, mut raw: Value, eventSlug: Option<&str>) -> Value {
+    pub fn parse_opinion_market(&self, raw: impl Into<crate::Value>, eventSlug: Option<&str>) -> Value {
+        let mut raw: Value = raw.into();
         let mut eventSlug: Value = eventSlug.into();
         // {
         //     "chainId": "56",
@@ -762,7 +763,7 @@ impl Opinion {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut single: crate::value::Dict = self.parse_event(Value::Dict(singleData)).into_dict();
+            let mut single: crate::value::Dict = self.parse_event(&singleData).into_dict();
             self.index_event_outcomes(Value::from(&single));
             return self.apply_event_fetch_params(Value::from(vec![Value::Dict(single)]), &[params.clone(), Value::from(&queries)]);
         }
@@ -889,7 +890,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut event: crate::value::Dict = self.parse_event(Value::Dict(data)).into_dict();
+        let mut event: crate::value::Dict = self.parse_event(&data).into_dict();
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -904,7 +905,8 @@ impl Opinion {
  * @param {object} rawEvent the raw opinion categorical market object
  * @returns {object} an event structure
  */
-    pub fn parse_event(&self, mut rawEvent: Value) -> Value {
+    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> Value {
+        let mut rawEvent: Value = rawEvent.into();
         // {
         //     "chainId": "56",
         //     "childMarkets": [
@@ -1079,12 +1081,12 @@ impl Opinion {
         m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }), &[params.clone()]);
-        let mut promises: Value = Value::from(vec![self.opinion_public_get_token_latest_price(&[__ws_arg_12]).await, self.opinion_public_get_token_orderbook(&[self.extend(Value::Map({
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.opinion_public_get_token_latest_price(&[__ws_arg_12]).await, self.opinion_public_get_token_orderbook(&[self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }), &[params])]).await]);
-        let priceResponsebookResponseVariable: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
+        let priceResponsebookResponseVariable: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
         let mut priceResponse: Value = priceResponsebookResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut bookResponse: Value = priceResponsebookResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: indexmap::IndexMap<String, Value> = ({
@@ -1501,7 +1503,8 @@ impl Opinion {
     Value::Null
 }
 
-    pub fn sign_opinion_order(&self, mut order: Value, exchangeAddress: &str) -> Option<String> {
+    pub fn sign_opinion_order(&self, order: impl Into<crate::Value>, exchangeAddress: &str) -> Option<String> {
+        let mut order: Value = order.into();
         let mut exchangeAddress: Value = exchangeAddress.into();
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1703,17 +1706,17 @@ impl Opinion {
         let mut salt: Option<String> = self.number_to_string(Value::Int(self.milliseconds()));
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]).into_dict();
-        let mut maker: Value = self.load_multi_sign_address().await;
+        let mut maker: Option<String> = self.load_multi_sign_address().await.as_str().map(str::to_owned);
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
         // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
-        let mut makerLower: Value = (if let Some(__s) = maker.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+        let mut makerLower: Option<String> = maker.as_deref().map(str::to_lowercase);
         let mut walletAddressLower: Value = (if let Some(__s) = self.walletAddress.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        let mut signatureType: i64 = (if (makerLower.as_str() == walletAddressLower.as_str()) { 0 } else { 2 });
+        let mut signatureType: i64 = (if ((makerLower.as_deref() == walletAddressLower.as_str())) { 0 } else { 2 });
         let mut order: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), salt.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("maker".to_string(), maker.clone());
+                m.insert("maker".to_string(), Value::from(maker.as_deref()));
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("taker".to_string(), Value::Str("0x0000000000000000000000000000000000000000".into()));
                 m.insert("tokenId".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1733,7 +1736,7 @@ impl Opinion {
         let mut orderBody: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), salt.map(Value::from).unwrap_or(Value::Null));
-                m.insert("maker".to_string(), maker);
+                m.insert("maker".to_string(), maker.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("taker".to_string(), Value::Str("0x0000000000000000000000000000000000000000".into()));
                 m.insert("tokenId".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
@@ -2181,7 +2184,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut market: Value = self.parse_opinion_market(Value::Dict(data), None);
+        let mut market: Value = self.parse_opinion_market(&data, None);
         if (market == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " loadTradeMarket() could not parse market ").into()), idStr)));
         }
@@ -2463,7 +2466,8 @@ impl Opinion {
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Value {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 
@@ -2534,7 +2538,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.set_api_credentials(Value::Dict(result));
+        return self.set_api_credentials(&result);
 
     Value::Null
 }
@@ -2557,7 +2561,7 @@ impl Opinion {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.set_api_credentials(Value::Dict(result));
+        return self.set_api_credentials(&result);
 
     Value::Null
 }
@@ -2622,7 +2626,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn set_api_credentials(&mut self, mut response: Value) -> Value {
+    pub fn set_api_credentials(&mut self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
         //
@@ -2792,8 +2797,8 @@ if _try_result.is_err() {
         let mut channel: String = "market.depth.diff".to_string();
         let mut messageHash: String = format!("{}{}", "orderbook::", sym.as_deref().unwrap_or("null"));
         self.load_api_key().await;
-        let mut url: Value = self.opinion_ws_url().map(Value::from).unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.opinion_ws_url();
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -2806,7 +2811,7 @@ if _try_result.is_err() {
         if isNewSubscription {
             self.seed_order_book(outcome.as_str().unwrap_or_default(), sym.as_deref(), limit.as_i64()).await;
         }
-        let mut future: Value = self.watch(&url, messageHash.as_str(), Value::Map(subscribeMsg), subscriptionKey.as_str(), Value::Null).await;
+        let mut future: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), subscriptionKey.as_str(), Value::Null).await;
         if isNewSubscription {
             // return the freshly-seeded book immediately instead of blocking until the next delta
             client.resolve(Value::from(self.orderbooks.lookup(&sym)), messageHash.as_str());

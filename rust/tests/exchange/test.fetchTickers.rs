@@ -47,9 +47,9 @@ async fn fetchTickersHelperTest(mut exchange: Value, mut skippedProperties: Valu
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let ex: Value = panic_to_value(_try_err);
             let mut ohlcv: Value = Value::Null;
-            let mut tickerSymbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if (tickerSymbol != Value::Null) && crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone()) {
-                ohlcv = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![tickerSymbol, Value::Str("1d".into()), Value::Null, Value::Int(5)]).await;
+            let mut tickerSymbol: Option<String> = ccxt::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+            if (tickerSymbol.is_some()) && crate::tests_support::shared::ticker_exception_needs_ohlcv(ex.clone(), exchange.clone(), ticker.clone()) {
+                ohlcv = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![tickerSymbol.map(Value::from).unwrap_or(Value::Null), Value::Str("1d".into()), Value::Null, Value::Int(5)]).await;
             }
             crate::tests_support::shared::validate_ticker_exception_for_percentage(ex.clone(), exchange.clone(), ticker.clone(), ohlcv.clone());
         }

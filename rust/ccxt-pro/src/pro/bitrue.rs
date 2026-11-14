@@ -1228,13 +1228,15 @@ impl Bitrue {
             return;
         }
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut parsed: crate::value::Dict = self.parse_ws_ticker(tick.map_or(Value::Null, Value::Dict), market, &[Value::from(timestamp)]).into_dict();
+        let mut parsed: crate::value::Dict = self.parse_ws_ticker(&tick, market, &[Value::from(timestamp)]).into_dict();
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsed)); }
         let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(parsed), messageHash.as_str());
 }
 
-    pub fn parse_ws_ticker(&self, mut tick: Value, mut market: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_ticker(&self, tick: impl Into<crate::Value>, market: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut tick: Value = tick.into();
+        let mut market: Value = market.into();
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
         let mut symbol: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut rawVol: Option<f64> = self.safe_number_k(tick.clone(), "vol", &[]).as_f64();

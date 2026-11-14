@@ -2194,8 +2194,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchBalance() requires a market type")));
         }
         self.authenticate(&[typeMarketType.clone(), Value::Dict(paramsMarketType)]).await;
-        let mut url: Value = self.get_private_url(&[typeMarketType.clone()]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone()]).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         self.set_balance_cache(client.as_value(), typeMarketType.clone());
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2205,7 +2205,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut messageHash: String = format!("{}{}", typeMarketType, ":balance");
         let mut message: Option<String> = None;
-        return self.watch(&url, messageHash.as_str(), Value::from(message.as_deref()), &typeMarketType, Value::Null).await;
+        return self.watch(url.as_deref(), messageHash.as_str(), Value::from(message.as_deref()), &typeMarketType, Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -2372,8 +2372,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut type_var: String = "swap".to_string();
         self.authenticate(&[Value::from(type_var.clone()), params]).await;
-        let mut url: Value = self.get_private_url(&[Value::from(type_var.clone())]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_private_url(&[Value::from(type_var.clone())]).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         self.set_positions_cache(client.as_value());
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut messageHash: String = "positions".to_string();
@@ -2397,7 +2397,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
             return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
-        let mut newPositions: Value = self.watch_multiple(&url, Value::from(messageHashes), Value::Null, Value::from(vec![Value::from(type_var)]), Value::Null).await;
+        let mut newPositions: Value = self.watch_multiple(url.as_deref(), Value::from(messageHashes), Value::Null, Value::from(vec![Value::from(type_var)]), Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2490,7 +2490,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut data: crate::value::Dict = message.get("a").cloned().unwrap_or_default().into_dict();
         let mut rawPositions: crate::value::List = self.safe_list_k(&data, "P", &[Value::from(vec![])]).into_list();
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_34: bool = true;
@@ -2500,7 +2500,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             std::sync::Arc::make_mut(&mut position).insert("timestamp".into(), Value::from(timestamp));
             std::sync::Arc::make_mut(&mut position).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }
         }
@@ -2510,12 +2510,12 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                 let mut i: i64 = 0;
                 let mut __for_first_35: bool = true;
                 while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (newPositions.len() as i64) } {
-                let mut position: Value = newPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut position: Value = newPositions.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), self.safe_string_k(position.clone(), "symbol", &[Value::Str("".into())]));
                 client.resolve(position, symbolMessageHash.as_str());
             }
             }
-            client.resolve(newPositions, "positions");
+            client.resolve(Value::Arr(newPositions), "positions");
         }
 }
 
@@ -2625,10 +2625,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (market.is_some()) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "orders", "::").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
-        let mut url: Value = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut orders: Value = self.watch_multiple(&url, Value::from(vec![Value::from(messageHash)]), Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)]), Value::Null).await;
+        let mut orders: Value = self.watch_multiple(url.as_deref(), Value::from(vec![Value::from(messageHash)]), Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)]), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2685,10 +2685,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (market.is_some()) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "myTrades", "::").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
-        let mut url: Value = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_private_url(&[typeMarketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut trades: Value = self.watch_multiple(&url, Value::from(vec![Value::from(messageHash)]), Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)]), Value::Null).await;
+        let mut trades: Value = self.watch_multiple(url.as_deref(), Value::from(vec![Value::from(messageHash)]), Value::Null, Value::from(vec![typeMarketType.map(Value::from).unwrap_or(Value::Null)]), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -2806,7 +2806,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
 }
 
-    pub fn handle_order(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order(&mut self, mut client: Value, message: impl Into<crate::Value>) {
+        let mut message: Value = message.into();
         //
         // spot
         //     {

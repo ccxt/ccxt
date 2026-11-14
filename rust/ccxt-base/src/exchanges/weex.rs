@@ -1621,8 +1621,8 @@ impl Weex {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut promises: Value = Value::from(vec![self.public_get_api_v3_exchange_info(&[params.clone()]).await, self.contract_get_capi_v3_market_exchange_info(&[params]).await]);
-        let spotResponsecontractResponseVariable: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_api_v3_exchange_info(&[params.clone()]).await, self.contract_get_capi_v3_market_exchange_info(&[params]).await]);
+        let spotResponsecontractResponseVariable: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
         let mut spotResponse: Value = spotResponsecontractResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut contractResponse: Value = spotResponsecontractResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut spotArray: crate::value::List = self.safe_list_k(spotResponse, "symbols", &[Value::from(vec![])]).into_list();
@@ -3003,7 +3003,8 @@ impl Weex {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());

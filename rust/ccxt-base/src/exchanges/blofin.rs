@@ -2137,7 +2137,8 @@ impl Blofin {
         }).await?))
     }
 
-    pub fn parse_balance_by_type(&self, mut response: Value) -> Value {
+    pub fn parse_balance_by_type(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut data: Option<crate::value::List> = self.safe_list_k(response.clone(), "data", &[]).into_opt_list();
         if (data.is_some()) {
             return self.parse_funding_balance(response.clone());
@@ -2306,17 +2307,17 @@ impl Blofin {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (accountType.is_some()) && (accountType.as_deref() != Some("swap")) {
             let mut parsedAccountType: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("accountsByType")).cloned().unwrap_or(Value::Null), accountType.clone().map(Value::from).unwrap_or(Value::Null), &[accountType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             request.insert("accountType".into(), parsedAccountType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsAccountType]);
-            response = self.private_get_asset_balances(&[__ws_arg_7]).await;
+            response = self.private_get_asset_balances(&[__ws_arg_7]).await.into_opt_dict();
         }  else {
             let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsAccountType]);
-            response = self.private_get_account_balance(&[__ws_arg_8]).await;
+            response = self.private_get_account_balance(&[__ws_arg_8]).await.into_opt_dict();
         }
-        return self.parse_balance_by_type(response);
+        return self.parse_balance_by_type(&response);
         Value::Null
         }).await?))
     }

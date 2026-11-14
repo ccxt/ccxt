@@ -690,7 +690,7 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut parsed: crate::value::Dict = self.parent.parse_balance_list(Value::Dict(data)).into_dict();
+        let mut parsed: crate::value::Dict = self.parent.parse_balance_list(&data).into_dict();
         { let __t = self.deep_extend(self.balance.clone(), &[&parsed]); self.balance = __t; }
         client.resolve(self.balance.clone(), "balance");
 }
@@ -1648,14 +1648,15 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(&data, None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         client.resolve(Value::Dict(ticker), channel.as_deref());
 }
 
-    pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_bid_ask(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
@@ -2536,8 +2537,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("authenticate", &[params]).into_dict();
-        let mut url: Value = self.get_ws_url(&[Value::Bool(true)]);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_ws_url(&[Value::Bool(true)]).as_str().map(str::to_owned);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut messageHash: Value = Value::Str("authenticated".into());
         let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future != Value::Null) {
@@ -2576,7 +2577,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             future = Value::from(client.reusable_future(messageHash.clone()));
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsResolved]);
-            self.watch(&url, &messageHash, __ws_arg_5, &messageHash, Value::Null).await;
+            self.watch(url.as_deref(), &messageHash, __ws_arg_5, &messageHash, Value::Null).await;
             client.add_subscription(&messageHash, future.clone());
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;

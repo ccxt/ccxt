@@ -556,7 +556,7 @@ impl Bitvavo {
         self.handle_bid_ask(client.clone(), message);
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut tickers: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
-        let mut result: Vec<Value> = vec![];
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_144: bool = true;
@@ -567,14 +567,14 @@ impl Bitvavo {
             let mut ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market)).into_dict();
             let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
-            result.push(Value::from(&ticker));
+            std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
             if (event.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), "@").into()), self.safe_string_k(&data, "market", &[Value::Str("".into())]));
                 client.resolve(Value::Dict(ticker), messageHash.as_str());
             }
         }
         }
-        client.resolve(Value::Array(result), event.as_deref());
+        client.resolve(Value::Arr(result), event.as_deref());
 }
 
 /*
@@ -613,7 +613,7 @@ impl Bitvavo {
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut event: String = "bidask".to_string();
         let mut tickers: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut result: Vec<Value> = vec![];
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_145: bool = true;
@@ -622,12 +622,12 @@ impl Bitvavo {
             let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None).into_dict();
             let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
-            result.push(Value::from(&ticker));
+            std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event, ":").into()), symbol);
             client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
         }
-        client.resolve(Value::Array(result), event.as_str());
+        client.resolve(Value::Arr(result), event.as_str());
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
@@ -1615,8 +1615,9 @@ impl Bitvavo {
         }
 }
 
-    pub async fn un_watch_channels(&mut self, topic: &str, mut channels: Value, mut subMessageHashes: Value, mut subscriptionArgs: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_channels(&mut self, topic: &str, mut channels: Value, mut subMessageHashes: Value, subscriptionArgs: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut topic: Value = topic.into();
+        let mut subscriptionArgs: Value = subscriptionArgs.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

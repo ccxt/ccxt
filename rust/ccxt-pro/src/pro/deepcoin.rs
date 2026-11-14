@@ -692,13 +692,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Option<String> = self.safe_string_k(&data, "I", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("/".into())]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
-        let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(data), Some(&market)).into_dict();
+        let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(&data, Some(&market)).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "ticker", "::").into()), symbol.as_deref().unwrap_or("null"));
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
         client.resolve(Value::Dict(parsedTicker), messageHash.as_str());
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         //
         //     {
         //         I: 'BTC/USDT',
@@ -1780,14 +1781,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.positions.is_none()) {
                 self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
             }
-            let mut parsed: crate::value::Dict = self.parse_ws_position(Value::Dict(data), Some(&market)).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_ws_position(&data, Some(&market)).into_dict();
             self.positions.append(Value::Dict(parsed));
             client.resolve(Value::from(&self.positions), messageHash.as_str());
             client.resolve(Value::from(&self.positions), symbolMessageHash.as_str());
         }
 }
 
-    pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut position: Value = position.into();
         //
         //     {
         //         "A": "9256245",
@@ -1949,11 +1951,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict(); // unWatch subscription
-            self.handle_un_subscription(client, Value::Dict(unsubsciption));
+            self.handle_un_subscription(client, &unsubsciption);
         }
 }
 
-    pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_un_subscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut subHash: Option<String> = (match __pro_message.get("subHash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

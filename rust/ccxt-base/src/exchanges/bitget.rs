@@ -6051,8 +6051,8 @@ if _try_result.is_err() {
             }
             let mut parsedMarket: Value = self.parse_market(&market);
             if (parsedMarket != Value::Null) && matches!(parsedMarket.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null), Value::Bool(true)) {
-                let mut marketId: Value = parsedMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-                let mut instrument: Option<crate::value::Dict> = self.safe_dict(spotInstruments.clone(), marketId, &[]).into_opt_dict();
+                let mut marketId: Option<String> = crate::value::KeyRead::key_read(&&parsedMarket, "id").as_str().map(str::to_owned);
+                let mut instrument: Option<crate::value::Dict> = self.safe_dict(spotInstruments.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
                 if (instrument.is_some()) {
                     // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
                     let mut assetType: Option<String> = self.safe_string_lower_k(&instrument, "symbolType", &[]).as_str().map(str::to_owned);
@@ -8778,7 +8778,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            return self.parse_trading_fee(Value::Dict(utaData), Some(&market));
+            return self.parse_trading_fee(&utaData, Some(&market));
         }
         let mut marginMode: Option<String> = None;
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchTradingFee".into()), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -8808,7 +8808,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(data), Some(&market));
+        return self.parse_trading_fee(&data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -8903,7 +8903,7 @@ if _try_result.is_err() {
                 if (entrySymbol == Value::Null) || (entrySymbol == entryMarketId) {
                     continue;
                 }
-                utaResult.insert(crate::runtime::stringify_param(&entrySymbol), self.parse_trading_fee(Value::Dict(entry), Some(&entryMarket)));
+                utaResult.insert(crate::runtime::stringify_param(&entrySymbol), self.parse_trading_fee(&entry, Some(&entryMarket)));
             }
             }
             return Value::Map(utaResult);
@@ -9008,7 +9008,7 @@ if _try_result.is_err() {
             let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(Value::Dict(entry), Some(&market)).as_map().cloned().unwrap_or_default();
+            let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(&entry, Some(&market)).as_map().cloned().unwrap_or_default();
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
         }
         }
@@ -9017,7 +9017,8 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut data: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut data: Value = data.into();
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9360,11 +9361,11 @@ if _try_result.is_err() {
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if isStockOrUta {
-            let mut assets: Value = Value::Null;
+            let mut assets: Option<crate::value::List> = None;
             if (marketType.as_deref() == Some("funding")) {
                 let __ws_arg_41 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
                 response = self.private_uta_get_v3_account_funding_assets(&[__ws_arg_41]).await;
-                assets = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
+                assets = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_opt_list();
             }  else {
                 let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
                 response = self.private_uta_get_v3_account_assets(&[__ws_arg_42]).await;
@@ -9372,9 +9373,9 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                assets = self.safe_list_k(&results, "assets", &[Value::from(vec![])]);
+                assets = self.safe_list_k(&results, "assets", &[Value::from(vec![])]).into_opt_list();
             }
-            return self.parse_uta_balance(assets, &[response.clone()]);
+            return self.parse_uta_balance(&assets, &[response.clone()]);
         }  else if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
             let mut productType: Option<String> = None;
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(None, &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -9486,12 +9487,13 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_balance_list(Value::Arr(data));
+        return self.parse_balance_list(&data);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_uta_balance(&self, mut balance: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_uta_balance(&self, balance: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut balance: Value = balance.into();
         let mut response = get_arg(optional_args, 0, Value::Null);
         let mut info: Value = (if (response != Value::Null) { response } else { balance.clone() });
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -9521,7 +9523,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_balance_list(&self, mut balance: Value) -> Value {
+    pub fn parse_balance_list(&self, balance: impl Into<crate::Value>) -> Value {
+        let mut balance: Value = balance.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), balance.clone());
@@ -14637,7 +14640,8 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn parse_funding_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_funding_history(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut contract: Value = contract.into();
         //
         //     {
         //         "billId": "1111499428100472833",
@@ -14680,7 +14684,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_funding_histories(&self, mut contracts: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_funding_histories(&self, contracts: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut contracts: Value = contracts.into();
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut result: Vec<Value> = Vec::new();
@@ -14688,13 +14693,13 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_386: bool = true;
             while { if !__for_first_386 { i += 1; } __for_first_386 = false; i < (contracts.len() as i64) } {
-            let mut contract: Option<crate::value::Dict> = self.safe_dict(contracts.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut contract: crate::value::Dict = self.safe_dict(contracts.clone(), Value::Int(i), &[]).into_dict();
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
             // const business = this.safeString (contract, 'businessType');
             // if (business !== 'contract_settle_fee') {
             //     continue;
             // }
-            let mut parsedFunding: crate::value::Dict = self.parse_funding_history(contract.map_or(Value::Null, Value::Dict), market).into_dict();
+            let mut parsedFunding: crate::value::Dict = self.parse_funding_history(&contract, market).into_dict();
             result.push(Value::Dict(parsedFunding));
         }
         }
@@ -15670,7 +15675,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(data), Some(&currency), None);
+        return self.parse_margin_loan(&data, Some(&currency), None);
         Value::Null
         }).await?))
     }
@@ -15730,7 +15735,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(data), Some(&currency), Some(&market));
+        return self.parse_margin_loan(&data, Some(&currency), Some(&market));
         Value::Null
         }).await?))
     }
@@ -15791,7 +15796,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(data), Some(&currency), Some(&market));
+        return self.parse_margin_loan(&data, Some(&currency), Some(&market));
         Value::Null
         }).await?))
     }
@@ -15847,12 +15852,13 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_margin_loan(Value::Dict(data), Some(&currency), None);
+        return self.parse_margin_loan(&data, Some(&currency), None);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_margin_loan(&self, mut info: Value, currency: Option<&crate::types::Currency>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_margin_loan(&self, info: impl Into<crate::Value>, currency: Option<&crate::types::Currency>, market: Option<&crate::types::Market>) -> Value {
+        let mut info: Value = info.into();
         //
         // isolated: borrowMargin
         //
@@ -17499,19 +17505,19 @@ if _try_result.is_err() {
                 if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".to_string(), Value::Str("application/json".into())); }
             }
         }
-        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
+        let mut headersResult: Option<crate::value::Dict> = requestHeaders;
         let mut sandboxMode: bool = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if sandboxMode && (path.as_str() != Some("v2/public/time")) && (path.as_str() != Some("v3/market/current-fund-rate")) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
-            if (headersResult == Value::Null) {
-                headersResult = Value::Map({
+            if (headersResult.is_none()) {
+                headersResult = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                     m
-                });
+                }));
             }
             let mut productType: Option<String> = self.safe_string_k(params, "productType", &[]).as_str().map(str::to_owned);
             if (productType.as_deref() != Some("SCOIN-FUTURES")) && (productType.as_deref() != Some("SUSDT-FUTURES")) && (productType.as_deref() != Some("SUSDC-FUTURES")) {
-                add_element_to_object(&mut headersResult, &Value::Str("PAPTRADING".into()), Value::Str("1".into()));
+                if let Some(__d) = &mut headersResult { std::sync::Arc::make_mut(__d).insert("PAPTRADING".to_string(), Value::Str("1".into())); }
             }
         }
         let mut bodyResult: Value = requestBody;
@@ -17520,7 +17526,7 @@ if _try_result.is_err() {
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult);
-        m.insert("headers".to_string(), headersResult);
+        m.insert("headers".to_string(), headersResult.map_or(Value::Null, Value::Dict));
     m
 });
 

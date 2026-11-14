@@ -777,7 +777,7 @@ impl Krakenfutures {
         if (rawPositions.is_none()) {
             return;
         }
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_431: bool = true;
@@ -785,7 +785,7 @@ impl Krakenfutures {
             let mut rawPosition: Value = rawPositions.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
             let mut position: crate::value::Dict = self.parse_ws_position(rawPosition, &[Value::Null, Value::from(timestamp)]).into_dict();
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }
         }
@@ -798,13 +798,13 @@ impl Krakenfutures {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut positions: crate::value::List = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let mut positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_deref());
             }
         }
         }
-        client.resolve(newPositions, "positions");
+        client.resolve(Value::Arr(newPositions), "positions");
 }
 
     pub fn parse_ws_position(&self, mut position: Value, optional_args: &[Value]) -> Value {
@@ -1837,8 +1837,8 @@ impl Krakenfutures {
         //
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, Value::from(symbol.as_deref())]).map(Value::from).unwrap_or(Value::Null);
-        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, Value::from(symbol.as_deref())]);
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.as_deref()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -1861,7 +1861,7 @@ impl Krakenfutures {
         }
         let mut snapshot: crate::value::Dict = self.parse_order_book(message, symbol.map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("qty".into())]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
-        client.resolve(Value::from(&orderbook), &messageHash);
+        client.resolve(Value::from(&orderbook), messageHash.as_deref());
 }
 
     pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
@@ -2197,7 +2197,8 @@ impl Krakenfutures {
  * @param {object} seenKeys the currency codes / symbols present in the current message
  * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
  */
-    pub fn prune_stale_balance_keys(&self, mut balanceObject: Value, mut seenKeys: Value) -> Value {
+    pub fn prune_stale_balance_keys(&self, mut balanceObject: Value, seenKeys: impl Into<crate::Value>) -> Value {
+        let mut seenKeys: Value = seenKeys.into();
         let __seenKeys_empty = indexmap::IndexMap::new();
         let seenKeys = seenKeys.as_map().unwrap_or(&__seenKeys_empty);
         let mut reserved: Value = Value::from(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into()), Value::Str("debt".into())]);

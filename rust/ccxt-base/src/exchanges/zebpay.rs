@@ -1020,7 +1020,7 @@ impl Zebpay {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Option<crate::value::Dict> = None;
-        let mut data: Value = Value::Null;
+        let mut data: Option<crate::value::Dict> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -1042,9 +1042,9 @@ impl Zebpay {
             //     "statusCode": 200,
             // }
             data = self.safe_dict_k(&response, "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_opt_dict();
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
             response = self.public_swap_get_v1_exchange_tradefee(&[__ws_arg_1]).await.into_opt_dict();
@@ -1067,9 +1067,9 @@ impl Zebpay {
             data = self.safe_dict(&responseData, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         }
-        return self.parse_trading_fee(data, Some(&market));
+        return self.parse_trading_fee(&data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2808,7 +2808,8 @@ impl Zebpay {
     Value::Null
 }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         let mut marketId: Option<String> = self.safe_string_k(fee.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         return Value::Map({
@@ -2980,14 +2981,14 @@ impl Zebpay {
             }));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), tail).into()), suffix);
-        let mut headersResolved: Value = headersSigned.map_or(Value::Null, Value::Dict);
+        let mut headersResolved: Option<crate::value::Dict> = headersSigned;
         let mut bodyResolved: Option<String> = bodySigned;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResolved);
+        m.insert("headers".to_string(), headersResolved.map_or(Value::Null, Value::Dict));
     m
 });
 

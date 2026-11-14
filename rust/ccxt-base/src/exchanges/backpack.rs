@@ -2248,7 +2248,8 @@ impl Backpack {
  * @param {Array} entries parsed trades or orders
  * @returns {Array} tokenized stock structures
  */
-    pub fn filter_stock_structures(&self, mut entries: Value) -> Value {
+    pub fn filter_stock_structures(&self, entries: impl Into<crate::Value>) -> Value {
+        let mut entries: Value = entries.into();
         let __entries_empty = Vec::new();
         let entries = entries.as_array().unwrap_or(&__entries_empty);
         let mut result: Vec<Value> = Vec::new();

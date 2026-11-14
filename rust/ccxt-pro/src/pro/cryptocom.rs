@@ -1296,7 +1296,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(ticker), None).into_dict();
+        let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(&ticker, None).into_dict();
         let mut symbol: String = self.safe_string_k(&parsedTicker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (symbol != "") {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&parsedTicker)); }
@@ -1305,7 +1305,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         client.resolve(Value::Dict(parsedTicker), messageHash.as_str());
 }
 
-    pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_bid_ask(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "i", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
@@ -1620,7 +1621,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub fn set_positions_cache(&mut self, mut client: Value, mut type_var: Value, optional_args: &[Value]) {
+    pub fn set_positions_cache(&mut self, mut client: Value, type_var: impl Into<crate::Value>, optional_args: &[Value]) {
+        let mut type_var: Value = type_var.into();
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut fetchPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]).as_bool();
@@ -1700,14 +1702,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_279: bool = true;
             while { if !__for_first_279 { i += 1; } __for_first_279 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }
         }
@@ -1720,13 +1722,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut positions: crate::value::List = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let mut positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_deref());
             }
         }
         }
-        client.resolve(newPositions, "positions");
+        client.resolve(Value::Arr(newPositions), "positions");
 }
 
 /*
@@ -2287,7 +2289,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         let mut method: Option<String> = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut methods: Value = Value::Map({
+        let mut methods: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("".to_string(), Value::Str("handle_ping".into()).clone());
                 m.insert("public/heartbeat".to_string(), Value::Str("handle_ping".into()).clone());
@@ -2300,8 +2302,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("subscribe".to_string(), Value::Str("handle_subscribe".into()).clone());
                 m.insert("unsubscribe".to_string(), Value::Str("handle_unsubscribe".into()).clone());
             m
-        });
-        let mut callMethod: Value = self.safe_value(methods, method.map(Value::from).unwrap_or(Value::Null), &[]);
+        }).into_dict();
+        let mut callMethod: Value = self.safe_value(&methods, method.map(Value::from).unwrap_or(Value::Null), &[]);
         if (callMethod != Value::Null) {
             self.dispatch_ws_handler(&callMethod, &[client, message.clone()]);
         }

@@ -2069,7 +2069,7 @@ impl Bitvavo {
         let mut isLimitOrder: bool = (type_var.as_str() == Some("limit")) || (type_var.as_str() == Some("stopLossLimit")) || (type_var.as_str() == Some("takeProfitLimit"));
         let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(false), &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(false), &[params.clone()]);
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned); // trigger when price crosses from above to below this value
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned); // trigger when price crosses from below to above this value
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
@@ -2205,42 +2205,42 @@ impl Bitvavo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut amountRemaining: Option<f64> = self.safe_number_k(params.clone(), "amountRemaining", &[]).as_f64();
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("amountRemaining".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerAmount".into())]), &[]).into_dict();
         if (price != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("price".into()), self.price_to_precision(symbol.clone(), price));
+            std::sync::Arc::make_mut(&mut request).insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         if (amount != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("amount".into()), self.amount_to_precision(symbol.clone(), amount));
+            std::sync::Arc::make_mut(&mut request).insert("amount".into(), self.amount_to_precision(symbol.clone(), amount));
         }
         if (amountRemaining.is_some()) {
-            add_element_to_object(&mut request, &Value::Str("amountRemaining".into()), self.amount_to_precision(symbol.clone(), Value::from(amountRemaining)));
+            std::sync::Arc::make_mut(&mut request).insert("amountRemaining".into(), self.amount_to_precision(symbol.clone(), Value::from(amountRemaining)));
         }
         if (triggerPrice.is_some()) {
-            add_element_to_object(&mut request, &Value::Str("triggerAmount".into()), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+            std::sync::Arc::make_mut(&mut request).insert("triggerAmount".into(), self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)));
         }
-        request = self.extend(request.clone(), &[&paramsOmitted]);
-        if self.is_empty(request.clone()).as_bool() == Some(true) {
+        request = self.extend(request, &[&paramsOmitted]).into_dict();
+        if self.is_empty(&request).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires an amount argument, or a price argument, or non-empty params")));
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(&paramsOmitted, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_none()) {
-            add_element_to_object(&mut request, &Value::Str("orderId".into()), id.clone());
+            std::sync::Arc::make_mut(&mut request).insert("orderId".into(), id);
         }
         let mut operatorId: Value = self.handle_option_and_params(&paramsOmitted, Value::Str("editOrder".into()), Value::Str("operatorId".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         if (operatorId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("operatorId".into()), Value::from(self.parse_to_int(operatorId)));
+            std::sync::Arc::make_mut(&mut request).insert("operatorId".into(), Value::from(self.parse_to_int(operatorId)));
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")));
         }
-        add_element_to_object(&mut request, &Value::Str("market".into()), Value::from((market).id.as_deref()));
-        return request;
+        std::sync::Arc::make_mut(&mut request).insert("market".into(), Value::from((market).id.as_deref()));
+        return Value::Dict(request);
 
     Value::Null
 }

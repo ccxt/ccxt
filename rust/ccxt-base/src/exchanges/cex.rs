@@ -1397,12 +1397,13 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_trading_fees(Value::Dict(fees), &[Value::Bool(true)]);
+        return self.parse_trading_fees(&fees, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fees(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_trading_fees(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut useKeyAsId = get_arg(optional_args, 0, Value::Bool(false));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

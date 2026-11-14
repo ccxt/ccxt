@@ -1174,8 +1174,8 @@ impl Hashkey {
         let mut type_var: String = "spot".to_string();
         let mut typeMarketType: Value = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[params, Value::from(type_var)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut messageHash: String = format!("{}{}", "balance:", typeMarketType);
-        let mut url: Value = self.get_private_url(listenKey.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_private_url(listenKey.map(Value::from).unwrap_or(Value::Null));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         self.set_balance_cache(client.as_value(), typeMarketType.clone(), Value::from(messageHash.clone()));
         let fetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(self.options.clone(), Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -1184,7 +1184,7 @@ impl Hashkey {
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", typeMarketType, ":fetchBalanceSnapshot").into()))).await;
         }
-        return self.watch(&url, &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], Value::Null, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }

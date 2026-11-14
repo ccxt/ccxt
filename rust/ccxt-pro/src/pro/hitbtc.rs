@@ -503,9 +503,10 @@ impl Hitbtc {
  * @param {object} [params] extra parameters specific to the hitbtc api
  * @returns {boolean} true once the exchange acknowledges the unsubscribe
  */
-    pub async fn un_subscribe_public(&mut self, name: &str, messageHashPrefix: &str, mut symbols: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_public(&mut self, name: &str, messageHashPrefix: &str, mut symbols: Value, subscription: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut name: Value = name.into();
         let mut messageHashPrefix: Value = messageHashPrefix.into();
+        let mut subscription: Value = subscription.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -949,7 +950,7 @@ impl Hitbtc {
     m
 }) }).as_map().cloned().unwrap_or_default();
         let mut marketIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
-        let mut result: Vec<Value> = vec![];
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut topic: String = "tickers".to_string();
         {
                         let mut i: i64 = 0;
@@ -960,12 +961,12 @@ impl Hitbtc {
             let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
             let mut ticker: crate::value::Dict = self.parse_ws_ticker(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-            result.push(Value::from(&ticker));
+            std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic, "::").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
         }
-        client.resolve(Value::Array(result), topic.as_str());
+        client.resolve(Value::Arr(result), topic.as_str());
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
@@ -1115,7 +1116,7 @@ impl Hitbtc {
     m
 }) }).as_map().cloned().unwrap_or_default();
         let mut marketIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
-        let mut result: Vec<Value> = vec![];
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut topic: String = "bidask".to_string();
         {
                         let mut i: i64 = 0;
@@ -1126,12 +1127,12 @@ impl Hitbtc {
             let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
             let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-            result.push(Value::from(&ticker));
+            std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", topic, "::").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
         }
-        client.resolve(Value::Array(result), topic.as_str());
+        client.resolve(Value::Arr(result), topic.as_str());
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
@@ -1690,7 +1691,8 @@ impl Hitbtc {
     Value::Null
 }
 
-    pub fn handle_order_helper(&self, mut client: Value, mut message: Value, mut order: Value) {
+    pub fn handle_order_helper(&self, mut client: Value, mut message: Value, order: impl Into<crate::Value>) {
+        let mut order: Value = order.into();
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         if (self.orders.is_none()) {
@@ -1980,11 +1982,11 @@ impl Hitbtc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("client_order_id".to_string(), id);
             m
-        });
+        }).into_dict();
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
@@ -1994,13 +1996,13 @@ impl Hitbtc {
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrderWs".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        request = self.extend(request.clone(), &[&query]);
+        request = self.extend(request, &[&query]).into_dict();
         if (marketType.as_deref() == Some("swap")) {
-            return self.trade_request("futures_cancel_order", &[request.clone()]).await;
+            return self.trade_request("futures_cancel_order", &[Value::from(&request)]).await;
         }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
-            return self.trade_request("margin_cancel_order", &[request.clone()]).await;
+            return self.trade_request("margin_cancel_order", &[Value::from(&request)]).await;
         }  else {
-            return self.trade_request("spot_cancel_order", &[request]).await;
+            return self.trade_request("spot_cancel_order", &[Value::Dict(request)]).await;
         }
         Value::Null
         }).await?))
@@ -2128,7 +2130,7 @@ impl Hitbtc {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut params: Value = (match message.get("params") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while
@@ -2136,7 +2138,7 @@ impl Hitbtc {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: Value = self.parent.parse_balance_list(params);
+        let mut balance: Value = self.parent.parse_balance_list(&params);
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2205,16 +2207,16 @@ impl Hitbtc {
     m
 }) });
         if (matches!(&result, Value::Arr(_))) {
-            let mut parsedOrders: Vec<Value> = vec![];
+            let mut parsedOrders: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_373: bool = true;
                 while { if !__for_first_373 { i += 1; } __for_first_373 = false; i < (result.len() as i64) } {
                 let mut parsedOrder: crate::value::Dict = self.parse_ws_order(result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
-                parsedOrders.push(Value::Dict(parsedOrder));
+                std::sync::Arc::make_mut(&mut parsedOrders).push(Value::Dict(parsedOrder));
             }
             }
-            client.resolve(Value::Array(parsedOrders), messageHash.as_deref());
+            client.resolve(Value::Arr(parsedOrders), messageHash.as_deref());
         }  else {
             let mut parsedOrder: crate::value::Dict = self.parse_ws_order(result, None).into_dict();
             client.resolve(Value::Dict(parsedOrder), messageHash.as_deref());

@@ -2266,7 +2266,8 @@ impl Binance {
  * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
  * @returns {object} a quote
  */
-    pub async fn fetch_quote(&mut self, mut request: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_quote(&mut self, request: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut request: Value = request.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2406,7 +2407,7 @@ impl Binance {
                 m.insert("amountIn".to_string(), crate::precise::Precise::stringMul(&__ws_arg_14, &Value::Str("1000000000000000000".into())));
             m
         })]).into_dict();
-        let mut quote: Value = self.fetch_quote(Value::Dict(quoteRequest), &[paramsOmitted.clone()]).await;
+        let mut quote: Value = self.fetch_quote(&quoteRequest, &[paramsOmitted.clone()]).await;
         let mut quoteId: Option<String> = self.safe_string_k(quote, "quoteId", &[]).as_str().map(str::to_owned);
         let __ws_arg_15 = self.safe_string_k(wallet, "walletId", &[]);
         let mut orderRequest: crate::value::Dict = self.extend(Value::Map(commonRequest), &[Value::Map({

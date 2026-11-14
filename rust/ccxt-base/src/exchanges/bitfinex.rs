@@ -1764,7 +1764,9 @@ impl Bitfinex {
         }).await?))
     }
 
-    pub fn parse_currencies_custom(&self, mut ids: Value, mut indexed: Value, mut indexedNetworks: Value) -> Value {
+    pub fn parse_currencies_custom(&self, mut ids: Value, indexed: impl Into<crate::Value>, indexedNetworks: impl Into<crate::Value>) -> Value {
+        let mut indexed: Value = indexed.into();
+        let mut indexedNetworks: Value = indexedNetworks.into();
         let mut allowedIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4561,13 +4563,13 @@ impl Bitfinex {
             }));
         }
         let mut bodyResolved: Option<String> = requestBody;
-        let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
+        let mut headersResolved: Option<crate::value::Dict> = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResolved);
+        m.insert("headers".to_string(), headersResolved.map_or(Value::Null, Value::Dict));
     m
 });
 

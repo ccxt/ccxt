@@ -382,8 +382,9 @@ impl Woofipro {
         return newValue.as_i64().unwrap_or_default();
 }
 
-    pub async fn watch_public(&mut self, messageHash: &str, mut message: Value) -> Value {
+    pub async fn watch_public(&mut self, messageHash: &str, message: impl Into<crate::Value>) -> Value {
         let mut messageHash: Value = messageHash.into();
+        let mut message: Value = message.into();
         // the default id
         let mut id: Value = Value::Str("OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY".into());
         if (self.accountId.clone() != Value::Null) && (self.accountId.as_str() != Some("")) {
@@ -444,7 +445,7 @@ impl Woofipro {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut orderbook: Value = self.watch_public(topic.as_str(), Value::Dict(message)).await;
+        let mut orderbook: Value = self.watch_public(topic.as_str(), &message).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -523,12 +524,13 @@ impl Woofipro {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        return self.watch_public(topic.as_str(), Value::Dict(message)).await;
+        return self.watch_public(topic.as_str(), &message).await;
         Value::Null
         }).await?))
     }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market, &[]));
@@ -628,7 +630,7 @@ impl Woofipro {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut tickers: Value = self.watch_public(topic.as_str(), Value::Dict(message)).await;
+        let mut tickers: Value = self.watch_public(topic.as_str(), &message).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
@@ -659,7 +661,7 @@ impl Woofipro {
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut result: Vec<Value> = vec![];
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_722: bool = true;
@@ -673,10 +675,10 @@ impl Woofipro {
             })]);
             let mut ticker: crate::value::Dict = self.parse_ws_ticker(__ws_arg_0, Some(&market)).into_dict();
             add_element_to_object(&mut self.tickers, &crate::value::KeyRead::key_read(&&market, "symbol"), Value::from(&ticker));
-            result.push(Value::Dict(ticker));
+            std::sync::Arc::make_mut(&mut result).push(Value::Dict(ticker));
         }
         }
-        client.resolve(Value::Array(result), topic.as_deref());
+        client.resolve(Value::Arr(result), topic.as_deref());
 }
 
 /*
@@ -712,7 +714,7 @@ impl Woofipro {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut tickers: Value = self.watch_public(topic.as_str(), Value::Dict(message)).await;
+        let mut tickers: Value = self.watch_public(topic.as_str(), &message).await;
         return self.filter_by_array(tickers, Value::Str("symbol".into()), &symbolsNormalized, &[]);
         Value::Null
         }).await?))
@@ -739,7 +741,7 @@ impl Woofipro {
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
-        let mut result: Vec<Value> = vec![];
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_723: bool = true;
@@ -754,10 +756,10 @@ impl Woofipro {
             if (tickerSymbol.is_some()) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
-            result.push(Value::Dict(ticker));
+            std::sync::Arc::make_mut(&mut result).push(Value::Dict(ticker));
         }
         }
-        client.resolve(Value::Array(result), topic.as_deref());
+        client.resolve(Value::Arr(result), topic.as_deref());
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
@@ -825,7 +827,7 @@ impl Woofipro {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut ohlcv: Value = self.watch_public(topic.as_str(), Value::Dict(message)).await;
+        let mut ohlcv: Value = self.watch_public(topic.as_str(), &message).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
@@ -915,7 +917,7 @@ impl Woofipro {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let mut trades: Value = self.watch_public(topic.as_str(), Value::Dict(message)).await;
+        let mut trades: Value = self.watch_public(topic.as_str(), &message).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
@@ -1119,8 +1121,9 @@ impl Woofipro {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, messageHash: &str, mut message: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, messageHash: &str, message: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut messageHash: Value = messageHash.into();
+        let mut message: Value = message.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1145,7 +1148,8 @@ impl Woofipro {
     Value::Null
 }
 
-    pub async fn watch_private_multiple(&mut self, mut messageHashes: Value, mut message: Value, optional_args: &[Value]) -> Value {
+    pub async fn watch_private_multiple(&mut self, mut messageHashes: Value, message: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut message: Value = message.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1221,7 +1225,7 @@ impl Woofipro {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOmitted]).into_dict();
-        let mut orders: Value = self.watch_private(messageHash.as_str(), Value::Dict(message), &[]).await;
+        let mut orders: Value = self.watch_private(messageHash.as_str(), &message, &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1282,7 +1286,7 @@ impl Woofipro {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOmitted]).into_dict();
-        let mut orders: Value = self.watch_private(messageHash.as_str(), Value::Dict(message), &[]).await;
+        let mut orders: Value = self.watch_private(messageHash.as_str(), &message, &[]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1476,7 +1480,8 @@ impl Woofipro {
         }
 }
 
-    pub fn handle_order(&mut self, mut client: Value, mut message: Value, mut topic: Value) {
+    pub fn handle_order(&mut self, mut client: Value, message: impl Into<crate::Value>, mut topic: Value) {
+        let mut message: Value = message.into();
         let mut parsed: crate::value::Dict = self.parse_ws_order(message, None).into_dict();
         let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
         let mut orderId: Option<String> = self.safe_string_k(&parsed, "id", &[]).as_str().map(str::to_owned);
@@ -1511,7 +1516,8 @@ impl Woofipro {
         }
 }
 
-    pub fn handle_my_trade(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_my_trade(&mut self, mut client: Value, message: impl Into<crate::Value>) {
+        let mut message: Value = message.into();
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -1715,7 +1721,7 @@ impl Woofipro {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut newPositions: Vec<Value> = vec![];
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_727: bool = true;
@@ -1724,14 +1730,14 @@ impl Woofipro {
             let mut marketId: Option<String> = self.safe_string_k(&rawPosition, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), Some(&market)).into_dict();
-            newPositions.push(Value::from(&position));
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::from(&position));
             let mut positionSymbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut messageHash: String = format!("{}{}", "positions::", positionSymbol.as_deref().unwrap_or("null"));
             client.resolve(Value::Dict(position), messageHash.as_str());
         }
         }
-        client.resolve(Value::Array(newPositions), "positions");
+        client.resolve(Value::Arr(newPositions), "positions");
 }
 
     pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> Value {
@@ -1841,7 +1847,7 @@ impl Woofipro {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        return self.watch_private(messageHash.as_str(), Value::Dict(message), &[]).await;
+        return self.watch_private(messageHash.as_str(), &message, &[]).await;
         Value::Null
         }).await?))
     }

@@ -1105,8 +1105,8 @@ impl Hibachi {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-        let mut rawPromises: Value = Value::from(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(Value::Map(request), &[params])]).await]);
-        let pricesResponsestatsResponseVariable: Vec<Value> = promise_all(&rawPromises).await.as_array().cloned().unwrap_or_default();
+        let mut rawPromises: crate::value::List = std::sync::Arc::new(vec![self.public_get_market_data_prices(&[__ws_arg_2]).await, self.public_get_market_data_stats(&[self.extend(Value::Map(request), &[params])]).await]);
+        let pricesResponsestatsResponseVariable: Vec<Value> = promise_all(&Value::Arr(rawPromises)).await.as_array().cloned().unwrap_or_default();
         let mut pricesResponse: Value = pricesResponsestatsResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut statsResponse: Value = pricesResponsestatsResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         // {
@@ -1434,7 +1434,7 @@ impl Hibachi {
                 m.insert("maxFeesPercent".to_string(), Value::from(self.number_to_string(Value::from(feeRate))));
             m
         });
-        let mut postOnly: bool = self.is_post_only(Value::Bool((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET")), Value::Null, &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET")), Value::Null, &[params.clone()]);
         let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
         let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
@@ -2038,7 +2038,8 @@ impl Hibachi {
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Value {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         if (Value::Int(privateKey.len() as i64).as_f64() == Some(44.0)) {
             return Value::from(self.hmac(message.clone(), self.encode(privateKey.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]));
@@ -2769,8 +2770,8 @@ impl Hibachi {
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-        let mut rawPromises: Value = Value::from(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(Value::Map(request), &[params.clone()])]).await]);
-        let mut promises: Value = promise_all(&rawPromises).await;
+        let mut rawPromises: crate::value::List = std::sync::Arc::new(vec![self.private_get_capital_history(&[__ws_arg_17]).await, self.private_get_trade_account_trading_history(&[self.extend(Value::Map(request), &[params.clone()])]).await]);
+        let mut promises: Value = promise_all(&Value::Arr(rawPromises)).await;
         let mut responseCapitalHistory: crate::value::Dict = self.safe_dict(promises.clone(), Value::Int(0), &[]).into_dict();
         //
         // {

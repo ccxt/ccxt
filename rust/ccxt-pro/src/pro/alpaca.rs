@@ -387,11 +387,11 @@ impl Alpaca {
         //    ]
         //
         let mut ticker: crate::value::Dict = self.parse_ticker(message, None).into_dict();
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
         let mut tickerSymbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "ticker:", tickerSymbol);
-        if (symbol != Value::Null) {
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+        if (symbol.is_some()) {
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         }
         client.resolve(Value::Dict(ticker), messageHash.as_str());
 }
@@ -946,7 +946,7 @@ impl Alpaca {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
-        let mut trade: Value = self.parse_my_trade(Value::Dict(rawOrder), None);
+        let mut trade: Value = self.parse_my_trade(&rawOrder, None);
         if (trade == Value::Null) {
             return;
         }
@@ -958,7 +958,8 @@ impl Alpaca {
         client.resolve(Value::from(&myTrades), messageHash.as_str());
 }
 
-    pub fn parse_my_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut trade: Value = trade.into();
         //
         //    {
         //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",

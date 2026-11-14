@@ -589,7 +589,8 @@ impl Luno {
     Value::Null
 }
 
-    pub fn custom_parse_bid_ask(&self, mut bidask: Value, optional_args: &[Value]) -> Value {
+    pub fn custom_parse_bid_ask(&self, bidask: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut bidask: Value = bidask.into();
         let mut priceKey = get_arg(optional_args, 0, Value::Str("price".into()));
         let mut amountKey = get_arg(optional_args, 1, Value::Str("volume".into()));
         let mut thirdKey = get_arg(optional_args, 2, Value::Int(2));
@@ -675,7 +676,7 @@ impl Luno {
         }
         let mut createUpdate: Option<crate::value::Dict> = self.safe_dict_k(message.clone(), "create_update", &[]).into_opt_dict();
         if (createUpdate.is_some()) {
-            let mut bidAskArray: crate::value::List = self.custom_parse_bid_ask(createUpdate.clone().map_or(Value::Null, Value::Dict), &[Value::Str("price".into()), Value::Str("volume".into()), Value::Str("order_id".into())]).into_list();
+            let mut bidAskArray: crate::value::List = self.custom_parse_bid_ask(&createUpdate, &[Value::Str("price".into()), Value::Str("volume".into()), Value::Str("order_id".into())]).into_list();
             let mut type_var: Option<String> = self.safe_string_k(&createUpdate, "type", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("ASK")) {
                 asksOrderSide.store_array(Value::from(&bidAskArray));

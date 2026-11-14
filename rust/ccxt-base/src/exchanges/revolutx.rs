@@ -1628,10 +1628,10 @@ impl Revolutx {
                 m
             });
             if hasTakeProfit {
-                tpslConfig.insert("take_profit".into(), self.create_trigger_leg_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), price.as_f64(), takeProfitPrice.as_deref(), takeProfit.map_or(Value::Null, Value::Dict), singleLeg.clone()));
+                tpslConfig.insert("take_profit".into(), self.create_trigger_leg_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), price.as_f64(), takeProfitPrice.as_deref(), &takeProfit, singleLeg.clone()));
             }
             if hasStopLoss {
-                tpslConfig.insert("stop_loss".into(), self.create_trigger_leg_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), price.as_f64(), stopLossPrice.as_deref(), stopLoss.map_or(Value::Null, Value::Dict), singleLeg));
+                tpslConfig.insert("stop_loss".into(), self.create_trigger_leg_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), price.as_f64(), stopLossPrice.as_deref(), &stopLoss, singleLeg));
             }
             orderConfiguration.insert("tpsl".into(), Value::Map(tpslConfig));
         }  else if (type_var.as_str() == Some("limit")) {
@@ -1731,11 +1731,12 @@ impl Revolutx {
  * @param {boolean} singleLeg whether the order has only this leg
  * @returns {object} the leg request
  */
-    pub fn create_trigger_leg_request(&self, symbol: &str, type_var: &str, price: Option<f64>, triggerPrice: Option<&str>, mut leg: Value, singleLeg: bool) -> Value {
+    pub fn create_trigger_leg_request(&self, symbol: &str, type_var: &str, price: Option<f64>, triggerPrice: Option<&str>, leg: impl Into<crate::Value>, singleLeg: bool) -> Value {
         let mut symbol: Value = symbol.into();
         let mut type_var: Value = type_var.into();
         let mut price: Value = price.into();
         let mut triggerPrice: Value = triggerPrice.into();
+        let mut leg: Value = leg.into();
         let mut legTriggerPrice: Option<String> = self.safe_string2(leg.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[triggerPrice]).as_str().map(str::to_owned);
         if (legTriggerPrice.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg")));
@@ -2118,7 +2119,8 @@ impl Revolutx {
  * @param {object} [market] the market the trade was executed in
  * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub fn parse_my_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut trade: Value = trade.into();
         let mut id: Option<String> = self.safe_string_k(trade.clone(), "tid", &[]).as_str().map(str::to_owned);
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "oid", &[]).as_str().map(str::to_owned);
         let mut priceString: Option<String> = self.safe_string_k(trade.clone(), "p", &[]).as_str().map(str::to_owned);
@@ -2238,7 +2240,7 @@ impl Revolutx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            result.push(self.parse_my_trade(Value::Dict(trade), Some(&market)));
+            result.push(self.parse_my_trade(&trade, Some(&market)));
         }
         }
         return Value::from(result);

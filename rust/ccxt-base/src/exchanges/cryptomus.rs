@@ -1110,12 +1110,13 @@ impl Cryptomus {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_balance_list(Value::Arr(result));
+        return self.parse_balance_list(&result);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut balance: Value) -> Value {
+    pub fn parse_balance_list(&self, balance: impl Into<crate::Value>) -> Value {
+        let mut balance: Value = balance.into();
         //
         //     {
         //         "ticker": "AVAX",

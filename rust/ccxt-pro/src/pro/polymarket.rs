@@ -1645,7 +1645,7 @@ impl Polymarket {
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut rows: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
-        let mut newPositions: Vec<Value> = vec![];
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_659: bool = true;
@@ -1660,11 +1660,11 @@ impl Polymarket {
                 m
             })]).into_dict();
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(extended), None).into_dict();
-            newPositions.push(Value::from(&position));
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }
         }
-        client.resolve(Value::Array(newPositions), "positions");
+        client.resolve(Value::Arr(newPositions), "positions");
         let mut margin: crate::value::Dict = self.safe_dict_k(&data, "margin", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

@@ -355,7 +355,9 @@ impl Lbank {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {boolean} true
  */
-    pub async fn un_subscribe(&mut self, mut subHash: Value, mut request: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe(&mut self, mut subHash: Value, request: impl Into<crate::Value>, subscription: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut request: Value = request.into();
+        let mut subscription: Value = subscription.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

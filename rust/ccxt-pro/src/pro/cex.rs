@@ -785,11 +785,8 @@ impl Cex {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut ticker: crate::value::Dict = self.parse_ws_ticker(data, None).into_dict();
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&data, None).into_dict();
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
@@ -804,7 +801,8 @@ impl Cex {
         }
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         //
         //  public
         //    {
@@ -1264,7 +1262,7 @@ impl Cex {
         })]).into_dict();
         let mut order: Value = self.safe_value(&ordersBySymbol, orderId.map(Value::from).unwrap_or(Value::Null), &[]);
         if (order == Value::Null) {
-            order = self.parse_ws_order_update(Value::from(&data), Some(&market));
+            order = self.parse_ws_order_update(&data, Some(&market));
         }
         add_element_to_object(&mut order, &Value::Str("remaining".into()), remains);
         let mut canceled: bool = self.safe_bool_k(&data, "cancel", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -1293,7 +1291,8 @@ impl Cex {
         client.resolve(Value::from(&storedOrders), messageHash.as_str());
 }
 
-    pub fn parse_ws_order_update(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_order_update(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut order: Value = order.into();
         //
         //      {
         //          "id": "150714937",
@@ -1412,7 +1411,8 @@ impl Cex {
     Value::Null
 }
 
-    pub fn from_precision(&self, mut amount: Value, mut scale: Value) -> Option<String> {
+    pub fn from_precision(&self, mut amount: Value, scale: impl Into<crate::Value>) -> Option<String> {
+        let mut scale: Value = scale.into();
         if (amount == Value::Null) {
             return None;
         }
@@ -1422,7 +1422,8 @@ impl Cex {
         return to_string_val(&precise).as_str().map(str::to_owned);
 }
 
-    pub fn currency_from_precision(&self, mut currency: Value, mut amount: Value) -> Option<String> {
+    pub fn currency_from_precision(&self, mut currency: Value, amount: impl Into<crate::Value>) -> Option<String> {
+        let mut amount: Value = amount.into();
         let mut scale: i64 = self.safe_integer((if let (Some(__m), Some(__k)) = (self.currencies.as_map(), currency.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("precision".into()), &[Value::Int(0)]).as_i64().unwrap_or(0);
         return self.from_precision(amount, Value::from(scale));
 }
@@ -1576,7 +1577,8 @@ impl Cex {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn pair_to_symbol(&self, mut pair: Value) -> Value {
+    pub fn pair_to_symbol(&self, pair: impl Into<crate::Value>) -> Value {
+        let mut pair: Value = pair.into();
         let mut parts: Value = split(&pair, &Value::Str(":".into()));
         let mut baseId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);

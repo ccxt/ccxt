@@ -610,8 +610,8 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrderWs() side is required")));
         }
         let mut uppercaseSide: String = side.as_str().unwrap_or_default().to_string().to_uppercase();
-        let mut isPostOnly: Value = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(uppercaseType == "LIMIT_MAKER"), &[params.clone()]);
-        if isPostOnly.as_bool() == Some(true) {
+        let mut isPostOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(uppercaseType == "LIMIT_MAKER"), &[params.clone()]);
+        if isPostOnly {
             uppercaseType = "LIMIT_MAKER".to_string();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -777,17 +777,17 @@ impl Poloniex {
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut orders: Vec<Value> = vec![];
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_634: bool = true;
             while { if !__for_first_634 { i += 1; } __for_first_634 = false; i < (data.len() as i64) } {
             let mut order: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsedOrder: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
-            orders.push(Value::Dict(parsedOrder));
+            std::sync::Arc::make_mut(&mut orders).push(Value::Dict(parsedOrder));
         }
         }
-        client.resolve(Value::Array(orders), messageHash.as_deref());
+        client.resolve(Value::Arr(orders), messageHash.as_deref());
 }
 
 /*

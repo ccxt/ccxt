@@ -621,20 +621,21 @@ impl Bingx {
             marketType = "swap".to_string();
         }
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(marketType)]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         let mut inverseUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("inverse".into()), &[]);
         let mut isInverse: Value = Value::Bool((inverseUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(inverseUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)));
-        let mut ticker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(data), Some(&market), &[isInverse]).into_dict();
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
-        client.resolve(Value::from(&ticker), &self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null));
+        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&data, Some(&market), &[isInverse]).into_dict();
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+        client.resolve(Value::from(&ticker), &self.get_message_hash(Value::Str("ticker".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
         if ((match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("all@ticker")) {
             client.resolve(Value::Dict(ticker), &self.get_message_hash(Value::Str("ticker".into()), &[]).map(Value::from).unwrap_or(Value::Null));
         }
 }
 
-    pub fn parse_ws_ticker(&self, mut message: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_ticker(&self, message: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut message: Value = message.into();
         let mut isInverse = get_arg(optional_args, 0, Value::Null);
         //
         //     {
@@ -2062,7 +2063,7 @@ impl Bingx {
             return;
         }
         let mut rawPositions: crate::value::List = self.safe_list_k(&data, "P", &[Value::from(vec![])]).into_list();
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_93: bool = true;
@@ -2076,7 +2077,7 @@ impl Bingx {
             let mut timestamp: Option<i64> = (match message.get("E") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             std::sync::Arc::make_mut(&mut position).insert("timestamp".into(), Value::from(timestamp));
             std::sync::Arc::make_mut(&mut position).insert("datetime".into(), self.iso8601(Value::from(timestamp)));
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }
         }
@@ -2089,13 +2090,13 @@ impl Bingx {
             let mut parts: Vec<Value> = Value::Array(messageHash.split("::").map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut filteredSymbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut positions: crate::value::List = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &filteredSymbols, &[Value::Bool(false)]).into_list();
+            let mut positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &filteredSymbols, &[Value::Bool(false)]).into_list();
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_str());
             }
         }
         }
-        client.resolve(newPositions, "swap:positions");
+        client.resolve(Value::Arr(newPositions), "swap:positions");
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
@@ -2648,14 +2649,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]).into_dict();
         let mut isUnSubMessage: bool = self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isUnSubMessage {
-            self.handle_un_subscription(client, Value::Dict(subscription));
+            self.handle_un_subscription(client, &subscription);
         }
         return message;
 
     Value::Null
 }
 
-    pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_un_subscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut messageHashes: crate::value::List = __pro_message.get("messageHashes").cloned().unwrap_or_default().into_list();

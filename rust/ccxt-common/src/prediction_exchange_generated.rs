@@ -860,8 +860,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 // trading the wrong market would otherwise be indistinguishable
                 let mut existing: Option<crate::value::Dict> = self.safe_dict(self.pred().outcomes.clone(), ocSymbol.clone(), &[]).into_opt_dict();
                 if (existing.is_some()) {
-                    let mut existingId: Value = self.safe_string_k(&existing, "outcomeId", &[]);
-                    if (existingId != Value::Null) && (ocId != Value::Null) && (existingId != ocId) {
+                    let mut existingId: Option<String> = self.safe_string_k(&existing, "outcomeId", &[]).as_str().map(str::to_owned);
+                    if (existingId.is_some()) && (ocId != Value::Null) && ((existingId.as_deref() != ocId.as_str())) {
                         let mut idLen: i64 = ocId.len() as i64;
                         let mut suffix: Value = ocId.clone();
                         if idLen > 6 {

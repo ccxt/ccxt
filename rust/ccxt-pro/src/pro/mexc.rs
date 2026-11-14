@@ -663,7 +663,7 @@ impl Mexc {
             messageHashPrefix = spotPrefix;
         }
         let mut topic: String = format!("{}{}", messageHashPrefix, "ticker");
-        let mut result: Vec<Value> = vec![];
+        let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_484: bool = true;
@@ -679,12 +679,12 @@ impl Mexc {
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), ticker.clone()); }
             }
-            result.push(ticker.clone());
+            std::sync::Arc::make_mut(&mut result).push(ticker.clone());
             let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(ticker.clone(), "symbol", &[Value::Str("".into())]));
             client.resolve(ticker, messageHash.as_str());
         }
         }
-        client.resolve(Value::Array(result), topic.as_str());
+        client.resolve(Value::Arr(result), topic.as_str());
 }
 
     pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
@@ -2886,7 +2886,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
 }
 
-    pub fn handle_protobuf_message(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_protobuf_message(&mut self, mut client: Value, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         // protobuf message decoded

@@ -319,7 +319,9 @@ impl Phemex {
     Value::Null
 }
 
-    pub fn from_en(&self, mut en: Value, mut scale: Value) -> Value {
+    pub fn from_en(&self, en: impl Into<crate::Value>, scale: impl Into<crate::Value>) -> Value {
+        let mut en: Value = en.into();
+        let mut scale: Value = scale.into();
         if (en == Value::Null) {
             return Value::Null;
         }
@@ -369,7 +371,8 @@ impl Phemex {
         return requestId;
 }
 
-    pub fn parse_swap_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_swap_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         //
         //     {
         //         "close": 442800,
@@ -389,7 +392,7 @@ impl Phemex {
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         let mut marketValue: Value = marketResolved.clone();
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
         let mut lastString: Value = self.from_ep(self.safe_string_k(ticker.clone(), "close", &[]), &[marketValue.clone()]);
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
@@ -407,7 +410,7 @@ impl Phemex {
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "high", &[]), &[marketValue.clone()]), &[]));
@@ -455,7 +458,7 @@ impl Phemex {
         let mut marketId: Option<String> = self.safe_string(ticker.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         let mut marketValue: Value = marketResolved.clone();
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut lastString: Value = self.from_ep(self.safe_string(ticker.clone(), Value::Int(4), &[]), &[marketValue.clone()]);
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
         let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(6), &[]), &[marketValue.clone()]), &[]);
@@ -472,7 +475,7 @@ impl Phemex {
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string(ticker.clone(), Value::Int(2), &[]), &[marketValue.clone()]), &[]));
@@ -578,11 +581,8 @@ impl Phemex {
         //
         let mut tickers: Vec<Value> = Vec::new();
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("market24h"))) {
-            let mut ticker: Value = (match __pro_message.get("market24h").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            tickers.push(self.parse_swap_ticker(ticker, None));
+            let mut ticker: crate::value::Dict = __pro_message.get("market24h").cloned().unwrap_or_default().into_dict();
+            tickers.push(self.parse_swap_ticker(&ticker, None));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) {
             let mut ticker: Value = (match __pro_message.get("spot_market24h").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1145,7 +1145,9 @@ impl Phemex {
         }).await?))
     }
 
-    pub async fn un_subscribe_public(&mut self, mut method: Value, mut subMessageHash: Value, mut marketParams: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+    pub async fn un_subscribe_public(&mut self, mut method: Value, mut subMessageHash: Value, marketParams: impl Into<crate::Value>, subscription: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut marketParams: Value = marketParams.into();
+        let mut subscription: Value = subscription.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1365,12 +1367,12 @@ impl Phemex {
         //
         let mut marketId: Option<String> = self.safe_string_k(message.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut depth: Option<i64> = (match __pro_message.get("depth").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut name: String = "orderbook".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), symbol.as_deref().unwrap_or("null"));
         let mut nonce: Option<i64> = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut timestamp: Option<i64> = self.safe_integer_product_k(message.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
@@ -1379,7 +1381,7 @@ impl Phemex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(Value::Dict(book), symbol.as_str().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), market.clone()]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(&book, symbol.as_deref().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), market.clone()]).into_dict();
             std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
@@ -1692,7 +1694,8 @@ impl Phemex {
         }).await?))
     }
 
-    pub fn handle_orders(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_orders(&mut self, mut client: Value, message: impl Into<crate::Value>) {
+        let mut message: Value = message.into();
         // spot update
         // {
         //        "closed":[
@@ -2062,7 +2065,7 @@ impl Phemex {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
         let mut marketValue: Value = marketResolved.clone();
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut status: Option<String> = self.parent.parse_order_status((self.safe_string_k(order.clone(), "ordStatus", &[])).as_str());
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.parent.parse_order_type((self.safe_string_k(order.clone(), "ordType", &[])).as_str());
@@ -2087,7 +2090,7 @@ impl Phemex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
@@ -2240,7 +2243,7 @@ impl Phemex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            self.handle_orders(client.clone(), Value::Dict(orders));
+            self.handle_orders(client.clone(), &orders);
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("wallets"))) {
             let mut type_var: String = "spot".to_string();
@@ -2304,15 +2307,15 @@ impl Phemex {
         if settleIsUSDT {
             channel = "aop_p.subscribe".to_string();
         }
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
                 m.insert("method".to_string(), Value::from(channel.clone()));
                 m.insert("params".to_string(), Value::from(vec![]));
             m
-        });
-        request = self.extend(request.clone(), &[&paramsOmitted]);
-        return self.watch(url.as_deref(), &messageHash, request, channel.as_str(), Value::Null).await;
+        }).into_dict();
+        request = self.extend(request, &[&paramsOmitted]).into_dict();
+        return self.watch(url.as_deref(), &messageHash, &request, channel.as_str(), Value::Null).await;
 
     Value::Null
 }

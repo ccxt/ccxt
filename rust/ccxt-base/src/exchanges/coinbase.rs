@@ -2445,21 +2445,21 @@ impl Coinbase {
         //    }
         //
         let mut promises: Value = promise_all(&Value::from(spotUnresolvedPromises)).await;
-        let mut unresolvedContractPromises: Value = Value::from(vec![]);
+        let mut unresolvedContractPromises: crate::value::List = std::sync::Arc::new(Vec::new());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let __ws_arg_10 = self.extend(paramsUsePrivate, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("product_type".to_string(), Value::Str("FUTURE".into()));
     m
 })]);
-            unresolvedContractPromises = Value::from(vec![self.v3_public_get_brokerage_market_products(&[__ws_arg_10]).await]);
+            unresolvedContractPromises = std::sync::Arc::new(vec![self.v3_public_get_brokerage_market_products(&[__ws_arg_10]).await]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            unresolvedContractPromises = Value::from(vec![]); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
+            unresolvedContractPromises = std::sync::Arc::new(Vec::new()); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
         let mut contractPromises: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            contractPromises = promise_all(&unresolvedContractPromises).await; // some users don't have access to contracts
+            contractPromises = promise_all(&Value::Arr(unresolvedContractPromises)).await; // some users don't have access to contracts
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
             contractPromises = Value::from(vec![]);
@@ -2525,7 +2525,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_536: bool = true;
             while { if !__for_first_536 { i += 1; } __for_first_536 = false; i < (data.len() as i64) } {
-            let mut spotMarket: Value = self.parse_spot_market(data.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&feeTier));
+            let mut spotMarket: Value = self.parse_spot_market(data.get(i as usize).cloned().unwrap_or(Value::Null), &feeTier);
             if (spotMarket != Value::Null) {
                 result.push(spotMarket);
             }
@@ -2536,7 +2536,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_537: bool = true;
             while { if !__for_first_537 { i += 1; } __for_first_537 = false; i < (futureData.len() as i64) } {
-            let mut futureMarket: Value = self.parse_contract_market(futureData.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&expiringFeeTier));
+            let mut futureMarket: Value = self.parse_contract_market(futureData.get(i as usize).cloned().unwrap_or(Value::Null), &expiringFeeTier);
             if (futureMarket != Value::Null) {
                 result.push(futureMarket);
             }
@@ -2547,7 +2547,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_538: bool = true;
             while { if !__for_first_538 { i += 1; } __for_first_538 = false; i < (perpetualData.len() as i64) } {
-            let mut perpetualMarket: Value = self.parse_contract_market(perpetualData.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&perpetualFeeTier));
+            let mut perpetualMarket: Value = self.parse_contract_market(perpetualData.get(i as usize).cloned().unwrap_or(Value::Null), &perpetualFeeTier);
             if (perpetualMarket != Value::Null) {
                 result.push(perpetualMarket);
             }
@@ -2585,7 +2585,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_spot_market(&self, mut market: Value, mut feeTier: Value) -> Value {
+    pub fn parse_spot_market(&self, mut market: Value, feeTier: impl Into<crate::Value>) -> Value {
+        let mut feeTier: Value = feeTier.into();
         let __feeTier_empty = indexmap::IndexMap::new();
         let feeTier = feeTier.as_map().unwrap_or(&__feeTier_empty);
         //
@@ -2703,7 +2704,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_contract_market(&self, mut market: Value, mut feeTier: Value) -> Value {
+    pub fn parse_contract_market(&self, mut market: Value, feeTier: impl Into<crate::Value>) -> Value {
+        let mut feeTier: Value = feeTier.into();
         let __feeTier_empty = indexmap::IndexMap::new();
         let feeTier = feeTier.as_map().unwrap_or(&__feeTier_empty);
         // expiring
@@ -2945,8 +2947,8 @@ if _try_result.is_err() {
         let mut expires: i64 = self.safe_integer_k(&options, "expires", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut now: i64 = self.milliseconds();
         if (timestamp.is_none()) || (((if let Some(__r) = timestamp { Some(now - __r) } else { None })) > Some(expires)) {
-            let mut promises: Value = Value::from(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await]);
-            let mut promisesResult: Value = promise_all(&promises).await;
+            let mut promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await]);
+            let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
             let mut fiatResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3016,8 +3018,8 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promises: Value = Value::from(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await, self.v2_public_get_exchange_rates(&[params]).await]);
-        let mut promisesResult: Value = promise_all(&promises).await;
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.v2_public_get_currencies(&[params.clone()]).await, self.v2_public_get_currencies_crypto(&[params.clone()]).await, self.v2_public_get_exchange_rates(&[params]).await]);
+        let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
         let mut fiatResponse: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3647,7 +3649,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_custom_balance(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_custom_balance(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6411,7 +6414,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "payment_methods", &[Value::from(vec![])]).into_list();
-        return self.parse_deposit_method_ids(Value::Arr(result), &[]);
+        return self.parse_deposit_method_ids(&result, &[]);
 
     Value::Null
 }
@@ -6462,12 +6465,13 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_deposit_method_id(Value::Dict(result));
+        return self.parse_deposit_method_id(&result);
 
     Value::Null
 }
 
-    pub fn parse_deposit_method_ids(&self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_deposit_method_ids(&self, ids: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut ids: Value = ids.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6489,7 +6493,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_deposit_method_id(&self, mut depositId: Value) -> Value {
+    pub fn parse_deposit_method_id(&self, depositId: impl Into<crate::Value>) -> Value {
+        let mut depositId: Value = depositId.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositId.clone());
@@ -7212,7 +7217,7 @@ if _try_result.is_err() {
         if useEddsa {
             iss = "cdp".to_string();
         }
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("aud".to_string(), Value::from(vec![Value::from(aud)]));
                 m.insert("iss".to_string(), Value::from(iss));
@@ -7221,18 +7226,18 @@ if _try_result.is_err() {
                 m.insert("sub".to_string(), self.apiKey.clone());
                 m.insert("iat".to_string(), seconds);
             m
-        });
+        }).into_dict();
         if (uri != Value::Null) {
             if !useEddsa {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("uri".into(), uri.clone()); }
+                std::sync::Arc::make_mut(&mut request).insert("uri".into(), uri.clone());
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("uris".into(), Value::from(vec![uri])); }
+                std::sync::Arc::make_mut(&mut request).insert("uris".into(), Value::from(vec![uri]));
             }
         }
         if useEddsa {
             let mut byteArray: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
             let mut seed: Value = self.array_slice(Value::from(&byteArray), Value::Int(0), &[Value::Int(32)]);
-            return Value::from(jwt(request.clone(), seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({
+            return Value::from(jwt(&request, seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("kid".to_string(), self.apiKey.clone());
         m.insert("nonce".to_string(), nonce.clone());
@@ -7240,7 +7245,7 @@ if _try_result.is_err() {
     m
 })));
         }  else {
-            return Value::from(jwt(request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Map({
+            return Value::from(jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("kid".to_string(), self.apiKey.clone());
         m.insert("nonce".to_string(), nonce);
@@ -7379,13 +7384,13 @@ if _try_result.is_err() {
             }
         }
         let mut bodyResolved: Option<String> = requestBody;
-        let mut headersResolved: Value = requestHeaders.map_or(Value::Null, Value::Dict);
+        let mut headersResolved: Option<crate::value::Dict> = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResolved);
+        m.insert("headers".to_string(), headersResolved.map_or(Value::Null, Value::Dict));
     m
 });
 

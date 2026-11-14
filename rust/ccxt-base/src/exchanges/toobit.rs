@@ -1405,8 +1405,8 @@ impl Toobit {
             let mut coin: crate::value::Dict = coins.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsed: Value = self.parse_currency(&coin);
             if (parsed != Value::Null) {
-                let mut code: Value = parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
-                result.insert(crate::runtime::stringify_param(&code), parsed);
+                let mut code: Option<String> = crate::value::KeyRead::key_read(&&parsed, "code").as_str().map(str::to_owned);
+                result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
             }
         }
         }
@@ -2546,7 +2546,8 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());

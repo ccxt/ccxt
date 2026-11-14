@@ -2044,8 +2044,8 @@ impl Xt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promisesRaw: Value = Value::from(vec![self.public_spot_get_wallet_support_currency(&[params.clone()]).await, self.public_spot_get_currencies(&[params]).await]);
-        let chainsResponsecurrenciesResponseVariable: Vec<Value> = promise_all(&promisesRaw).await.as_array().cloned().unwrap_or_default();
+        let mut promisesRaw: crate::value::List = std::sync::Arc::new(vec![self.public_spot_get_wallet_support_currency(&[params.clone()]).await, self.public_spot_get_currencies(&[params]).await]);
+        let chainsResponsecurrenciesResponseVariable: Vec<Value> = promise_all(&Value::Arr(promisesRaw)).await.as_array().cloned().unwrap_or_default();
         let mut chainsResponse: Value = chainsResponsecurrenciesResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut currenciesResponse: Value = chainsResponsecurrenciesResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         //
@@ -2247,8 +2247,8 @@ impl Xt {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut promisesUnresolved: Value = Value::from(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_and_future_markets(&[params]).await]);
-        let mut promises: Vec<Value> = promise_all(&promisesUnresolved).await.as_array().cloned().unwrap_or_default();
+        let mut promisesUnresolved: crate::value::List = std::sync::Arc::new(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_and_future_markets(&[params]).await]);
+        let mut promises: Vec<Value> = promise_all(&Value::Arr(promisesUnresolved)).await.as_array().cloned().unwrap_or_default();
         let mut spotMarkets: crate::value::List = promises.get(0).cloned().unwrap_or(Value::Null).into_list();
         let mut swapAndFutureMarkets: crate::value::List = promises.get(1).cloned().unwrap_or(Value::Null).into_list();
         return self.array_concat(&spotMarkets, &swapAndFutureMarkets);
@@ -3916,22 +3916,23 @@ impl Xt {
         //         ]
         //     }
         //
-        let mut balances: Value = Value::Null;
+        let mut balances: Option<crate::value::List> = None;
         if (subType.is_some()) || isContractWallet {
-            balances = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
+            balances = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_opt_list();
         }  else {
             let mut data: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            balances = self.safe_list_k(&data, "assets", &[Value::from(vec![])]);
+            balances = self.safe_list_k(&data, "assets", &[Value::from(vec![])]).into_opt_list();
         }
-        return self.parse_balance_list(balances);
+        return self.parse_balance_list(&balances);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         //
         // spot
         //
@@ -7102,7 +7103,7 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(result), Some(&market));
+        return self.parse_trading_fee(&result, Some(&market));
         Value::Null
         }).await?))
     }
@@ -7157,7 +7158,7 @@ impl Xt {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut matchesSubType: Value = (if (isInverse) { (market).inverse.map(Value::Bool).unwrap_or_default() } else { (market).linear.map(Value::Bool).unwrap_or_default() });
             if (market).contract && (matchesSubType.as_bool() == Some(true)) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(Value::from(&fee), Some(&market)));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(&fee, Some(&market)));
             }
         }
         }
@@ -7166,7 +7167,8 @@ impl Xt {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         let mut symbol: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&market, "symbol") } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7266,8 +7268,8 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_1196: bool = true;
             while { if !__for_first_1196 { i += 1; } __for_first_1196 = false; i < (items.len() as i64) } {
-            let mut entry: Option<crate::value::Dict> = self.safe_dict(&items, Value::Int(i), &[]).into_opt_dict();
-            result.push(self.parse_funding_history(entry.map_or(Value::Null, Value::Dict), Some(&market)));
+            let mut entry: crate::value::Dict = self.safe_dict(&items, Value::Int(i), &[]).into_dict();
+            result.push(self.parse_funding_history(&entry, Some(&market)));
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
@@ -7276,7 +7278,8 @@ impl Xt {
         }).await?))
     }
 
-    pub fn parse_funding_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_funding_history(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut contract: Value = contract.into();
         //
         //     {
         //         "id": "210804044057280512",
@@ -7342,7 +7345,8 @@ impl Xt {
  * @param {object} entry a single entry from a position/list response
  * @param {object} breakBySymbolSide the result of indexPositionBreakList()
  */
-    pub fn merge_position_break_info(&self, mut entry: Value, mut breakBySymbolSide: Value) -> Value {
+    pub fn merge_position_break_info(&self, mut entry: Value, breakBySymbolSide: impl Into<crate::Value>) -> Value {
+        let mut breakBySymbolSide: Value = breakBySymbolSide.into();
         let mut breakEntry: Option<crate::value::Dict> = self.safe_dict(breakBySymbolSide, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(entry.clone(), "symbol", &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string_k(entry.clone(), "positionSide", &[Value::Str("".into())])).into()), &[]).into_opt_dict();
         if (breakEntry.is_none()) {
             return entry;
@@ -7460,7 +7464,7 @@ impl Xt {
             let mut marketInner: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]);
             let mut positionSize: Option<String> = self.safe_string_k(&entry, "positionSize", &[]).as_str().map(str::to_owned);
             if (positionSize.as_deref() != Some("0")) {
-                let mut merged: Value = self.merge_position_break_info(Value::Dict(entry), Value::from(&breakBySymbolSide));
+                let mut merged: Value = self.merge_position_break_info(Value::Dict(entry), &breakBySymbolSide);
                 return self.parse_position(merged, Some(&marketInner));
             }
         }
@@ -7560,7 +7564,7 @@ impl Xt {
             let mut entry: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
             let mut marketInner: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]);
-            let mut merged: Value = self.merge_position_break_info(Value::Dict(entry), Value::from(&breakBySymbolSide));
+            let mut merged: Value = self.merge_position_break_info(Value::Dict(entry), &breakBySymbolSide);
             result.push(self.parse_position(merged, Some(&marketInner)));
         }
         }

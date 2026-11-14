@@ -862,7 +862,7 @@ impl Hollaex {
         if (expires.as_str() == Some("")) {
             let mut timeoutMs: Option<i64> = self.parse_to_int(self.timeout.clone());
             let mut timeout: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = timeoutMs { Some((__l as f64) / 1000.0) } else { None })));
-            expires = Value::from(self.number_to_string(Value::from(self.parse_to_int(self.sum(&[Value::Int(self.seconds()), Value::from(timeout)])))));
+            expires = Value::from(self.number_to_string(Value::from(self.parse_to_int(Value::from((if let Some(__m1) = timeout { Some(((self.seconds()) + __m1)) } else { None }))))));
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".into(), expires.clone()); }

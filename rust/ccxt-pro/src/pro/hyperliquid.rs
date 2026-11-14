@@ -420,7 +420,7 @@ impl Hyperliquid {
         }
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut ordersRequest: crate::value::Dict = self.parent.create_orders_request(orders, &[params]).into_dict();
-        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(Value::Dict(ordersRequest)).into_dict();
+        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(&ordersRequest).into_dict();
         let mut request: crate::value::Dict = self.safe_dict_k(&wrapped, "request", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -541,7 +541,7 @@ impl Hyperliquid {
         let mut order: Value = orderglobalParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut globalParams: crate::value::Dict = orderglobalParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut postRequest: crate::value::Dict = self.parent.edit_orders_request(Value::from(vec![order]), &[Value::Dict(globalParams)]).into_dict();
-        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(Value::Dict(postRequest)).into_dict();
+        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(&postRequest).into_dict();
         let mut request: crate::value::Dict = self.safe_dict_k(&wrapped, "request", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -598,7 +598,7 @@ impl Hyperliquid {
         }
         let mut request: crate::value::Dict = self.parent.cancel_orders_request(ids, symbol.as_str(), &[params]).into_dict();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(Value::Dict(request)).into_dict();
+        let mut wrapped: crate::value::Dict = self.wrap_as_post_action(&request).into_dict();
         let mut wsRequest: crate::value::Dict = self.safe_dict_k(&wrapped, "request", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1315,7 +1315,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut ticker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ctx), Some(&market)).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_ticker(&ctx, Some(&market)).into_dict();
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(ticker), messageHash.as_str());
@@ -1324,7 +1324,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn parse_ws_ticker(&self, mut rawTicker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, rawTicker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut rawTicker: Value = rawTicker.into();
         return self.parse_ticker(rawTicker, market);
 
     Value::Null
@@ -1423,7 +1424,7 @@ impl Hyperliquid {
         }
         let mut user: Option<String> = self.safe_string_lower_k_opt(&entry, "user", &[]);
         let mut fills: crate::value::List = self.safe_list_k(&entry, "fills", &[Value::from(vec![])]).into_list();
-        let mut newLiquidations: Value = Value::from(vec![]);
+        let mut newLiquidations: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_402: bool = true;
@@ -1435,7 +1436,7 @@ impl Hyperliquid {
             })]).into_dict();
             // liquidator fills carry the liquidated counterparty here
             if (self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str() == user.as_deref()) {
-                if let Value::Arr(__a) = &mut newLiquidations { std::sync::Arc::make_mut(__a).push(self.parse_liquidation(Value::Dict(fill), None)); }
+                std::sync::Arc::make_mut(&mut newLiquidations).push(self.parse_liquidation(Value::Dict(fill), None));
             }
         }
         }
@@ -1452,7 +1453,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_403: bool = true;
             while { if !__for_first_403 { i += 1; } __for_first_403 = false; (i as f64) < newLiquidationsLength } {
-            let mut liquidation: Value = newLiquidations.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut liquidation: Value = newLiquidations.get(i as usize).cloned().unwrap_or(Value::Null);
             cache.append(liquidation.clone());
             symbols.insert(crate::runtime::stringify_param(&(liquidation.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Bool(true));
         }
@@ -1463,11 +1464,11 @@ impl Hyperliquid {
             let mut __for_first_404: bool = true;
             while { if !__for_first_404 { i += 1; } __for_first_404 = false; i < (keys.len() as i64) } {
             let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut symbolLiquidations: Value = self.filter_by_symbol(newLiquidations.clone(), &[symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut symbolLiquidations: Value = self.filter_by_symbol(Value::Arr(newLiquidations.clone()), &[symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
             client.resolve(symbolLiquidations, &(Value::Str(format!("{}{}", "myLiquidations::", symbol.as_deref().unwrap_or("null")).into())));
         }
         }
-        client.resolve(newLiquidations, "myLiquidations");
+        client.resolve(Value::Arr(newLiquidations), "myLiquidations");
 }
 
 /*
@@ -2242,7 +2243,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut rawPositions: crate::value::List = self.safe_list_k(&clearinghouseState, "assetPositions", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
@@ -2250,7 +2251,7 @@ impl Hyperliquid {
             while { if !__for_first_407 { i += 1; } __for_first_407 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }
         }
@@ -2267,13 +2268,13 @@ impl Hyperliquid {
                 continue;
             }
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut positions: crate::value::List = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let mut positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_deref());
             }
         }
         }
-        client.resolve(newPositions, baseMessageHash.as_str());
+        client.resolve(Value::Arr(newPositions), baseMessageHash.as_str());
 }
 
 /*
@@ -2840,11 +2841,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            self.handle_unsubscription(client, Value::Dict(subscription));
+            self.handle_unsubscription(client, &subscription);
         }
 }
 
-    pub fn handle_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -2959,7 +2961,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return requestId;
 }
 
-    pub fn wrap_as_post_action(&mut self, mut request: Value) -> Value {
+    pub fn wrap_as_post_action(&mut self, request: impl Into<crate::Value>) -> Value {
+        let mut request: Value = request.into();
         let mut requestId: i64 = self.request_id();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

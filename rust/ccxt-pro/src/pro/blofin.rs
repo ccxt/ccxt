@@ -1528,7 +1528,7 @@ impl Blofin {
     m
 })]);
         }
-        let mut request: crate::value::Dict = self.get_subscription_request(Value::Arr(rawSubscriptions)).into_dict();
+        let mut request: crate::value::Dict = self.get_subscription_request(&rawSubscriptions).into_dict();
         let mut privateOrPublic: String = "private".to_string();
         if (isPublic.as_bool() == Some(true)) {
             privateOrPublic = "public".to_string();
@@ -1649,7 +1649,8 @@ impl Blofin {
         }
 }
 
-    pub fn get_subscription_request(&self, mut args: Value) -> Value {
+    pub fn get_subscription_request(&self, args: impl Into<crate::Value>) -> Value {
+        let mut args: Value = args.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("op".to_string(), Value::Str("subscribe".into()));

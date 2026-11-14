@@ -839,8 +839,8 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promises: Value = Value::from(vec![self.public_get_info_instruments(&[params.clone()]).await, self.public_get_info_assets(&[params]).await]);
-        let mut responses: Value = promise_all(&promises).await;
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_info_instruments(&[params.clone()]).await, self.public_get_info_assets(&[params]).await]);
+        let mut responses: Value = promise_all(&Value::Arr(promises)).await;
         let mut instruments: crate::value::List = self.safe_list(responses.clone(), Value::Int(0), &[Value::from(vec![])]).into_list();
         let mut assets: crate::value::List = self.safe_list(responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1111,8 +1111,8 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut promises: Value = Value::from(vec![self.public_get_info_tickers(&[params.clone()]).await, self.public_get_info_statistics(&[params.clone()]).await, self.public_get_info_bbo(&[params]).await]);
-        let mut responses: Value = promise_all(&promises).await;
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_info_tickers(&[params.clone()]).await, self.public_get_info_statistics(&[params.clone()]).await, self.public_get_info_bbo(&[params]).await]);
+        let mut responses: Value = promise_all(&Value::Arr(promises)).await;
         //
         // tickers
         //
@@ -1934,7 +1934,8 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dict with the signable row and the body entry
  */
-    pub fn create_order_request(&self, mut market: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, mut market: Value, mut type_var: Value, mut side: Value, amount: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut amount: Value = amount.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3800,7 +3801,8 @@ impl Polymarket {
         }).await?))
     }
 
-    pub fn hash_message(&self, mut message: Value) -> Value {
+    pub fn hash_message(&self, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         return Value::Str(format!("{}{}", Value::Str("0x".into()), self.hash(message, Value::Str("keccak".into()), &[Value::Str("hex".into())])).into());
 
     Value::Null
@@ -3815,15 +3817,17 @@ impl Polymarket {
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
             __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }),
             Value::Str("secp256k1".into()), Value::Null);
-        let mut r: Value = crate::value::KeyRead::key_read(&&signature, "r");
-        let mut sVal: Value = crate::value::KeyRead::key_read(&&signature, "s");
+        let mut r: Option<String> = crate::value::KeyRead::key_read(&&signature, "r").as_str().map(str::to_owned);
+        let mut sVal: Option<String> = crate::value::KeyRead::key_read(&&signature, "s").as_str().map(str::to_owned);
         let mut v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), r.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), sVal.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null)).into()), v).into());
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), (if let Some(__s) = r.as_deref() { Some(format!("{:0>64}", __s)) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), (if let Some(__s) = sVal.as_deref() { Some(format!("{:0>64}", __s)) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), v).into());
 
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
+        let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message), privateKey);
 
     Value::Null
@@ -3975,7 +3979,9 @@ impl Polymarket {
  * @param {object} bodyOp the structured operation object transmitted to the venue
  * @returns {object} the signed request body with the op, sig, salt and ts fields
  */
-    pub async fn sign_perps_op(&mut self, mut signable: Value, mut bodyOp: Value, optional_args: &[Value]) -> Value {
+    pub async fn sign_perps_op(&mut self, signable: impl Into<crate::Value>, bodyOp: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut signable: Value = signable.into();
+        let mut bodyOp: Value = bodyOp.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

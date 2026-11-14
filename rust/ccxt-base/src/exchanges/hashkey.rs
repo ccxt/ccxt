@@ -2527,7 +2527,7 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            return self.parse_swap_balance(Value::Dict(balance));
+            return self.parse_swap_balance(&balance);
         }  else if (marketTypeOption.as_deref() == Some("spot")) {
             let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsMarketType]);
             let mut response: crate::value::Dict = self.private_get_api_v1_account(&[__ws_arg_9]).await.into_dict();
@@ -2584,7 +2584,8 @@ impl Hashkey {
     Value::Null
 }
 
-    pub fn parse_swap_balance(&self, mut balance: Value) -> Value {
+    pub fn parse_swap_balance(&self, balance: impl Into<crate::Value>) -> Value {
+        let mut balance: Value = balance.into();
         //
         //     {
         //         "balance": "30.63364672",
@@ -4532,7 +4533,8 @@ impl Hashkey {
     Value::Null
 }
 
-    pub fn parse_order_side_and_reduce_only(&self, mut unparsed: Value) -> Value {
+    pub fn parse_order_side_and_reduce_only(&self, unparsed: impl Into<crate::Value>) -> Value {
+        let mut unparsed: Value = unparsed.into();
         let mut parts: Value = split(&unparsed, &Value::Str("_".into()));
         let mut side: Value = get_value(&parts, &Value::Int(0));
         let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -5453,7 +5455,7 @@ impl Hashkey {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut parsedFee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(Value::Dict(fee), None).as_map().cloned().unwrap_or_default();
+            let mut parsedFee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(&fee, None).as_map().cloned().unwrap_or_default();
             result.insert(crate::runtime::stringify_param(&(parsedFee.get("symbol").cloned().unwrap_or(Value::Null))), Value::Map(parsedFee));
         }
         }
@@ -5462,7 +5464,8 @@ impl Hashkey {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         //
         // spot
         //     {

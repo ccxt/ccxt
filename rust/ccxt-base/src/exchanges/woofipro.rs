@@ -3185,7 +3185,7 @@ impl Woofipro {
         let mut isConditional: bool = (triggerPrice.is_some()) || hasStopLoss || hasTakeProfit || (paramsChildOrders.is_some());
         let mut isMarket: bool = orderType.as_deref() == Some("MARKET");
         let mut timeInForce: Option<String> = self.safe_string_lower_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]);
         let mut orderQtyKey: String = (if isConditional { "quantity".to_string() } else { "order_quantity".to_string() });
         let mut priceKey: String = (if isConditional { "price".to_string() } else { "order_price".to_string() });
         let mut typeKey: String = (if isConditional { "type".to_string() } else { "order_type".to_string() });
@@ -3482,7 +3482,7 @@ impl Woofipro {
             let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
             let mut timeInForce: Option<String> = self.safe_string_lower_k(paramsOmitted.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut isMarket: bool = orderType == "MARKET";
-            let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[paramsOmitted.clone()]).as_bool() == Some(true);
+            let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[paramsOmitted.clone()]);
             if postOnly {
                 request.insert("order_type".into(), Value::Str("POST_ONLY".into()));
             }  else if (timeInForce.as_deref() == Some("fok")) {
@@ -4626,7 +4626,8 @@ impl Woofipro {
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), Value::from(format!("{:0>64}", r))).into()), Value::from(format!("{:0>64}", s))).into()), v).into()).as_str().map(str::to_owned);
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Option<String> {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Option<String> {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 }

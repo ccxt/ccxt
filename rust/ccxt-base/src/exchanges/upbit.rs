@@ -1964,7 +1964,7 @@ impl Upbit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut customType: Option<String> = self.safe_string2(params.clone(), Value::Str("ordType".into()), Value::Str("ord_type".into()), &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
         let mut timeInForce: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
         let mut selfTradePrevention: Option<String> = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), &[]).as_str().map(str::to_owned);
         let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -2136,7 +2136,7 @@ impl Upbit {
         let mut prevClientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut customType: Option<String> = self.safe_string2(params.clone(), Value::Str("newOrdType".into()), Value::Str("new_ord_type".into()), &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "newClientOrderId", &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
         let mut timeInForce: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), &[]).as_str().map(str::to_owned);
         let mut selfTradePrevention: Option<String> = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".into()), Value::Str("new_smp_type".into()), &[]).as_str().map(str::to_owned);
         if postOnly && (selfTradePrevention.is_some()) {
@@ -3162,12 +3162,12 @@ impl Upbit {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: String = self.uuid(&[]);
-            let mut request: indexmap::IndexMap<String, Value> = {
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
-            };
+            }).into_dict();
             let mut auth: Option<String> = None;
             if hasBody {
                 if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
@@ -3177,10 +3177,10 @@ impl Upbit {
             }
             if (auth.is_some()) {
                 let mut hash: String = self.hash(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha512".into()), &[]);
-                request.insert("query_hash".into(), Value::from(hash));
-                request.insert("query_hash_alg".into(), Value::Str("SHA512".into()));
+                std::sync::Arc::make_mut(&mut request).insert("query_hash".into(), Value::from(hash));
+                std::sync::Arc::make_mut(&mut request).insert("query_hash_alg".into(), Value::Str("SHA512".into()));
             }
-            let mut token: String = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            let mut token: String = jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into())); }
         }
         let mut requestHeaders: Value = (if (apiName.as_deref() == Some("private")) { headers } else { Value::Null });

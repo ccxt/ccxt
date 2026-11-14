@@ -324,7 +324,7 @@ impl Gemini {
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchTrades() marketId is required")));
         }
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
@@ -334,14 +334,14 @@ impl Gemini {
     m
 })]));
             m
-        });
+        }).into_dict();
         let mut subscribeHash: String = format!("{}{}", Value::Str("l2:".into()), Value::from((market).symbol.as_str()));
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchTrades() has no websocket url")));
         }
         let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/v2/marketdata");
-        let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), request, subscribeHash.as_str(), Value::Null).await;
+        let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), &request, subscribeHash.as_str(), Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
@@ -462,17 +462,17 @@ impl Gemini {
         //     }
         //
         let mut trade: crate::value::Dict = self.parse_ws_trade(message, None).into_dict();
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&trade, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
         let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             stored = Some(ArrayCache::new(tradesLimit));
-            if (symbol != Value::Null) {
+            if (symbol.is_some()) {
                 CacheStore::put(&mut self.trades, &symbol, stored.clone());
             }
         }
         stored.append(Value::Dict(trade));
-        let mut messageHash: String = format!("{}{}", "trades:", symbol);
+        let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -610,7 +610,7 @@ impl Gemini {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut timeframeId: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
@@ -620,14 +620,14 @@ impl Gemini {
     m
 })]));
             m
-        });
+        }).into_dict();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), Value::from((market).symbol.as_str())).into()), ":").into()), timeframeId.as_deref().unwrap_or("null"));
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOHLCV() has no websocket url")));
         }
         let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/v2/marketdata");
-        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await.into();
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
@@ -737,7 +737,7 @@ impl Gemini {
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOrderBook() marketId is required")));
         }
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscriptions".to_string(), Value::from(vec![Value::Map({
@@ -747,14 +747,14 @@ impl Gemini {
     m
 })]));
             m
-        });
+        }).into_dict();
         let mut subscribeHash: String = format!("{}{}", Value::Str("l2:".into()), Value::from((market).symbol.as_str()));
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook() has no websocket url")));
         }
         let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/v2/marketdata");
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_str(), messageHash.as_str(), request, subscribeHash.as_str(), Value::Null).await.into();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_str(), messageHash.as_str(), &request, subscribeHash.as_str(), Value::Null).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))

@@ -2455,14 +2455,16 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Value {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 
     Value::Null
 }
 
-    pub fn construct_phantom_agent(&self, mut hash: Value, optional_args: &[Value]) -> Value {
+    pub fn construct_phantom_agent(&self, hash: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut hash: Value = hash.into();
         let isTestnet: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut source: String = (if isTestnet { "b".to_string() } else { "a".to_string() });
         return Value::Map({
@@ -2495,7 +2497,9 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn sign_l1_action(&self, mut action: Value, mut nonce: Value, vaultAdress: Option<&str>, expiresAfter: Option<i64>) -> Value {
+    pub fn sign_l1_action(&self, action: impl Into<crate::Value>, nonce: impl Into<crate::Value>, vaultAdress: Option<&str>, expiresAfter: Option<i64>) -> Value {
+        let mut action: Value = action.into();
+        let mut nonce: Value = nonce.into();
         let mut vaultAdress: Value = vaultAdress.into();
         let mut expiresAfter: Value = expiresAfter.into();
         let mut hash: Value = self.action_hash(action, vaultAdress.as_str(), nonce, expiresAfter.as_i64());
@@ -2555,7 +2559,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn sign_user_signed_action(&self, mut messageTypes: Value, mut message: Value) -> Value {
+    pub fn sign_user_signed_action(&self, messageTypes: impl Into<crate::Value>, mut message: Value) -> Value {
+        let mut messageTypes: Value = messageTypes.into();
         let mut zeroAddress: Option<String> = self.safe_string_k(self.options.clone(), "zeroAddress", &[]).as_str().map(str::to_owned);
         let mut chainId: i64 = 421614; // check this out
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -2604,7 +2609,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn build_usd_class_send_sig(&self, mut message: Value) -> Value {
+    pub fn build_usd_class_send_sig(&self, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UsdClassTransfer".to_string(), Value::from(vec![Value::Map({
@@ -2635,7 +2641,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn build_send_asset_sig(&self, mut message: Value) -> Value {
+    pub fn build_send_asset_sig(&self, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:SendAsset".to_string(), Value::from(vec![Value::Map({
@@ -2686,7 +2693,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn build_withdraw_sig(&self, mut message: Value) -> Value {
+    pub fn build_withdraw_sig(&self, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:Withdraw".to_string(), Value::from(vec![Value::Map({
@@ -2717,7 +2725,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn build_user_dex_abstraction_sig(&self, mut message: Value) -> Value {
+    pub fn build_user_dex_abstraction_sig(&self, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UserDexAbstraction".to_string(), Value::from(vec![Value::Map({
@@ -2748,7 +2757,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn build_user_abstraction_sig(&self, mut message: Value) -> Value {
+    pub fn build_user_abstraction_sig(&self, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:UserSetAbstraction".to_string(), Value::from(vec![Value::Map({
@@ -2779,7 +2789,8 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn build_approve_builder_fee_sig(&self, mut message: Value) -> Value {
+    pub fn build_approve_builder_fee_sig(&self, message: impl Into<crate::Value>) -> Value {
+        let mut message: Value = message.into();
         let mut messageTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("HyperliquidTransaction:ApproveBuilderFee".to_string(), Value::from(vec![Value::Map({
@@ -5401,10 +5412,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Option<i64> = self.safe_integer_k(liquidation.clone(), "time", &[]).as_i64();
         let mut marketId: Option<String> = self.coin_to_market_id((self.safe_string_k(liquidation.clone(), "coin", &[])).as_str());
         let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
-        let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         // swap ids are asset indexes, so the market is looked up by symbol
-        if (symbol != Value::Null) && (self.markets.clone() != Value::Null) && (matches!((&self.markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        if (symbol.is_some()) && (self.markets.clone() != Value::Null) && (matches!((&self.markets, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
         }
         let mut side: Option<String> = self.safe_string_k(liquidation.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.is_some()) {
@@ -5415,7 +5426,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseValue".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5478,8 +5489,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_825: bool = true;
             while { if !__for_first_825 { i += 1; } __for_first_825 = false; (i as f64) < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut currentDexName: Value = self.get_dex_from_hip3_symbol(Some(&market)).map(Value::from).unwrap_or(Value::Null);
-            if (currentDexName != dexName) {
+            let mut currentDexName: Option<String> = self.get_dex_from_hip3_symbol(Some(&market));
+            if ((currentDexName.as_deref() != dexName.as_str())) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), " only supports symbols from one DEX at a time for HIP3 markets")));
             }
         }
@@ -6121,18 +6132,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isUsdc && (transferType.as_deref() != Some("spot")) {
             // Transfer USDC with subAccountTransfer
             let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount.clone())), &Value::Str("1000000".into())));
-            let mut action: Value = Value::Map({
+            let mut action: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountTransfer".into()));
                     m.insert("subAccountUser".to_string(), subAccountAddress.clone());
                     m.insert("isDeposit".to_string(), Value::Bool(isDeposit));
                     m.insert("usd".to_string(), Value::from(usd));
                 m
-            });
-            let mut sig: Value = self.sign_l1_action(action.clone(), Value::from(nonce), None, None);
+            }).into_dict();
+            let mut sig: Value = self.sign_l1_action(&action, Value::from(nonce), None, None);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("action".to_string(), action);
+                    m.insert("action".to_string(), Value::Dict(action));
                     m.insert("nonce".to_string(), Value::from(nonce));
                     m.insert("signature".to_string(), sig);
                 m
@@ -6150,7 +6161,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut action: Value = Value::Map({
+            let mut action: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountSpotTransfer".into()));
                     m.insert("subAccountUser".to_string(), subAccountAddress);
@@ -6158,11 +6169,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("token".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&currencyInfo, "name", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&currencyInfo, "tokenId", &[Value::Str("".into())])).into()));
                     m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m
-            });
-            let mut sig: Value = self.sign_l1_action(action.clone(), Value::from(nonce), None, None);
+            }).into_dict();
+            let mut sig: Value = self.sign_l1_action(&action, Value::from(nonce), None, None);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("action".to_string(), action);
+                    m.insert("action".to_string(), Value::Dict(action));
                     m.insert("nonce".to_string(), Value::from(nonce));
                     m.insert("signature".to_string(), sig);
                 m
@@ -6429,7 +6440,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         //
         //     {
         //         "dailyUserVlm": [

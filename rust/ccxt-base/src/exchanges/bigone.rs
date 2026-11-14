@@ -1050,8 +1050,8 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut promises: Value = Value::from(vec![self.public_get_asset_pairs(&[params.clone()]).await, self.contract_public_get_symbols(&[params]).await]);
-        let mut promisesResult: Value = promise_all(&promises).await;
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_asset_pairs(&[params.clone()]).await, self.contract_public_get_symbols(&[params]).await]);
+        let mut promisesResult: Value = promise_all(&Value::Arr(promises)).await;
         let mut response: crate::value::Dict = self.safe_dict(promisesResult.clone(), Value::Int(0), &[]).into_dict();
         let mut contractResponse: Value = self.safe_value(promisesResult, Value::Int(1), &[]);
         //
@@ -1586,16 +1586,16 @@ impl Bigone {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (market).contract {
-            let mut request: Value = Value::Map({
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
-            });
+            }).into_dict();
             let __ws_arg_2 = self.extend(request, &[params.clone()]);
-            response = self.contract_public_get_depth_symbol_snapshot(&[__ws_arg_2]).await;
-            return self.parse_contract_order_book(response.clone(), (Value::from((market).symbol.clone())).as_str().unwrap_or_default(), limit.as_i64());
+            response = self.contract_public_get_depth_symbol_snapshot(&[__ws_arg_2]).await.into_opt_dict();
+            return self.parse_contract_order_book(&response, (Value::from((market).symbol.clone())).as_str().unwrap_or_default(), limit.as_i64());
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1606,7 +1606,7 @@ impl Bigone {
                 request.insert("limit".into(), limit); // default 50, max 200
             }
             let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-            response = self.public_get_asset_pairs_asset_pair_name_depth(&[__ws_arg_3]).await;
+            response = self.public_get_asset_pairs_asset_pair_name_depth(&[__ws_arg_3]).await.into_opt_dict();
             //
             //     {
             //         "code":0,
@@ -1621,17 +1621,18 @@ impl Bigone {
             //         }
             //     }
             //
-            let mut orderbook: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut orderbook: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             return self.parse_order_book(&orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("quantity".into())]);
         }
         Value::Null
         }).await?))
     }
 
-    pub fn parse_contract_bids_asks(&self, mut bidsAsks: Value) -> Value {
+    pub fn parse_contract_bids_asks(&self, bidsAsks: impl Into<crate::Value>) -> Value {
+        let mut bidsAsks: Value = bidsAsks.into();
         let mut bidsAsksKeys: Vec<Value> = Value::Array(bidsAsks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -1648,21 +1649,16 @@ impl Bigone {
     Value::Null
 }
 
-    pub fn parse_contract_order_book(&self, mut orderbook: Value, symbol: &str, limit: Option<i64>) -> Value {
+    pub fn parse_contract_order_book(&self, orderbook: impl Into<crate::Value>, symbol: &str, limit: Option<i64>) -> Value {
+        let mut orderbook: Value = orderbook.into();
         let mut symbol: Value = symbol.into();
         let mut limit: Value = limit.into();
         let __orderbook_empty = indexmap::IndexMap::new();
         let orderbook = orderbook.as_map().unwrap_or(&__orderbook_empty);
-        let mut responseBids: Value = (match orderbook.get("bids") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut responseAsks: Value = (match orderbook.get("asks") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut bids: crate::value::List = self.parse_contract_bids_asks(responseBids).into_list();
-        let mut asks: crate::value::List = self.parse_contract_bids_asks(responseAsks).into_list();
+        let mut responseBids: crate::value::Dict = orderbook.get("bids").cloned().unwrap_or_default().into_dict();
+        let mut responseAsks: crate::value::Dict = orderbook.get("asks").cloned().unwrap_or_default().into_dict();
+        let mut bids: crate::value::List = self.parse_contract_bids_asks(&responseBids).into_list();
+        let mut asks: crate::value::List = self.parse_contract_bids_asks(&responseAsks).into_list();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -2773,14 +2769,14 @@ impl Bigone {
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Option<String> = self.number_to_string(self.nonce());
-            let mut request: Value = Value::Map({
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("OpenAPIV2".into()));
                     m.insert("sub".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m
-            });
-            let mut token: String = jwt(request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            }).into_dict();
+            let mut token: String = jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             headersValue.insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into()));
             if (method.as_str() == Some("GET")) {
                 if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {

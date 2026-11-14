@@ -1111,7 +1111,7 @@ impl Polymarket {
                 flatMarkets.push(ccxtMarkets.get(mi as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            let mut parsedEvent: indexmap::IndexMap<String, Value> = self.parse_event(Value::from(&rawEvent)).as_map().cloned().unwrap_or_default();
+            let mut parsedEvent: indexmap::IndexMap<String, Value> = self.parse_event(&rawEvent).as_map().cloned().unwrap_or_default();
             let mut eventSlug: Option<String> = self.safe_string_k(&rawEvent, "slug", &[]).as_str().map(str::to_owned);
             if (eventSlug.is_some()) && (eventSlug.as_deref() != Some("")) {
                 let mut eventKey: Value = self.shorten_slug(eventSlug.map(Value::from).unwrap_or(Value::Null));
@@ -1225,7 +1225,7 @@ impl Polymarket {
                 remainingPages.push(p.clone());
             }
             }
-            let mut restPromises: Value = Value::from(vec![]);
+            let mut restPromises: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut pi: i64 = 0;
                 let mut __for_first_1407: bool = true;
@@ -1237,10 +1237,10 @@ impl Polymarket {
                 });
                 let __ws_arg_1 = self.extend(pageRequest, &[Value::Map(baseRequest.clone())]);
                 pageRequest = self.extend(__ws_arg_1, &[&rest]);
-                if let Value::Arr(__a) = &mut restPromises { std::sync::Arc::make_mut(__a).push(self.gamma_public_get_public_search(&[pageRequest]).await); }
+                std::sync::Arc::make_mut(&mut restPromises).push(self.gamma_public_get_public_search(&[pageRequest]).await);
             }
             }
-            let mut restResponses: Vec<Value> = promise_all(&restPromises).await.as_array().cloned().unwrap_or_default();
+            let mut restResponses: Vec<Value> = promise_all(&Value::Arr(restPromises)).await.as_array().cloned().unwrap_or_default();
             let mut allEvents: Vec<Value> = Vec::new();
             {
                                 let mut fi: i64 = 0;
@@ -1353,14 +1353,14 @@ impl Polymarket {
             order = "startDate".to_string();
         }
         let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into())]), &[]).into_dict();
-        let mut baseRequest: Value = Value::Map({
+        let mut baseRequest: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("limit".to_string(), pageSize.clone());
                 m.insert("order".to_string(), Value::from(order));
                 m.insert("ascending".to_string(), Value::Bool(false));
             m
-        });
-        baseRequest = self.extend(baseRequest.clone(), &[&rest]);
+        }).into_dict();
+        baseRequest = self.extend(baseRequest, &[&rest]).into_dict();
         // push requested tags server-side (gamma accepts one tag_slug per request) so a tags-only
         // fetchEvents returns the tagged events rather than filtering the top-volume listing down
         // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
@@ -1401,24 +1401,24 @@ impl Polymarket {
         if requestedTagsLength > ((0i64) as f64) {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
-            add_element_to_object(&mut baseRequest, &Value::Str("tag_slug".into()), self.tag_to_slug(self.safe_string(&requestedTags, Value::Int(0), &[])));
+            std::sync::Arc::make_mut(&mut baseRequest).insert("tag_slug".into(), self.tag_to_slug(self.safe_string(&requestedTags, Value::Int(0), &[])));
         }
         if (status.as_deref() == Some("active")) {
-            add_element_to_object(&mut baseRequest, &Value::Str("active".into()), Value::Bool(true));
-            add_element_to_object(&mut baseRequest, &Value::Str("closed".into()), Value::Bool(false));
+            std::sync::Arc::make_mut(&mut baseRequest).insert("active".into(), Value::Bool(true));
+            std::sync::Arc::make_mut(&mut baseRequest).insert("closed".into(), Value::Bool(false));
         }  else if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("inactive")) {
-            add_element_to_object(&mut baseRequest, &Value::Str("active".into()), Value::Bool(false));
-            add_element_to_object(&mut baseRequest, &Value::Str("closed".into()), Value::Bool(true));
+            std::sync::Arc::make_mut(&mut baseRequest).insert("active".into(), Value::Bool(false));
+            std::sync::Arc::make_mut(&mut baseRequest).insert("closed".into(), Value::Bool(true));
         }
         // 'all' — no active/closed filter
         // fetch page 1 first; if full, fire remaining pages in parallel
-        let mut firstPageRequest: Value = Value::Map({
+        let mut firstPageRequest: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("offset".to_string(), Value::Int(0));
             m
-        });
-        firstPageRequest = self.extend(firstPageRequest, &[baseRequest.clone()]);
-        let mut firstPageResponse: Value = self.gamma_public_get_events(&[firstPageRequest]).await;
+        }).into_dict();
+        firstPageRequest = self.extend(firstPageRequest, &[&baseRequest]).into_dict();
+        let mut firstPageResponse: Value = self.gamma_public_get_events(&[Value::Dict(firstPageRequest)]).await;
         let mut firstPageIsArray: bool = matches!(&firstPageResponse, Value::Arr(_));
         let mut firstPage: Value = (if (firstPageIsArray) { firstPageResponse } else { Value::from(vec![]) });
         let mut firstPageLength: f64 = ((firstPage.len() as i64) as f64);
@@ -1444,13 +1444,13 @@ impl Polymarket {
                                 let mut oi: i64 = 0;
                 let mut __for_first_1418: bool = true;
                 while { if !__for_first_1418 { oi += 1; } __for_first_1418 = false; oi < (offsets.len() as i64) } {
-                let mut pageRequest: Value = Value::Map({
+                let mut pageRequest: crate::value::Dict = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("offset".to_string(), offsets.get(oi as usize).cloned().unwrap_or(Value::Null));
                     m
-                });
-                pageRequest = self.extend(pageRequest, &[baseRequest.clone()]);
-                restPromises.push(self.gamma_public_get_events(&[pageRequest]).await);
+                }).into_dict();
+                pageRequest = self.extend(pageRequest, &[&baseRequest]).into_dict();
+                restPromises.push(self.gamma_public_get_events(&[Value::Dict(pageRequest)]).await);
             }
             }
             let mut restPages: Value = promise_all(&Value::from(restPromises)).await;
@@ -1856,7 +1856,7 @@ impl Polymarket {
 }));
         let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
         let mut tokenId: Option<String> = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
-        let mut promises: Value = Value::from(vec![self.clob_public_get_midpoint(&[Value::Map({
+        let mut promises: crate::value::List = std::sync::Arc::new(vec![self.clob_public_get_midpoint(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
     m
@@ -1869,7 +1869,7 @@ impl Polymarket {
         m.insert("token_id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
     m
 })]).await]);
-        let midpointResponsebookResponselastTradeResponseVariable: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
+        let midpointResponsebookResponselastTradeResponseVariable: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
         let mut midpointResponse: Value = midpointResponsebookResponselastTradeResponseVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut bookResponse: Value = midpointResponsebookResponselastTradeResponseVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut lastTradeResponse: Value = midpointResponsebookResponselastTradeResponseVariable.get(2).cloned().unwrap_or(Value::Null);
@@ -1962,8 +1962,8 @@ impl Polymarket {
                 }));
             }
             }
-            let mut promises: Value = Value::from(vec![self.clob_public_post_books(&[Value::from(bookParams.clone())]).await, self.clob_public_post_midpoints(&[Value::from(bookParams.clone())]).await, self.clob_public_post_last_trades_prices(&[Value::from(bookParams)]).await]);
-            let mut responses: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
+            let mut promises: crate::value::List = std::sync::Arc::new(vec![self.clob_public_post_books(&[Value::from(bookParams.clone())]).await, self.clob_public_post_midpoints(&[Value::from(bookParams.clone())]).await, self.clob_public_post_last_trades_prices(&[Value::from(bookParams)]).await]);
+            let mut responses: Vec<Value> = promise_all(&Value::Arr(promises)).await.as_array().cloned().unwrap_or_default();
             let mut booksResponse: Value = responses.get(0).cloned().unwrap_or(Value::Null);
             let mut midpoints: Value = responses.get(1).cloned().unwrap_or(Value::Null);
             let mut lastTradesResponse: Value = responses.get(2).cloned().unwrap_or(Value::Null);
@@ -3630,7 +3630,8 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn sign_clob_order(&self, mut message: Value, exchangeAddress: &str, domainVersion: &str, sigType: f64) -> Option<String> {
+    pub fn sign_clob_order(&self, message: impl Into<crate::Value>, exchangeAddress: &str, domainVersion: &str, sigType: f64) -> Option<String> {
+        let mut message: Value = message.into();
         let mut exchangeAddress: Value = exchangeAddress.into();
         let mut domainVersion: Value = domainVersion.into();
         let mut sigType: Value = sigType.into();
@@ -4145,7 +4146,8 @@ impl Polymarket {
         }).await?))
     }
 
-    pub fn parse_event(&self, mut rawEvent: Value) -> Value {
+    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> Value {
+        let mut rawEvent: Value = rawEvent.into();
         // {
         //     "id": "73113",
         //     "ticker": "ukraine-agrees-not-to-join-nato-before-2027",
@@ -4521,14 +4523,14 @@ impl Polymarket {
         let mut signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
             privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        let mut rRaw: Value = crate::value::KeyRead::key_read(&&signature, "r");
-        let mut sRaw: Value = crate::value::KeyRead::key_read(&&signature, "s");
-        let mut r: Value = rRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
-        let mut s: Value = sRaw.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
+        let mut rRaw: Option<String> = crate::value::KeyRead::key_read(&&signature, "r").as_str().map(str::to_owned);
+        let mut sRaw: Option<String> = crate::value::KeyRead::key_read(&&signature, "s").as_str().map(str::to_owned);
+        let mut r: Option<String> = (if let Some(__s) = rRaw.as_deref() { Some(format!("{:0>64}", __s)) } else { None });
+        let mut s: Option<String> = (if let Some(__s) = sRaw.as_deref() { Some(format!("{:0>64}", __s)) } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("r".to_string(), Value::Str(format!("{}{}", "0x", r).into()));
-        m.insert("s".to_string(), Value::Str(format!("{}{}", "0x", s).into()));
+        m.insert("r".to_string(), Value::Str(format!("{}{}", "0x", r.as_deref().unwrap_or("null")).into()));
+        m.insert("s".to_string(), Value::Str(format!("{}{}", "0x", s.as_deref().unwrap_or("null")).into()));
         m.insert("v".to_string(), self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]));
     m
 });
@@ -4536,7 +4538,8 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn sign_message(&self, mut message: Value, privateKey: &str) -> Value {
+    pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> Value {
+        let mut message: Value = message.into();
         let mut privateKey: Value = privateKey.into();
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 

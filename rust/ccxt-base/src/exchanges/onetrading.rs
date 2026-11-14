@@ -1087,8 +1087,8 @@ impl Onetrading {
 })]).into_dict();
         let mut spotFeeTiers: crate::value::List = self.safe_list_k(&spotFees, "fee_tiers", &[Value::from(vec![])]).into_list();
         let mut futuresFeeTiers: crate::value::List = self.safe_list_k(&futuresFees, "fee_tiers", &[Value::from(vec![])]).into_list();
-        let mut spotTiers: crate::value::Dict = self.parse_fee_tiers(Value::Arr(spotFeeTiers), None).into_dict();
-        let mut futuresTiers: crate::value::Dict = self.parse_fee_tiers(Value::Arr(futuresFeeTiers), None).into_dict();
+        let mut spotTiers: crate::value::Dict = self.parse_fee_tiers(&spotFeeTiers, None).into_dict();
+        let mut futuresTiers: crate::value::Dict = self.parse_fee_tiers(&futuresFeeTiers, None).into_dict();
         let mut firstSpotTier: Value = self.safe_dict(&spotTiers, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1217,7 +1217,8 @@ impl Onetrading {
     Value::Null
 }
 
-    pub fn parse_fee_tiers(&self, mut feeTiers: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_fee_tiers(&self, feeTiers: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut feeTiers: Value = feeTiers.into();
         let mut takerFees: Vec<Value> = Vec::new();
         let mut makerFees: Vec<Value> = Vec::new();
         {

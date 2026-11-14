@@ -1361,7 +1361,8 @@ impl Bitopro {
     Value::Null
 }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         //
         //     [{
         //         "currency":"twd",
@@ -1425,7 +1426,7 @@ impl Bitopro {
         }
         let mut response: crate::value::Dict = self.private_get_accounts_balance(&[params]).await.into_dict();
         let mut balances: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_balance_list(Value::Arr(balances));
+        return self.parse_balance_list(&balances);
         Value::Null
         }).await?))
     }
@@ -1607,7 +1608,7 @@ impl Bitopro {
             }
         }
         let mut paramsOmitted: crate::value::Dict = (if (orderType == "STOP_LIMIT") { self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]) } else { params }).into_dict();
-        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[Value::from(&paramsOmitted)]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(orderType == "MARKET"), Value::Null, &[Value::from(&paramsOmitted)]);
         if postOnly {
             request.insert("timeInForce".into(), Value::Str("POST_ONLY".into()));
         }
@@ -1660,7 +1661,8 @@ impl Bitopro {
         }).await?))
     }
 
-    pub fn parse_cancel_orders(&self, mut data: Value) -> Value {
+    pub fn parse_cancel_orders(&self, data: impl Into<crate::Value>) -> Value {
+        let mut data: Value = data.into();
         let mut dataKeys: Vec<Value> = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut orders: Vec<Value> = Vec::new();
         {
@@ -1742,7 +1744,7 @@ impl Bitopro {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_cancel_orders(Value::Dict(data));
+        return self.parse_cancel_orders(&data);
         Value::Null
         }).await?))
     }
@@ -1788,7 +1790,7 @@ impl Bitopro {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_cancel_orders(Value::Dict(data));
+        return self.parse_cancel_orders(&data);
         Value::Null
         }).await?))
     }

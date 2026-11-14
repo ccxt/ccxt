@@ -1586,7 +1586,8 @@ impl Digifinex {
     Value::Null
 }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         //
         // spot and margin
         //
@@ -1720,7 +1721,7 @@ impl Digifinex {
             balanceRequest = "data".to_string();
         }
         let mut balances: crate::value::List = self.safe_list(&response, Value::from(balanceRequest), &[Value::from(vec![])]).into_list();
-        return self.parse_balance_list(Value::Arr(balances));
+        return self.parse_balance_list(&balances);
         Value::Null
         }).await?))
     }
@@ -2850,7 +2851,7 @@ impl Digifinex {
             marketIdRequest = "instrument_id".to_string();
         }
         request.insert(marketIdRequest, Value::from((market).id.as_deref()));
-        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsMarginMode)]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsMarginMode)]);
         let mut postOnlyParsed: i64 = 0;
         let mut paramsRequest: Value = Value::Null;
         if swap {
@@ -2874,7 +2875,7 @@ impl Digifinex {
             }  else if (timeInForce.as_deref() == Some("GTC")) || isMarketOrder {
                 orderType = Some(14);
             }  else if (timeInForce.as_deref() == Some("PO")) {
-                postOnly = Value::Bool(true);
+                postOnly = true;
             }
             if (price != Value::Null) {
                 request.insert("price".into(), self.price_to_precision(symbol.clone(), price.clone()));
@@ -2883,7 +2884,7 @@ impl Digifinex {
             request.insert("size".into(), amount.clone()); // swap orders require the amount to be the number of contracts
             paramsRequest = self.omit(&paramsMarginMode, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         }  else {
-            postOnlyParsed = (if (postOnly).as_bool() == Some(true) { 1 } else { 2 });
+            postOnlyParsed = (if postOnly { 1 } else { 2 });
             request.insert("market".into(), (if (marginMode.is_some()) { Value::Str("margin".into()) } else { marketTypeRaw.map(Value::from).unwrap_or(Value::Null) }));
             let mut suffix: String = "".to_string();
             if (type_var.as_str() == Some("market")) {
@@ -2926,11 +2927,11 @@ impl Digifinex {
             }
             request.insert("amount".into(), quantity.map(Value::from).unwrap_or(Value::Null));
         }
-        if postOnly.as_bool() == Some(true) {
+        if postOnly {
             if (postOnlyParsed != 0) {
                 request.insert("post_only".into(), Value::from(postOnlyParsed));
             }  else {
-                request.insert("post_only".into(), postOnly);
+                request.insert("post_only".into(), Value::Bool(postOnly));
             }
         }
         return self.extend(Value::Map(request), &[paramsRequest]);
@@ -3023,17 +3024,17 @@ impl Digifinex {
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut isMargin: bool = (marginMode.is_some()) || (marketType.as_deref() == Some("margin"));
         if isMargin {
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.private_spot_post_margin_order_cancel(&[__ws_arg_11]).await;
+            response = self.private_spot_post_margin_order_cancel(&[__ws_arg_11]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.private_spot_post_spot_order_cancel(&[__ws_arg_12]).await;
+            response = self.private_spot_post_spot_order_cancel(&[__ws_arg_12]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("swap")) {
             let __ws_arg_13 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_swap_post_trade_cancel_order(&[__ws_arg_13]).await;
+            response = self.private_swap_post_trade_cancel_order(&[__ws_arg_13]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrder() not support this market type")));
         }
@@ -3059,19 +3060,19 @@ impl Digifinex {
         //     }
         //
         if isMargin || (marketType.as_deref() == Some("spot")) {
-            let mut canceledOrders: crate::value::List = self.safe_list_k(response.clone(), "success", &[Value::from(vec![])]).into_list();
+            let mut canceledOrders: crate::value::List = self.safe_list_k(&response, "success", &[Value::from(vec![])]).into_list();
             let mut numCanceledOrders: i64 = canceledOrders.len() as i64;
             if (numCanceledOrders != 1) {
                 panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cancelOrder() ").into()), idValue.as_deref().unwrap_or("null")).into()), " not found")));
             }
-            let mut orders: crate::value::List = self.parse_cancel_orders(response.clone(), &[]).into_list();
+            let mut orders: crate::value::List = self.parse_cancel_orders(&response, &[]).into_list();
             let mut canceled: Option<crate::value::Dict> = self.safe_dict(&orders, Value::Int(0), &[]).into_opt_dict();
             return canceled.map_or(Value::Null, Value::Dict);
         }  else {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), self.safe_string_k(response, "data", &[]));
+        m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
+        m.insert("id".to_string(), self.safe_string_k(&response, "data", &[]));
     m
 }), None);
         }
@@ -3079,7 +3080,8 @@ impl Digifinex {
         }).await?))
     }
 
-    pub fn parse_cancel_orders(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_cancel_orders(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut symbolsById = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3186,8 +3188,8 @@ impl Digifinex {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.private_spot_post_spot_order_cancel(&[__ws_arg_14]).await;
-        return self.parse_cancel_orders(response, &[]);
+        let mut response: crate::value::Dict = self.private_spot_post_spot_order_cancel(&[__ws_arg_14]).await.into_dict();
+        return self.parse_cancel_orders(&response, &[]);
         Value::Null
         }).await?))
     }
@@ -3314,8 +3316,8 @@ impl Digifinex {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsRequest]);
-        let mut response: Value = self.private_spot_post_spot_order_cancel(&[__ws_arg_15]).await;
-        return self.parse_cancel_orders(response, &[Value::Map(symbolsById)]);
+        let mut response: crate::value::Dict = self.private_spot_post_spot_order_cancel(&[__ws_arg_15]).await.into_dict();
+        return self.parse_cancel_orders(&response, &[Value::Map(symbolsById)]);
         Value::Null
         }).await?))
     }
@@ -5228,12 +5230,13 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(data), Some(&market));
+        return self.parse_trading_fee(&data, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",

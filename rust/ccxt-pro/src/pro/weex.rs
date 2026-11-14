@@ -773,14 +773,15 @@ impl Weex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(Value::Dict(data), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).as_map().cloned().unwrap_or_default();
+        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(&data, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).as_map().cloned().unwrap_or_default();
         let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "ticker::", symbol);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::Map(ticker)); }
         client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         //
         //     {
         //         "p": "-18.93",
@@ -1802,11 +1803,11 @@ impl Weex {
             return;
         }
         let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(message, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).into_dict();
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if (symbol != Value::Null) {
-            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        if (symbol.is_some()) {
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         }
-        let mut messageHash: String = format!("{}{}", "bidask::", symbol);
+        let mut messageHash: String = format!("{}{}", "bidask::", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(ticker), messageHash.as_str());
 }
 
@@ -2007,7 +2008,7 @@ impl Weex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut parsed: crate::value::Dict = self.parse_ws_my_trade(Value::Dict(trade), None).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_ws_my_trade(&trade, None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
@@ -2033,7 +2034,8 @@ impl Weex {
         client.resolve(Value::from(&trades), messageHash.as_str());
 }
 
-    pub fn parse_ws_my_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut trade: Value = trade.into();
         //
         // spot
         //     {
@@ -2831,7 +2833,7 @@ impl Weex {
             self.positions = Some(ArrayCacheBySymbolById::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut data: crate::value::List = message.get("d").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
@@ -2841,9 +2843,9 @@ impl Weex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), None).into_dict();
+            let mut position: crate::value::Dict = self.parse_ws_position(&rawPosition, None).into_dict();
             cache.append(Value::from(&position));
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::Dict(position)); }
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::Dict(position));
         }
         }
         let mut messageHashes: Vec<Value> = self.find_message_hashes(client.clone(), Value::Str("positions::".into())).as_array().cloned().unwrap_or_default();
@@ -2855,16 +2857,17 @@ impl Weex {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut positions: crate::value::List = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let mut positions: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
             if !(self.is_empty(&positions).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(positions), messageHash.as_deref());
             }
         }
         }
-        client.resolve(newPositions, "positions");
+        client.resolve(Value::Arr(newPositions), "positions");
 }
 
-    pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut position: Value = position.into();
         return self.parse_position(position, market);
 
     Value::Null

@@ -2251,7 +2251,7 @@ impl Mudrex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut mp: Value = Value::Map({
+        let mut mp: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("SPOT".into()));
                 m.insert("SPOT".to_string(), Value::Str("SPOT".into()));
@@ -2259,9 +2259,9 @@ impl Mudrex {
                 m.insert("future".to_string(), Value::Str("FUTURES".into()));
                 m.insert("FUTURES".to_string(), Value::Str("FUTURES".into()));
             m
-        });
-        let mut fw: Option<String> = self.safe_string(mp.clone(), fromAccount.clone(), &[(if let Some(__s) = fromAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]).as_str().map(str::to_owned);
-        let mut tw: Option<String> = self.safe_string(mp, toAccount.clone(), &[(if let Some(__s) = toAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]).as_str().map(str::to_owned);
+        }).into_dict();
+        let mut fw: Option<String> = self.safe_string(&mp, fromAccount.clone(), &[(if let Some(__s) = fromAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]).as_str().map(str::to_owned);
+        let mut tw: Option<String> = self.safe_string(&mp, toAccount.clone(), &[(if let Some(__s) = toAccount.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]).as_str().map(str::to_owned);
         let mut body: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("from_wallet_type".to_string(), Value::from(fw.as_deref()));

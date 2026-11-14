@@ -1546,8 +1546,8 @@ pub trait ExchangeBase:
             if (parsed == Value::Null) {
                 continue;
             }
-            let mut code: Value = parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
-            result.insert(crate::runtime::stringify_param(&code), parsed);
+            let mut code: Option<String> = crate::value::KeyRead::key_read(&&parsed, "code").as_str().map(str::to_owned);
+            result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
         }
         }
         return Value::Map(result);
@@ -8473,7 +8473,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn is_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificParam: Value, optional_args: &[Value]) -> Value {
+    fn is_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificParam: Value, optional_args: &[Value]) -> bool {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8498,13 +8498,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else if isMarketOrder.as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " market orders cannot be postOnly")));
             }  else {
-                return Value::Bool(true);
+                return true;
             }
         }  else {
-            return Value::Bool(false);
+            return false;
         }
-
-    Value::Null
 }
 
     fn handle_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificPostOnlyOption: Value, optional_args: &[Value]) -> Value {
@@ -13593,7 +13591,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "invert_flat_string_dictionary" => self.invert_flat_string_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_empty_string" => self.is_empty_string(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_leveraged_currency" => self.is_leveraged_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "is_post_only" => self.is_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "is_post_only" => crate::Value::from(self.is_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..])),
             "is_round_number" => self.is_round_number(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_significant_precision" => self.is_significant_precision(),
             "is_tick_precision" => self.is_tick_precision(),

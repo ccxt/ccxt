@@ -7053,7 +7053,9 @@ impl Binance {
         }).await?))
     }
 
-    pub fn parse_currencies_custom(&self, mut responseCurrencies: Value, mut marginablesById: Value) -> Value {
+    pub fn parse_currencies_custom(&self, responseCurrencies: impl Into<crate::Value>, marginablesById: impl Into<crate::Value>) -> Value {
+        let mut responseCurrencies: Value = responseCurrencies.into();
+        let mut marginablesById: Value = marginablesById.into();
         let __responseCurrencies_empty = Vec::new();
         let responseCurrencies = responseCurrencies.as_array().unwrap_or(&__responseCurrencies_empty);
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -7068,7 +7070,7 @@ impl Binance {
             if (parsed == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrenciesCustom() could not resolve parsed")));
             }
-            let mut code: Value = parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
+            let mut code: Option<String> = crate::value::KeyRead::key_read(&&parsed, "code").as_str().map(str::to_owned);
             if (parsed == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrenciesCustom() could not resolve parsed")));
             }
@@ -7077,7 +7079,7 @@ impl Binance {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrenciesCustom() could not resolve parsed")));
             }
             if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("margin".to_string(), self.safe_bool_k(&marginEntry, "isBorrowable", &[])); }
-            result.insert(crate::runtime::stringify_param(&code), parsed);
+            result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
         }
         }
         return Value::Map(result);
@@ -7930,7 +7932,8 @@ impl Binance {
     Value::Null
 }
 
-    pub fn parse_balance_helper(&self, mut entry: Value) -> Value {
+    pub fn parse_balance_helper(&self, entry: impl Into<crate::Value>) -> Value {
+        let mut entry: Value = entry.into();
         let __entry_empty = indexmap::IndexMap::new();
         let entry = entry.as_map().unwrap_or(&__entry_empty);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -7944,7 +7947,8 @@ impl Binance {
     Value::Null
 }
 
-    pub fn parse_balance_custom(&self, mut response: Value, type_var: Option<&str>, marginMode: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn parse_balance_custom(&self, response: impl Into<crate::Value>, type_var: Option<&str>, marginMode: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut type_var: Value = type_var.into();
         let mut marginMode: Value = marginMode.into();
         let isPortfolioMargin: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
@@ -8031,10 +8035,10 @@ impl Binance {
                 let mut baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]), None);
                 let mut quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(base)));
+                    result = self.merge_balance_account(result, baseCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&base));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(Value::Dict(quote)));
+                    result = self.merge_balance_account(result, quoteCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&quote));
                 }
             }
             }
@@ -8894,12 +8898,12 @@ impl Binance {
             paramsMarketType = self.omit(&paramsMarketType, Value::Str("rolling".into()), &[]).into_dict();
             if rolling {
                 symbolsNormalized = self.market_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
-                let mut request: Value = Value::Map({
+                let mut request: crate::value::Dict = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("symbols".to_string(), self.json(self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)])));
                     m
-                });
-                let __ws_arg_25 = self.extend(request.clone(), &[&paramsMarketType]);
+                }).into_dict();
+                let __ws_arg_25 = self.extend(request, &[&paramsMarketType]);
                 response = self.public_get_ticker(&[__ws_arg_25]).await;
                 return self.parse_tickers_for_rolling(response.clone(), symbolsNormalized.map_or(Value::Null, Value::Arr));
             }  else {
@@ -8923,7 +8927,8 @@ impl Binance {
         }).await?))
     }
 
-    pub fn parse_tickers_for_rolling(&self, mut response: Value, mut symbols: Value) -> Value {
+    pub fn parse_tickers_for_rolling(&self, response: impl Into<crate::Value>, mut symbols: Value) -> Value {
+        let mut response: Value = response.into();
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -9879,7 +9884,7 @@ impl Binance {
         });
         let mut initialUppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut uppercaseType: String = initialUppercaseType.clone();
-        let mut postOnly: bool = self.is_post_only(Value::Bool(initialUppercaseType == "MARKET"), Value::Bool(initialUppercaseType == "LIMIT_MAKER"), &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(initialUppercaseType == "MARKET"), Value::Bool(initialUppercaseType == "LIMIT_MAKER"), &[params.clone()]);
         if postOnly {
             uppercaseType = "LIMIT_MAKER".to_string();
         }
@@ -10219,16 +10224,16 @@ impl Binance {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " editOrders() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " orders")));
         }
         let mut response: Option<crate::value::List> = None;
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("batchOrders".to_string(), Value::from(ordersRequests));
             m
-        });
-        request = self.extend(request, &[params]);
+        }).into_dict();
+        request = self.extend(request, &[params]).into_dict();
         if ((market).linear == Some(true)) {
-            response = self.fapi_private_put_batch_orders(&[request.clone()]).await.into_opt_list();
+            response = self.fapi_private_put_batch_orders(&[Value::from(&request)]).await.into_opt_list();
         }  else if ((market).inverse == Some(true)) {
-            response = self.dapi_private_put_batch_orders(&[request]).await.into_opt_list();
+            response = self.dapi_private_put_batch_orders(&[Value::Dict(request)]).await.into_opt_list();
         }
         return self.parse_orders(&response, None, &[]);
         Value::Null
@@ -11054,18 +11059,18 @@ impl Binance {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrders() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " orders")));
         }
         let mut response: Option<crate::value::List> = None;
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("batchOrders".to_string(), Value::from(ordersRequests));
             m
-        });
-        request = self.extend(request, &[params]);
+        }).into_dict();
+        request = self.extend(request, &[params]).into_dict();
         if ((market).linear == Some(true)) {
-            response = self.fapi_private_post_batch_orders(&[request.clone()]).await.into_opt_list();
+            response = self.fapi_private_post_batch_orders(&[Value::from(&request)]).await.into_opt_list();
         }  else if (market).option {
-            response = self.eapi_private_post_batch_orders(&[request.clone()]).await.into_opt_list();
+            response = self.eapi_private_post_batch_orders(&[Value::from(&request)]).await.into_opt_list();
         }  else {
-            response = self.dapi_private_post_batch_orders(&[request]).await.into_opt_list();
+            response = self.dapi_private_post_batch_orders(&[Value::Dict(request)]).await.into_opt_list();
         }
         return self.parse_orders(&response, None, &[]);
         Value::Null
@@ -11571,7 +11576,7 @@ impl Binance {
         }
         let mut postOnly: Value = Value::Null;
         if !(isPortfolioMargin.as_bool() == Some(true)) {
-            postOnly = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]);
+            postOnly = Value::Bool(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
             if (market).spot || (marketType.as_deref() == Some("margin")) {
                 // only supported for spot/margin api (all margin markets are spot markets)
                 if postOnly.as_bool() == Some(true) {
@@ -11582,7 +11587,7 @@ impl Binance {
                 }
             }
         }  else {
-            postOnly = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]);
+            postOnly = Value::Bool(self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(initialUppercaseType.as_deref() == Some("LIMIT_MAKER")), &[Value::from(&paramsPapi)]));
             if postOnly.as_bool() == Some(true) {
                 if !(market).contract {
                     uppercaseType = Some("LIMIT_MAKER".to_string());
@@ -15590,7 +15595,8 @@ impl Binance {
     Value::Null
 }
 
-    pub fn parse_account_positions(&self, mut account: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_account_positions(&self, account: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut account: Value = account.into();
         let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
@@ -15852,16 +15858,16 @@ impl Binance {
                 //
                 // liquidationPrice = (contracts * contractSize(±1 - mmp)) / (±1/entryPrice * contracts * contractSize - walletBalance)
                 //
-                let mut onePlusMaintenanceMarginPercentageString: Value = Value::Null;
+                let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                 let mut entryPriceSignString: Value = entryPriceString.map(Value::from).unwrap_or(Value::Null);
                 if (side.as_deref() == Some("short")) {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }  else {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null));
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                 }
                 let mut size: Option<String> = crate::precise::Precise::stringMul(&contractsStringAbs.map(Value::from).unwrap_or(Value::Null), &contractSizeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                let mut leftSide: Value = crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &onePlusMaintenanceMarginPercentageString);
+                let mut leftSide: Value = crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &onePlusMaintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null));
                 let mut rightSide: Value = crate::precise::Precise::stringSub(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &size.map(Value::from).unwrap_or(Value::Null)), &walletBalance.map(Value::from).unwrap_or(Value::Null));
                 liquidationPriceStringRaw = crate::precise::Precise::stringDiv(&leftSide, &rightSide).as_str().map(str::to_owned);
             }
@@ -16063,30 +16069,30 @@ impl Binance {
             if !precisionIsUndefined {
                 if linear {
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                    let mut onePlusMaintenanceMarginPercentageString: Value = Value::Null;
+                    let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                     let mut entryPriceSignString: Value = entryPriceString.clone().map(Value::from).unwrap_or(Value::Null);
                     if (side.as_deref() == Some("short")) {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                     }  else {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }
-                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
+                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString.clone().map(Value::from).unwrap_or(Value::Null), &onePlusMaintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     let mut leftSide: Value = crate::precise::Precise::stringAdd(&inner.map(Value::from).unwrap_or(Value::Null), &entryPriceSignString);
                     let mut quotePrecision: i64 = self.precision_from_string(self.safe_string2(&precision, Value::Str("quote".into()), Value::Str("price".into()), &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &contractsAbs.clone().map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into()), &Value::from(quotePrecision));
                 }  else {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                    let mut onePlusMaintenanceMarginPercentageString: Value = Value::Null;
+                    let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                     let mut entryPriceSignString: Value = entryPriceString.map(Value::from).unwrap_or(Value::Null);
                     if (side.as_deref() == Some("short")) {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }  else {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                         entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                     }
                     let mut leftSide: Value = crate::precise::Precise::stringMul(&contractsAbs.map(Value::from).unwrap_or(Value::Null), &contractSizeString.map(Value::from).unwrap_or(Value::Null));
-                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &liquidationPriceString.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
                     let mut basePrecision: i64 = self.precision_from_string(self.safe_string_k(&precision, "base", &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &rightSide.map(Value::from).unwrap_or(Value::Null)), &Value::Str("1".into()), &Value::from(basePrecision));
                 }
@@ -16631,31 +16637,31 @@ impl Binance {
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsSubType, Value::Str("fetchAccountPositions".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: crate::value::Dict = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                response = self.papi_v2_get_um_account(&[Value::from(&paramsPapi)]).await;
+                response = self.papi_v2_get_um_account(&[Value::from(&paramsPapi)]).await.into_opt_dict();
             }  else {
                 let useV2paramsUseV2Variable: Vec<Value> = self.handle_option_bool_and_params(&paramsPapi, Value::Str("fetchAccountPositions".into()), Value::Str("useV2".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
                 let mut useV2: bool = useV2paramsUseV2Variable.get(0).and_then(Value::as_bool) == Some(true);
                 let mut paramsUseV2: crate::value::Dict = useV2paramsUseV2Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
                 if !useV2 {
-                    response = self.fapi_private_v3_get_account(&[Value::from(&paramsUseV2)]).await;
+                    response = self.fapi_private_v3_get_account(&[Value::from(&paramsUseV2)]).await.into_opt_dict();
                 }  else {
-                    response = self.fapi_private_v2_get_account(&[Value::Dict(paramsUseV2)]).await;
+                    response = self.fapi_private_v2_get_account(&[Value::Dict(paramsUseV2)]).await.into_opt_dict();
                 }
             }
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if isPortfolioMargin {
-                response = self.papi_get_cm_account(&[Value::from(&paramsPapi)]).await;
+                response = self.papi_get_cm_account(&[Value::from(&paramsPapi)]).await.into_opt_dict();
             }  else {
-                response = self.dapi_private_get_account(&[Value::from(&paramsPapi)]).await;
+                response = self.dapi_private_get_account(&[Value::from(&paramsPapi)]).await.into_opt_dict();
             }
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchPositions() supports linear and inverse contracts only")));
         }
         let mut filterClosed: Value = self.handle_option_bool_and_params(&paramsPapi, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut result: crate::value::List = self.parse_account_positions(response, &[filterClosed]).into_list();
+        let mut result: crate::value::List = self.parse_account_positions(&response, &[filterClosed]).into_list();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 
@@ -17950,14 +17956,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 url = format!("{}{}", Value::Str(format!("{}{}", url, "?").into()), self.urlencode(params, &[]));
             }
         }
-        let mut headersResolved: Value = signedHeaders.map_or(Value::Null, Value::Dict);
+        let mut headersResolved: Option<crate::value::Dict> = signedHeaders;
         let mut bodyResolved: Value = signedBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved);
-        m.insert("headers".to_string(), headersResolved);
+        m.insert("headers".to_string(), headersResolved.map_or(Value::Null, Value::Dict));
     m
 });
 
@@ -18854,7 +18860,7 @@ if _try_result.is_err() {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut isPortfolioMargin: Option<bool> = None;
         let mut paramsPapi: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("repayCrossMargin".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsPapi = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -18864,18 +18870,18 @@ if _try_result.is_err() {
                 paramsPapi = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if (method.as_deref() == Some("papiPostMarginRepayDebt")) {
                 let __ws_arg_200 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
-                response = self.papi_post_margin_repay_debt(&[__ws_arg_200]).await;
+                response = self.papi_post_margin_repay_debt(&[__ws_arg_200]).await.into_opt_dict();
             }  else {
                 let __ws_arg_201 = self.extend(Value::Map(request.clone()), &[paramsPapi.clone()]);
-                response = self.papi_post_repay_loan(&[__ws_arg_201]).await;
+                response = self.papi_post_repay_loan(&[__ws_arg_201]).await.into_opt_dict();
             }
         }  else {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("REPAY".into()));
             let __ws_arg_202 = self.extend(Value::Map(request), &[paramsPapi]);
-            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_202]).await;
+            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_202]).await.into_opt_dict();
         }
-        return self.parse_margin_loan(response, Some(&currency));
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -18919,8 +18925,8 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_203 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_margin_borrow_repay(&[__ws_arg_203]).await;
-        return self.parse_margin_loan(response, Some(&currency));
+        let mut response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[__ws_arg_203]).await.into_dict();
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -18959,20 +18965,20 @@ if _try_result.is_err() {
                 m.insert("amount".to_string(), self.currency_to_precision(code, amount, &[]));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let isPortfolioMarginparamsPapiVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("borrowCrossMargin".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPapiVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPapi: crate::value::Dict = isPortfolioMarginparamsPapiVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if isPortfolioMargin {
             let __ws_arg_204 = self.extend(Value::Map(request.clone()), &[&paramsPapi]);
-            response = self.papi_post_margin_loan(&[__ws_arg_204]).await;
+            response = self.papi_post_margin_loan(&[__ws_arg_204]).await.into_opt_dict();
         }  else {
             request.insert("isIsolated".into(), Value::Str("FALSE".into()));
             request.insert("type".into(), Value::Str("BORROW".into()));
             let __ws_arg_205 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_205]).await;
+            response = self.sapi_post_margin_borrow_repay(&[__ws_arg_205]).await.into_opt_dict();
         }
-        return self.parse_margin_loan(response, Some(&currency));
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
@@ -19016,13 +19022,14 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_206 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_margin_borrow_repay(&[__ws_arg_206]).await;
-        return self.parse_margin_loan(response, Some(&currency));
+        let mut response: crate::value::Dict = self.sapi_post_margin_borrow_repay(&[__ws_arg_206]).await.into_dict();
+        return self.parse_margin_loan(&response, Some(&currency));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_margin_loan(&self, mut info: Value, currency: Option<&crate::types::Currency>) -> Value {
+    pub fn parse_margin_loan(&self, info: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+        let mut info: Value = info.into();
         //
         //     {
         //         "tranId": 108988250265,

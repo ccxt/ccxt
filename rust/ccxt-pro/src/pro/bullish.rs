@@ -1133,8 +1133,8 @@ impl Bullish {
         }
         let mut messageType: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (messageType.as_deref() == Some("snapshot")) {
-            let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-            let mut parsed: Value = self.parent.parse_balance_list(data);
+            let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
+            let mut parsed: Value = self.parent.parse_balance_list(&data);
             let mut parsedKeys: Vec<Value> = object_keys(&parsed).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;

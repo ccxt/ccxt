@@ -2340,7 +2340,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]).into_dict();
             let mut unsubscribe: bool = self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if unsubscribe {
-                self.handle_un_subscription(client, Value::Dict(subscription));
+                self.handle_un_subscription(client, &subscription);
             }
         }
         return message;
@@ -2348,7 +2348,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_un_subscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut messageHashes: crate::value::List = __pro_message.get("messageHashes").cloned().unwrap_or_default().into_list();

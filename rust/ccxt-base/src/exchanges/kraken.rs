@@ -1419,31 +1419,31 @@ impl Kraken {
         // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
         // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
         //
-        let mut id: Value = self.safe_string_k(rawCurrency.clone(), "_coin_id", &[]);
-        let mut code: Value = self.safe_currency_code(id.clone(), None).map(Value::from).unwrap_or(Value::Null);
+        let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "_coin_id", &[]);
+        let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
-        if (id == Value::Null) {
+        if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing id")));
         }
-        if !id.as_str().unwrap_or("").contains(".") {
-            let mut altName: Value = self.safe_string_k(rawCurrency.clone(), "altname", &[]);
+        if !id.as_deref().unwrap_or("").contains(".") {
+            let mut altName: Option<String> = self.safe_string_k(rawCurrency.clone(), "altname", &[]).as_str().map(str::to_owned);
             // handle cases like below:
             //
             //  id   | altname
             // ---------------
             // XXBT  |  XBT
             // ZUSD  |  USD
-            if (id == Value::Null) {
+            if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing id")));
             }
-            if (id != altName) && ((id.as_str().unwrap_or("").starts_with("X")) || (id.as_str().unwrap_or("").starts_with("Z"))) {
-                code = self.safe_currency_code(altName, None).map(Value::from).unwrap_or(Value::Null);
+            if ((altName.as_deref() != id.as_deref())) && ((id.as_deref().unwrap_or("").starts_with("X")) || (id.as_deref().unwrap_or("").starts_with("Z"))) {
+                code = self.safe_currency_code(altName.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
                 // also, add map in commonCurrencies:
-                if (id != Value::Null) && (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut self.commonCurrencies.clone() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), code.clone()); }
+                if (id.is_some()) && (code != Value::Null) {
+                    if let Value::Dict(__d) = &mut self.commonCurrencies.clone() { std::sync::Arc::make_mut(__d).insert(id.as_deref().unwrap_or("null").to_string(), code.clone()); }
                 }
             }  else {
-                code = self.safe_currency_code(id.clone(), None).map(Value::from).unwrap_or(Value::Null);
+                code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             }
         }
         if (code == Value::Null) {
@@ -1453,7 +1453,7 @@ impl Kraken {
         let mut rawCurrencyOmitted: Value = self.omit(rawCurrency, Value::Str("_coin_id".into()), &[]);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code);
         m.insert("info".to_string(), rawCurrencyOmitted.clone());
         m.insert("name".to_string(), self.safe_string_k(rawCurrencyOmitted.clone(), "altname", &[]));
@@ -1568,12 +1568,13 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(result), Some(&market));
+        return self.parse_trading_fee(&result, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         let mut makerFees: crate::value::Dict = self.safe_dict_k(fee.clone(), "fees_maker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2672,14 +2673,14 @@ impl Kraken {
         }
         self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
         let mut response: Option<crate::value::Dict> = None;
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orders".to_string(), Value::from(ordersRequests));
                 m.insert("pair".to_string(), self.safe_string_k(&market, "id", &[]));
             m
-        });
-        request = self.extend(request, &[params]);
-        response = self.private_post_add_order_batch(&[request]).await.into_opt_dict();
+        }).into_dict();
+        request = self.extend(request, &[params]).into_dict();
+        response = self.private_post_add_order_batch(&[Value::Dict(request)]).await.into_opt_dict();
         //
         //         {
         //    "error":[
@@ -4267,8 +4268,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn parse_transactions_by_type(&self, type_var: &str, mut transactions: Value, code: Option<&str>, since: Option<i64>, limit: Option<i64>) -> Value {
+    pub fn parse_transactions_by_type(&self, type_var: &str, transactions: impl Into<crate::Value>, code: Option<&str>, since: Option<i64>, limit: Option<i64>) -> Value {
         let mut type_var: Value = type_var.into();
+        let mut transactions: Value = transactions.into();
         let mut code: Value = code.into();
         let mut since: Value = since.into();
         let mut limit: Value = limit.into();
@@ -4355,7 +4357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //                     "status": "Success"                                                       } ] }
         //
         let mut depositResult: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_transactions_by_type("deposit", Value::Arr(depositResult), code.as_str(), since.as_i64(), limit.as_i64());
+        return self.parse_transactions_by_type("deposit", &depositResult, code.as_str(), since.as_i64(), limit.as_i64());
         Value::Null
         }).await?))
     }
@@ -4505,7 +4507,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub fn add_pagination_cursor_to_result(&self, mut result: Value) -> Value {
+    pub fn add_pagination_cursor_to_result(&self, result: impl Into<crate::Value>) -> Value {
+        let mut result: Value = result.into();
         let __result_empty = indexmap::IndexMap::new();
         let result = result.as_map().unwrap_or(&__result_empty);
         let mut cursor: Option<String> = (match result.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

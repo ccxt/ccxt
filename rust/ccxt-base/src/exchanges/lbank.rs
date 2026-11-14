@@ -1046,8 +1046,8 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut marketsPromises: Value = Value::from(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_markets(&[params]).await]);
-        let mut resolvedMarkets: Value = promise_all(&marketsPromises).await;
+        let mut marketsPromises: crate::value::List = std::sync::Arc::new(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_markets(&[params]).await]);
+        let mut resolvedMarkets: Value = promise_all(&Value::Arr(marketsPromises)).await;
         let mut spotMarkets: Value = self.safe_value(resolvedMarkets.clone(), Value::Int(0), &[]);
         let mut swapMarkets: Value = self.safe_value(resolvedMarkets, Value::Int(1), &[]);
         return self.array_concat(spotMarkets, swapMarkets);
@@ -4098,12 +4098,13 @@ impl Lbank {
         //    }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_public_deposit_withdraw_fees(Value::Arr(data), &[codes]);
+        return self.parse_public_deposit_withdraw_fees(&data, &[codes]);
 
     Value::Null
 }
 
-    pub fn parse_public_deposit_withdraw_fees(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_public_deposit_withdraw_fees(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let __response_empty = Vec::new();
         let response = response.as_array().unwrap_or(&__response_empty);

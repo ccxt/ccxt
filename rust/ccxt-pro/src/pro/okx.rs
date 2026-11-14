@@ -1365,7 +1365,7 @@ impl Okx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(ticker), Some(&market)).into_dict();
+        let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(&ticker, Some(&market)).into_dict();
         let mut symbol: Option<String> = self.safe_string_k(&parsedTicker, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
@@ -1374,7 +1374,8 @@ impl Okx {
         client.resolve(Value::Dict(parsedTicker), messageHash.as_str());
 }
 
-    pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_bid_ask(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut ticker: Value = ticker.into();
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "instId", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
@@ -2139,8 +2140,8 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(topics.clone()));
             m
         });
-        let mut url: Value = self.get_url(depth, &[Value::Str("public".into())]).map(Value::from).unwrap_or(Value::Null);
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut url: Option<String> = self.get_url(depth, &[Value::Str("public".into())]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut resyncTopics: Vec<Value> = Vec::new();
         let mut resyncHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut resyncNeeded: bool = false;
@@ -2163,9 +2164,9 @@ impl Okx {
                     m.insert("args".to_string(), Value::from(resyncTopics));
                 m
             });
-            self.watch_multiple(&url, &resyncHashes, Value::Map(unsubscribeRequest), &resyncHashes, Value::Null).await;
+            self.watch_multiple(url.as_deref(), &resyncHashes, Value::Map(unsubscribeRequest), &resyncHashes, Value::Null).await;
         }
-        let mut orderbook: Value = self.watch_multiple(&url, &messageHashes, Value::Map(request), &messageHashes, Value::Null).await;
+        let mut orderbook: Value = self.watch_multiple(url.as_deref(), &messageHashes, Value::Map(request), &messageHashes, Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -2543,9 +2544,9 @@ impl Okx {
         self.check_required_credentials(&[]);
         let mut access: String = self.safe_string_k(params.clone(), "access", &[Value::Str("private".into())]).as_str().unwrap_or("private").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("access".into())]), &[]).into_dict();
-        let mut url: Value = self.get_url(Value::Str("users".into()), &[Value::from(access)]).map(Value::from).unwrap_or(Value::Null);
+        let mut url: Option<String> = self.get_url(Value::Str("users".into()), &[Value::from(access)]);
         let mut messageHash: String = "authenticated".to_string();
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
@@ -2572,7 +2573,7 @@ impl Okx {
             if (paramsOmitted.contains_key("access")) {
                 request.insert("access".into(), crate::value::KeyRead::key_read(&&paramsOmitted, "access"));
             }
-            self.watch(&url, &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
+            self.watch(url.as_deref(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -3002,7 +3003,7 @@ impl Okx {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
-        let mut newPositions: Vec<Value> = vec![];
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_549: bool = true;
@@ -3015,9 +3016,9 @@ impl Okx {
                 let mut shortPosition: Value = self.clone_value(Value::from(&position));
                 add_element_to_object(&mut shortPosition, &Value::Str("side".into()), Value::Str("short".into()));
                 cache.append(shortPosition.clone());
-                newPositions.push(shortPosition);
+                std::sync::Arc::make_mut(&mut newPositions).push(shortPosition);
             }
-            newPositions.push(Value::from(&position));
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             cache.append(Value::Dict(position));
         }
         }
@@ -3025,7 +3026,7 @@ impl Okx {
         if (symbol.is_some()) {
             messageHash = format!("{}{}", Value::Str(format!("{}{}", channel, "::").into()), symbol.as_deref().unwrap_or("null"));
         }
-        client.resolve(Value::Array(newPositions), messageHash.as_str());
+        client.resolve(Value::Arr(newPositions), messageHash.as_str());
 }
 
 /*
@@ -3884,7 +3885,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // if (table === undefined) {
         let mut event: Option<String> = self.safe_string2(message.clone(), Value::Str("event".into()), Value::Str("op".into()), &[]).as_str().map(str::to_owned);
         if (event.is_some()) {
-            let mut methods: Value = Value::Map({
+            let mut methods: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("login".to_string(), Value::Str("handle_authenticate".into()).clone());
                     m.insert("subscribe".to_string(), Value::Str("handle_subscription_status".into()).clone());
@@ -3897,8 +3898,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("batch-cancel-orders".to_string(), Value::Str("handle_cancel_orders".into()).clone());
                     m.insert("mass-cancel".to_string(), Value::Str("handle_cancel_all_orders".into()).clone());
                 m
-            });
-            let mut method: Value = self.safe_value(methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
+            }).into_dict();
+            let mut method: Value = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]);
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
@@ -3908,7 +3909,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (channel.is_none()) {
                 return;
             }
-            let mut methods: Value = Value::Map({
+            let mut methods: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("bbo-tbt".to_string(), Value::Str("handle_order_book".into()).clone());
                     m.insert("books".to_string(), Value::Str("handle_order_book".into()).clone());
@@ -3931,8 +3932,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("liquidation-orders".to_string(), Value::Str("handle_liquidation".into()).clone());
                     m.insert("balance_and_position".to_string(), Value::Str("handle_balance_and_position".into()).clone());
                 m
-            });
-            let mut method: Value = self.safe_value(methods, channel.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            }).into_dict();
+            let mut method: Value = self.safe_value(&methods, channel.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (method == Value::Null) {
                 if (Value::Int(channel.as_deref().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
                     self.handle_ohlcv(client.clone(), message.clone());

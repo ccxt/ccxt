@@ -1471,7 +1471,7 @@ impl Krakenfutures {
                 continue;
             }
             let mut volume: String = self.safe_string(Value::Map(volumes.clone()), uid.map(Value::from).unwrap_or(Value::Null), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(schedule.map_or(Value::Null, Value::Dict), Some(&market), &[Value::from(volume)]));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(&schedule, Some(&market), &[Value::from(volume)]));
         }
         }
         return Value::Map(result);
@@ -1479,7 +1479,8 @@ impl Krakenfutures {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut fee: Value = fee.into();
         let mut volume = get_arg(optional_args, 0, Value::Null);
         //
         //    {
@@ -1586,7 +1587,7 @@ impl Krakenfutures {
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
             let mut fromTimestamp: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             request.insert("from".into(), Value::from(fromTimestamp));
-            let mut toTimestamp: Option<i64> = self.parse_to_int(self.sum(&[Value::from(fromTimestamp), Value::from((if let Some(__l) = ((if let Some(__l) = windowSize { Some(__l * duration) } else { None })) { Some(__l - 1) } else { None }))]));
+            let mut toTimestamp: Option<i64> = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (fromTimestamp, ((if let Some(__l) = ((if let Some(__l) = windowSize { Some(__l * duration) } else { None })) { Some(__l - 1) } else { None }))) { Some((__m0 + __m1)) } else { None })));
             let mut currentTimestamp: i64 = self.seconds();
             request.insert("to".into(), (if ((toTimestamp.is_some() && toTimestamp < Some(currentTimestamp))) { Value::from(toTimestamp) } else { Value::from(currentTimestamp) }));
         }  else if (limitResolved.is_some()) {
@@ -2880,7 +2881,8 @@ impl Krakenfutures {
         return self.safe_string(&typesMap, orderType.clone(), &[orderType.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn verify_order_action_success(&self, mut status: Value, method: &str, optional_args: &[Value]) {
+    pub fn verify_order_action_success(&self, status: impl Into<crate::Value>, method: &str, optional_args: &[Value]) {
+        let mut status: Value = status.into();
         let mut method: Value = method.into();
         let mut omit = get_arg(optional_args, 0, Value::from(vec![]));
         let mut errors: Value = Value::Map({
@@ -5173,13 +5175,13 @@ impl Krakenfutures {
                 m
             }));
         }
-        let mut requestHeaders: Value = privateHeaders.map_or(Value::Null, Value::Dict);
+        let mut requestHeaders: Option<crate::value::Dict> = privateHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 

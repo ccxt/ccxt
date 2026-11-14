@@ -3356,7 +3356,7 @@ impl Deribit {
         let mut isLimitOrder: bool = (((type_var.as_str() == Some("limit")) || isStopLimit) || isTakeLimit);
         let mut isMarketOrder: bool = (((type_var.as_str() == Some("market")) || isStopMarket) || isTakeMarket);
         let mut exchangeSpecificPostOnly: Option<bool> = self.safe_bool_k(params.clone(), "post_only", &[]).as_bool();
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), exchangeSpecificPostOnly.map_or(Value::Null, Value::Bool), &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), exchangeSpecificPostOnly.map_or(Value::Null, Value::Bool), &[params.clone()]);
         if isLimitOrder {
             request.insert("type".into(), Value::Str("limit".into()));
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));

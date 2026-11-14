@@ -949,16 +949,16 @@ impl Bithumb {
                 let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "market", &[]).as_str().map(str::to_owned);
                 let mut baseId: Option<String> = None;
-                let mut quoteId: Value = Value::Null;
+                let mut quoteId: Option<String> = None;
                 let mut base: Value = Value::Null;
                 let mut quote: Value = Value::Null;
                 if (marketId.is_some()) {
                     let mut parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = parts.get(1).and_then(Value::as_str).map(str::to_owned);
-                    quoteId = parts.get(0).cloned().unwrap_or(Value::Null);
+                    quoteId = parts.get(0).and_then(Value::as_str).map(str::to_owned);
                     base = self.safe_currency_code(Value::from(baseId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
-                    quote = self.safe_currency_code(quoteId.clone(), None).map(Value::from).unwrap_or(Value::Null);
+                    quote = self.safe_currency_code(Value::from(quoteId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
                 }
                 if (base == Value::Null) || (quote == Value::Null) {
                     continue;
@@ -971,7 +971,7 @@ impl Bithumb {
                         m.insert("quote".to_string(), quote);
                         m.insert("settle".to_string(), Value::Null);
                         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("quoteId".to_string(), quoteId);
+                        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("settleId".to_string(), Value::Null);
                         m.insert("type".to_string(), Value::Str("spot".into()));
                         m.insert("spot".to_string(), Value::Bool(true));
@@ -1153,7 +1153,8 @@ impl Bithumb {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         //
         // generation 1
         //
@@ -4238,7 +4239,8 @@ impl Bithumb {
     Value::Null
 }
 
-    pub fn urlencode_with_array_brackets(&self, mut query: Value) -> Value {
+    pub fn urlencode_with_array_brackets(&self, query: impl Into<crate::Value>) -> Value {
+        let mut query: Value = query.into();
         let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut result: String = "".to_string();
         {
@@ -4324,13 +4326,13 @@ impl Bithumb {
                         m.insert("OPEN-API-PARTNER".to_string(), Value::Str("CCXT".into()));
                     m
                 });
-                let mut request: indexmap::IndexMap<String, Value> = {
+                let mut request: crate::value::Dict = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("access_key".to_string(), self.apiKey.clone());
                         m.insert("nonce".to_string(), Value::from(self.uuid(&[])));
                         m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
                     m
-                };
+                }).into_dict();
                 let mut auth: Value = Value::Str("".into());
                 if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                     if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
@@ -4343,10 +4345,10 @@ impl Bithumb {
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), endpoint).into()), "?").into()), auth);
                 }
                 if hasQuery {
-                    request.insert("query_hash".into(), Value::from(self.hash(self.encode(auth), Value::Str("sha512".into()), &[])));
-                    request.insert("query_hash_alg".into(), Value::Str("SHA512".into()));
+                    std::sync::Arc::make_mut(&mut request).insert("query_hash".into(), Value::from(self.hash(self.encode(auth), Value::Str("sha512".into()), &[])));
+                    std::sync::Arc::make_mut(&mut request).insert("query_hash_alg".into(), Value::Str("SHA512".into()));
                 }
-                let mut token: String = jwt(Value::Map(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+                let mut token: String = jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
                 if let Value::Dict(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into())); }
             }  else {
                 let __ws_arg_49 = self.extend(Value::Map({

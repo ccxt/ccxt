@@ -1921,8 +1921,9 @@ impl Nado {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, streamType: Option<&str>, mut stream: Value, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn watch_private(&mut self, streamType: Option<&str>, stream: impl Into<crate::Value>, messageHash: &str, optional_args: &[Value]) -> Value {
         let mut streamType: Value = streamType.into();
+        let mut stream: Value = stream.into();
         let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1959,7 +1960,8 @@ impl Nado {
     Value::Null
 }
 
-    pub async fn un_watch_private(&mut self, mut stream: Value, messageHash: &str, optional_args: &[Value]) -> Value {
+    pub async fn un_watch_private(&mut self, stream: impl Into<crate::Value>, messageHash: &str, optional_args: &[Value]) -> Value {
+        let mut stream: Value = stream.into();
         let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2018,7 +2020,7 @@ impl Nado {
         let mut paramsSubaccount: crate::value::Dict = subaccountparamsSubaccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut id: i64 = self.request_id();
         let mut sender: Option<String> = self.parent.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
-        let mut expiration: Value = self.sum(&[Value::Int(self.milliseconds()), Value::from(recvWindow)]);
+        let mut expiration: Value = Value::from((if let Some(__m1) = recvWindow { Some(((self.milliseconds()) + __m1)) } else { None }));
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
@@ -2047,7 +2049,8 @@ impl Nado {
     Value::Null
 }
 
-    pub fn sign_stream_authentication(&self, mut tx: Value, mut chainId: Value, mut endpointAddress: Value) -> Option<String> {
+    pub fn sign_stream_authentication(&self, tx: impl Into<crate::Value>, mut chainId: Value, mut endpointAddress: Value) -> Option<String> {
+        let mut tx: Value = tx.into();
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("Nado".into()));

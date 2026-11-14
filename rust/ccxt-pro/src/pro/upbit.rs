@@ -579,11 +579,11 @@ impl Upbit {
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         let mut ticker: crate::value::Dict = self.parse_ticker(message, None).into_dict();
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
-        if (symbol != Value::Null) {
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+        if (symbol.is_some()) {
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         }
-        let mut messageHash: String = format!("{}{}", "ticker:", symbol);
+        let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::Dict(ticker), messageHash.as_str());
 }
 
@@ -676,8 +676,8 @@ impl Upbit {
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         let mut trade: crate::value::Dict = self.parse_trade(message, None).into_dict();
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&trade, "symbol");
-        if (symbol == Value::Null) {
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
+        if (symbol.is_none()) {
             return;
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -687,7 +687,7 @@ impl Upbit {
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         stored.append(Value::Dict(trade));
-        let mut messageHash: String = format!("{}{}", "trade:", symbol);
+        let mut messageHash: String = format!("{}{}", "trade:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
@@ -727,13 +727,13 @@ impl Upbit {
         })]).as_map().cloned().unwrap_or_default();
         let mut authenticated: Option<String> = self.safe_string(Value::Map(wsOptions.clone()), Value::Str("token".into()), &[]).as_str().map(str::to_owned);
         if (authenticated.is_none()) {
-            let mut auth: Value = Value::Map({
+            let mut auth: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), Value::from(self.uuid(&[])));
                 m
-            });
-            let mut token: String = jwt(auth, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            }).into_dict();
+            let mut token: String = jwt(&auth, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             wsOptions.insert("token".into(), Value::from(token.clone()));
             wsOptions.insert("options".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();

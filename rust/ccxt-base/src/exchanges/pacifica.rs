@@ -1611,14 +1611,15 @@ if _try_result.is_err() {
         if (setting.is_none()) {
             return self.parse_leverage_from_market(market);
         }  else {
-            return self.parse_leverage_from_setting(symbol.as_str(), setting.map_or(Value::Null, Value::Dict));
+            return self.parse_leverage_from_setting(symbol.as_str(), &setting);
         }
         Value::Null
         }).await?))
     }
 
-    pub fn parse_leverage_from_setting(&self, symbol: Option<&str>, mut setting: Value) -> Value {
+    pub fn parse_leverage_from_setting(&self, symbol: Option<&str>, setting: impl Into<crate::Value>) -> Value {
         let mut symbol: Value = symbol.into();
+        let mut setting: Value = setting.into();
         // {
         //   "WLFI/USDC:USDC": {
         //       "symbol": "WLFI",
@@ -1799,14 +1800,15 @@ if _try_result.is_err() {
     m
 });
         }  else {
-            return self.parse_margin_mode_from_setting(symbol.as_str(), setting.map_or(Value::Null, Value::Dict));
+            return self.parse_margin_mode_from_setting(symbol.as_str(), &setting);
         }
         Value::Null
         }).await?))
     }
 
-    pub fn parse_margin_mode_from_setting(&self, symbol: Option<&str>, mut setting: Value) -> Value {
+    pub fn parse_margin_mode_from_setting(&self, symbol: Option<&str>, setting: impl Into<crate::Value>) -> Value {
         let mut symbol: Value = symbol.into();
+        let mut setting: Value = setting.into();
         // {
         //       "symbol": "WLFI",
         //       "isolated": false,
@@ -3028,7 +3030,8 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn cancel_order_request(&self, mut id: Value, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn cancel_order_request(&self, id: impl Into<crate::Value>, symbol: Option<&str>, optional_args: &[Value]) -> Value {
+        let mut id: Value = id.into();
         let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4301,7 +4304,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(data), Some(&market));
+        return self.parse_trading_fee(&data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -4352,7 +4355,7 @@ if _try_result.is_err() {
             let mut __for_first_1053: bool = true;
             while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(Value::from(&data), Some(&(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }))));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(&data, Some(&(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }))));
         }
         }
         return Value::Map(result);
@@ -4360,7 +4363,8 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         //
         //   {
         //     "balance": "2000.000000",
@@ -5408,7 +5412,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn sort_json_keys(&self, mut value: Value) -> Value {
+    pub fn sort_json_keys(&self, value: impl Into<crate::Value>) -> Value {
+        let mut value: Value = value.into();
         if self.is_dictionary(value.clone()).as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -5454,11 +5459,13 @@ if _try_result.is_err() {
                 m.insert("data".to_string(), payload);
             m
         })]).into_dict();
-        let mut sorted: Value = self.sort_json_keys(Value::Dict(data));
+        let mut sorted: Value = self.sort_json_keys(&data);
         return json_stringify(&sorted).as_str().map(str::to_owned);
 }
 
-    pub fn sign_message(&self, mut header: Value, mut payload: Value, privateKey: &str) -> Option<String> {
+    pub fn sign_message(&self, header: impl Into<crate::Value>, payload: impl Into<crate::Value>, privateKey: &str) -> Option<String> {
+        let mut header: Value = header.into();
+        let mut payload: Value = payload.into();
         let mut privateKey: Value = privateKey.into();
         let mut message: Option<String> = self.prepare_message(header, payload);
         let mut messageBytes: crate::value::Bytes = self.encode(message.map(Value::from).unwrap_or(Value::Null));

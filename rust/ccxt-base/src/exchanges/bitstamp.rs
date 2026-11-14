@@ -2094,11 +2094,12 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn construct_currency_object(&self, id: Option<&str>, code: Option<&str>, name: Option<&str>, precision: Option<i64>, mut minCost: Value, mut originalPayload: Value) -> Value {
+    pub fn construct_currency_object(&self, id: Option<&str>, code: Option<&str>, name: Option<&str>, precision: Option<i64>, mut minCost: Value, originalPayload: impl Into<crate::Value>) -> Value {
         let mut id: Value = id.into();
         let mut code: Value = code.into();
         let mut name: Value = name.into();
         let mut precision: Value = precision.into();
+        let mut originalPayload: Value = originalPayload.into();
         let mut currencyType: String = "crypto".to_string();
         let mut description: Value = self.describe();
         let mut fees: crate::value::Dict = self.safe_dict_k(description, "fees", &[Value::Map({
@@ -2276,11 +2277,11 @@ impl Bitstamp {
             let mut cost: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (base != Value::Null) && !(matches!(&base, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut baseDecimals: Option<i64> = self.safe_integer_k(&market, "base_decimals", &[]).as_i64();
-                result.insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.as_deref(), base.as_str(), baseDescription.as_deref(), baseDecimals, Value::Null, Value::from(&market)));
+                result.insert(crate::runtime::stringify_param(&base), self.construct_currency_object(baseId.as_deref(), base.as_str(), baseDescription.as_deref(), baseDecimals, Value::Null, &market));
             }
             if (quote != Value::Null) && !(matches!(&quote, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
                 let mut counterDecimals: Option<i64> = self.safe_integer_k(&market, "counter_decimals", &[]).as_i64();
-                result.insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.as_deref(), quote.as_str(), quoteDescription.as_deref(), counterDecimals, self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), Value::Dict(market)));
+                result.insert(crate::runtime::stringify_param(&quote), self.construct_currency_object(quoteId.as_deref(), quote.as_str(), quoteDescription.as_deref(), counterDecimals, self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]), &market));
             }
         }
         }
@@ -2817,7 +2818,7 @@ impl Bitstamp {
                 if untilIsDefined {
                     request.insert("end".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
                 }  else {
-                    request.insert("end".into(), self.sum(&[Value::from(startDefault), Value::Int((((duration * 1000)) - 1))]));
+                    request.insert("end".into(), Value::from((if let Some(__m0) = startDefault { Some((__m0 + ((((duration * 1000)) - 1)))) } else { None })));
                 }
                 request.insert("limit".into(), Value::Int(1000));
             }
@@ -2963,7 +2964,8 @@ impl Bitstamp {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         let mut marketId: Option<String> = self.safe_string_k(fee.clone(), "market", &[]).as_str().map(str::to_owned);
         let mut fees: crate::value::Dict = self.safe_dict_k(fee.clone(), "fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3823,8 +3825,8 @@ impl Bitstamp {
         //     }
         //
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "datetime", &[]));
-        let mut currencyId: Value = self.get_currency_id_from_transaction(transaction.clone());
-        let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), currency);
+        let mut currencyId: Option<String> = self.get_currency_id_from_transaction(transaction.clone()).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), currency);
         let mut feeCost: Option<String> = self.safe_string_k(transaction.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Value = Value::Null;
         let mut amount: Option<String> = None;
@@ -3833,8 +3835,8 @@ impl Bitstamp {
         }  else if (currency.is_some()) {
             amount = self.safe_string(transaction.clone(), crate::value::KeyRead::key_read(&currency, "id"), &[]).as_str().map(str::to_owned);
             feeCurrency = crate::value::KeyRead::key_read(&currency, "code");
-        }  else if (code.is_some()) && (currencyId != Value::Null) {
-            amount = self.safe_string(transaction.clone(), currencyId, &[]).as_str().map(str::to_owned);
+        }  else if (code.is_some()) && (currencyId.is_some()) {
+            amount = self.safe_string(transaction.clone(), currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             feeCurrency = code.clone().map(Value::from).unwrap_or(Value::Null);
         }
         if (amount.is_some()) {
@@ -4123,7 +4125,7 @@ impl Bitstamp {
 }), currency);
         }  else {
             let mut parsedTransaction: indexmap::IndexMap<String, Value> = self.parse_transaction(item.clone(), currency).as_map().cloned().unwrap_or_default();
-            let mut direction: Value = Value::Null;
+            let mut direction: Option<String> = None;
             let mut transactionCurrency: Option<String> = self.safe_string(Value::Map(parsedTransaction.clone()), Value::Str("currency".into()), &[]).as_str().map(str::to_owned);
             let mut hasTransactionCurrency: bool = !(matches!(&item, Value::Dict(__d) if __d.contains_key("amount"))) && (transactionCurrency.is_some());
             let mut currencyResolved: Option<crate::types::Currency> = currency.cloned();
@@ -4132,10 +4134,10 @@ impl Bitstamp {
             }
             if (matches!(&item, Value::Dict(__d) if __d.contains_key("amount"))) {
                 let mut amount: Option<String> = self.safe_string_k_opt(item.clone(), "amount", &[]);
-                direction = (if crate::precise::Precise::stringGt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("in".into()) } else { Value::Str("out".into()) });
+                direction = (if crate::precise::Precise::stringGt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("in".to_string()) } else { Some("out".to_string()) });
             }  else if (transactionCurrency.is_some()) {
                 let mut amount: Option<String> = self.safe_string_opt(item.clone(), self.safe_string_k(&currencyResolved, "id", &[]), &[]);
-                direction = (if crate::precise::Precise::stringGt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("in".into()) } else { Value::Str("out".into()) });
+                direction = (if crate::precise::Precise::stringGt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("in".to_string()) } else { Some("out".to_string()) });
             }
             return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4143,7 +4145,7 @@ impl Bitstamp {
         m.insert("id".to_string(), parsedTransaction.get("id").cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), parsedTransaction.get("timestamp").cloned().unwrap_or(Value::Null));
         m.insert("datetime".to_string(), parsedTransaction.get("datetime").cloned().unwrap_or(Value::Null));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), direction.map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), parsedTransaction.get("txid").cloned().unwrap_or(Value::Null));
         m.insert("referenceAccount".to_string(), Value::Null);

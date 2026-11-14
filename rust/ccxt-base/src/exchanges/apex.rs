@@ -1999,7 +1999,7 @@ impl Apex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for market orders")));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[params.clone()]);
         if (timeInForce.is_none()) {
             timeInForce = Some("GOOD_TIL_CANCEL".to_string());
         }
@@ -2013,13 +2013,13 @@ impl Apex {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("timeInForce".into()), &[]).into_dict();
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("postOnly".into()), &[]).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_n(&paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut accountId: Value = self.get_account_id().await;
-        let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(accountId.clone()).map(Value::from).unwrap_or(Value::Null) });
+        let mut accountId: Option<String> = self.get_account_id().await.as_str().map(str::to_owned);
+        let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(Value::from(accountId.as_deref())).map(Value::from).unwrap_or(Value::Null) });
         let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
         let mut finalOrderPrice: Value = orderPrice; // java req
         let mut orderToSign: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("accountId".to_string(), accountId);
+                m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("slotId".to_string(), finalClientOrderId.clone());
                 m.insert("nonce".to_string(), finalClientOrderId.clone());
                 m.insert("pairId".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
@@ -2188,7 +2188,7 @@ impl Apex {
                 m
             });
             let mut signature: Value = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), &[orderToSign]).await;
-            let mut request: Value = Value::Map({
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("amount".to_string(), amount.clone());
                     m.insert("expireTime".to_string(), Value::from(expireTime));
@@ -2197,8 +2197,8 @@ impl Apex {
                     m.insert("token".to_string(), code.clone());
                     m.insert("ethAddress".to_string(), Value::from(ethAddress));
                 m
-            });
-            let __ws_arg_7 = self.extend(request.clone(), &[&paramsOmitted]);
+            }).into_dict();
+            let __ws_arg_7 = self.extend(request, &[&paramsOmitted]);
             let mut response: crate::value::Dict = self.private_post_v3_contract_transfer_out(&[__ws_arg_7]).await.into_dict();
             let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2233,7 +2233,7 @@ impl Apex {
             });
             let mut signature: Value = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), &[orderToSign]).await;
             let mut ts: Option<i64> = timestampSeconds; // java req
-            let mut request: Value = Value::Map({
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
                     m.insert("timestamp".to_string(), Value::from(ts));
@@ -2250,7 +2250,7 @@ impl Apex {
                     m.insert("receiverAddress".to_string(), Value::from(receiverAddress));
                     m.insert("nonce".to_string(), Value::from(finalNonce));
                 m
-            });
+            }).into_dict();
             let __ws_arg_10 = self.extend(request, &[&paramsOmitted]);
             let mut response: crate::value::Dict = self.private_post_v3_transfer_out(&[__ws_arg_10]).await.into_dict();
             let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({

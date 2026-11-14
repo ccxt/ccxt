@@ -675,7 +675,7 @@ impl Pacifica {
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
-        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), Value::Dict(request)).into_dict();
+        let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), &request).into_dict();
         let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
@@ -2205,7 +2205,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_order_book_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_order_book_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -2217,7 +2218,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
 }
 
-    pub fn handle_trades_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_trades_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -2229,7 +2231,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
 }
 
-    pub fn handle_tickers_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_tickers_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let mut subMessageHash: String = "tickers".to_string();
         let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
@@ -2243,7 +2246,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
 }
 
-    pub fn handle_ohlcv_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_ohlcv_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
@@ -2264,7 +2268,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
 }
 
-    pub fn handle_order_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_order_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let mut subHash: String = "order".to_string();
         let mut unSubHash: String = format!("{}{}", "unsubscribe:", subHash);
         self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
@@ -2276,7 +2281,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.clean_cache(Value::Map(topicStructure));
 }
 
-    pub fn handle_my_trades_unsubscription(&mut self, mut client: Value, mut subscription: Value) {
+    pub fn handle_my_trades_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
+        let mut subscription: Value = subscription.into();
         let mut subHash: String = "myTrades".to_string();
         let mut unSubHash: String = format!("{}{}", "unsubscribe:", subHash);
         self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
@@ -2318,17 +2324,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             })]).into_dict();
             let mut type_var: Option<String> = self.safe_string_k(&subscription, "source", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("book")) {
-                self.handle_order_book_unsubscription(client.clone(), Value::from(&subscription));
+                self.handle_order_book_unsubscription(client.clone(), &subscription);
             }  else if (type_var.as_deref() == Some("trades")) {
-                self.handle_trades_unsubscription(client.clone(), Value::from(&subscription));
+                self.handle_trades_unsubscription(client.clone(), &subscription);
             }  else if (type_var.as_deref() == Some("prices")) {
-                self.handle_tickers_unsubscription(client.clone(), Value::from(&subscription));
+                self.handle_tickers_unsubscription(client.clone(), &subscription);
             }  else if (type_var.as_deref() == Some("candle")) {
-                self.handle_ohlcv_unsubscription(client.clone(), Value::from(&subscription));
+                self.handle_ohlcv_unsubscription(client.clone(), &subscription);
             }  else if (type_var.as_deref() == Some("account_order_updates")) {
-                self.handle_order_unsubscription(client.clone(), Value::from(&subscription));
+                self.handle_order_unsubscription(client.clone(), &subscription);
             }  else if (type_var.as_deref() == Some("account_trades")) {
-                self.handle_my_trades_unsubscription(client, Value::Dict(subscription));
+                self.handle_my_trades_unsubscription(client, &subscription);
             }
         }
 }
@@ -2425,7 +2431,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into())).unwrap_or_default();
 }
 
-    pub fn wrap_as_post_action(&self, mut operationType: Value, mut request: Value) -> Value {
+    pub fn wrap_as_post_action(&self, mut operationType: Value, request: impl Into<crate::Value>) -> Value {
+        let mut request: Value = request.into();
         if (operationType == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), "postAction() requires a \"operationType\" argument!")));
         }

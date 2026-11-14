@@ -2136,12 +2136,12 @@ impl Coinsph {
         orderType = self.encode_order_type(orderType.as_str()).map(Value::from).unwrap_or(Value::Null);
         let mut paramsType: Value = self.omit(&paramsOmitted, Value::Str("type".into()), &[]);
         let mut paramsQuote: Value = Value::Null;
-        let mut orderSide: Value = self.encode_order_side(side.as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut orderSide: Option<String> = self.encode_order_side(side.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), orderType.clone());
-                m.insert("side".to_string(), orderSide.clone());
+                m.insert("side".to_string(), Value::from(orderSide.as_deref()));
             m
         });
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "createOrder", &[Value::Map({
@@ -2166,9 +2166,9 @@ impl Coinsph {
             }
         }  else if (orderType.as_str() == Some("MARKET")) || (orderType.as_str() == Some("STOP_LOSS")) || (orderType.as_str() == Some("TAKE_PROFIT")) {
             newOrderRespType = self.safe_string_k(&newOrderRespTypes, "market", &[Value::Str("FULL".into())]).as_str().unwrap_or("FULL").to_string();
-            if (orderSide.as_str() == Some("SELL")) {
+            if (orderSide.as_deref() == Some("SELL")) {
                 request.insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
-            }  else if (orderSide.as_str() == Some("BUY")) {
+            }  else if (orderSide.as_deref() == Some("BUY")) {
                 let mut quoteAmount: Option<String> = None;
                 let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(paramsType.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
                 let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -2684,7 +2684,7 @@ impl Coinsph {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(tradingFee), Some(&market));
+        return self.parse_trading_fee(&tradingFee, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2746,7 +2746,8 @@ impl Coinsph {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -3194,9 +3195,9 @@ impl Coinsph {
                     std::sync::Arc::make_mut(&mut query).insert("recvWindow".into(), Value::from(defaultRecvWindow));
                 }
             }
-            let mut signedQuery: Value = self.url_encode_query(&[Value::from(&query)]);
-            let mut signature: String = self.hmac(self.encode(signedQuery.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), endpoint).into()), "?").into()), signedQuery).into()), "&signature=").into()), signature);
+            let mut signedQuery: Option<String> = self.url_encode_query(&[Value::from(&query)]).as_str().map(str::to_owned);
+            let mut signature: String = self.hmac(self.encode(Value::from(signedQuery.as_deref())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), endpoint).into()), "?").into()), signedQuery.as_deref().unwrap_or("null")).into()), "&signature=").into()), signature);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-COINS-APIKEY".to_string(), self.apiKey.clone());

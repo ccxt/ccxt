@@ -1341,14 +1341,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]).as_map().cloned().unwrap_or_default();
         let mut authenticated: Option<String> = self.safe_string(Value::Map(wsOptions.clone()), Value::Str("token".into()), &[]).as_str().map(str::to_owned);
         if (authenticated.is_none()) {
-            let mut payload: Value = Value::Map({
+            let mut payload: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
                     m.insert("nonce".to_string(), Value::from(self.uuid(&[])));
                     m.insert("timestamp".to_string(), Value::Int(self.milliseconds()));
                 m
-            });
-            let mut jwtToken: String = jwt(payload, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
+            }).into_dict();
+            let mut jwtToken: String = jwt(&payload, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             wsOptions.insert("token".into(), Value::from(jwtToken.clone()));
             wsOptions.insert("options".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();

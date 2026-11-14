@@ -1939,7 +1939,8 @@ impl Woo {
     Value::Null
 }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         let mut marketId: Option<String> = self.safe_string_k(fee.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
         return Value::Map({
@@ -2004,7 +2005,7 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(data), Some(&market));
+        return self.parse_trading_fee(&data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2560,7 +2561,7 @@ impl Woo {
         let mut isConditional: bool = isTrailing || (triggerPrice.is_some()) || hasStopLoss || hasTakeProfit || (self.safe_list_k(&paramsMarginMode, "childOrders", &[]) != Value::Null);
         let mut isMarket: bool = orderType == "MARKET";
         let mut timeInForce: Option<String> = self.safe_string_lower_k(&paramsMarginMode, "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[Value::from(&paramsMarginMode)]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[Value::from(&paramsMarginMode)]);
         let mut clientOrderIdKey: String = "clientOrderId".to_string();
         if isConditional {
             clientOrderIdKey = "clientAlgoOrderId".to_string();

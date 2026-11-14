@@ -851,7 +851,7 @@ impl Extended {
         let mut stored: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut rawPositions: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
-        let mut newPositions: Value = Value::from(vec![]);
+        let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut first: Option<crate::value::Dict> = self.safe_dict(&rawPositions, Value::Int(0), &[]).into_opt_dict();
         if (first.is_none()) {
             return;
@@ -866,7 +866,7 @@ impl Extended {
                 continue;
             }
             let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None).into_dict();
-            if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(Value::from(&position)); }
+            std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             stored.append(Value::Dict(position));
         }
         }
@@ -879,13 +879,13 @@ impl Extended {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut symbolsString: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut symbols: crate::value::List = Value::Array(if let Some(__s) = symbolsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut filtered: crate::value::List = self.filter_by_array(newPositions.clone(), Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
+            let mut filtered: crate::value::List = self.filter_by_array(&newPositions, Value::Str("symbol".into()), &symbols, &[Value::Bool(false)]).into_list();
             if !(self.is_empty(&filtered).as_bool() == Some(true)) {
                 client.resolve(Value::Arr(filtered), messageHash.as_deref());
             }
         }
         }
-        client.resolve(newPositions, "positions");
+        client.resolve(Value::Arr(newPositions), "positions");
 }
 
     pub fn handle_orders(&mut self, mut client: Value, mut message: Value) {
@@ -1029,18 +1029,16 @@ impl Extended {
         //         "seq": 2
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut fundingRate: crate::value::Dict = self.parse_ws_funding_rate(data, None, &[message]).into_dict();
+        let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut fundingRate: crate::value::Dict = self.parse_ws_funding_rate(&data, None, &[message]).into_dict();
         let mut symbol: Value = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
         let mut messageHash: String = format!("{}{}", "fundingRate:", symbol);
         client.resolve(Value::Dict(fundingRate), messageHash.as_str());
 }
 
-    pub fn parse_ws_funding_rate(&self, mut fundingRate: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_ws_funding_rate(&self, fundingRate: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut fundingRate: Value = fundingRate.into();
         let mut message = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);

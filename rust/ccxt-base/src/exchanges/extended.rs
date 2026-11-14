@@ -1908,7 +1908,8 @@ impl Extended {
     Value::Null
 }
 
-    pub fn parse_funding_histories(&self, mut histories: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_funding_histories(&self, histories: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut histories: Value = histories.into();
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut result: Vec<Value> = Vec::new();
@@ -2361,12 +2362,13 @@ impl Extended {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_balance_list(Value::Arr(data));
+        return self.parse_balance_list(&data);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -3266,7 +3268,7 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.parse_trading_fee(Value::Dict(first), Some(&market));
+        return self.parse_trading_fee(&first, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3319,7 +3321,7 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut parsed: crate::value::Dict = self.parse_trading_fee(Value::Dict(fee), None).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_trading_fee(&fee, None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
@@ -3331,7 +3333,8 @@ impl Extended {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         //
         //     {
         //         "market": "BTC-USD",
@@ -3967,7 +3970,7 @@ impl Extended {
         }
         let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount);
         let mut priceString: Value = self.price_to_precision(symbol.clone(), price);
-        let mut postOnly: Value = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Null, &[params.clone()]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Null, &[params.clone()]);
         let mut reduceOnly: bool = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         if (timeInForce.is_none()) {
@@ -4044,7 +4047,7 @@ impl Extended {
                 m.insert("expiryEpochMillis".to_string(), Value::from(expiryEpochMillis));
                 m.insert("fee".to_string(), Value::from(fee));
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
-                m.insert("postOnly".to_string(), postOnly);
+                m.insert("postOnly".to_string(), Value::Bool(postOnly));
                 m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
                 m.insert("selfTradeProtectionLevel".to_string(), Value::Str("ACCOUNT".into()));
             m
@@ -4425,22 +4428,22 @@ impl Extended {
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
-            let mut request: Value = Value::Map({
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("externalId".to_string(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
                 m
-            });
-            let __ws_arg_23 = self.extend(request.clone(), &[&paramsOmitted]);
+            }).into_dict();
+            let __ws_arg_23 = self.extend(request, &[&paramsOmitted]);
             response = self.v1_private_delete_user_order(&[__ws_arg_23]).await.into_opt_dict();
         }  else {
             if (id == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires an id argument")));
             }
-            let mut request: Value = Value::Map({
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
                 m
-            });
+            }).into_dict();
             let __ws_arg_24 = self.extend(request, &[&paramsOmitted]);
             response = self.v1_private_delete_user_order_id(&[__ws_arg_24]).await.into_opt_dict();
         }
@@ -4628,12 +4631,12 @@ impl Extended {
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]), &[]).into_dict();
         if (clientOrderId.is_some()) {
-            let mut request: Value = Value::Map({
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("externalId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
                 m
-            });
-            let __ws_arg_28 = self.extend(request.clone(), &[&paramsOmitted]);
+            }).into_dict();
+            let __ws_arg_28 = self.extend(request, &[&paramsOmitted]);
             response = self.v1_private_get_user_orders_external_external_id(&[__ws_arg_28]).await.into_opt_dict();
             let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
             order = self.safe_dict(&data, Value::Int(0), &[Value::Map({
@@ -4644,11 +4647,11 @@ impl Extended {
             if (id == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrder() requires an id argument")));
             }
-            let mut request: Value = Value::Map({
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);
                 m
-            });
+            }).into_dict();
             let __ws_arg_29 = self.extend(request, &[&paramsOmitted]);
             response = self.v1_private_get_user_orders_id(&[__ws_arg_29]).await.into_opt_dict();
             order = self.safe_dict_k(&response, "data", &[Value::Map({
@@ -5031,7 +5034,8 @@ impl Extended {
     Value::Null
 }
 
-    pub fn get_extended_encode_i64(&self, mut value: Value) -> Value {
+    pub fn get_extended_encode_i64(&self, value: impl Into<crate::Value>) -> Value {
+        let mut value: Value = value.into();
         // Cairo prime offset for i64 negative encoding.
         let mut prime: String = "3618502788666131213697322783095070105623107215331596699973092056135872020481".to_string();
         let mut valueString: Option<String> = self.number_to_string(value.clone());
@@ -5085,7 +5089,8 @@ impl Extended {
     Value::Null
 }
 
-    pub fn get_extended_order_msg_hash(&self, mut settlement: Value) -> Option<String> {
+    pub fn get_extended_order_msg_hash(&self, settlement: impl Into<crate::Value>) -> Option<String> {
+        let mut settlement: Value = settlement.into();
         let mut orderTypeHash: Value =
             self.convert_to_big_int(self.extended_starknet_get_selector_from_name(Value::Str("\"Order\"(\"position_id\":\"felt\",\"base_asset_id\":\"AssetId\",\"base_amount\":\"i64\",\"quote_asset_id\":\"AssetId\",\"quote_amount\":\"i64\",\"fee_asset_id\":\"AssetId\",\"fee_amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")".into())));
         let mut domainHash: Value = self.get_extended_domain_hash();
@@ -5106,7 +5111,8 @@ impl Extended {
         return self.extended_starknet_compute_poseidon_hash_on_elements(Value::from(vec![self.get_extended_string_to_felt("StarkNet Message"), domainHash, starkKey, orderHash])).as_str().map(str::to_owned);
 }
 
-    pub fn get_extended_withdrawal_msg_hash(&self, mut settlement: Value, starkKey: &str) -> Option<String> {
+    pub fn get_extended_withdrawal_msg_hash(&self, settlement: impl Into<crate::Value>, starkKey: &str) -> Option<String> {
+        let mut settlement: Value = settlement.into();
         let mut starkKey: Value = starkKey.into();
         let __settlement_empty = indexmap::IndexMap::new();
         let settlement = settlement.as_map().unwrap_or(&__settlement_empty);
@@ -5123,7 +5129,8 @@ impl Extended {
         return self.extended_starknet_compute_poseidon_hash_on_elements(Value::from(vec![self.get_extended_string_to_felt("StarkNet Message"), domainHash, self.convert_to_big_int(starkKey), withdrawalHash])).as_str().map(str::to_owned);
 }
 
-    pub fn get_extended_transfer_msg_hash(&self, mut settlement: Value) -> Option<String> {
+    pub fn get_extended_transfer_msg_hash(&self, settlement: impl Into<crate::Value>) -> Option<String> {
+        let mut settlement: Value = settlement.into();
         let mut transferTypeHash: Value =
             self.convert_to_big_int(self.extended_starknet_get_selector_from_name(Value::Str("\"Transfer\"(\"sender_position_id\":\"PositionId\",\"receiver_position_id\":\"PositionId\",\"asset_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")".into())));
         let mut domainHash: Value = self.get_extended_domain_hash();

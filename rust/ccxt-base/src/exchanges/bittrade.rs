@@ -3257,18 +3257,18 @@ impl Bittrade {
         if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("v2Private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Option<String> = self.ymdhms(Value::Int(self.milliseconds()), &[Value::Str("T".into())]).as_str().map(str::to_owned);
-            let mut request: Value = Value::Map({
+            let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("SignatureMethod".to_string(), Value::Str("HmacSHA256".into()));
                     m.insert("SignatureVersion".to_string(), Value::Str("2".into()));
                     m.insert("AccessKeyId".to_string(), self.apiKey.clone());
                     m.insert("Timestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                 m
-            });
+            }).into_dict();
             if (method.as_str() != Some("POST")) {
-                request = self.extend(request, &[query.clone()]);
+                request = self.extend(request, &[query.clone()]).into_dict();
             }
-            let mut requestSorted: Value = self.keysort(request, &[]);
+            let mut requestSorted: Value = self.keysort(Value::Dict(request), &[]);
             let mut auth: String = self.urlencode(requestSorted, &[]);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
@@ -3308,14 +3308,14 @@ impl Bittrade {
         m.insert("hostname".to_string(), self.hostname.clone());
     m
 })), url);
-        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
+        let mut headersResult: Option<crate::value::Dict> = requestHeaders;
         let mut bodyResult: Option<String> = requestBody;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResult);
+        m.insert("headers".to_string(), headersResult.map_or(Value::Null, Value::Dict));
     m
 });
 

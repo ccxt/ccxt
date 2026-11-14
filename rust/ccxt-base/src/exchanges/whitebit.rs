@@ -3097,7 +3097,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (since != Value::Null) {
                 let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
                 request.insert("start".into(), Value::from(start));
-                let mut rangeEnd: Value = self.sum(&[Value::from(start), Value::from((if let Some(__r) = cappedLimit { Some(duration * __r) } else { None }))]);
+                let mut rangeEnd: Value = Value::from((if let (Some(__m0), Some(__m1)) = (start, ((if let Some(__r) = cappedLimit { Some(duration * __r) } else { None }))) { Some((__m0 + __m1)) } else { None }));
                 if (endTime == Value::Null) || (rangeEnd.as_f64().unwrap_or(f64::NAN) < endTime.as_f64().unwrap_or(f64::NAN)) {
                     endTime = rangeEnd;
                 }
@@ -3334,7 +3334,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (timeInForce.is_some()) && (timeInForce.as_deref() != Some("GTC")) && (timeInForce.as_deref() != Some("IOC")) && (timeInForce.as_deref() != Some("PO")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support timeInForce ").into()), timeInForce.as_deref().unwrap_or("null")).into()), ", only GTC, IOC and PO are allowed")));
         }
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsOmitted)]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(false), &[Value::from(&paramsOmitted)]);
         let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
         if isStopOrder && (postOnly || ioc) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() does not support postOnly or timeInForce IOC for stop orders")));
@@ -5280,12 +5280,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "records", &[Value::from(vec![])]).into_list();
-        return self.parse_funding_histories(Value::Arr(data), Some(&market), &[since, limit]);
+        return self.parse_funding_histories(&data, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_funding_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_funding_history(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut contract: Value = contract.into();
         //
         //     {
         //         "market": "BTC_PERP",
@@ -5314,7 +5315,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub fn parse_funding_histories(&self, mut contracts: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_funding_histories(&self, contracts: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+        let mut contracts: Value = contracts.into();
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut result: Vec<Value> = Vec::new();
@@ -5322,8 +5324,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_1166: bool = true;
             while { if !__for_first_1166 { i += 1; } __for_first_1166 = false; i < (contracts.len() as i64) } {
-            let mut contract: Option<crate::value::Dict> = self.safe_dict(contracts.clone(), Value::Int(i), &[]).into_opt_dict();
-            result.push(self.parse_funding_history(contract.map_or(Value::Null, Value::Dict), market));
+            let mut contract: crate::value::Dict = self.safe_dict(contracts.clone(), Value::Int(i), &[]).into_dict();
+            result.push(self.parse_funding_history(&contract, market));
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();

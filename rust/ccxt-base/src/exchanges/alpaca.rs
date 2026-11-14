@@ -1811,7 +1811,8 @@ impl Alpaca {
         }).await?))
     }
 
-    pub fn generate_client_order_id(&self, mut params: Value) -> Option<String> {
+    pub fn generate_client_order_id(&self, params: impl Into<crate::Value>) -> Option<String> {
+        let mut params: Value = params.into();
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut clientOrderIdprefix: Option<String> = self.safe_string_k(self.options.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
@@ -2006,9 +2007,9 @@ impl Alpaca {
         let mut paramsTimeInForce: crate::value::Dict = defaultTIFparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the venue only accepts lowercase values, normalize the unified uppercase spellings
         request.insert("time_in_force".into(), (if (defaultTIF.is_some()) { defaultTIF.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null) } else { defaultTIF.clone().map(Value::from).unwrap_or(Value::Null) }));
-        let mut paramsOmitted: Value = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]);
-        request.insert("client_order_id".into(), self.generate_client_order_id(paramsOmitted.clone()).map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTimeInForce, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("triggerPrice".into())]), &[]).into_dict();
+        request.insert("client_order_id".into(), self.generate_client_order_id(&paramsOmitted).map(Value::from).unwrap_or(Value::Null));
+        let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(&paramsOmitted, Value::from(vec![Value::Str("clientOrderId".into())]), &[])]);
         let mut order: crate::value::Dict = self.trader_private_post_v2_orders(&[__ws_arg_11]).await.into_dict();
         return self.parse_order(&order, Some(&market));
         Value::Null

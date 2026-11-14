@@ -1959,7 +1959,7 @@ impl Hollaex {
 })]).into_dict();
         let mut exchangeSpecificParam: bool = self.safe_bool_k(&meta, "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam), &[params.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam), &[params.clone()]);
         if !isMarketOrder {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
@@ -2803,7 +2803,7 @@ impl Hollaex {
             self.check_required_credentials(&[]);
             let mut timeoutMs: Option<i64> = self.parse_to_int(self.timeout.clone());
             let mut defaultExpires: Option<i64> = self.safe_integer2(self.options.clone(), Value::Str("api-expires".into()), Value::Str("expires".into()), &[Value::from(self.parse_to_int(Value::from((if let Some(__l) = timeoutMs { Some((__l as f64) / 1000.0) } else { None }))))]).as_i64();
-            let mut expires: Value = self.sum(&[Value::Int(self.seconds()), Value::from(defaultExpires)]);
+            let mut expires: Value = Value::from((if let Some(__m1) = defaultExpires { Some(((self.seconds()) + __m1)) } else { None }));
             let mut expiresString: Option<String> = self.number_to_string(expires);
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, requestPath).into()), expiresString.as_deref().unwrap_or("null")).into());
             requestHeaders = Some(crate::value::Dict::new({
@@ -2823,13 +2823,13 @@ impl Hollaex {
             if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("api-signature".to_string(), Value::from(signature)); }
         }
         let mut bodyResult: Value = requestBody;
-        let mut headersResult: Value = requestHeaders.map_or(Value::Null, Value::Dict);
+        let mut headersResult: Option<crate::value::Dict> = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult);
-        m.insert("headers".to_string(), headersResult);
+        m.insert("headers".to_string(), headersResult.map_or(Value::Null, Value::Dict));
     m
 });
 

@@ -1424,21 +1424,21 @@ impl Mercado {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).base.as_str()), Value::Str("-".into())).into()), Value::from((market).quote.as_str())).into()));
             m
-        });
+        }).into_dict();
         // set some default limit, as it's required if user doesn't provide it
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); }
-            { let __be_tmp = self.sum(&[crate::value::get_value_k(&request, "from"), Value::Int((limitResolved * (self.parse_timeframe(timeframe.clone()))))]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), __be_tmp); } }
+            std::sync::Arc::make_mut(&mut request).insert("from".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+            { let __be_tmp = self.sum(&[crate::value::KeyRead::key_read(&&request, "from"), Value::Int((limitResolved * (self.parse_timeframe(timeframe.clone()))))]); std::sync::Arc::make_mut(&mut request).insert("to".into(), __be_tmp); }
         }  else {
             let mut to: i64 = self.seconds();
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), Value::from(to)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), Value::Int((to - ((limitResolved * (self.parse_timeframe(timeframe.clone()))))))); }
+            std::sync::Arc::make_mut(&mut request).insert("to".into(), Value::from(to));
+            std::sync::Arc::make_mut(&mut request).insert("from".into(), Value::Int((to - ((limitResolved * (self.parse_timeframe(timeframe.clone())))))));
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.v4_public_net_get_candles(&[__ws_arg_12]).await;
@@ -1668,16 +1668,16 @@ impl Mercado {
         if isPublic {
             requestBody = None.clone();
         }
-        let mut requestHeaders: Value = privateHeaders.map_or(Value::Null, Value::Dict);
+        let mut requestHeaders: Option<crate::value::Dict> = privateHeaders;
         if isPublic {
-            requestHeaders = Value::Null;
+            requestHeaders = None;
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 

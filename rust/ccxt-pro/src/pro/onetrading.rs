@@ -1461,7 +1461,7 @@ impl Onetrading {
             while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (balanceKeys.len() as i64) } {
             let mut newBalance: Option<crate::value::Dict> = self.safe_dict(&update, balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[]).into_opt_dict();
             if (newBalance.is_some()) {
-                self.update_balance(newBalance.map_or(Value::Null, Value::Dict));
+                self.update_balance(&newBalance);
             }
         }
         }
@@ -1488,7 +1488,8 @@ impl Onetrading {
         return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
-    pub fn update_balance(&mut self, mut balance: Value) {
+    pub fn update_balance(&mut self, balance: impl Into<crate::Value>) {
+        let mut balance: Value = balance.into();
         //
         //     {
         //         "currency_code": "EUR",

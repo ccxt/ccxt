@@ -596,7 +596,7 @@ impl Myriad {
             let mut raw: crate::value::Dict = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut m: crate::value::Dict = self.parse_myriad_market(Value::from(&raw), None).into_dict();
             flatMarkets.push(Value::from(&m));
-            let mut ev: crate::value::Dict = self.parse_market_to_event(Value::Dict(raw), Value::Dict(m)).into_dict();
+            let mut ev: crate::value::Dict = self.parse_market_to_event(Value::Dict(raw), &m).into_dict();
             let mut evKey: Option<String> = self.safe_string_k(&ev, "event", &[]).as_str().map(str::to_owned);
             if (evKey.is_some()) {
                 if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(evKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ev)); }
@@ -764,7 +764,7 @@ impl Myriad {
         }
         let mut response: Value = self.fetch_raw_market_by_id(id.as_str().unwrap_or_default(), &[params]).await;
         let mut market: crate::value::Dict = self.parse_myriad_market(response.clone(), None).into_dict();
-        let mut event: crate::value::Dict = self.parse_market_to_event(response, Value::Dict(market)).into_dict();
+        let mut event: crate::value::Dict = self.parse_market_to_event(response, &market).into_dict();
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -1686,11 +1686,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a privateKey to sign the on-chain transaction")));
         }
         self.load_outcome(outcome.clone(), &[]).await;
-        let mut outcomeObj: Value = self.outcome(outcome.clone());
-        let mut info: crate::value::Dict = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut outcomeObj: crate::value::Dict = self.outcome(outcome.clone()).into_dict();
+        let mut info: crate::value::Dict = self.safe_dict_k(&outcomeObj, "info", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut networkId: Option<String> = self.safe_string_k(&info, "networkId", &[]).as_str().map(str::to_owned);
         let mut chains: crate::value::Dict = self.safe_dict_k(self.options.clone(), "chains", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1734,7 +1734,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !(skipWaitForReceipt == Some(true)) {
             self.wait_for_transaction_receipt(rpcUrl.map(Value::from).unwrap_or(Value::Null), txHash.clone(), &[]).await;
         }
-        return self.parse_trade_tx(txHash.as_str(), quote, outcomeObj, sideStr.as_str());
+        return self.parse_trade_tx(txHash.as_str(), quote, &outcomeObj, sideStr.as_str());
 
     Value::Null
 }
@@ -1824,7 +1824,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @description EIP-712 signs the order-book Order struct
  * @returns {string} the hex signature
  */
-    pub fn sign_clob_order(&self, mut message: Value, networkId: &str) -> Option<String> {
+    pub fn sign_clob_order(&self, message: impl Into<crate::Value>, networkId: &str) -> Option<String> {
+        let mut message: Value = message.into();
         let mut networkId: Value = networkId.into();
         let mut orderStruct: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1886,7 +1887,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @description EIP-712 signs the order-book CancelAll struct
  * @returns {string} the hex signature
  */
-    pub fn sign_cancel_all(&self, mut message: Value, networkId: &str) -> Option<String> {
+    pub fn sign_cancel_all(&self, message: impl Into<crate::Value>, networkId: &str) -> Option<String> {
+        let mut message: Value = message.into();
         let mut networkId: Value = networkId.into();
         let mut cancelStruct: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1918,7 +1920,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @description normalises a fetched order-book order into a typed-data message (uint256 fields as strings, uint8 fields as ints)
  * @returns {object} the typed-data message
  */
-    pub fn clob_order_message(&self, mut rawOrder: Value) -> Value {
+    pub fn clob_order_message(&self, rawOrder: impl Into<crate::Value>) -> Value {
+        let mut rawOrder: Value = rawOrder.into();
         let mut signer: Value = self.safe_string2(rawOrder.clone(), Value::Str("trader".into()), Value::Str("user".into()), &[]);
         if (self.privateKey.clone() != Value::Null) {
             signer = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
@@ -2367,7 +2370,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             networkId = self.safe_string_k(self.options.clone(), "defaultNetworkId", &[Value::Str("56".into())]).as_str().map(str::to_owned);
         }
         let mut message: crate::value::Dict = self.clob_order_message(rawOrder).into_dict();
-        let mut signature: Option<String> = self.sign_clob_order(Value::from(&message), networkId.as_deref().unwrap_or_default());
+        let mut signature: Option<String> = self.sign_clob_order(&message, networkId.as_deref().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hash".to_string(), id);
@@ -2541,7 +2544,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 networkId = fetchedNetworkId;
             }
             let mut message: crate::value::Dict = self.clob_order_message(rawOrder).into_dict();
-            let mut signature: Option<String> = self.sign_clob_order(Value::from(&message), networkId.as_deref().unwrap_or_default());
+            let mut signature: Option<String> = self.sign_clob_order(&message, networkId.as_deref().unwrap_or_default());
             signedOrders.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("order".to_string(), Value::Dict(message));
@@ -3042,8 +3045,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return crate::precise::Precise::stringDiv(&decimalString.map(Value::from).unwrap_or(Value::Null), &Value::from(scale)).as_str().map(str::to_owned);
 }
 
-    pub fn parse_trade_tx(&self, txHash: Option<&str>, mut quote: Value, mut market: Value, side: &str) -> Value {
+    pub fn parse_trade_tx(&self, txHash: Option<&str>, quote: impl Into<crate::Value>, market: impl Into<crate::Value>, side: &str) -> Value {
         let mut txHash: Value = txHash.into();
+        let mut quote: Value = quote.into();
+        let mut market: Value = market.into();
         let mut side: Value = side.into();
         let __quote_empty = indexmap::IndexMap::new();
         let quote = quote.as_map().unwrap_or(&__quote_empty);
@@ -3085,7 +3090,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} market the parsed ccxt market
  * @returns {object} an event structure
  */
-    pub fn parse_market_to_event(&self, mut raw: Value, mut market: Value) -> Value {
+    pub fn parse_market_to_event(&self, mut raw: Value, market: impl Into<crate::Value>) -> Value {
+        let mut market: Value = market.into();
         let mut slug: Option<String> = self.safe_string_k(raw.clone(), "slug", &[self.safe_string(raw.clone(), Value::Str("id".into()), &[])]).as_str().map(str::to_owned);
         let mut state: Option<String> = self.safe_string_k(raw.clone(), "state", &[Value::Str("open".into())]).as_str().map(str::to_owned);
         let mut endDate: Option<String> = self.safe_string_k(raw.clone(), "expiresAt", &[]).as_str().map(str::to_owned);
@@ -4356,7 +4362,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 seenMarketHandles.insert(marketHandle.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.as_deref().unwrap_or("null").to_string(), Value::from(&m)); }
             }
-            let mut ev: crate::value::Dict = self.parse_market_to_event(Value::Dict(raw), Value::Dict(m)).into_dict();
+            let mut ev: crate::value::Dict = self.parse_market_to_event(Value::Dict(raw), &m).into_dict();
             result.push(Value::Dict(ev));
         }
         }
@@ -4563,7 +4569,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.handle_centrifugo_frame(client, message);
 }
 
-    pub fn handle_centrifugo_frame(&mut self, mut client: Value, mut msg: Value) {
+    pub fn handle_centrifugo_frame(&mut self, mut client: Value, msg: impl Into<crate::Value>) {
+        let mut msg: Value = msg.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &msg { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut keys: Vec<Value> = object_keys(&msg).as_array().cloned().unwrap_or_default();
@@ -4598,15 +4605,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut channelType: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (channelType.as_deref() == Some("orderbook")) {
-            self.handle_order_book(client.clone(), Value::from(&data));
+            self.handle_order_book(client.clone(), &data);
         }  else if (channelType.as_deref() == Some("trades")) {
-            self.handle_trades(client.clone(), Value::from(&data));
+            self.handle_trades(client.clone(), &data);
         }  else if (channelType.as_deref() == Some("prices")) {
-            self.handle_ticker(client.clone(), Value::from(&data));
+            self.handle_ticker(client.clone(), &data);
         }  else if (channelType.as_deref() == Some("orders")) {
-            self.handle_order(client.clone(), Value::from(&data));
+            self.handle_order(client.clone(), &data);
         }  else if (channelType.as_deref() == Some("positions")) {
-            self.handle_position(client, Value::Dict(data));
+            self.handle_position(client, &data);
         }
 }
 
@@ -4690,7 +4697,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut data: Value) {
+    pub fn handle_order_book(&self, mut client: Value, data: impl Into<crate::Value>) {
+        let mut data: Value = data.into();
         let __data_empty = indexmap::IndexMap::new();
         let data = data.as_map().unwrap_or(&__data_empty);
         let mut networkId: Option<String> = (match data.get("networkId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -4833,7 +4841,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return None;
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut data: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, data: impl Into<crate::Value>) {
+        let mut data: Value = data.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &data { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut networkId: Option<String> = (match __pro_message.get("networkId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -5110,7 +5119,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub fn handle_ticker(&self, mut client: Value, mut data: Value) {
+    pub fn handle_ticker(&self, mut client: Value, data: impl Into<crate::Value>) {
+        let mut data: Value = data.into();
         let __data_empty = indexmap::IndexMap::new();
         let data = data.as_map().unwrap_or(&__data_empty);
         let mut networkId: Option<String> = (match data.get("networkId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -5214,7 +5224,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }).await?))
     }
 
-    pub fn handle_order(&mut self, mut client: Value, mut data: Value) {
+    pub fn handle_order(&mut self, mut client: Value, data: impl Into<crate::Value>) {
+        let mut data: Value = data.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &data { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if (self.orders.is_none()) {
@@ -5224,8 +5235,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: Option<String> = (match __pro_message.get("networkId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = (match __pro_message.get("marketId").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut outcomeId: Option<String> = (match __pro_message.get("outcome").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut sym: Value = self.market_outcome_to_symbol(networkId.as_deref(), marketId.as_deref(), outcomeId.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut outcomeObj: crate::value::Dict = self.safe_outcome(sym.clone(), None).into_dict();
+        let mut sym: Option<String> = self.market_outcome_to_symbol(networkId.as_deref(), marketId.as_deref(), outcomeId.as_deref());
+        let mut outcomeObj: crate::value::Dict = self.safe_outcome(Value::from(sym.as_deref()), None).into_dict();
         let mut price: Value = self.from_wei(((match __pro_message.get("price").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })).as_str());
         let mut amount: Value = self.from_wei(((match __pro_message.get("amount").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })).as_str());
         let mut filled: Value = self.from_wei(((match __pro_message.get("filledAmount").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })).as_str());
@@ -5240,7 +5251,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("info".to_string(), data.clone());
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-        m.insert("outcome".to_string(), sym.clone());
+        m.insert("outcome".to_string(), Value::from(sym.as_deref()));
         m.insert("outcomeId".to_string(), self.safe_string2(&outcomeObj, Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
@@ -5261,8 +5272,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         stored.append(parsed);
         client.resolve(Value::from(&stored), "orders");
-        if (sym != Value::Null) {
-            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", "orders::", sym).into())));
+        if (sym.is_some()) {
+            client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", "orders::", sym.as_deref().unwrap_or("null")).into())));
         }
 }
 
@@ -5354,7 +5365,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_position(&mut self, mut client: Value, mut data: Value) {
+    pub fn handle_position(&mut self, mut client: Value, data: impl Into<crate::Value>) {
+        let mut data: Value = data.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &data { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if (self.positions.is_none()) {

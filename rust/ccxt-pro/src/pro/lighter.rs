@@ -2322,7 +2322,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn handle_un_subscription(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_un_subscription(&mut self, mut client: Value, message: impl Into<crate::Value>) {
+        let mut message: Value = message.into();
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -2356,9 +2357,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_order_book_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
         let mut symbol: Option<String> = self.safe_symbol(marketId, None, &[]).as_str().map(str::to_owned);
-        let mut subMessageHash: Value = self.get_message_hash(Value::Str("orderbook".into()), &[Value::from(symbol.as_deref())]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
-        self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
+        let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::from(symbol.as_deref())]);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
+        self.clean_unsubscription(client, subMessageHash.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[]);
         if (self.orderbooks.has(&symbol)) {
             CacheStore::forget(&mut self.orderbooks, &symbol);
         }
@@ -2407,9 +2408,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         let mut symbol: Value = self.safe_symbol(marketId, None, &[]);
-        let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".into()), &[symbol.clone()]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
-        self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
+        let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[symbol.clone()]);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
+        self.clean_unsubscription(client, subMessageHash.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[]);
         if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
@@ -2417,9 +2418,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_trades_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
         let mut symbol: Option<String> = self.safe_symbol(marketId, None, &[]).as_str().map(str::to_owned);
-        let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[Value::from(symbol.as_deref())]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
-        self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
+        let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("trade".into()), &[Value::from(symbol.as_deref())]);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
+        self.clean_unsubscription(client, subMessageHash.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[]);
         if (self.trades.has(&symbol)) {
             CacheStore::forget(&mut self.trades, &symbol);
         }
@@ -2439,17 +2440,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_orders_un_subscription(&mut self, mut client: Value, mut marketId: Value) {
         let mut symbol: Option<String> = self.safe_symbol(marketId, None, &[]).as_str().map(str::to_owned);
-        let mut subMessageHash: Value = self.get_message_hash(Value::Str("orders".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
-        self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
+        let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("orders".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
+        self.clean_unsubscription(client, subMessageHash.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[]);
 }
 
     pub fn handle_all_orders_un_subscription(&mut self, mut client: Value) {
         // only the plural hash is awaited on this channel, per-symbol order hashes
         // belong to the account_orders/<marketId> channels and stay untouched here
-        let mut subMessageHash: Value = self.get_message_hash(Value::Str("orders".into()), &[]).map(Value::from).unwrap_or(Value::Null);
-        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
-        self.clean_unsubscription(client, subMessageHash, Value::from(messageHash), &[]);
+        let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("orders".into()), &[]);
+        let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
+        self.clean_unsubscription(client, subMessageHash.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[]);
         let mut ordersStructure: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("orders".into()));

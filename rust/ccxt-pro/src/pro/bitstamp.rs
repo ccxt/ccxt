@@ -1011,10 +1011,7 @@ impl Bitstamp {
         //     }
         //
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut subscription: Value = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
         let mut symbol: Option<String> = self.safe_string_k(subscription, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
@@ -1026,12 +1023,13 @@ impl Bitstamp {
             self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut trade: crate::value::Dict = self.parse_ws_my_trade(data, Some(&market)).into_dict();
+        let mut trade: crate::value::Dict = self.parse_ws_my_trade(&data, Some(&market)).into_dict();
         stored.append(Value::Dict(trade));
         client.resolve(Value::from(&stored), channel.as_deref());
 }
 
-    pub fn parse_ws_my_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_ws_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut trade: Value = trade.into();
         //
         //     {
         //         "id": 635698396,
@@ -1525,7 +1523,7 @@ impl Bitstamp {
                 }
                 let mut userId: Option<String> = self.safe_string_k(&response, "user_id", &[]).as_str().map(str::to_owned);
                 let mut validity: Option<i64> = self.safe_integer_product_k(&response, "valid_sec", Value::Int(1000), &[]).as_i64();
-                { let __be_tmp = self.sum(&[Value::from(time), Value::from(validity)]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), __be_tmp); } }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), Value::from((if let Some(__m1) = validity { Some((time + __m1)) } else { None }))); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".into(), userId.map(Value::from).unwrap_or(Value::Null)); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsSessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
                 // settle the flight: client.resolve deletes the future from

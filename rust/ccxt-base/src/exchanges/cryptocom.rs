@@ -5017,7 +5017,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn params_to_string(&self, mut object: Value, mut level: Value) -> Value {
+    pub fn params_to_string(&self, object: impl Into<crate::Value>, mut level: Value) -> Value {
+        let mut object: Value = object.into();
         let mut maxLevel: i64 = 3;
         let mut depth: Option<i64> = self.parse_to_int(level);
         if depth >= Some(maxLevel) {
@@ -5220,12 +5221,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        return self.parse_trading_fees(Value::Dict(result));
+        return self.parse_trading_fees(&result);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fees(&self, mut response: Value) -> Value {
+    pub fn parse_trading_fees(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         //
         // {
         //         "spot_tier": "3",
@@ -5329,7 +5331,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             }), &[params.clone()]).into_dict();
             let mut paramsKeys: Vec<Value> = Value::Array(requestParams.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-            let mut strSortKey: Value = self.params_to_string(Value::Dict(requestParams), Value::Int(0));
+            let mut strSortKey: Value = self.params_to_string(&requestParams, Value::Int(0));
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, nonce.as_deref().unwrap_or("null")).into()), self.apiKey.clone()).into()), strSortKey).into()), nonce.as_deref().unwrap_or("null"));
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut paramsKeysLength: i64 = paramsKeys.len() as i64;

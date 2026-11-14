@@ -345,8 +345,10 @@ impl Derive {
         return newValue.as_i64().unwrap_or_default();
 }
 
-    pub async fn watch_public(&mut self, messageHash: &str, mut message: Value, mut subscription: Value) -> Value {
+    pub async fn watch_public(&mut self, messageHash: &str, message: impl Into<crate::Value>, subscription: impl Into<crate::Value>) -> Value {
         let mut messageHash: Value = messageHash.into();
+        let mut message: Value = message.into();
+        let mut subscription: Value = subscription.into();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: i64 = self.request_id(url.clone());
         let mut request: crate::value::Dict = self.extend(message, &[Value::Map({
@@ -799,8 +801,10 @@ impl Derive {
         }).await?))
     }
 
-    pub async fn un_watch_public(&mut self, messageHash: &str, mut message: Value, mut subscription: Value) -> Value {
+    pub async fn un_watch_public(&mut self, messageHash: &str, message: impl Into<crate::Value>, subscription: impl Into<crate::Value>) -> Value {
         let mut messageHash: Value = messageHash.into();
+        let mut message: Value = message.into();
+        let mut subscription: Value = subscription.into();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: i64 = self.request_id(url.clone());
         let mut request: crate::value::Dict = self.extend(message, &[Value::Map({
@@ -1047,8 +1051,10 @@ impl Derive {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, messageHash: &str, mut message: Value, mut subscription: Value) -> Value {
+    pub async fn watch_private(&mut self, messageHash: &str, message: impl Into<crate::Value>, subscription: impl Into<crate::Value>) -> Value {
         let mut messageHash: Value = messageHash.into();
+        let mut message: Value = message.into();
+        let mut subscription: Value = subscription.into();
         self.authenticate(&[]).await;
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: i64 = self.request_id(url.clone());
@@ -1124,7 +1130,7 @@ impl Derive {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]).into_dict();
-        let mut orders: Value = self.watch_private(messageHash.as_str(), Value::Dict(message), Value::Map(subscription)).await;
+        let mut orders: Value = self.watch_private(messageHash.as_str(), &message, Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1270,7 +1276,7 @@ impl Derive {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]).into_dict();
-        return self.un_watch_public(messageHash.as_str(), Value::Dict(message), Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), &message, Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -1331,7 +1337,7 @@ impl Derive {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]).into_dict();
-        let mut trades: Value = self.watch_private(messageHash.as_str(), Value::Dict(message), Value::Map(subscription)).await;
+        let mut trades: Value = self.watch_private(messageHash.as_str(), &message, Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
@@ -1416,7 +1422,7 @@ impl Derive {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]).into_dict();
-        return self.un_watch_public(messageHash.as_str(), Value::Dict(message), Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), &message, Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -1496,7 +1502,7 @@ impl Derive {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]).into_dict();
-        return self.watch_private(topic.as_str(), Value::Dict(message), Value::Map(subscription)).await;
+        return self.watch_private(topic.as_str(), &message, Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -1593,7 +1599,7 @@ impl Derive {
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]).into_dict();
-        let mut newPositions: Value = self.watch_private(messageHash.as_str(), Value::Dict(message), Value::Map(subscription)).await;
+        let mut newPositions: Value = self.watch_private(messageHash.as_str(), &message, Value::Map(subscription)).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -1602,7 +1608,8 @@ impl Derive {
         }).await?))
     }
 
-    pub fn handle_position_delta(&self, mut subaccountIdKey: Value, mut entry: Value) -> Value {
+    pub fn handle_position_delta(&self, mut subaccountIdKey: Value, entry: impl Into<crate::Value>) -> Value {
+        let mut entry: Value = entry.into();
         let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "name", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1685,7 +1692,7 @@ impl Derive {
             m
         })]);
         let mut updated: bool = false;
-        let mut positionUpdates: Vec<Value> = vec![];
+        let mut positionUpdates: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_303: bool = true;
@@ -1698,8 +1705,8 @@ impl Derive {
             if name.contains("-") {
                 // position deltas carry instrument names and do not belong into the balance structure
                 if (self.positionsByType.has(&subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null))) {
-                    let mut position: Value = self.handle_position_delta(subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null), Value::from(&entry));
-                    positionUpdates.push(position);
+                    let mut position: Value = self.handle_position_delta(subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null), &entry);
+                    std::sync::Arc::make_mut(&mut positionUpdates).push(position);
                 }
                 continue;
             }
@@ -1726,7 +1733,7 @@ impl Derive {
         }
         let mut positionUpdatesLength: i64 = positionUpdates.len() as i64;
         if positionUpdatesLength > 0 {
-            client.resolve(Value::Array(positionUpdates), &(Value::Str(format!("{}{}", "positions:", topic).into())));
+            client.resolve(Value::Arr(positionUpdates), &(Value::Str(format!("{}{}", "positions:", topic).into())));
         }
 }
 

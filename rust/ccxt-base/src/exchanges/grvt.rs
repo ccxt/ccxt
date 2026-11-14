@@ -2808,12 +2808,13 @@ if _try_result.is_err() {
         //
         let mut rows: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         let mut transfers: crate::value::List = self.parse_transfers(&rows, Some(&currency), &[since, limit]).into_list();
-        return self.to_array(self.safe_list(self.filter_transfers_by_type(Value::Arr(transfers), "internal", &[Value::Bool(false)]), Value::Int(1), &[Value::from(vec![])]));
+        return self.to_array(self.safe_list(self.filter_transfers_by_type(&transfers, "internal", &[Value::Bool(false)]), Value::Int(1), &[Value::from(vec![])]));
         Value::Null
         }).await?))
     }
 
-    pub fn filter_transfers_by_type(&self, mut transfers: Value, transferType: &str, optional_args: &[Value]) -> Value {
+    pub fn filter_transfers_by_type(&self, transfers: impl Into<crate::Value>, transferType: &str, optional_args: &[Value]) -> Value {
+        let mut transfers: Value = transfers.into();
         let mut transferType: Value = transferType.into();
         let onlyMainAccount: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let __transfers_empty = Vec::new();
@@ -3198,7 +3199,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsOmitted3.clone(), "timeInForce", &[Value::Str("GOOD_TILL_TIME".into())]).as_str().map(str::to_owned);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[paramsOmitted3.clone()]).as_bool() == Some(true);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Null, &[paramsOmitted3.clone()]);
         if postOnly {
             orderRequest.insert("post_only".into(), Value::Bool(true));
         }

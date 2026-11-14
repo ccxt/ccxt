@@ -16,9 +16,9 @@ pub async fn testFetchLedgerEntry(mut exchange: Value, mut skippedProperties: Va
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), items.clone(), code.clone()]);
     if length > 0 {
         let mut firstItem: Value = items.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut id: Value = firstItem.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        if (id != Value::Null) {
-            let mut item: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger_entry", vec![id]).await;
+        let mut id: Option<String> = ccxt::value::KeyRead::key_read(&&firstItem, "id").as_str().map(str::to_owned);
+        if (id.is_some()) {
+            let mut item: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ledger_entry", vec![id.map(Value::from).unwrap_or(Value::Null)]).await;
             let mut now: Value = Value::Int(exchange.milliseconds());
             testLedgerEntry(exchange.clone(), skippedProperties, method, item, code, now);
         }
