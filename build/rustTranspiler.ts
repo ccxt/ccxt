@@ -9614,6 +9614,8 @@ export class RustTranspilerBuilder {
         // `Option` tests the narrowing passes emit are Rust `bool`s too.
         if (/^matches!\(/.test(s) || /^!\s*matches!\(/.test(s)) return true;
         if (/\.(?:is_some|is_none)\(\)$/.test(s)) return true;
+        // a borrowed Dict's own literal-key test (`m.contains_key("k")`, the printed `'k' in m`)
+        if (/^[A-Za-z_][A-Za-z0-9_]*\.contains_key\("(?:[^"\\]|\\.)*"\)$/.test(s)) return true;
         return this.topLevelRustComparisonIndex(s) >= 0;
     }
 
