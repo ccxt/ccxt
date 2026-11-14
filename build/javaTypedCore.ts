@@ -152,7 +152,135 @@ const TYPED_BASE_READERS: Record<string, string> = {
     urlencode: 'String', uuid: 'String', iso8601: 'String',
     safeInteger: 'Long', safeInteger2: 'Long', safeIntegerProduct: 'Long', safeTimestamp: 'Long',
     safeTimestamp2: 'Long', milliseconds: 'Long', parse8601: 'Long',
+    // BaseExchange.java: `Double safeNumber(Object, Object, Object)`, `String decode(Object)`, `Long parseToInt(Object)`
+    safeNumber: 'Double', decode: 'String', parseToInt: 'Long',
 };
+// BaseExchange.java `java.util.Map<String, Object> extend(Object aa, Object bb)`: only the two-argument
+// overload is typed (`Object extend(Object... objs)` is not)
+const TYPED_BASE_TWO_ARG_READERS: Record<string, string> = { extend: 'Map<String, Object>' };
+// BaseExchange.java credential fields declared `public String <name>;`
+const TYPED_BASE_STRING_FIELDS = new Set([ 'apiKey', 'secret', 'password', 'uid', 'accountId', 'twofa', 'privateKey', 'walletAddress', 'login' ]);
+
+/** Top-level `,`-separated argument count of `this.m(<args>)` (expr already proven a whole call). */
+function topLevelArgCount(expr: string): number {
+    const args = expr.slice(expr.indexOf('(') + 1, -1);
+    if (args.trim() === '') return 0;
+    let depth = 0, quote = '', count = 1;
+    for (let k = 0; k < args.length; k++) {
+        const ch = args[k];
+        if (quote !== '') {
+            if (ch === '\\') k++;
+            else if (ch === quote) quote = '';
+            continue;
+        }
+        if (ch === '"' || ch === '\'') quote = ch;
+        else if (ch === '(' || ch === '{' || ch === '[') depth++;
+        else if (ch === ')' || ch === '}' || ch === ']') depth--;
+        else if (ch === '<' && /\w$/.test(args.slice(0, k))) depth++; // generic args `new HashMap<String, Object>`
+        else if (ch === '>' && depth > 0 && /\w$/.test(args.slice(0, k))) depth--;
+        else if (ch === ',' && depth === 0) count++;
+    }
+    return count;
+}
+
+/** Split `expr` on top-level `+`; undefined when another top-level operator would bind looser. */
+function topLevelPlusParts(expr: string): string[] | undefined {
+    const parts: string[] = [];
+    let depth = 0, quote = '', start = 0;
+    for (let k = 0; k < expr.length; k++) {
+        const ch = expr[k];
+        if (quote !== '') {
+            if (ch === '\\') k++;
+            else if (ch === quote) quote = '';
+            continue;
+        }
+        if (ch === '"' || ch === '\'') quote = ch;
+        else if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (depth === 0 && /[=!<>?:&|]/.test(ch)) return undefined;
+        else if (depth === 0 && ch === '+') {
+            parts.push(expr.slice(start, k).trim());
+            start = k + 1;
+        }
+    }
+    parts.push(expr.slice(start).trim());
+    return parts.length > 1 && parts.every(p => p !== '') ? parts : undefined;
+}
+
+/** `(a + "lit")`, `(("x" + a) + b)`: a `+` chain with a String literal operand is a Java String. */
+function isStringConcat(expr: string): boolean {
+    let e = expr.trim();
+    while (e.startsWith('(') && e.endsWith(')') && wholeParens(e)) e = e.slice(1, -1).trim();
+    const parts = topLevelPlusParts(e);
+    if (parts === undefined) return false;
+    return parts.some(p => /^"(?:[^"\\]|\\.)*"$/.test(p) || (p.startsWith('(') && isStringConcat(p)));
+}
+
+function wholeParens(e: string): boolean {
+    let depth = 0, quote = '';
+    for (let k = 0; k < e.length; k++) {
+        const ch = e[k];
+        if (quote !== '') {
+            if (ch === '\\') k++;
+            else if (ch === quote) quote = '';
+            continue;
+        }
+        if (ch === '"' || ch === '\'') quote = ch;
+        else if (ch === '(') depth++;
+        else if (ch === ')' && --depth === 0 && k !== e.length - 1) return false;
+    }
+    return depth === 0;
+}
+
+/** Return types of the methods declared in `source` (`public [static] T name(`), one entry per name with a single spelling. */
+function declaredReturnTypes(source: string): Map<string, string> {
+    const seen = new Map<string, Set<string>>();
+    const re = /^\s*public (?:static )?(?:final )?((?:java\.util\.concurrent\.)?[A-Za-z_][\w.]*(?:<.*?>)?) (\w+)\(/gm;
+    for (let d = re.exec(source); d !== null; d = re.exec(source)) {
+        const set = seen.get(d[2]) ?? new Set<string>();
+        set.add(d[1].replace(/\bjava\.util\.(?:concurrent\.)?/g, ''));
+        seen.set(d[2], set);
+    }
+    const out = new Map<string, string>();
+    for (const [ name, set ] of seen) if (set.size === 1) out.set(name, [ ...set ][0]);
+    return out;
+}
+
+const API_METHOD_RE = /^\s*public (?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+) \(Object\.\.\. optionalArgs\)/;
+const apiReturnCache = new Map<string, Map<string, string>>();
+/** `CompletableFuture<T>` of the generated implicit-api wrappers the class extends (on-disk api/<X>Api.java). */
+function apiReturnTypes(source: string): Map<string, string> {
+    const imp = /^import io\.github\.ccxt\.api\.((?:prediction\.)?)(\w+Api);$/m.exec(source);
+    if (imp === null || !new RegExp(`\\bextends ${imp[2]}\\b`).test(source)) return new Map();
+    const file = `./java/lib/src/main/java/io/github/ccxt/api/${imp[1] === '' ? '' : 'prediction/'}${imp[2]}.java`;
+    let table = apiReturnCache.get(file);
+    if (table === undefined) {
+        table = new Map<string, string>();
+        let content = '';
+        try {
+            content = fs.readFileSync(file, 'utf8');
+        } catch (e) {
+            content = '';
+        }
+        for (const line of content.split('\n')) {
+            const m = API_METHOD_RE.exec(line);
+            if (m !== null) table.set(m[2], m[1].replace(/\bjava\.util\./g, ''));
+        }
+        apiReturnCache.set(file, table);
+    }
+    return table;
+}
+
+/** Proof context of one source text for supplyBodyReturnsType: its own method returns, api futures and the typed table. */
+export interface SupplyReturnContext {
+    declared: Map<string, string>;
+    api: Map<string, string>;
+    table: Map<string, MethodInfo>;
+}
+
+export function supplyReturnContext(source: string, table: Map<string, MethodInfo>): SupplyReturnContext {
+    return { declared: declaredReturnTypes(source), api: apiReturnTypes(source), table };
+}
 
 /** `this.m(..)` whose parentheses close at the end of `expr`: the receiver method name, else undefined. */
 function wholeThisCall(expr: string): string | undefined {
@@ -180,17 +308,20 @@ function wholeThisCall(expr: string): string | undefined {
  * a local whose every declaration in the body prints that type, or a typed BaseExchange reader.
  * A nested lambda (its own `return`s) or an unproven return keeps the converter.
  */
-export function supplyBodyReturnsType(lines: string[], from: number, to: number, supplyIndent: string, m: MethodInfo): boolean {
+export function supplyBodyReturnsType(lines: string[], from: number, to: number, supplyIndent: string, m: MethodInfo, ctx?: SupplyReturnContext): boolean {
     const want = m.isArray ? undefined : m.javaReturnType;
     if (want === undefined || ![ 'String', 'Long', 'Double', 'Boolean', 'Map<String, Object>' ].includes(want)) return false;
     const body = lines.slice(from, to);
     const opened = body.findIndex(l => l.trim().endsWith('supplyAsync(() -> {'));
     if (opened === -1) return false;
     const inner = body.slice(opened + 1);
-    if (inner.some(l => l.includes('->'))) return false;
+    // a block lambda has `return`s of its own; expression lambdas and switch-expression arms
+    // (`default -> {` .. `yield`) cannot hold a `return` of the supply body
+    if (inner.some(l => /->\s*\{/.test(l) && !/\b(?:default|case\b[^>]*)\s*->\s*\{/.test(l))) return false;
     const declTypes = new Map<string, Set<string>>();
     for (const l of inner) {
-        const d = /^\s*(?:final )?([A-Za-z_][\w.]*(?:<[^=]*>)?) (\w+)(?: = .*)?;$/.exec(l);
+        // `T x = ..;` / `T x;` / a multi-line anonymous-map initializer `T x = new HashMap<..>() {{`
+        const d = /^\s*(?:final )?([A-Za-z_][\w.]*(?:<[^=]*>)?) (\w+)(?:(?: = .*)?;| = .*\{\{)$/.exec(l);
         if (d !== null && d[1] !== 'return' && d[1] !== 'throw') {
             const set = declTypes.get(d[2]) ?? new Set<string>();
             set.add(d[1].replace(/^java\.util\./, ''));
@@ -199,8 +330,17 @@ export function supplyBodyReturnsType(lines: string[], from: number, to: number,
     }
     const sameType = (t: string) => t === want || (want === 'Map<String, Object>' && t === 'HashMap<String, Object>');
     let returns = 0;
-    for (const l of inner) {
-        if (/^\s*return\b/.test(l) && !/;\s*$/.test(l)) return false;
+    for (const raw of inner) {
+        // a trailing `// comment` after the statement (no quote in it, so it is not inside a string)
+        const l = raw.replace(/;\s*\/\/[^"']*$/, ';');
+        if (/^\s*return\b/.test(l) && !/;\s*$/.test(l)) {
+            // `return new HashMap<String, Object>() {{` .. `}};`: an anonymous HashMap is a Map<String, Object>
+            if (want === 'Map<String, Object>' && /^\s*return new (?:java\.util\.)?HashMap<String, Object>\(\) \{\{\s*$/.test(l) && l.startsWith(supplyIndent + '    ')) {
+                returns++;
+                continue;
+            }
+            return false;
+        }
         const r = /^\s*return(?: (.*))?;$/.exec(l.trimEnd());
         if (r === null) continue;
         if (!l.startsWith(supplyIndent + '    ')) return false;
@@ -213,11 +353,39 @@ export function supplyBodyReturnsType(lines: string[], from: number, to: number,
             if (set !== undefined && [ ...set ].every(sameType)) continue;
             return false;
         }
-        const call = wholeThisCall(e);
-        if (call !== undefined && TYPED_BASE_READERS[call] === want) continue;
+        if (returnExprHasType(e, want, ctx)) continue;
         return false;
     }
     return returns > 0;
+}
+
+/** Static Java type of one returned expression equals `want` (see supplyBodyReturnsType). */
+function returnExprHasType(e: string, want: string, ctx?: SupplyReturnContext): boolean {
+    const call = wholeThisCall(e);
+    if (call !== undefined && TYPED_BASE_READERS[call] === want) return true;
+    if (call !== undefined && TYPED_BASE_TWO_ARG_READERS[call] === want && topLevelArgCount(e) === 2) return true;
+    if (want === 'Map<String, Object>' && /^new (?:java\.util\.)?HashMap<String, Object>\(\)(?: \{\{\}\})?$/.test(e)) return true;
+    if (want === 'String') {
+        const field = /^this\.(\w+)$/.exec(e);
+        if (field !== null && TYPED_BASE_STRING_FIELDS.has(field[1])) return true;
+        if (isStringConcat(e)) return true;
+    }
+    if (ctx === undefined) return false;
+    // a method of this class whose declared Java return is `want` (an override can only narrow it)
+    if (call !== undefined && ctx.declared.get(call) === want) return true;
+    // `(this.m(..)).join()` of a CompletableFuture<want>: a generated api wrapper, a typed core
+    // (retyped in this same pass, on every tier) or an on-disk typed declaration
+    const joined = /^\((this\.\w+\(.*\))\)\.join\(\)$/.exec(e);
+    if (joined !== null) {
+        const inner = wholeThisCall(joined[1]);
+        if (inner === undefined) return false;
+        const core = ctx.table.get(inner);
+        const t = ctx.api.get(inner)
+            ?? (core !== undefined && !core.isArray ? core.javaReturnType : undefined)
+            ?? /^CompletableFuture<(.+)>$/.exec(ctx.declared.get(inner) ?? '')?.[1];
+        return t === want;
+    }
+    return false;
 }
 
 /**
@@ -226,6 +394,7 @@ export function supplyBodyReturnsType(lines: string[], from: number, to: number,
  */
 export function typeCoreReturns(source: string, table: Map<string, MethodInfo>): string {
     const lines = source.split('\n');
+    const ctx = supplyReturnContext(source, table);
     for (let i = 0; i < lines.length; i++) {
         const d = DECL_RE.exec(lines[i]);
         if (!d) continue;
@@ -251,7 +420,7 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
                 && (isAsyncLambdaClose(trimmed) || trimmed.startsWith(`return ${FUTURE}.failedFuture(`)) && trimmed.endsWith(');')) {
                 // every `return` of the supply lambda already has the declared type: `supplyAsync`
                 // infers T from the retyped declaration, so the future is returned as-is (no cast lambda)
-                if (isAsyncLambdaClose(trimmed) && supplyBodyReturnsType(lines, i + 1, j, supplyIndent, m)) {
+                if (isAsyncLambdaClose(trimmed) && supplyBodyReturnsType(lines, i + 1, j, supplyIndent, m, ctx)) {
                     converted = true;
                     break;
                 }
@@ -282,6 +451,11 @@ export function javaTypedCoreDirectReturnSelfTest(): string[] {
         `        });`,
         ``,
         `    }`,
+        ``,
+        `    public Map<String, Object> parseThing(Object x)`,
+        `    {`,
+        `        return null;`,
+        `    }`,
     ].join('\n');
     const info = (javaReturnType: string): MethodInfo => ({ name: 'm', javaReturnType, isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false } as any);
     const rows: Array<[string, string, string[], boolean]> = [
@@ -297,6 +471,25 @@ export function javaTypedCoreDirectReturnSelfTest(): string[] {
         [ 'trailing call keeps cast', 'String', [ 'return this.safeString(a, "k").trim();' ], true ],
         [ 'nested lambda keeps cast', 'String', [ 'String r = null;', 'Object f = (x) -> { return x; };', 'return r;' ], true ],
         [ 'no-cast row keeps typed declaration', 'String', [ 'return this.safeString(parameters, "k");' ], false ],
+        // ral-40c: hand-written / declared return types
+        [ 'boolean literal with trailing comment', 'Boolean', [ 'return false;  // stub' ], false ],
+        [ 'base safeNumber is Double', 'Double', [ 'return this.safeNumber(parameters, "n", (Object) null);' ], false ],
+        [ 'base parseToInt is Long', 'Long', [ 'return this.parseToInt(this.safeInteger(parameters, "n"));' ], false ],
+        [ 'base decode is String', 'String', [ 'return this.decode(this.base16ToBinary(parameters));' ], false ],
+        [ 'two-argument extend is Map', 'Map<String, Object>', [ 'return this.extend(parameters, parameters);' ], false ],
+        [ 'varargs extend keeps cast', 'Map<String, Object>', [ 'return this.extend(parameters, parameters, parameters);' ], true ],
+        [ 'string literal concat is String', 'String', [ 'String a = null;', 'return ("x/" + a);' ], false ],
+        [ 'concat without a literal keeps cast', 'String', [ 'Object a = null;', 'return (a + a);' ], true ],
+        [ 'base String field', 'String', [ 'return this.apiKey;' ], false ],
+        [ 'base Object field keeps cast', 'String', [ 'return this.token;' ], true ],
+        [ 'anonymous map literal', 'Map<String, Object>', [ 'return new HashMap<String, Object>() {{', '    put( "a", 1 );', '}};' ], false ],
+        [ 'multi-line map local', 'Map<String, Object>', [ 'Map<String, Object> r = new HashMap<String, Object>() {{', '    put( "a", 1 );', '}};', 'return r;' ], false ],
+        [ 'switch-expression arm is no lambda', 'Map<String, Object>', [ 'Map<String, Object> r = this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j = new HashMap<String, Object>(); yield j; } }));', 'return r;' ], false ],
+        [ 'block lambda keeps cast', 'Map<String, Object>', [ 'Map<String, Object> r = null;', 'Object f = (x, y) -> { return null; };', 'return r;' ], true ],
+        [ 'declared helper of this class', 'Map<String, Object>', [ 'return this.parseThing(parameters);' ], false ],
+        [ 'joined typed core', 'Map<String, Object>', [ 'return (this.m(parameters)).join();' ], false ],
+        [ 'joined untyped future keeps cast', 'Map<String, Object>', [ 'return (this.watch(parameters, null, null, null, null)).join();' ], true ],
+        [ 'safeDict is Object: keeps cast', 'Map<String, Object>', [ 'return this.safeDict(parameters, "k", null);' ], true ],
     ];
     for (const [ label, type, body, cast ] of rows) {
         const out = typeCoreReturns(core(type, body), new Map([ [ 'm', info(type) ] ]));
