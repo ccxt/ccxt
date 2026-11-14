@@ -1499,7 +1499,7 @@ public class Dydx extends DydxApi
         return signature;
     }
 
-    public Object signDydxTx(String privateKey, Object message, String memo, String chainId, Object account, Object authenticators, Object fee)
+    public Object signDydxTx(String privateKey, Object message, String memo, String chainId, Map<String, Object> account, Object authenticators, Object fee)
     {
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
