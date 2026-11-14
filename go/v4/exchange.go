@@ -205,7 +205,7 @@ type BaseExchange struct {
 	// constructing goroutine, before the exchange is handed to any other
 	ownersStarted bool
 	// a plain map; entries stay boxed because TS `balance` is a Dict of Dicts
-	Balance   map[string]any
+	Balance         map[string]any
 	Positions       WsArrayCache            // one cache object, nil until a handler creates it
 	PositionsByType map[string]WsArrayCache // one cache per account type / subaccount
 	// the ws client registry, a plain map keyed by url

@@ -217,6 +217,17 @@ impl Value {
 
     pub fn as_str(&self)   -> Option<&str>  { if let Value::Str(s) = self { Some(s.as_ref()) } else { None } }
     pub fn as_i64(&self)   -> Option<i64>   { if let Value::Int(n) = self { Some(*n) } else { None } }
+    /// A string slot read from a JSON string or number: TS hands a numeric id on unchanged, so its decimal text is the
+    /// string the typed `&str` parameter expects (binance prediction `fetchEvent (12345678)`). Other kinds read as absent.
+    pub fn as_text(&self) -> Option<Cow<'_, str>> {
+        match self {
+            Value::Str(s) => Some(Cow::Borrowed(s.as_ref())),
+            Value::Int(n) => Some(Cow::Owned(n.to_string())),
+            Value::Float(f) if f.is_finite() && f.fract() == 0.0 && f.abs() < 1e15 => Some(Cow::Owned((*f as i64).to_string())),
+            Value::Float(f) if f.is_finite() => Some(Cow::Owned(f.to_string())),
+            _ => None,
+        }
+    }
     pub fn as_f64(&self)   -> Option<f64> {
         match self {
             Value::Float(f) => Some(*f),
@@ -2558,6 +2569,23 @@ impl Value {
     }
     pub fn store_array_to_asks(&mut self, delta: Value) {
         book_store_array_side(self, "asks", delta);
+    }
+}
+
+#[cfg(test)]
+mod as_text_tests {
+    use super::*;
+    #[test]
+    fn string_slot_reads_strings_and_numbers_as_text() {
+        let table: [(Value, Option<&str>); 6] = [
+            (Value::from("abc"), Some("abc")),
+            (Value::Int(12345678), Some("12345678")),
+            (Value::Float(7.0), Some("7")),
+            (Value::Float(1.5), Some("1.5")),
+            (Value::Null, None),
+            (Value::Bool(true), None),
+        ];
+        for (v, want) in table.iter() { assert_eq!(v.as_text().as_deref(), *want); }
     }
 }
 

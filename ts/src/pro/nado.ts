@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeError, InvalidNonce, NotSupported } from '..
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
-import type { Bool, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
+import type { Bool, Dict, Fee, Int, Market, Num, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -1010,7 +1010,7 @@ export default class nado extends nadoRest {
         return result;
     }
 
-    async watchExecuteRequest (requestIdString: string, request: Dict) {
+    async watchExecuteRequest (requestIdString: string, request: Dict): Promise<NullableDict> {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
         // request id and its response is correlated by the echoed id
