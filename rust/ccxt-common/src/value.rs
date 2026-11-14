@@ -862,6 +862,11 @@ impl MergeOperands for &[&Dict; 1] {
     fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { f(self[0]) }
     fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::Dict(Arc::clone(self[0]))) }
 }
+/// An optional dict local lent to `extend`: `Some` merges its map, `None` merges nothing (as the boxed `Null` did).
+impl MergeOperands for &[&Option<Dict>; 1] {
+    fn for_each_map(self, mut f: impl FnMut(&HashMap<String, Value>)) { if let Some(m) = self[0] { f(m) } }
+    fn for_each_operand(self, mut f: impl FnMut(Value)) { f(Value::from(self[0])) }
+}
 
 /// The first operand of `extend`: a `Value` or a dict local (owned or lent); the map is copied only when shared.
 pub trait ExtendHead { fn into_head(self) -> HashMap<String, Value>; }
@@ -2971,5 +2976,66 @@ mod live_snapshot_symbols_tests {
         assert_eq!(get_value(&live, &Value::Str("symbols".into())).len(), 2, "the live snapshot reads the Core's symbols");
         // a snapshot that kept the pre-load copy still answers the empty list
         assert_eq!(get_value(&stale, &Value::Str("symbols".into())).len(), 0);
+    }
+}
+
+#[cfg(test)]
+mod opt_dict_merge_operand_tests {
+    use super::*;
+
+    // the optional dict local `x` (None / Some(map)) beside the boxed operand the Value local held for it
+    fn map(k: u8) -> HashMap<String, Value> {
+        let mut m = HashMap::new();
+        if k >= 1 { m.insert("a".to_string(), Value::Int(1)); }
+        if k >= 2 { m.insert("b".to_string(), Value::Null); }
+        m
+    }
+    fn head(k: u8) -> Value {
+        match k { 0 => Value::Null, 1 => Value::Map(HashMap::new()), 2 => Value::Map(map(2)), _ => Value::List(vec![Value::Int(1)]) }
+    }
+    fn merged(op: impl MergeOperands) -> Vec<(String, Value)> {
+        let mut out = Vec::new();
+        op.for_each_map(|m| for (k, v) in m.iter() { out.push((k.to_string(), v.to_owned())) });
+        out
+    }
+
+    #[test]
+    fn none_merges_as_null_and_some_as_its_map() {
+        // None vs Null; Some(empty) / Some(map) vs the boxed map
+        for k in 0..=2u8 {
+            let typed: Option<Dict> = if k == 0 { None } else { Some(Arc::new(map(k - 1))) };
+            let boxed: Value = if k == 0 { Value::Null } else { Value::Map(map(k - 1)) };
+            assert_eq!(merged(&[&typed]), merged(&[boxed]), "case {}", k);
+        }
+    }
+
+    #[test]
+    fn extend_result_is_unchanged_for_every_head() {
+        // wrong-kind peers (Null / list heads) and map heads: `extend` answers the same map either way
+        let ex = |h: Value, op: &[Value]| { let mut out = h.into_head(); op.for_each_map(|m| for (k, v) in m.iter() { out.insert(k.to_string(), v.to_owned()); }); Value::Map(out) };
+        let ex_opt = |h: Value, op: &Option<Dict>| { let mut out = h.into_head(); (&[op]).for_each_map(|m| for (k, v) in m.iter() { out.insert(k.to_string(), v.to_owned()); }); Value::Map(out) };
+        for h in 0..=3u8 {
+            for k in 0..=2u8 {
+                let typed: Option<Dict> = if k == 0 { None } else { Some(Arc::new(map(k))) };
+                let boxed: Value = if k == 0 { Value::Null } else { Value::Map(map(k)) };
+                assert_eq!(ex_opt(head(h), &typed), ex(head(h), &[boxed]), "head {} operand {}", h, k);
+            }
+        }
+    }
+
+    #[test]
+    fn some_is_lent_without_a_copy() {
+        let d: Dict = Arc::new(map(2));
+        let x: Option<Dict> = Some(Arc::clone(&d));
+        let mut seen = std::ptr::null();
+        (&[&x]).for_each_map(|m| seen = m as *const _);
+        assert_eq!(seen, Arc::as_ptr(&d));
+        let mut ops = Vec::new();
+        (&[&x]).for_each_operand(|v| ops.push(v));
+        assert_eq!(ops, vec![Value::Dict(d)]);
+        let none: Option<Dict> = None;
+        let mut nops = Vec::new();
+        (&[&none]).for_each_operand(|v| nops.push(v));
+        assert_eq!(nops, vec![Value::Null]);
     }
 }
