@@ -6553,82 +6553,6 @@ export class RustTranspilerBuilder {
         return text;
     }
 
-    /**
-     * Apply a regex.replace() ONLY to portions of `text` that aren't
-     * inside a string literal, char literal, or line/block comment.
-     * Avoids the trap where rewrites like "OrderNotFound → Value::Str(...)"
-     * end up nested inside a "OrderNotFound" string-key, breaking syntax.
-     */
-    replaceOutsideStrings(text: string, rx: RegExp, replacer: any): string {
-        const segments: string[] = [];
-        let buf = '';
-        let i = 0;
-        const n = text.length;
-        const flush = () => {
-            if (buf) {
-                segments.push(buf.replace(rx, replacer));
-                buf = '';
-            }
-        };
-        while (i < n) {
-            const ch = text[i];
-            // Line comment
-            if (ch === '/' && text[i + 1] === '/') {
-                flush();
-                let j = i;
-                while (j < n && text[j] !== '\n') j++;
-                segments.push(text.slice(i, j));
-                i = j;
-                continue;
-            }
-            // Block comment
-            if (ch === '/' && text[i + 1] === '*') {
-                flush();
-                let j = i + 2;
-                while (j < n && !(text[j] === '*' && text[j + 1] === '/')) j++;
-                j = Math.min(j + 2, n);
-                segments.push(text.slice(i, j));
-                i = j;
-                continue;
-            }
-            // String literal
-            if (ch === '"') {
-                flush();
-                let j = i + 1;
-                while (j < n && text[j] !== '"') {
-                    if (text[j] === '\\') j++;
-                    j++;
-                }
-                j = Math.min(j + 1, n);
-                segments.push(text.slice(i, j));
-                i = j;
-                continue;
-            }
-            // Char literal vs lifetime
-            if (ch === '\'') {
-                // Look ahead for a closing ' (char literal) within ~4 chars
-                let j = i + 1;
-                if (text[j] === '\\') {
-                    j += 2;
-                    while (j < n && text[j] !== '\'' && j - i < 8) j++;
-                } else {
-                    j += 1;
-                }
-                if (text[j] === '\'') {
-                    flush();
-                    segments.push(text.slice(i, j + 1));
-                    i = j + 1;
-                    continue;
-                }
-                // It's a lifetime — flow through as code.
-            }
-            buf += ch;
-            i++;
-        }
-        flush();
-        return segments.join('');
-    }
-
 
 
 
@@ -8198,25 +8122,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-
-    /**
-     * The ast printer emits a TS `while (true)` as `while (true) { … }`, which
-     * trips rustc's built-in `while_true` lint ("denote infinite loops with
-     * `loop { ... }`"). CI's clippy lane runs `cargo clippy … -- -D warnings`,
-     * so a single site fails the whole lane. Emit the `loop {` rustc asks for:
-     * every generated infinite loop leaves through `break`, so the two forms
-     * are equivalent.
-     *
-     * Applied to file text (strings / comments masked), so a `while (true)`
-     * inside a literal or a doc comment is left alone.
-     */
-    whileTrueToLoop(content: string): string {
-        return this.replaceOutsideStrings(
-            content,
-            /\bwhile\s*\(\s*true\s*\)\s*\{/g,
-            'loop {',
-        );
-    }
 
     /**
      * Walks every `pub fn <name>(` body (brace-balanced) and, if the body
@@ -12478,9 +12383,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // Last: a `.clone()` in a by-value slot whose local is dead
                 // afterwards moves instead of copying (B-32).
                 rustContent = this.dropDeadValueSlotClones(rustContent);
-                // And `while (true)` → `loop {` (rustc's `while_true` lint is
-                // an error under the CI clippy lane's `-D warnings`).
-                rustContent = this.whileTrueToLoop(rustContent);
                 rustContent = this.rustNativeTruthAndEquality(rustContent);
                 rustContent = nativeBoolScalars(rustContent);
                 rustContent = nativeBoolCallee(rustContent);
@@ -13313,9 +13215,6 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
-        // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
-        // under the CI clippy lane's `-D warnings`).
-        finalFile = this.whileTrueToLoop(finalFile);
         finalFile = this.rustNativeTruthAndEquality(finalFile);
         finalFile = nativeBoolScalars(finalFile);
         finalFile = nativeBoolCallee(finalFile);
@@ -14645,9 +14544,6 @@ impl std::ops::DerefMut for ${coreName} {
             );
             // `continue` inside a transpiled `for`→`while` must still run
             // the manual loop increment — labelled-block rewrite.
-            // `while (true)` → `loop {` (rustc's `while_true` lint; the file
-            // header's `clippy::all` allow does not cover rustc lints).
-            content = this.whileTrueToLoop(content);
             // Methods that assign to `self.<field>` need `&mut self`.
             content = this.promoteSelfMutMethods(content);
             // `callExchangeMethodDynamically` / `setFetchResponse`

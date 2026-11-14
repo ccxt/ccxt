@@ -2851,6 +2851,45 @@ mod typed_counter_write_back_tests {
 }
 
 #[cfg(test)]
+mod nested_slot_insert_tests {
+    // ral-40f: `p['params']['k'] = v` on a typed params slot takes the first hop in place on the `Dict`
+    // (`entry(..).or_insert(Value::Null)`), the write stays `add_element_to_object`; the `Value` local printed
+    // `add_element_to_object(get_value_mut(&mut p, "params"), "k", v)`. Same map for a missing inner key, a `Null`
+    // inner, a wrong-kind inner and a map inner.
+    use super::*;
+    use crate::runtime::{add_element_to_object as boxed_write, get_value_mut as boxed_hop};
+
+    fn slot(inner: Option<Value>) -> Dict {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        if let Some(v) = inner { m.insert("params".to_string(), v); }
+        Arc::new(m)
+    }
+
+    fn typed(mut p: Dict, v: Value) -> Dict {
+        boxed_write(std::sync::Arc::make_mut(&mut p).entry("params".to_string()).or_insert(Value::Null), &Value::Str("k".into()), v);
+        p
+    }
+
+    fn boxed(p: Dict, v: Value) -> Value {
+        let mut b = Value::Dict(p);
+        boxed_write(boxed_hop(&mut b, &Value::Str("params".into())), &Value::Str("k".into()), v);
+        b
+    }
+
+    fn inner(n: usize) -> Option<Value> {
+        match n { 0 => None, 1 => Some(Value::Null), 2 => Some(Value::Int(5)), 3 => Some(Value::Str("s".into())), 4 => Some(Value::from(vec![Value::Int(1)])), _ => Some(Value::Dict(slot(None))) }
+    }
+
+    #[test]
+    fn typed_nested_insert_matches_helper_chain() {
+        for n in 0..6 {
+            assert_eq!(Value::Dict(typed(slot(inner(n)), Value::Str("v".into()))), boxed(slot(inner(n)), Value::Str("v".into())));
+        }
+    }
+}
+
+#[cfg(test)]
 mod into_opt_string_tests {
     use super::*;
 
