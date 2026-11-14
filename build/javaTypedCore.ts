@@ -146,6 +146,80 @@ export function isAsyncLambdaClose(line: string): boolean {
 
 const DECL_RE = /^(\s*)public (?:java\.util\.concurrent\.)?CompletableFuture<Object> (\w+)\((.*)$/;
 
+// Hand-written BaseExchange readers whose Java return type is fixed (an override cannot widen it).
+const TYPED_BASE_READERS: Record<string, string> = {
+    safeString: 'String', safeString2: 'String', safeStringUpper: 'String', safeStringLower: 'String',
+    urlencode: 'String', uuid: 'String', iso8601: 'String',
+    safeInteger: 'Long', safeInteger2: 'Long', safeIntegerProduct: 'Long', safeTimestamp: 'Long',
+    safeTimestamp2: 'Long', milliseconds: 'Long', parse8601: 'Long',
+};
+
+/** `this.m(..)` whose parentheses close at the end of `expr`: the receiver method name, else undefined. */
+function wholeThisCall(expr: string): string | undefined {
+    const m = /^this\.(\w+)\(/.exec(expr);
+    if (m === null || !expr.endsWith(')')) return undefined;
+    let depth = 0;
+    let quote = '';
+    for (let k = m[0].length - 1; k < expr.length; k++) {
+        const ch = expr[k];
+        if (quote !== '') {
+            if (ch === '\\') k++;
+            else if (ch === quote) quote = '';
+            continue;
+        }
+        if (ch === '"' || ch === '\'') quote = ch;
+        else if (ch === '(') depth++;
+        else if (ch === ')' && --depth === 0 && k !== expr.length - 1) return undefined;
+    }
+    return depth === 0 ? m[1] : undefined;
+}
+
+/**
+ * True when every `return` of the supply lambda (lines (from, to)) is statically the core's typed
+ * return (`String` / `Long` / `Boolean` / `Map<String, Object>` / `Double`): `null`, a boolean literal,
+ * a local whose every declaration in the body prints that type, or a typed BaseExchange reader.
+ * A nested lambda (its own `return`s) or an unproven return keeps the converter.
+ */
+export function supplyBodyReturnsType(lines: string[], from: number, to: number, supplyIndent: string, m: MethodInfo): boolean {
+    const want = m.isArray ? undefined : m.javaReturnType;
+    if (want === undefined || ![ 'String', 'Long', 'Double', 'Boolean', 'Map<String, Object>' ].includes(want)) return false;
+    const body = lines.slice(from, to);
+    const opened = body.findIndex(l => l.trim().endsWith('supplyAsync(() -> {'));
+    if (opened === -1) return false;
+    const inner = body.slice(opened + 1);
+    if (inner.some(l => l.includes('->'))) return false;
+    const declTypes = new Map<string, Set<string>>();
+    for (const l of inner) {
+        const d = /^\s*(?:final )?([A-Za-z_][\w.]*(?:<[^=]*>)?) (\w+)(?: = .*)?;$/.exec(l);
+        if (d !== null && d[1] !== 'return' && d[1] !== 'throw') {
+            const set = declTypes.get(d[2]) ?? new Set<string>();
+            set.add(d[1].replace(/^java\.util\./, ''));
+            declTypes.set(d[2], set);
+        }
+    }
+    const sameType = (t: string) => t === want || (want === 'Map<String, Object>' && t === 'HashMap<String, Object>');
+    let returns = 0;
+    for (const l of inner) {
+        if (/^\s*return\b/.test(l) && !/;\s*$/.test(l)) return false;
+        const r = /^\s*return(?: (.*))?;$/.exec(l.trimEnd());
+        if (r === null) continue;
+        if (!l.startsWith(supplyIndent + '    ')) return false;
+        returns++;
+        const e = (r[1] ?? '').trim();
+        if (e === '' || e === 'null') continue;
+        if (want === 'Boolean' && (e === 'true' || e === 'false')) continue;
+        if (/^\w+$/.test(e)) {
+            const set = declTypes.get(e);
+            if (set !== undefined && [ ...set ].every(sameType)) continue;
+            return false;
+        }
+        const call = wholeThisCall(e);
+        if (call !== undefined && TYPED_BASE_READERS[call] === want) continue;
+        return false;
+    }
+    return returns > 0;
+}
+
 /**
  * Retype every `public CompletableFuture<Object> <name>(` declaration found in the table and
  * put the typed construction on the method's supplyAsync tail. Works on any transpiled tier text.
@@ -175,6 +249,12 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
             }
             if (lines[j].startsWith(supplyIndent) && lines[j].length === supplyIndent.length + trimmed.length
                 && (isAsyncLambdaClose(trimmed) || trimmed.startsWith(`return ${FUTURE}.failedFuture(`)) && trimmed.endsWith(');')) {
+                // every `return` of the supply lambda already has the declared type: `supplyAsync`
+                // infers T from the retyped declaration, so the future is returned as-is (no cast lambda)
+                if (isAsyncLambdaClose(trimmed) && supplyBodyReturnsType(lines, i + 1, j, supplyIndent, m)) {
+                    converted = true;
+                    break;
+                }
                 // `});` -> `}).thenApply(f);`  /  `}, EXECUTOR);` -> `}, EXECUTOR).thenApply(f);`
                 // a printed `return CompletableFuture.failedFuture(..);` takes the same `.thenApply(f)`
                 lines[j] = `${supplyIndent}${trimmed.slice(0, -1)}.thenApply(${coreConverter(m)});`;
@@ -187,4 +267,42 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
         }
     }
     return lines.join('\n');
+}
+
+/** `--audit-string-types --self-test`: a typed core whose body already returns the declared type keeps no cast lambda. */
+export function javaTypedCoreDirectReturnSelfTest(): string[] {
+    const problems: string[] = [];
+    const core = (type: string, body: string[]) => [
+        `    public CompletableFuture<Object> m(Object parameters)`,
+        `    {`,
+        ``,
+        `        return BaseExchange.supplyAsync(() -> {`,
+        ``,
+        ...body.map(l => '            ' + l),
+        `        });`,
+        ``,
+        `    }`,
+    ].join('\n');
+    const info = (javaReturnType: string): MethodInfo => ({ name: 'm', javaReturnType, isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false } as any);
+    const rows: Array<[string, string, string[], boolean]> = [
+        // [label, type, body, cast lambda expected]
+        [ 'string local', 'String', [ 'String result = this.safeString(parameters, "k");', 'return result;' ], false ],
+        [ 'string local + null', 'String', [ 'String result = null;', 'if (parameters == null)', '{', '    return null;', '}', 'return result;' ], false ],
+        [ 'typed reader', 'Long', [ 'return this.safeInteger(parameters, "time");' ], false ],
+        [ 'map local', 'Map<String, Object>', [ 'Map<String, Object> response = (Map<String, Object>) this.safeDict(parameters, "a", null);', 'return response;' ], false ],
+        [ 'boolean literals', 'Boolean', [ 'if (parameters == null)', '{', '    return false;', '}', 'return true;' ], false ],
+        [ 'Object local keeps cast', 'String', [ 'Object result = this.safeValue(parameters, "k");', 'return result;' ], true ],
+        [ 'joined future keeps cast', 'Map<String, Object>', [ 'return (this.fetchX(parameters)).join();' ], true ],
+        [ 'reader of another type keeps cast', 'String', [ 'return this.safeInteger(parameters, "k");' ], true ],
+        [ 'trailing call keeps cast', 'String', [ 'return this.safeString(a, "k").trim();' ], true ],
+        [ 'nested lambda keeps cast', 'String', [ 'String r = null;', 'Object f = (x) -> { return x; };', 'return r;' ], true ],
+        [ 'no-cast row keeps typed declaration', 'String', [ 'return this.safeString(parameters, "k");' ], false ],
+    ];
+    for (const [ label, type, body, cast ] of rows) {
+        const out = typeCoreReturns(core(type, body), new Map([ [ 'm', info(type) ] ]));
+        const hasCast = out.includes('.thenApply(');
+        if (hasCast !== cast) problems.push(`typed core direct return '${label}': expected cast lambda ${cast}, got ${hasCast}`);
+        if (!out.includes(`CompletableFuture<${qualifyJavaType(type)}> m(`)) problems.push(`typed core direct return '${label}': declaration not retyped`);
+    }
+    return problems;
 }
