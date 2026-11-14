@@ -15,6 +15,7 @@ import testPrecisionFromStringZero from './test.precisionFromString.js';
 import testBingxTestOrder from './test.bingxTestOrder.js';
 import testFetchTradesDiagnostics from './test.fetchTradesDiagnostics.js';
 import testOptionTypes from './test.optionTypes.js';
+import testKrakenFuturesRateLimiterCosts from './test.krakenfuturesRateLimiterCosts.js';
 // todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
 
@@ -27,6 +28,7 @@ async function testLanguageSpecific () {
     testTypes ();
     testOnJsonResponse ();
     testOptionTypes ();
+    testKrakenFuturesRateLimiterCosts ();
     testPrecisionFromStringZero ();
     await testBingxTestOrder ();
     await testFetchTradesDiagnostics ();
