@@ -7069,9 +7069,10 @@ public class Xt extends XtApi
             String jsonBody = this.json(query);
             signedBody = ((Boolean.TRUE.equals(isUndefinedBody))) ? null : jsonBody;
             String payloadString = "";
+            String timestampPart = (("&xt-validate-t" + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
             if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
             {
-                String spotPrefix = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
+                String spotPrefix = (((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + timestampPart);
                 if (Boolean.TRUE.equals(isUndefinedBody))
                 {
                     if (!java.util.Objects.equals(urlencoded, ""))
@@ -7090,7 +7091,7 @@ public class Xt extends XtApi
                 headersValue.put("xt-validate-recvwindow", recvWindow);
             } else
             {
-                String futurePrefix = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
+                String futurePrefix = (("xt-validate-appkey=" + this.apiKey) + timestampPart);
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
                     if (!java.util.Objects.equals(urlencoded, ""))
