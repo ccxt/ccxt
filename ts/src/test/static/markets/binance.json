@@ -5193,5 +5193,158 @@
     "percentage": true,
     "feeSide": "get",
     "stock": false
+  },
+  "ENA/USDT:USDT": {
+    "id": "ENAUSDT",
+    "lowercaseId": "enausdt",
+    "symbol": "ENA/USDT:USDT",
+    "base": "ENA",
+    "quote": "USDT",
+    "settle": "USDT",
+    "baseId": "ENA",
+    "quoteId": "USDT",
+    "settleId": "USDT",
+    "type": "swap",
+    "spot": false,
+    "margin": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "index": null,
+    "active": true,
+    "contract": true,
+    "linear": true,
+    "inverse": false,
+    "subType": "linear",
+    "taker": 0.0005,
+    "maker": 0.0002,
+    "contractSize": 1,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 1,
+      "price": 0.00001,
+      "base": 1e-8,
+      "quote": 1e-8
+    },
+    "limits": {
+      "leverage": {
+        "min": null,
+        "max": null
+      },
+      "amount": {
+        "min": 1,
+        "max": 20000000
+      },
+      "price": {
+        "min": 0.00001,
+        "max": 200
+      },
+      "cost": {
+        "min": 5,
+        "max": null
+      },
+      "market": {
+        "min": 1,
+        "max": 2000000
+      }
+    },
+    "marginModes": {
+      "cross": true,
+      "isolated": true
+    },
+    "created": 1712061000000,
+    "info": {
+      "symbol": "ENAUSDT",
+      "pair": "ENAUSDT",
+      "contractType": "PERPETUAL",
+      "deliveryDate": 4133404800000,
+      "onboardDate": 1712061000000,
+      "status": "TRADING",
+      "maintMarginPercent": "2.5000",
+      "requiredMarginPercent": "5.0000",
+      "baseAsset": "ENA",
+      "quoteAsset": "USDT",
+      "marginAsset": "USDT",
+      "pricePrecision": 7,
+      "quantityPrecision": 0,
+      "baseAssetPrecision": 8,
+      "quotePrecision": 8,
+      "underlyingType": "COIN",
+      "underlyingSubType": [
+        "DeFi",
+        "Crypto"
+      ],
+      "triggerProtect": "0.1500",
+      "liquidationFee": "0.015000",
+      "marketTakeBound": "0.15",
+      "maxMoveOrderLimit": 10000,
+      "filters": [
+        {
+          "filterType": "PRICE_FILTER",
+          "maxPrice": "200",
+          "tickSize": "0.0000100",
+          "minPrice": "0.0000100"
+        },
+        {
+          "filterType": "LOT_SIZE",
+          "minQty": "1",
+          "stepSize": "1",
+          "maxQty": "20000000"
+        },
+        {
+          "filterType": "MARKET_LOT_SIZE",
+          "minQty": "1",
+          "maxQty": "2000000",
+          "stepSize": "1"
+        },
+        {
+          "filterType": "MAX_NUM_ORDERS",
+          "limit": 200
+        },
+        {
+          "notional": "5",
+          "filterType": "MIN_NOTIONAL"
+        },
+        {
+          "filterType": "PERCENT_PRICE",
+          "multiplierUp": "1.1500",
+          "multiplierDecimal": "4",
+          "multiplierDown": "0.8500"
+        },
+        {
+          "positionControlSide": "NONE",
+          "filterType": "POSITION_RISK_CONTROL"
+        }
+      ],
+      "orderTypes": [
+        "LIMIT",
+        "MARKET",
+        "STOP",
+        "STOP_MARKET",
+        "TAKE_PROFIT",
+        "TAKE_PROFIT_MARKET",
+        "TRAILING_STOP_MARKET"
+      ],
+      "timeInForce": [
+        "GTC",
+        "IOC",
+        "FOK",
+        "GTX",
+        "GTD"
+      ],
+      "permissionSets": [
+        "GRID",
+        "COPY",
+        "DCA",
+        "PSB"
+      ]
+    },
+    "tierBased": false,
+    "percentage": true,
+    "feeSide": "get",
+    "stock": false
   }
 }

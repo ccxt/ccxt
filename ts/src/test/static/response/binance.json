@@ -8376,6 +8376,173 @@
                 ]
             }
         ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "paginate walks back from until over the returned fundingTime values, so a contract with 4h funding gets all 6 settlements of the day; with a fixed 8h step the 24h window starting at 1792368000000 gets only its first 3 rows and 12:00-20:00 are dropped",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ENA/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792454400000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "symbol=ENAUSDT&endTime=1792454400000": [
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792411200007,
+                            "fundingRate": "0.00005000",
+                            "markPrice": "0.18687163",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792425600003,
+                            "fundingRate": "0.00004018",
+                            "markPrice": "0.18789000",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792440000000,
+                            "fundingRate": "0.00005000",
+                            "markPrice": "0.18566839",
+                            "rateType": "Regular"
+                        }
+                    ],
+                    "endTime=1792411200006": [
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792368000000,
+                            "fundingRate": "-0.00000762",
+                            "markPrice": "0.18826501",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792382400000,
+                            "fundingRate": "0.00002949",
+                            "markPrice": "0.18930908",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792396800004,
+                            "fundingRate": "0.00003988",
+                            "markPrice": "0.19059000",
+                            "rateType": "Regular"
+                        }
+                    ],
+                    "startTime=1792368000000": [
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792368000000,
+                            "fundingRate": "-0.00000762",
+                            "markPrice": "0.18826501",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792382400000,
+                            "fundingRate": "0.00002949",
+                            "markPrice": "0.18930908",
+                            "rateType": "Regular"
+                        },
+                        {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792396800004,
+                            "fundingRate": "0.00003988",
+                            "markPrice": "0.19059000",
+                            "rateType": "Regular"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792368000000,
+                            "fundingRate": "-0.00000762",
+                            "markPrice": "0.18826501",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": -0.00000762,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792382400000,
+                            "fundingRate": "0.00002949",
+                            "markPrice": "0.18930908",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00002949,
+                        "timestamp": 1792382400000,
+                        "datetime": "2026-10-19T04:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792396800004,
+                            "fundingRate": "0.00003988",
+                            "markPrice": "0.19059000",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00003988,
+                        "timestamp": 1792396800004,
+                        "datetime": "2026-10-19T08:00:00.004Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792411200007,
+                            "fundingRate": "0.00005000",
+                            "markPrice": "0.18687163",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792411200007,
+                        "datetime": "2026-10-19T12:00:00.007Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792425600003,
+                            "fundingRate": "0.00004018",
+                            "markPrice": "0.18789000",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00004018,
+                        "timestamp": 1792425600003,
+                        "datetime": "2026-10-19T16:00:00.003Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ENAUSDT",
+                            "fundingTime": 1792440000000,
+                            "fundingRate": "0.00005000",
+                            "markPrice": "0.18566839",
+                            "rateType": "Regular"
+                        },
+                        "symbol": "ENA/USDT:USDT",
+                        "fundingRate": 0.00005,
+                        "timestamp": 1792440000000,
+                        "datetime": "2026-10-19T20:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchBorrowInterest": [
             {
                 "description": "borrow interest porftolio margin",
