@@ -3243,7 +3243,7 @@ public class Lbank extends LbankApi
                 put( "deposit", new HashMap<String, Object>() {{}} );
                 put( "info", response );
             }};
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -3316,7 +3316,7 @@ public class Lbank extends LbankApi
                 put( "deposit", new HashMap<String, Object>() {{}} );
                 put( "info", response );
             }};
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

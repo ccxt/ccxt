@@ -2620,7 +2620,7 @@ public class Bitstamp extends BitstampApi
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId"))) : parameters;
             Map<String, Object> response = (this.privatePostOrderStatus(this.extend(request, paramsOmitted))).join();
             return this.parseOrderStatus(this.safeString(response, "status"));
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

@@ -819,7 +819,7 @@ public class Grvt extends GrvtApi
             //
             this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -851,7 +851,7 @@ public class Grvt extends GrvtApi
             //
             this.options.put("signInExpiration", (now + 86400000L)); // 24 hours
             return response;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -2410,7 +2410,7 @@ public class Grvt extends GrvtApi
                 this.options.put("accountId", subAccountId);
             }
             return true;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 

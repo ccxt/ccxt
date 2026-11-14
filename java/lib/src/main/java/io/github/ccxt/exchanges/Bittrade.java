@@ -728,7 +728,7 @@ public class Bittrade extends BittradeApi
             //                  "market-buy-order-rate-must-less-than":  0.1        } }
             //
             return this.parseTradingLimits((Map<String, Object>) (this.safeDict(response, "data", new HashMap<String, Object>() {{}})), (String) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

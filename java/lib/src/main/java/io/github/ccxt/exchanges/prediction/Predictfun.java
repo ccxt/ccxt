@@ -3623,7 +3623,7 @@ public class Predictfun extends PredictfunApi
             // rewrites such identifiers into self.jwt, which lands as a broken assignment in python
             Object walletToken = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             return ("predictWalletEvents/" + walletToken);
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

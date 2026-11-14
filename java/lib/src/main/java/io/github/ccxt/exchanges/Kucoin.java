@@ -11299,7 +11299,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             List<Object> rows = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseBorrowRateHistories(rows, codes, since, limit);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

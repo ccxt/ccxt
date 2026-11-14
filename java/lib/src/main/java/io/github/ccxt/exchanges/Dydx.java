@@ -2289,7 +2289,7 @@ public class Dydx extends DydxApi
                 put( "amount", new ArrayList<Object>(Arrays.asList(feeObj)) );
                 put( "gasLimit", gasLimit );
             }};
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

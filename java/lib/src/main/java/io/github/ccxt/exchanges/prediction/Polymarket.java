@@ -3718,7 +3718,7 @@ public class Polymarket extends PolymarketApi
 
             Map<String, Object> response = (this.clobPrivateGetAuthDeriveApiKey(parameters)).join();
             return this.setApiCredentials(response);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -3738,7 +3738,7 @@ public class Polymarket extends PolymarketApi
 
             Map<String, Object> response = (this.clobPrivatePostAuthApiKey(parameters)).join();
             return this.setApiCredentials(response);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

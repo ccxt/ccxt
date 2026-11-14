@@ -1947,7 +1947,7 @@ public class Paradex extends ParadexApi
                 put( "version", 1 );
             }};
             return domain;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -2427,7 +2427,7 @@ public class Paradex extends ParadexApi
                 put( "signature_timestamp", orderReq.get("timestamp") );
             }});
             return signedRequest;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

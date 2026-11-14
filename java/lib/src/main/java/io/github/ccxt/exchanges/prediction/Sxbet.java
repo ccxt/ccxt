@@ -872,7 +872,7 @@ public class Sxbet extends SxbetApi
             Long dataEnd = (Long) this.sum(128, (length * 2L));
             String dataHex = Helpers.slice(hex, 128, dataEnd);
             return this.decode(this.base16ToBinary(dataHex));
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

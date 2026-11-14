@@ -12629,7 +12629,7 @@ public Map<String, Object> describe()
         return BaseExchange.supplyAsync(() -> {
 
             return false;  // stub
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 }

@@ -112,7 +112,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("stock", stock);
             return this.extend(query, mapLiteral1);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

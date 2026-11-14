@@ -309,7 +309,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 throw new ExchangeError((this.id + " getUtaUrl() has no private websocket url")) ;
             }
             return ((wsUrl + "?token=") + utaToken);
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

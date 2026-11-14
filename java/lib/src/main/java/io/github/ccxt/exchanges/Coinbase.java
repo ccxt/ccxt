@@ -5543,7 +5543,7 @@ public class Coinbase extends CoinbaseApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "payment_method", new HashMap<String, Object>() {{}});
             return this.parseDepositMethodId(result);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

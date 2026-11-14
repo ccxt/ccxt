@@ -9303,7 +9303,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseBorrowRateHistories(data, codes, since, limit);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

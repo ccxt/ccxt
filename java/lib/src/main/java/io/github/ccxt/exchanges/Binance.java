@@ -16985,7 +16985,7 @@ public class Binance extends BinanceApi
                 put( "currency", code );
                 put( "amount", amount );
             }};
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

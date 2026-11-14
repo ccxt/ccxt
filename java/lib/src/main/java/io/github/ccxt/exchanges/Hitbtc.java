@@ -3292,7 +3292,7 @@ public class Hitbtc extends HitbtcApi
             return new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

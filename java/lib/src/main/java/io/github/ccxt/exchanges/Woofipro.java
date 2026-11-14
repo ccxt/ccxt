@@ -3637,7 +3637,7 @@ public class Woofipro extends WoofiproApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeNumber(data, "withdraw_nonce", (Object) null);
-        }).thenApply(res -> (res instanceof Number n) ? n.doubleValue() : null);
+        });
 
     }
 

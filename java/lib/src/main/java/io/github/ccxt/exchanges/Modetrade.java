@@ -3630,7 +3630,7 @@ public class Modetrade extends ModetradeApi
             //     }
             //
             return this.safeNumber(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "withdraw_nonce", (Object) null);
-        }).thenApply(res -> (res instanceof Number n) ? n.doubleValue() : null);
+        });
 
     }
 

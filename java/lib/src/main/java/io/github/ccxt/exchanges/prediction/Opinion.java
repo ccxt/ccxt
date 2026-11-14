@@ -1921,7 +1921,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPrivatePostAuthApiKey(parameters)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.setApiCredentials(result);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -1941,7 +1941,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPrivateGetAuthApiKey(parameters)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.setApiCredentials(result);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -2009,7 +2009,7 @@ public class Opinion extends OpinionApi
                 creds = (this.createApiKey(new HashMap<String, Object>() {{}})).join();
             }
             return this.safeString(creds, "apiKey");
-        }).thenApply(res -> (String) res);
+        });
 
     }
 

@@ -2460,7 +2460,7 @@ public class Htx extends HtxApi
             //                  "market-buy-order-rate-must-less-than":  0.1        } }
             //
             return this.parseTradingLimits((Map<String, Object>) (this.safeDict(response, "data", new HashMap<String, Object>() {{}})), (String) null, new HashMap<String, Object>() {{}});
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -6598,7 +6598,7 @@ public class Htx extends HtxApi
             }
             Object paramsOmitted = this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
             return this.extend(request, paramsOmitted);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

@@ -3165,7 +3165,7 @@ public class Polymarket extends PolymarketApi
             }};
             this.options.put("proxyCredentials", credentials);
             return credentials;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -3198,7 +3198,7 @@ public class Polymarket extends PolymarketApi
                 }
             }
             return (this.createProxyCredentials(parameters)).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -3261,7 +3261,7 @@ public class Polymarket extends PolymarketApi
                 envelope.put("exp", exp);
             }
             return envelope;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

@@ -366,7 +366,7 @@ public class Binance extends BinanceApi
                 put( "marketTopicId", topicId );
             }};
             return (this.sapiPrivateGetMarketDetail(this.extend(request, parameters))).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

@@ -667,7 +667,7 @@ public class Nado extends NadoApi
                 put( "place_order", placeOrder );
             }};
             return this.extend(request, paramsOmitted);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -838,7 +838,7 @@ public class Nado extends NadoApi
                 put( "cancel_and_place", cancelAndPlace );
             }};
             return this.extend(request, paramsOmitted);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -971,7 +971,7 @@ public class Nado extends NadoApi
                 put( "cancel_product_orders", cancelProductOrders );
             }};
             return this.extend(request, paramsOmitted);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -1093,7 +1093,7 @@ public class Nado extends NadoApi
                 put( "cancel_orders", cancelOrders );
             }};
             return this.extend(request, paramsOmitted);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

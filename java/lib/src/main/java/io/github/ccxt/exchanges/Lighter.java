@@ -1238,7 +1238,7 @@ public class Lighter extends LighterApi
             mapLiteral4.put("api_key_index", apiKeyIndex);
             Map<String, Object> response = (this.publicGetNextNonce(mapLiteral4)).join();
             return this.parseToInt(this.safeInteger(response, "nonce"));
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -3885,7 +3885,7 @@ public class Lighter extends LighterApi
                 put( "tx_info", txInfo );
             }};
             return (this.publicPostSendTx(request)).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

@@ -801,7 +801,7 @@ public class Pacifica extends PacificaApi
                 this.options.put("builderFee", false); // disable builder fee if an error occurs
             }
             return true;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 
@@ -1243,7 +1243,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             return this.parseAccountSettings((List<Object>) (this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()))));
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -4265,7 +4265,7 @@ public class Pacifica extends PacificaApi
             }};
             Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAgentBind(this.extend(request, parameters))).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -4285,7 +4285,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{}};
             Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountApiKeysCreate(this.extend(request, parameters))).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -4308,7 +4308,7 @@ public class Pacifica extends PacificaApi
             }};
             Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountApiKeysRevoke(this.extend(request, parameters))).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -4328,7 +4328,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> sigPayload = new HashMap<String, Object>() {{}};
             Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountApiKeys(this.extend(request, parameters))).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -4354,7 +4354,7 @@ public class Pacifica extends PacificaApi
             }};
             Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountBuilderCodesApprove(this.extend(request, parameters))).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -4399,7 +4399,7 @@ public class Pacifica extends PacificaApi
             }};
             Map<String, Object> request = this.postActionRequest(operationType, sigPayload, (Map<String, Object>) (parameters));
             return (this.privatePostAccountBuilderCodesRevoke(this.extend(request, parameters))).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

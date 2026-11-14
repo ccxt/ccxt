@@ -2280,7 +2280,7 @@ public class Hyperliquid extends HyperliquidApi
                 this.options.put("builderFee", false); // disable builder fee if an error occurs
             }
             return true;
-        }).thenApply(res -> (Boolean) res);
+        });
 
     }
 

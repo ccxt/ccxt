@@ -509,7 +509,7 @@ public class Myriad extends MyriadApi
                 request.put("id", id);
             }
             return (this.myriadPublicGetMarketsId(this.extend(request, parameters))).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
@@ -865,7 +865,7 @@ public class Myriad extends MyriadApi
             HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
             mapLiteral4.put("action", sideStr);
             return this.parseTradeQuote((Map<String, Object>) (this.extend(response, mapLiteral4)), outcomeObj);
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

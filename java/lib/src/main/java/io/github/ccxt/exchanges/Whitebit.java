@@ -1677,7 +1677,7 @@ public class Whitebit extends WhitebitApi
                 result.put(code, mapLiteral11);
             }
             return result;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

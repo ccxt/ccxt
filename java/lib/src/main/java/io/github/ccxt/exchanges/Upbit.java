@@ -444,7 +444,7 @@ public class Upbit extends UpbitApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             return (this.fetchCurrencyById((String) (currency.get("id")), parameters)).join();
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 
