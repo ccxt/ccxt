@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
     fn market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
@@ -357,18 +357,18 @@ impl Coinbase {
             productIds = Value::from(vec![self.safe_string_k(&market, "id", &[])]);
         }
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-        let mut subscribe: Value = Value::Map({
+        let mut subscribe: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("product_ids".to_string(), productIds.clone());
                 m.insert("channel".to_string(), name.clone());
             m
-        });
+        }).into_dict();
         if isPrivate {
             let __ws_arg_0 = self.create_ws_auth(name, productIds);
-            subscribe = self.extend(subscribe, &[__ws_arg_0]);
+            subscribe = self.extend(subscribe, &[__ws_arg_0]).into_dict();
         }
-        return self.watch(url.as_deref(), &messageHash[..], subscribe, &messageHash[..], Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], &subscribe, &messageHash[..], Value::Null).await;
 
     Value::Null
 }

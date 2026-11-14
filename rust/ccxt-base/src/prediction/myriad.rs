@@ -67,7 +67,7 @@ impl crate::exchange::DerivedExchange for Myriad {
         // Forward to the inherent method on Myriad.
         Myriad::parse_prediction_position(self, position, market)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Myriad.
         Myriad::sign(self, path, &[api, method, params, headers, body])
     }
@@ -148,7 +148,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_str))),
                 "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64)).await,
                 "seed_position_balances" => self.seed_position_balances(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()).await,
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe_myriad_channel" => self.subscribe_myriad_channel(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -576,13 +576,13 @@ impl Myriad {
     m
 }));
         let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]).into_dict();
         let mut queriesLength: i64 = queries.len() as i64;
         let mut rawMarkets: Value = Value::from(vec![]);
         if queriesLength > 0 {
-            rawMarkets = self.fetch_raw_markets_by_search(Value::Arr(queries), &[rest.clone()]).await;
+            rawMarkets = self.fetch_raw_markets_by_search(Value::Arr(queries), &[Value::from(&rest)]).await;
         }  else {
-            rawMarkets = self.fetch_raw_markets_list(&[rest]).await;
+            rawMarkets = self.fetch_raw_markets_list(&[Value::Dict(rest)]).await;
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: Value = Value::Map({
@@ -658,9 +658,9 @@ impl Myriad {
                 let mut raw: crate::value::Dict = found.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut networkId: String = self.safe_string_k(&raw, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut marketId: String = self.safe_string_k(&raw, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, ":").into()), marketId).into());
-                if !(matches!(&key, Value::Str(__k) if seen.contains_key(__k.as_ref()))) {
-                    seen.insert(crate::runtime::stringify_param(&key), Value::Bool(true));
+                let mut key: String = format!("{}{}", Value::Str(format!("{}{}", networkId, ":").into()), marketId);
+                if !(seen.contains_key(key.as_str())) {
+                    seen.insert(key, Value::Bool(true));
                     rawMarkets.push(Value::Dict(raw));
                 }
             }
@@ -1363,9 +1363,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]).into_dict();
         let mut defaultModel: String = self.safe_string_k(&info, "tradingModel", &[Value::Str("amm".into())]).as_str().unwrap_or("amm").to_string();
         let mut tradingModel: Option<String> = self.safe_string_lower_k(params.clone(), "tradingModel", &[Value::from(defaultModel)]).as_str().map(str::to_owned);
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("tradingModel".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("tradingModel".into())]), &[]).into_dict();
         if (tradingModel.as_deref() == Some("ob")) {
-            return self.create_orderbook_order(outcome.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), rest.clone()]).await;
+            return self.create_orderbook_order(outcome.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), Value::from(&rest)]).await;
         }
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
@@ -1373,7 +1373,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !(enableAmm == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")));
         }
-        return self.create_amm_order(outcome.as_str().unwrap_or_default(), type_var.as_str(), side.as_str().unwrap_or_default(), amount, price.as_f64(), &[self.omit(rest, Value::from(vec![Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into())]), &[])]).await;
+        return self.create_amm_order(outcome.as_str().unwrap_or_default(), type_var.as_str(), side.as_str().unwrap_or_default(), amount, price.as_f64(), &[self.omit(&rest, Value::from(vec![Value::Str("enableAmm".into()), Value::Str("enableAmmOrders".into())]), &[])]).await;
         Value::Null
         }).await?))
     }
@@ -2674,7 +2674,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut requestedTradingModel: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("tradingModel".into()), Value::Str("trading_model".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("tradingModel".into()), Value::Str("trading_model".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("tradingModel".into()), Value::Str("trading_model".into())]), &[]).into_dict();
         let mut outcomeObj: Value = Value::Null;
         let mut outcomeSymbol: Option<String> = None;
         if (outcome != Value::Null) {
@@ -2689,9 +2689,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if (requestedTradingModel.as_deref() == Some("amm")) {
-            return self.fetch_amm_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), &[paramsOmitted.clone()]).await;
+            return self.fetch_amm_orders(outcome.as_str(), since.as_i64(), limit.as_i64(), &[Value::from(&paramsOmitted)]).await;
         }
-        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.myriad_public_get_orders(&[__ws_arg_18]).await.into_dict();
         //
         //     {
@@ -3143,9 +3143,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut state: String = self.safe_string_k(raw.clone(), "state", &[Value::Str("open".into())]).as_str().unwrap_or("open").to_string();
         let mut active: bool = state == "open";
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
-        let mut resolvedOutcomeId: Value = self.safe_string_k(raw.clone(), "resolvedOutcomeId", &[Value::Str("-1".into())]);
+        let mut resolvedOutcomeId: String = self.safe_string_k(raw.clone(), "resolvedOutcomeId", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
         let mut voided: bool = self.safe_bool_k_opt(raw.clone(), "voided", &[Value::Bool(false)]).unwrap_or(false);
-        let mut hasResolution: bool = (resolvedOutcomeId.as_str() != Some("-1")) && (resolvedOutcomeId != Value::Null) && (resolvedOutcomeId.as_str() != Some(""));
+        let mut hasResolution: bool = (resolvedOutcomeId != "-1") && (true) && (resolvedOutcomeId != "");
         let mut marketResolved: Value = Value::Bool(hasResolution || voided);
         let mut resolvedOutcome: Option<String> = None;
         let mut volume24h: Option<f64> = self.safe_number_k(raw.clone(), "volume24h", &[]).as_f64();
@@ -3193,7 +3193,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Option<i64> = None;
             if hasResolution {
-                winnerRaw = (Value::Bool(outcomeId.as_str() == resolvedOutcomeId.as_str()));
+                winnerRaw = (Value::Bool((Some(resolvedOutcomeId.as_str()) == outcomeId.as_str())));
                 settleFractionRaw = (if winnerRaw.as_bool() == Some(true) { Some(1) } else { Some(0) });
                 if winnerRaw.as_bool() == Some(true) {
                     resolvedOutcome = outcomeHandle.clone();
@@ -4162,16 +4162,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1369: bool = true;
             while { if !__for_first_1369 { i += 1; } __for_first_1369 = false; i < (rows.len() as i64) } {
-            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
-            let mut action: Option<String> = self.safe_string_k(row.clone(), "action", &[]).as_str().map(str::to_owned);
+            let mut row: Option<crate::value::Dict> = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut action: Option<String> = self.safe_string_k(&row, "action", &[]).as_str().map(str::to_owned);
             if (action.as_deref() != Some("buy")) && (action.as_deref() != Some("sell")) {
                 continue;
             }
-            let mut rowOutcomeId: Option<String> = self.safe_string_k(row.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
+            let mut rowOutcomeId: Option<String> = self.safe_string_k(&row, "outcomeId", &[]).as_str().map(str::to_owned);
             if (outcomeId.is_some()) && (rowOutcomeId != outcomeId) {
                 continue;
             }
-            trades.push(row);
+            trades.push(row.map_or(Value::Null, Value::Dict));
         }
         }
         return self.parse_prediction_trades(Value::from(trades), &[outcomeObj, since, limit]);
@@ -4371,8 +4371,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.populate_outcomes();
         // tags were already applied server-side (mapped to keyword searches); strip them before
         // the client-side pass — raw markets don't carry a matching event-level tags field
-        let mut postParams: Value = self.omit(params, Value::from(vec![Value::Str("tags".into())]), &[]);
-        return self.apply_event_fetch_params(Value::from(result), &[postParams, queries]);
+        let mut postParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("tags".into())]), &[]).into_dict();
+        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), queries]);
         Value::Null
         }).await?))
     }
@@ -5049,22 +5049,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]).into_dict();
             let mut networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "prices:", networkId).into()), ":").into()), marketId).into());
+            let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "prices:", networkId).into()), ":").into()), marketId);
             resolvedSymbols.push(self.safe_outcome_symbol(outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[outcomeObj]));
-            if !(matches!(&channel, Value::Str(__k) if seenChannels.contains_key(__k.as_ref()))) {
-                seenChannels.insert(crate::runtime::stringify_param(&channel), Value::Bool(true));
+            if !(seenChannels.contains_key(channel.as_str())) {
+                seenChannels.insert(channel.clone(), Value::Bool(true));
                 let mut requestId: i64 = self.request_id(url.as_deref());
                 let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("subscribe".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), channel.clone());
+        m.insert("channel".to_string(), Value::from(channel.clone()));
     m
 }));
                         m.insert("id".to_string(), Value::from(requestId));
                     m
                 });
-                self.watch(url.as_deref(), "tickers", Value::Map(subscribeMsg), &channel, Value::Null).await;
+                self.watch(url.as_deref(), "tickers", Value::Map(subscribeMsg), channel.as_str(), Value::Null).await;
             }
         }
         }
@@ -5468,7 +5468,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {object} params the request parameters
  * @returns {object} a dict with url, method, body and headers
  */
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("myriad".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({

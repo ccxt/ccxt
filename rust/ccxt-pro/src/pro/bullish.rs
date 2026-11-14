@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for Bullish {
     fn market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
@@ -848,11 +848,8 @@ impl Bullish {
         let mut type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_deref() == Some("update")) {
-            let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            std::sync::Arc::make_mut(&mut rawOrders).push(data); // update is a single order
+            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            std::sync::Arc::make_mut(&mut rawOrders).push(Value::Dict(data)); // update is a single order
         }  else {
             rawOrders = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list(); // snapshot is a list of orders
         }
@@ -992,11 +989,8 @@ impl Bullish {
         let mut type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawTrades: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_deref() == Some("update")) {
-            let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            std::sync::Arc::make_mut(&mut rawTrades).push(data); // update is a single trade
+            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            std::sync::Arc::make_mut(&mut rawTrades).push(Value::Dict(data)); // update is a single trade
         }  else {
             rawTrades = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list(); // snapshot is a list of trades
         }
@@ -1228,11 +1222,8 @@ impl Bullish {
         let mut messageType: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut rawPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         if (messageType.as_deref() == Some("update")) {
-            let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            std::sync::Arc::make_mut(&mut rawPositions).push(data);
+            let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+            std::sync::Arc::make_mut(&mut rawPositions).push(Value::Dict(data));
         }  else {
             rawPositions = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         }

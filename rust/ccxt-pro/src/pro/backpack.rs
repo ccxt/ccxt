@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for Backpack {
     fn market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
@@ -879,10 +879,7 @@ impl Backpack {
         //         stream: 'bookTicker.ETH_USDC'
         //     }
         //
-        let mut ticker: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut ticker: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut stream: String = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut subscriptions: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str(format!("{}{}", "marketData:", stream).into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -904,13 +901,13 @@ impl Backpack {
                 continue;
             }
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut mappedTicker: crate::value::Dict = self.extend(ticker.clone(), &[Value::Map({
+            let mut mappedTicker: crate::value::Dict = self.extend(&ticker, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("s".to_string(), Value::from((market).id.as_deref()));
                 m
             })]).into_dict();
             let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(&mappedTicker, Some(&market)).into_dict();
-            std::sync::Arc::make_mut(&mut parsedTicker).insert("info".into(), ticker.clone());
+            std::sync::Arc::make_mut(&mut parsedTicker).insert("info".into(), Value::from(&ticker));
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
             client.resolve(Value::Dict(parsedTicker), messageHash.as_deref());
         }
@@ -918,10 +915,10 @@ impl Backpack {
         if hashesLength > ((0i64) as f64) {
             return;
         }
-        let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "s", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&ticker, "s", &[]).as_str().map(str::to_owned);
         let mut fallbackMarket: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut fallbackSymbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&fallbackMarket), &[]).as_str().map(str::to_owned);
-        let mut fallbackTicker: crate::value::Dict = self.parse_ws_ticker(ticker, Some(&fallbackMarket)).into_dict();
+        let mut fallbackTicker: crate::value::Dict = self.parse_ws_ticker(&ticker, Some(&fallbackMarket)).into_dict();
         let mut fallbackHash: String = format!("{}{}", Value::Str(format!("{}{}", "ticker", ":").into()), fallbackSymbol.as_deref().unwrap_or("null"));
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(fallbackSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&fallbackTicker)); }
         client.resolve(Value::Dict(fallbackTicker), fallbackHash.as_str());
@@ -2232,9 +2229,9 @@ impl Backpack {
                 if (code.is_none()) {
                     continue;
                 }
-                let mut account: Value = self.safe_dict(&balances, Value::from(code.as_deref()), &[]);
-                if (account != Value::Null) {
-                    result.insert(code.as_deref().unwrap_or("null").to_string(), account);
+                let mut account: Option<crate::value::Dict> = self.safe_dict(&balances, Value::from(code.as_deref()), &[]).into_opt_dict();
+                if (account.is_some()) {
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), account.map_or(Value::Null, Value::Dict));
                 }
             }
             }

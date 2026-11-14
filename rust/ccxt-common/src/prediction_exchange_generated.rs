@@ -242,9 +242,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_189: bool = true;
             while { if !__for_first_189 { i += 1; } __for_first_189 = false; i < (events.len() as i64) } {
             let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
-            let mut isActive: Value = self.safe_bool_k(event.clone(), "active", &[]);
+            let mut isActive: Option<bool> = self.safe_bool_k(event.clone(), "active", &[]).as_bool();
             // keep events whose status is unknown (already filtered server-side, no `active` field)
-            if (isActive == Value::Null) || (isActive.as_bool() == wantActive.as_bool()) {
+            if (isActive.is_none()) || ((isActive == wantActive.as_bool())) {
                 result.push(event);
             }
         }
@@ -2043,9 +2043,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         lastTradeTimestamp = tradeTimestamp;
                     }
                 }
-                let mut tradeFee: Value = self.safe_dict_k(trade, "fee", &[]);
-                if (tradeFee != Value::Null) {
-                    feeList.push(tradeFee);
+                let mut tradeFee: Option<crate::value::Dict> = self.safe_dict_k(trade, "fee", &[]).into_opt_dict();
+                if (tradeFee.is_some()) {
+                    feeList.push(tradeFee.map_or(Value::Null, Value::Dict));
                 }
             }
             }

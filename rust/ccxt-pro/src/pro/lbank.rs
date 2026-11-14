@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for Lbank {
     fn market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
@@ -1614,14 +1614,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut client: Value = self.client(&[url]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut now: i64 = self.milliseconds();
-        let mut messageHash: Value = Value::Str("authenticateFlight".into());
-        if (__ch.has_future(&messageHash)) {
+        let mut messageHash: String = "authenticateFlight".to_string();
+        if (__ch.has_future(messageHash.as_str())) {
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
-            crate::exchange_stubs::ws_await_flight(&client.future(messageHash.clone())).await;
+            crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
             return self.safe_string(self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]), Value::Str("key".into()), &[]);
         }
-        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.clone());
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut authenticated: Option<crate::value::Dict> = self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]).into_opt_dict();
             if (authenticated.is_none()) {
@@ -1662,12 +1662,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // settle the flight through the client so that every write to the
             // futures map happens inside the base class
             let __ws_arg_1 = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("authenticated".into()), &[]);
-            client.resolve(self.safe_string_k(__ws_arg_1, "key", &[]), &messageHash);
+            client.resolve(self.safe_string_k(__ws_arg_1, "key", &[]), messageHash.as_str());
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // reject the flight - all waiters throw and the next caller
             // re-leads instead of deadlocking on a dead flight
-            client.reject(e, &messageHash);
+            client.reject(e, messageHash.as_str());
         }
         // rethrows a rejected flight to the leader and attaches the handler
         // that keeps an alone leader from crashing on an unhandled rejection

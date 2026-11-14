@@ -1132,11 +1132,12 @@ pub trait ExchangeBase:
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableDemoTrading".into(), enable); }
 }
 
-    fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
         // virtual-dispatch (static: DerivedExchange::sign(self, ...))
         { let __v = crate::exchange::DerivedExchange::sign(self, path, crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3, crate::Value::Null),
             crate::runtime::get_arg(optional_args, 4, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -4381,17 +4382,17 @@ pub trait ExchangeBase:
     fn fetch_web_endpoint(&mut self, mut method: Value, mut endpointMethod: Value, mut returnAsJson: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let mut startRegex = get_arg(optional_args, 0, Value::Null);
         let mut endRegex = get_arg(optional_args, 1, Value::Null);
-        let mut options: Value = self.safe_value(self.options.clone(), method, &[Value::Map({
+        let mut options: crate::value::Dict = self.safe_value(self.options.clone(), method, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut muteOnFailure: bool = self.safe_bool_k(options.clone(), "webApiMuteFailure", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        })]).into_dict();
+        let mut muteOnFailure: bool = self.safe_bool_k(&options, "webApiMuteFailure", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         {
             // if it was not explicitly disabled, then don't fetch
-            if !matches!(self.safe_bool_k(options.clone(), "webApiEnable", &[Value::Bool(true)]), Value::Bool(true)) {
+            if !matches!(self.safe_bool_k(&options, "webApiEnable", &[Value::Bool(true)]), Value::Bool(true)) {
                 return Value::Null;
             }
-            let mut maxRetries: Value = self.safe_integer_k(options, "webApiRetries", &[Value::Int(10)]);
+            let mut maxRetries: Value = self.safe_integer_k(&options, "webApiRetries", &[Value::Int(10)]);
             let mut response: Value = Value::Null;
             let mut shouldBreak: bool = false;
             {
@@ -4635,8 +4636,8 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_115: bool = true;
             while { if !__for_first_115 { i += 1; } __for_first_115 = false; (i as f64) < get_array_length(&objects).as_f64().unwrap_or(f64::NAN) } {
-            let mut objectValue: Option<String> = self.safe_string_opt(get_value(&objects, &Value::Int(i)), key.clone(), &[]);
-            if (objectValue.as_deref() == value.as_str()) {
+            let mut objectValue: Option<String> = self.safe_string(get_value(&objects, &Value::Int(i)), key.clone(), &[]).as_str().map(str::to_owned);
+            if ((objectValue.as_deref() == value.as_str())) {
                 result.push(get_value(&objects, &Value::Int(i)));
             }
         }
@@ -5878,7 +5879,7 @@ pub trait ExchangeBase:
             }
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.set_last_rest_request_timestamp();
-                let mut request: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.clone(), &[api.clone(), method.clone(), Value::from(&paramsMaxRetriesOnFailureDelay)]).as_map().cloned().unwrap_or_default();
+                let mut request: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::sign(self, path.as_str().unwrap_or_default(), &[api.clone(), method.clone(), Value::from(&paramsMaxRetriesOnFailureDelay)]).as_map().cloned().unwrap_or_default();
                 if (fetchData != Value::Null) {
                     if let Value::Dict(__d) = &mut fetchData { std::sync::Arc::make_mut(__d).insert("request".into(), Value::Map(request.clone())); }
                 }
@@ -6622,8 +6623,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut paramsOption1: crate::value::Dict = valueparamsOption1Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (value != Value::Null) {
             // omit optionName2 too from params
-            let mut paramsOmitted: Value = self.omit(&paramsOption1, optionName2.clone(), &[]);
-            return Value::from(vec![value, paramsOmitted]);
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOption1, optionName2.clone(), &[]).into_dict();
+            return Value::from(vec![value, Value::Dict(paramsOmitted)]);
         }
         return self.handle_option_and_params(&paramsOption1, methodName1, optionName2, &[defaultValue]);
 
@@ -9394,13 +9395,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         // pagination always walks forward internally, so strip it here to avoid leaking an
         // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
-        let mut paramsOmitted: Value = self.omit(&paramsMaxEntriesPerRequest, Value::Str("paginationDirection".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMaxEntriesPerRequest, Value::Str("paginationDirection".into()), &[]).into_dict();
         let mut current: Value = Value::Int(self.milliseconds());
         let mut tasks: Vec<Value> = Vec::new();
         let mut time: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
         let mut maxEntriesPerRequestValue: Value = self.require_value(maxEntriesPerRequestOption, &[Value::Str("fetchPaginatedCallDeterministic() maxEntriesPerRequest is required".into())]);
         let mut step: Value = (match (&(Value::from(time)), &(Value::from(self.parse_to_int(maxEntriesPerRequestValue.clone())))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut until: Value = self.safe_integer2(paramsOmitted.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]); // do not omit it here
+        let mut until: Value = self.safe_integer2(&paramsOmitted, Value::Str("until".into()), Value::Str("till".into()), &[]); // do not omit it here
         let mut currentSince: Value = (match (&((match (&(current), &(((match (&(maxCallsLimit), &(step)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
             _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x),
             Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
@@ -9438,7 +9439,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if currentSince.as_f64().unwrap_or(f64::NAN) >= current.as_f64().unwrap_or(f64::NAN) {
                 break;
             }
-            tasks.push(self.safe_deterministic_call(method.clone(), &[symbol.clone(), currentSince.clone(), maxEntriesPerRequestValue.clone(), timeframe.clone(), paramsOmitted.clone()]).await);
+            tasks.push(self.safe_deterministic_call(method.clone(), &[symbol.clone(), currentSince.clone(), maxEntriesPerRequestValue.clone(), timeframe.clone(), Value::from(&paramsOmitted)]).await);
             // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
             currentSince = (match (&(self.sum(&[currentSince.clone(), step.clone()])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
@@ -13729,7 +13730,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
             "set_take_profit_and_stop_loss_params" => self.set_take_profit_and_stop_loss_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-            "sign" => <Self as crate::exchange_generated::ExchangeBase>::sign(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "sign" => <Self as crate::exchange_generated::ExchangeBase>::sign(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
             "sign_in" => self.sign_in(&args[..]).await,
             "sort_cursor_paginated_result" => self.sort_cursor_paginated_result(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "string_to_base16" => self.string_to_base16(args.get(0).cloned().unwrap_or(crate::Value::Null)),

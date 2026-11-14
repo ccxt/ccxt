@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for Lighter {
     fn market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
@@ -1788,14 +1788,11 @@ impl Lighter {
             }
             }
         }  else {
-            let mut stats: Value = (match __pro_message.get("stats").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+            let mut stats: crate::value::Dict = __pro_message.get("stats").cloned().unwrap_or_default().into_dict();
             let mut account: crate::value::Dict = self.account().into_dict();
-            std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(stats.clone(), "available_balance", &[]));
-            std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(stats.clone(), "collateral", &[]));
-            std::sync::Arc::make_mut(&mut account).insert("info".into(), stats);
+            std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&stats, "available_balance", &[]));
+            std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&stats, "collateral", &[]));
+            std::sync::Arc::make_mut(&mut account).insert("info".into(), Value::Dict(stats));
             balance.insert("USDC".into(), Value::Dict(account));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();

@@ -116,7 +116,7 @@ impl crate::exchange::DerivedExchange for Delta {
         // Forward to the inherent method on Delta.
         Delta::create_expired_option_market(self, symbol)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Delta.
         Delta::sign(self, path, &[api, method, params, headers, body])
     }
@@ -197,7 +197,7 @@ impl crate::exchange_generated::ExchangeBase for Delta {
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -1231,15 +1231,15 @@ impl Delta {
             let mut __for_first_614: bool = true;
             while { if !__for_first_614 { i += 1; } __for_first_614 = false; i < (keys.len() as i64) } {
             let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut item: Value = self.safe_dict(input.clone(), key.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut item: crate::value::Dict = self.safe_dict(input.clone(), key.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut numericIdString: Option<String> = self.safe_string_k(item.clone(), "numericId", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut numericIdString: Option<String> = self.safe_string_k(&item, "numericId", &[]).as_str().map(str::to_owned);
             if (numericIdString.is_none()) {
                 continue;
             }
-            result.insert(numericIdString.as_deref().unwrap_or("null").to_string(), item);
+            result.insert(numericIdString.as_deref().unwrap_or("null").to_string(), Value::Dict(item));
         }
         }
         return Value::Map(result);
@@ -5404,7 +5404,8 @@ impl Delta {
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({

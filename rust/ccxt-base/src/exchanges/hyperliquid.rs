@@ -116,7 +116,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         // Forward to the inherent method on Hyperliquid.
         crate::types::IntoRaw::into_raw(Hyperliquid::market(self, symbol.as_str().unwrap_or_default()))
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Hyperliquid.
         Hyperliquid::sign(self, path, &[api, method, params, headers, body])
     }
@@ -233,7 +233,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "set_ref" => self.set_ref().await,
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "set_user_abstraction" => self.set_user_abstraction(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_l1_action" => self.sign_l1_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str), args.get(3).and_then(crate::Value::as_i64)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default()),
@@ -1287,11 +1287,11 @@ impl Hyperliquid {
         let mut priceSplitted: crate::value::List = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut maxDecimalsInt: i64 = self.parse_to_int(maxDecimals).unwrap_or_default();
         let mut amountPrecisionInt: i64 = self.parse_to_int(amountPrecision).unwrap_or_default();
-        let mut decimalsLeft: Value = Value::Int((maxDecimalsInt - amountPrecisionInt));
+        let mut decimalsLeft: i64 = (maxDecimalsInt - amountPrecisionInt);
         if crate::precise::Precise::stringEq(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = crate::runtime::Math::min(&decimalsLeft, &Value::Int(5));
+            pricePrecision = Value::Int(i64::min(decimalsLeft, 5));
         }  else if crate::precise::Precise::stringGt(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringLt(&priceStr, &Value::Str("1".into())).as_bool() == Some(true) {
             // Significant digits, always 5 in this case
             let mut significantDigits: i64 = 5;
@@ -1305,17 +1305,17 @@ impl Hyperliquid {
             // Calculate price precision based on leading zeros and significant digits
             pricePrecision = (match (&(leadingZeros), &(Value::from(significantDigits))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = crate::runtime::Math::min(&decimalsLeft, &pricePrecision);
+            pricePrecision = crate::runtime::Math::min(&Value::from(decimalsLeft), &pricePrecision);
         }  else {
             // Count the numbers before the decimal separator
             let mut integerPart: String = self.safe_string(&priceSplitted, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // Get significant digits, take the max() of 5 and the integer digits count
             // significantDigits - integerPart.length, with significantDigits = max (5, integerPart.length)
-            let mut digitsLeft: Value = Value::Int(0);
+            let mut digitsLeft: i64 = 0;
             if ((integerPart.chars().count() as i64)) <= 5 {
-                digitsLeft = Value::Int((5 - ((integerPart.chars().count() as i64))));
+                digitsLeft = (5 - ((integerPart.chars().count() as i64)));
             }
-            pricePrecision = crate::runtime::Math::min(&decimalsLeft, &digitsLeft);
+            pricePrecision = Value::Int(i64::min(decimalsLeft, digitsLeft));
         }
         return Value::from(self.parse_to_int(pricePrecision));
 
@@ -1402,13 +1402,13 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_805: bool = true;
             while { if !__for_first_805 { i += 1; } __for_first_805 = false; i < (tokens.len() as i64) } {
-            let mut token: Value = self.safe_dict(&tokens, Value::Int(i), &[Value::Map({
+            let mut token: crate::value::Dict = self.safe_dict(&tokens, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut tokenIndex: Option<String> = self.safe_string_k(token.clone(), "index", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut tokenIndex: Option<String> = self.safe_string_k(&token, "index", &[]).as_str().map(str::to_owned);
             if (tokenIndex.is_some()) {
-                tokensByIndex.insert(tokenIndex.as_deref().unwrap_or("null").to_string(), token);
+                tokensByIndex.insert(tokenIndex.as_deref().unwrap_or("null").to_string(), Value::Dict(token));
             }
         }
         }
@@ -1748,10 +1748,10 @@ impl Hyperliquid {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let isUnifiedEnabledparamsValueVariable: Vec<Value> = self.is_unified_enabled("fetchBalance", userAddress.as_deref(), &[shouldRefresh, Value::Dict(paramsMarginMode)]).await.as_array().cloned().unwrap_or_default();
-        let mut isUnifiedEnabled: Value = isUnifiedEnabledparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isUnifiedEnabled: bool = isUnifiedEnabledparamsValueVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsValue: crate::value::Dict = isUnifiedEnabledparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut dex: Option<String> = self.safe_string_k(&paramsValue, "dex", &[]).as_str().map(str::to_owned);
-        let mut isSpot: bool = ((type_var.as_deref() == Some("spot")) || (isUnifiedEnabled.as_bool() == Some(true))) && (dex.is_none());
+        let mut isSpot: bool = ((type_var.as_deref() == Some("spot")) || (isUnifiedEnabled)) && (dex.is_none());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), (if (isSpot) { Value::Str("spotClearinghouseState".into()) } else { Value::Str("clearinghouseState".into()) }));
@@ -5381,17 +5381,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_824: bool = true;
                 while { if !__for_first_824 { i += 1; } __for_first_824 = false; i < (response.len() as i64) } {
-                let mut fill: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
-                let mut liquidation: crate::value::Dict = self.safe_dict_k(fill.clone(), "liquidation", &[Value::Map({
+                let mut fill: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
+                let mut liquidation: crate::value::Dict = self.safe_dict_k(&fill, "liquidation", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 // liquidator fills carry the liquidated counterparty here
                 if (self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str() == user.as_deref()) {
-                    fills.push(fill);
+                    fills.push(Value::Dict(fill));
                 }
             }
             }
@@ -7103,16 +7103,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_829: bool = true;
             while { if !__for_first_829 { i += 1; } __for_first_829 = false; i < (data.len() as i64) } {
-            let mut record: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut record: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut delta: indexmap::IndexMap<String, Value> = self.safe_dict_k(record.clone(), "delta", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-            if let Value::Dict(__d) = &mut record { std::sync::Arc::make_mut(__d).insert("type".into(), delta.get("type").cloned().unwrap_or(Value::Null)); }
-            records.push(record);
+})]).into_dict();
+            let mut delta: indexmap::IndexMap<String, Value> = self.safe_dict_k(&record, "delta", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).as_map().cloned().unwrap_or_default();
+            std::sync::Arc::make_mut(&mut record).insert("type".into(), delta.get("type").cloned().unwrap_or(Value::Null));
+            records.push(Value::Dict(record));
         }
         }
         return Value::from(records);
@@ -7245,7 +7245,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({

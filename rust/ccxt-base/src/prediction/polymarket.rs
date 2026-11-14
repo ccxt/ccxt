@@ -75,7 +75,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         // Forward to the inherent method on Polymarket.
         Polymarket::parse_prediction_position(self, position, market)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Polymarket.
         Polymarket::sign(self, path, &[api, method, params, headers, body])
     }
@@ -146,7 +146,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "polymarket_order_raw_amounts" => self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_str), args.get(4).and_then(crate::Value::as_f64)),
                 "set_api_credentials" => self.set_api_credentials(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default()),
                 "subscribe_user_channel" => self.subscribe_user_channel(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]).await,
@@ -1085,13 +1085,13 @@ impl Polymarket {
     m
 }));
         let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
-        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into())]), &[]).into_dict();
         let mut queriesLength: i64 = queries.len() as i64;
         let mut rawEvents: Value = Value::from(vec![]);
         if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(Value::Arr(queries), &[rest.clone()]).await;
+            rawEvents = self.fetch_raw_events_by_search(Value::Arr(queries), &[Value::from(&rest)]).await;
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[rest]).await;
+            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await;
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: Value = Value::Map({
@@ -3991,7 +3991,7 @@ impl Polymarket {
         let mut requestedEventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
         let mut requestedSlug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("eventId".into()), Value::Str("slug".into())]), &[]);
+        let mut rest: crate::value::Dict = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("eventId".into()), Value::Str("slug".into())]), &[]).into_dict();
         if (queries == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
@@ -4012,9 +4012,9 @@ impl Polymarket {
             let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
             rawEvents = (if (responseIsArray) { response } else { Value::from(vec![]) });
         }  else if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[rest.clone()]).await;
+            rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[Value::from(&rest)]).await;
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[rest]).await;
+            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await;
         }
         // Parse and merge into class-level caches
         if (self.exchange.events.clone() == Value::Null) {
@@ -4335,7 +4335,8 @@ impl Polymarket {
  * @param {object} params the request parameters
  * @returns {object} a dict with url, method, body and headers
  */
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("gamma".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -4413,8 +4414,8 @@ impl Polymarket {
             // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
             // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
             // would corrupt the literal to 'auth/derive-$api-key' and break this check
-            let mut deriveApiKeyPath: Value = Value::Str(format!("{}{}", "auth/derive-", "api-key").into());
-            let mut isL1Auth: bool = (path.as_str() == Some("auth/api-key")) || (path.as_str() == deriveApiKeyPath.as_str()) || (path.as_str() == Some("auth/api-keys"));
+            let mut deriveApiKeyPath: String = format!("{}{}", "auth/derive-", "api-key");
+            let mut isL1Auth: bool = (path.as_str() == Some("auth/api-key")) || (path.as_str().unwrap_or_default().to_string() == deriveApiKeyPath) || (path.as_str() == Some("auth/api-keys"));
             if isL1Auth {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if (self.privateKey.clone() == Value::Null) {

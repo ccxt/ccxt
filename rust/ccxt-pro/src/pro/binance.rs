@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for Binance {
     fn market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
@@ -2058,9 +2058,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 subscribeHashes.push(Value::Str(format!("{}{}", "trade::", symbol).into()));
                 let mut baseIdLower: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut quoteIdLower: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut underlying: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, "").into()), quoteIdLower).into());
-                if !(matches!(&underlying, Value::Str(__k) if seenUnderlyings.contains_key(__k.as_ref()))) {
-                    seenUnderlyings.insert(crate::runtime::stringify_param(&underlying), Value::Bool(true));
+                let mut underlying: String = format!("{}{}", Value::Str(format!("{}{}", baseIdLower, "").into()), quoteIdLower);
+                if !(seenUnderlyings.contains_key(underlying.as_str())) {
+                    seenUnderlyings.insert(underlying.clone(), Value::Bool(true));
                     subParams.push(Value::Str(format!("{}{}", underlying, "@optionTrade").into()));
                 }
             }
@@ -2178,9 +2178,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", "unsubscribe:trade:", symbol).into())); };
                 let mut baseIdLower: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut quoteIdLower: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut underlying: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, "").into()), quoteIdLower).into());
-                if !(matches!(&underlying, Value::Str(__k) if seenUnderlyings.contains_key(__k.as_ref()))) {
-                    seenUnderlyings.insert(crate::runtime::stringify_param(&underlying), Value::Bool(true));
+                let mut underlying: String = format!("{}{}", Value::Str(format!("{}{}", baseIdLower, "").into()), quoteIdLower);
+                if !(seenUnderlyings.contains_key(underlying.as_str())) {
+                    seenUnderlyings.insert(underlying.clone(), Value::Bool(true));
                     subParams.push(Value::Str(format!("{}{}", underlying, "@optionTrade").into()));
                 }
             }
@@ -3632,10 +3632,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                     let mut baseIdLower: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     let mut quoteIdLower: String = self.safe_string_lower_k(&market, "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     let mut underlying: String = format!("{}{}", Value::Str(format!("{}{}", baseIdLower, "").into()), quoteIdLower);
-                    let mut subscriptionArg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", underlying, "@optionTicker@").into()), expiryDate).into());
-                    if !(matches!(&subscriptionArg, Value::Str(__k) if seenUnderlyings.contains_key(__k.as_ref()))) {
-                        seenUnderlyings.insert(crate::runtime::stringify_param(&subscriptionArg), Value::Bool(true));
-                        subscriptionArgs.push(subscriptionArg.clone());
+                    let mut subscriptionArg: String = format!("{}{}", Value::Str(format!("{}{}", underlying, "@optionTicker@").into()), expiryDate);
+                    if !(seenUnderlyings.contains_key(subscriptionArg.as_str())) {
+                        seenUnderlyings.insert(subscriptionArg.clone(), Value::Bool(true));
+                        subscriptionArgs.push(Value::from(subscriptionArg));
                     }
                 }  else {
                     subscriptionArgs.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&market, "lowercaseId", &[Value::Str("".into())]), Value::Str("@".into())).into()), channel).into()), suffix).into()));
@@ -4113,8 +4113,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut subscriptions: Value = (client).subscriptions.clone();
         let mut subscriptionsKeys: Value = object_keys(&subscriptions);
-        let mut accountType: Value = self.get_account_type_from_subscriptions(subscriptionsKeys).map(Value::from).unwrap_or(Value::Null);
-        if (accountType.as_str() == marketType.as_str()) {
+        let mut accountType: Option<String> = self.get_account_type_from_subscriptions(subscriptionsKeys);
+        if ((accountType.as_deref() == marketType.as_str())) {
             return Value::Null;
         }
         // the subscriptions flag is raised before the subscribe request is confirmed,
@@ -5466,11 +5466,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut result: Value = (match message.get("result") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut order: crate::value::Dict = self.parse_order(result, None).into_dict();
+        let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
+        let mut order: crate::value::Dict = self.parse_order(Value::Dict(result), None).into_dict();
         client.resolve(Value::Dict(order), messageHash.as_deref());
 }
 

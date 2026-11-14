@@ -84,7 +84,7 @@ impl crate::exchange::DerivedExchange for Gemini {
         // Forward to the inherent method on Gemini.
         Gemini::parse_transaction(self, transaction, currency)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Gemini.
         #[allow(invalid_reference_casting)]
         let me = unsafe { &mut *(self as *const Gemini as *mut Gemini) };
@@ -142,7 +142,7 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
                 "parse_ticker" => self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -1868,16 +1868,16 @@ impl Gemini {
         let mut tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[params]).await.into_dict();
         let tickerAtickerBVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tickerPromiseA), Value::Dict(tickerPromiseB)])).await.as_array().cloned().unwrap_or_default();
         let mut tickerA: Value = tickerAtickerBVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut tickerB: Value = tickerAtickerBVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut tickerB: crate::value::Dict = tickerAtickerBVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         return self.deep_extend(tickerA, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("open".to_string(), self.safe_string_k(tickerB.clone(), "open", &[]));
-        m.insert("high".to_string(), self.safe_string_k(tickerB.clone(), "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(tickerB.clone(), "low", &[]));
-        m.insert("change".to_string(), self.safe_string_k(tickerB.clone(), "change", &[]));
-        m.insert("percentage".to_string(), self.safe_string_k(tickerB.clone(), "percentage", &[]));
-        m.insert("average".to_string(), self.safe_string_k(tickerB.clone(), "average", &[]));
-        m.insert("info".to_string(), self.safe_dict_k(tickerB, "info", &[]));
+        m.insert("open".to_string(), self.safe_string_k(&tickerB, "open", &[]));
+        m.insert("high".to_string(), self.safe_string_k(&tickerB, "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(&tickerB, "low", &[]));
+        m.insert("change".to_string(), self.safe_string_k(&tickerB, "change", &[]));
+        m.insert("percentage".to_string(), self.safe_string_k(&tickerB, "percentage", &[]));
+        m.insert("average".to_string(), self.safe_string_k(&tickerB, "average", &[]));
+        m.insert("info".to_string(), self.safe_dict_k(&tickerB, "info", &[]));
     m
 })]);
 
@@ -3080,7 +3080,8 @@ impl Gemini {
         }).await?))
     }
 
-    pub fn sign(&mut self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({

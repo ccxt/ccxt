@@ -96,7 +96,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         // Forward to the inherent method on Deepcoin.
         Deepcoin::parse_transaction(self, transaction, currency)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Deepcoin.
         Deepcoin::sign(self, path, &[api, method, params, headers, body])
     }
@@ -170,7 +170,7 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "set_markets" => self.set_markets(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -2356,18 +2356,18 @@ impl Deepcoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut transfer: Value = self.parse_transfer(&data, Some(&currency));
+        let mut transfer: crate::value::Dict = self.parse_transfer(&data, Some(&currency)).into_dict();
         let mut transferOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "transfer", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fillResponseFromRequest {
-            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }
-            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("toAccount".into(), toAccount); }
-            if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
+            std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);
+            std::sync::Arc::make_mut(&mut transfer).insert("toAccount".into(), toAccount);
+            std::sync::Arc::make_mut(&mut transfer).insert("amount".into(), amount);
         }
-        return transfer;
+        return Value::Dict(transfer);
         Value::Null
         }).await?))
     }
@@ -2759,12 +2759,12 @@ impl Deepcoin {
             typePostOnly = Value::Str("post_only".into());
         }
         let mut timeInForce: Option<String> = self.handle_time_in_force(&[Value::from(&paramsPostOnly)]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(&paramsPostOnly, Value::Str("timeInForce".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPostOnly, Value::Str("timeInForce".into()), &[]).into_dict();
         let mut typeValue: Value = typePostOnly;
         if (timeInForce.as_deref() == Some("IOC")) {
             typeValue = Value::Str("ioc".into());
         }
-        return Value::from(vec![typeValue, paramsOmitted]);
+        return Value::from(vec![typeValue, Value::Dict(paramsOmitted)]);
 
     Value::Null
 }
@@ -4511,7 +4511,8 @@ impl Deepcoin {
         }).await?))
     }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({
@@ -4521,11 +4522,11 @@ impl Deepcoin {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut requestPath: Value = path.clone();
+        let mut requestPath: String = path.as_str().unwrap_or_default().to_string();
         if (method.as_str() == Some("GET")) {
             let mut query: String = self.urlencode(params.clone(), &[]);
             if ((query.chars().count() as i64)) > 0 {
-                requestPath = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, "?").into()), query).into());
+                requestPath = format!("{}{}", Value::Str(format!("{}{}", path, "?").into()), query);
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);

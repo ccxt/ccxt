@@ -71,7 +71,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         // Forward to the inherent method on Hyperliquid.
         Hyperliquid::parse_prediction_position(self, position, market)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Hyperliquid.
         Hyperliquid::sign(self, path, &[api, method, params, headers, body])
     }
@@ -130,7 +130,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "price_to_precision" => crate::Value::from(self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "resolve_outcome_input" => self.resolve_outcome_input(args.get(0).and_then(crate::Value::as_str).unwrap_or_default()),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_l1_action" => self.sign_l1_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_str)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_str).unwrap_or_default()),
@@ -679,16 +679,16 @@ impl Hyperliquid {
                         let mut qi: i64 = 0;
             let mut __for_first_1232: bool = true;
             while { if !__for_first_1232 { qi += 1; } __for_first_1232 = false; qi < (questionsList.len() as i64) } {
-            let mut question: Value = self.safe_dict(&questionsList, Value::Int(qi), &[Value::Map({
+            let mut question: crate::value::Dict = self.safe_dict(&questionsList, Value::Int(qi), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut fallbackOutcome: Value = self.safe_integer_k(question.clone(), "fallbackOutcome", &[]);
+})]).into_dict();
+            let mut fallbackOutcome: Value = self.safe_integer_k(&question, "fallbackOutcome", &[]);
             if (fallbackOutcome != Value::Null) {
                 let mut fallbackKey: Value = Value::Str(format!("{}", fallbackOutcome).into());
-                outcomesToQuestions.insert(crate::runtime::stringify_param(&fallbackKey), question.clone());
+                outcomesToQuestions.insert(crate::runtime::stringify_param(&fallbackKey), Value::from(&question));
             }
-            let mut namedOutcomes: crate::value::List = self.safe_list_k(question.clone(), "namedOutcomes", &[Value::from(vec![])]).into_list();
+            let mut namedOutcomes: crate::value::List = self.safe_list_k(&question, "namedOutcomes", &[Value::from(vec![])]).into_list();
             {
                                 let mut ni: i64 = 0;
                 let mut __for_first_1231: bool = true;
@@ -696,7 +696,7 @@ impl Hyperliquid {
                 let mut namedOutcomeId: Value = self.safe_integer(&namedOutcomes, Value::Int(ni), &[]);
                 if (namedOutcomeId != Value::Null) {
                     let mut namedKey: Value = Value::Str(format!("{}", namedOutcomeId).into());
-                    outcomesToQuestions.insert(crate::runtime::stringify_param(&namedKey), question.clone());
+                    outcomesToQuestions.insert(crate::runtime::stringify_param(&namedKey), Value::from(&question));
                 }
             }
             }
@@ -2449,8 +2449,8 @@ impl Hyperliquid {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "timestamp", &[]).as_i64();
         let mut tifRaw: Option<String> = self.safe_string_k(&entry, "tif", &[]).as_str().map(str::to_owned);
-        let mut tif: Value = self.parse_time_in_force(tifRaw.as_deref()).map(Value::from).unwrap_or(Value::Null);
-        let mut postOnly: Value = (Value::Bool(tif.as_str() == Some("PO")));
+        let mut tif: Option<String> = self.parse_time_in_force(tifRaw.as_deref());
+        let mut postOnly: bool = tif.as_deref() == Some("PO");
         let mut isTrigger: bool = self.safe_bool_k(&entry, "isTrigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut triggerPrice: Option<f64> = (if isTrigger { self.safe_number_k(&entry, "triggerPx", &[]).as_f64() } else { None });
         return self.safe_prediction_order(Value::Map({
@@ -2467,8 +2467,8 @@ impl Hyperliquid {
         m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
         m.insert("type".to_string(), self.parse_order_type((self.safe_string_k(&entry, "orderType", &[Value::Str("limit".into())])).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), tif);
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("timeInForce".to_string(), tif.map(Value::from).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), Value::Bool(postOnly));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&entry, "reduceOnly", &[Value::Bool(false)]));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), self.safe_number_k(&entry, "limitPx", &[]));
@@ -3259,7 +3259,8 @@ if _try_result.is_err() {
         return normalized.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null).as_str().map(str::to_owned);
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("POST".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({

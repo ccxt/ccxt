@@ -88,7 +88,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         // Forward to the inherent method on Polymarket.
         Polymarket::parse_leverage(self, leverage, market)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Polymarket.
         Polymarket::sign(self, path, &[api, method, params, headers, body])
     }
@@ -166,7 +166,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_hash" => self.sign_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_perps_op" => self.sign_perps_op(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
@@ -2150,18 +2150,18 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1107: bool = true;
             while { if !__for_first_1107 { i += 1; } __for_first_1107 = false; i < (response.len() as i64) } {
-            let mut ack: Value = self.safe_dict(&response, Value::Int(i), &[Value::Map({
+            let mut ack: crate::value::Dict = self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut marketInner: Value = ordersMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut echo: crate::value::Dict = self.safe_dict(&ordersEntries, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut status: Option<String> = self.safe_string_k(ack.clone(), "status", &[]).as_str().map(str::to_owned);
-            let __ws_arg_4 = self.safe_integer_k(ack.clone(), "oid", &[]);
-            let __ws_arg_5 = self.safe_string2(ack.clone(), Value::Str("coid".into()), Value::Str("c".into()), &[]);
+            let mut status: Option<String> = self.safe_string_k(&ack, "status", &[]).as_str().map(str::to_owned);
+            let __ws_arg_4 = self.safe_integer_k(&ack, "oid", &[]);
+            let __ws_arg_5 = self.safe_string2(&ack, Value::Str("coid".into()), Value::Str("c".into()), &[]);
             let mut merged: crate::value::Dict = self.extend(echo, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("oid".to_string(), __ws_arg_4);
@@ -2174,7 +2174,7 @@ impl Polymarket {
                 std::sync::Arc::make_mut(&mut merged).insert("status".into(), Value::Null);
             }
             let mut parsed: crate::value::Dict = self.parse_order(&merged, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketInner).as_ref()).into_dict();
-            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), ack);
+            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), Value::Dict(ack));
             results.push(Value::Dict(parsed));
         }
         }
@@ -2244,7 +2244,7 @@ impl Polymarket {
                 clientOrderIds = Value::from(vec![clientOrderId.map(Value::from).unwrap_or(Value::Null)]);
             }
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOrderId".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOrderId".into())]), &[]).into_dict();
         let mut signable: Value = Value::Null;
         let mut bodyOp: Value = Value::Null;
         let mut response: Value = Value::Null;
@@ -2256,7 +2256,7 @@ impl Polymarket {
                     m.insert("args".to_string(), clientOrderIds);
                 m
             });
-            let mut signed: crate::value::Dict = self.sign_perps_op(signable.clone(), bodyOp.clone(), &[paramsOmitted.clone()]).await.into_dict();
+            let mut signed: crate::value::Dict = self.sign_perps_op(signable.clone(), bodyOp.clone(), &[Value::from(&paramsOmitted)]).await.into_dict();
             response = self.trade_delete_trade_orders_coid(&[Value::Dict(signed)]).await;
         }  else {
             let mut numericIds: Value = Value::from(vec![]);
@@ -2274,7 +2274,7 @@ impl Polymarket {
                     m.insert("args".to_string(), numericIds);
                 m
             });
-            let mut signed: crate::value::Dict = self.sign_perps_op(signable, bodyOp, &[paramsOmitted]).await.into_dict();
+            let mut signed: crate::value::Dict = self.sign_perps_op(signable, bodyOp, &[Value::Dict(paramsOmitted)]).await.into_dict();
             response = self.trade_delete_trade_orders(&[Value::Dict(signed)]).await;
         }
         //
@@ -2287,22 +2287,22 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1109: bool = true;
             while { if !__for_first_1109 { i += 1; } __for_first_1109 = false; i < (response.len() as i64) } {
-            let mut ack: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+            let mut ack: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut status: Option<String> = self.safe_string_k(ack.clone(), "status", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut status: Option<String> = self.safe_string_k(&ack, "status", &[]).as_str().map(str::to_owned);
             let mut unified: String = (if (status.as_deref() == Some("err")) { "rejected".to_string() } else { "canceled".to_string() });
             let mut merged: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("oid".to_string(), self.safe_integer_k(ack.clone(), "oid", &[]));
-                    m.insert("coid".to_string(), self.safe_string_k(ack.clone(), "coid", &[]));
-                    m.insert("uts".to_string(), self.safe_integer_k(ack.clone(), "ts", &[]));
+                    m.insert("oid".to_string(), self.safe_integer_k(&ack, "oid", &[]));
+                    m.insert("coid".to_string(), self.safe_string_k(&ack, "coid", &[]));
+                    m.insert("uts".to_string(), self.safe_integer_k(&ack, "ts", &[]));
                     m.insert("status".to_string(), Value::from(unified));
                 m
             });
             let mut parsed: crate::value::Dict = self.parse_order(Value::Map(merged), None).into_dict();
-            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), ack);
+            std::sync::Arc::make_mut(&mut parsed).insert("info".into(), Value::Dict(ack));
             results.push(Value::Dict(parsed));
         }
         }
@@ -2459,27 +2459,27 @@ impl Polymarket {
         //         }
         //     ]
         //
-        let mut first: Value = self.safe_dict(&response, Value::Int(0), &[Value::Map({
+        let mut first: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut status: Option<String> = self.safe_string_k(first.clone(), "status", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+        let mut status: Option<String> = self.safe_string_k(&first, "status", &[]).as_str().map(str::to_owned);
         if (status.as_deref() == Some("err")) {
             let mut merged: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("oid".to_string(), self.safe_integer_k(first.clone(), "oid", &[]));
-                    m.insert("coid".to_string(), self.safe_string_k(first.clone(), "coid", &[]));
+                    m.insert("oid".to_string(), self.safe_integer_k(&first, "oid", &[]));
+                    m.insert("coid".to_string(), self.safe_string_k(&first, "coid", &[]));
                     m.insert("status".to_string(), Value::Str("rejected".into()));
                 m
             });
             let mut rejected: indexmap::IndexMap<String, Value> = self.parse_order(Value::Map(merged), Some(&market)).as_map().cloned().unwrap_or_default();
-            rejected.insert("info".into(), first.clone());
+            rejected.insert("info".into(), Value::from(&first));
             return Value::Map(rejected);
         }
-        let mut order: crate::value::Dict = self.safe_dict_k(first, "order", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut order: crate::value::Dict = self.safe_dict_k(&first, "order", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return self.parse_order(&order, Some(&market));
         Value::Null
         }).await?))
@@ -4151,7 +4151,8 @@ impl Polymarket {
     Value::Null
 }
 
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({

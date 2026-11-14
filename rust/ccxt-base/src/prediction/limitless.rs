@@ -75,7 +75,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         // Forward to the inherent method on Limitless.
         Limitless::parse_prediction_position(self, position, market)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         // Forward to the inherent method on Limitless.
         Limitless::sign(self, path, &[api, method, params, headers, body])
     }
@@ -130,7 +130,7 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "redeem" => self.redeem(args.get(0).and_then(crate::Value::as_str), &args[1.min(args.len())..]).await,
-                "sign" => self.sign(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "sign" => self.sign(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), &args[1.min(args.len())..]),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
@@ -730,8 +730,8 @@ impl Limitless {
                                                 let mut i: i64 = 0;
                         let mut __for_first_1303: bool = true;
                         while { if !__for_first_1303 { i += 1; } __for_first_1303 = false; (i as f64) < pageMarketsLength } {
-                        let mut raw: Value = self.safe_dict(&page_markets, Value::Int(i), &[]);
-                        std::sync::Arc::make_mut(&mut allRaw).push(raw.clone());
+                        let mut raw: Option<crate::value::Dict> = self.safe_dict(&page_markets, Value::Int(i), &[]).into_opt_dict();
+                        std::sync::Arc::make_mut(&mut allRaw).push(raw.map_or(Value::Null, Value::Dict));
                     }
                     }
                     let mut allRawCount: i64 = allRaw.len() as i64;
@@ -2518,13 +2518,13 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1322: bool = true;
             while { if !__for_first_1322 { i += 1; } __for_first_1322 = false; i < (results.len() as i64) } {
-            let mut item: Value = self.safe_dict(&results, Value::Int(i), &[Value::Map({
+            let mut item: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut itemStatus: Option<String> = self.safe_string_k(item.clone(), "status", &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut itemStatus: Option<String> = self.safe_string_k(&item, "status", &[]).as_str().map(str::to_owned);
             if (itemStatus.as_deref() == Some("found")) {
-                found.push(item);
+                found.push(Value::Dict(item));
             }
         }
         }
@@ -2700,11 +2700,11 @@ impl Limitless {
         let mut mkt: crate::value::Dict = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), market).into_dict();
         let mut outcomeSymbol: Option<String> = self.safe_string_k(&mkt, "outcome", &[]).as_str().map(str::to_owned);
         let mut rawSide: Option<String> = self.safe_string_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut side: Value = self.parse_order_side(rawSide.as_deref()).map(Value::from).unwrap_or(Value::Null);
+        let mut side: Option<String> = self.parse_order_side(rawSide.as_deref());
         let mut price: Option<String> = self.safe_string_k(rawOrder.clone(), "price", &[]).as_str().map(str::to_owned);
         // todo check
         let mut amountKey: String = "makerAmount".to_string();
-        if (side.as_str() == Some("buy")) {
+        if (side.as_deref() == Some("buy")) {
             amountKey = "takerAmount".to_string();
         }
         let mut amount: Option<String> = self.safe_string(rawOrder.clone(), Value::from(amountKey), &[]).as_str().map(str::to_owned);
@@ -2730,7 +2730,7 @@ impl Limitless {
             filled = self.safe_string_k(&totals, "contractsGross", &[]).as_str().map(str::to_owned);
             let mut feeCurrency: Option<String> = Some("USDC".to_string());
             let mut feeCost: Option<String> = self.safe_string_k(&totals, "usdFee", &[]).as_str().map(str::to_owned);
-            if (side.as_str() == Some("buy")) {
+            if (side.as_deref() == Some("buy")) {
                 feeCurrency = outcomeSymbol.clone();
                 feeCost = self.safe_string_k(&totals, "contractsFee", &[]).as_str().map(str::to_owned);
             }
@@ -2757,7 +2757,7 @@ impl Limitless {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.parse_order_time_in_force(timeInForce.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
@@ -3584,13 +3584,13 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1324: bool = true;
             while { if !__for_first_1324 { i += 1; } __for_first_1324 = false; i < (data.len() as i64) } {
-            let mut item: Value = self.safe_dict(&data, Value::Int(i), &[]);
-            let mut strategy: Option<String> = self.safe_string_lower_k(item.clone(), "strategy", &[]).as_str().map(str::to_owned);
+            let mut item: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
+            let mut strategy: Option<String> = self.safe_string_lower_k(&item, "strategy", &[]).as_str().map(str::to_owned);
             if (strategy.is_some()) {
                 let mut buyIndex: i64 = (if let (Some(__h), Some(__n)) = (strategy.as_deref(), Some("buy")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
                 let mut sellIndex: i64 = (if let (Some(__h), Some(__n)) = (strategy.as_deref(), Some("sell")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
                 if (buyIndex >= 0) || (sellIndex >= 0) {
-                    trades.push(item);
+                    trades.push(item.map_or(Value::Null, Value::Dict));
                 }
             }
         }
@@ -4177,8 +4177,8 @@ if _try_result.is_err() {
                 m.insert("searchIn".to_string(), Value::Str("both".into()));
             m
         }), &[params]).into_dict();
-        let mut postParams: Value = self.omit(&searchParams, Value::from(vec![Value::Str("tags".into())]), &[]);
-        return self.apply_event_fetch_params(Value::from(result), &[postParams, queries]);
+        let mut postParams: crate::value::Dict = self.omit(&searchParams, Value::from(vec![Value::Str("tags".into())]), &[]).into_dict();
+        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), queries]);
         Value::Null
         }).await?))
     }
@@ -4355,7 +4355,8 @@ if _try_result.is_err() {
  * @param {object} [params] request parameters
  * @returns {object} a dictionary with url, method, body and headers
  */
-    pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
+    pub fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+        let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("limitless".into())]));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let mut params = get_arg(optional_args, 2, Value::Map({

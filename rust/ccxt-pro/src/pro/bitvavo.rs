@@ -169,7 +169,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
     fn market(&self, symbol: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::market(&self.parent, symbol)
     }
-    fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
+    fn sign(&self, path: &str, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::sign(&self.parent, path, api, method, params, headers, body)
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
@@ -2262,11 +2262,8 @@ impl Bitvavo {
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut withdraw: crate::value::Dict = self.parse_transaction(response, None).into_dict();
+        let mut response: crate::value::Dict = message.get("response").cloned().unwrap_or_default().into_dict();
+        let mut withdraw: crate::value::Dict = self.parse_transaction(Value::Dict(response), None).into_dict();
         client.resolve(Value::Dict(withdraw), messageHash.as_deref());
 }
 
@@ -2604,8 +2601,8 @@ impl Bitvavo {
         //    }
         //
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut balance: crate::value::Dict = self.parent.parse_balance_list(response).into_dict();
+        let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
+        let mut balance: crate::value::Dict = self.parent.parse_balance_list(Value::Arr(response)).into_dict();
         client.resolve(Value::Dict(balance), messageHash.as_deref());
 }
 
@@ -2640,11 +2637,8 @@ impl Bitvavo {
         //        }
         //    }
         //
-        let mut response: Value = (match message.get("response") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut order: crate::value::Dict = self.parse_order(response, None).into_dict();
+        let mut response: crate::value::Dict = message.get("response").cloned().unwrap_or_default().into_dict();
+        let mut order: crate::value::Dict = self.parse_order(Value::Dict(response), None).into_dict();
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         client.resolve(Value::Dict(order), messageHash.as_deref());
 }
