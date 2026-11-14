@@ -2515,9 +2515,9 @@ impl Value {
     /// `side.store(price, size)` — convenience that builds a 2-element
     /// delta. Routed through the side's `store_array`. Only useful on a
     /// side marker (returned by `book['bids']`), not the book itself.
-    pub fn store(&mut self, price: Value, size: Value) {
+    pub fn store(&mut self, price: impl Into<Value>, size: impl Into<Value>) {
         if side_kind(self).is_some() {
-            let delta = Value::List(vec![price, size]);
+            let delta = Value::List(vec![price.into(), size.into()]);
             side_store_array(self, delta);
         }
     }
@@ -2526,12 +2526,12 @@ impl Value {
     /// patterns (`let bids = book['bids']; bids.X(...)`) into calls on
     /// these methods so the mutation reaches the book's actual side
     /// dict rather than a COW-cloned copy of it.
-    pub fn store_to_bids(&mut self, price: Value, size: Value) {
-        let delta = Value::List(vec![price, size]);
+    pub fn store_to_bids(&mut self, price: impl Into<Value>, size: impl Into<Value>) {
+        let delta = Value::List(vec![price.into(), size.into()]);
         book_store_array_side(self, "bids", delta);
     }
-    pub fn store_to_asks(&mut self, price: Value, size: Value) {
-        let delta = Value::List(vec![price, size]);
+    pub fn store_to_asks(&mut self, price: impl Into<Value>, size: impl Into<Value>) {
+        let delta = Value::List(vec![price.into(), size.into()]);
         book_store_array_side(self, "asks", delta);
     }
     pub fn store_array_to_bids(&mut self, delta: Value) {
