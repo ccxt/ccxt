@@ -12489,7 +12489,7 @@ public Map<String, Object> describe()
         if (java.util.Objects.equals(topic, "ohlcv"))
         {
             List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(subscription, "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < (symbolsAndTimeframes == null ? 0 : ((List<?>)symbolsAndTimeframes).size()); i++)
+            for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symbolAndTimeFrame = (symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i));
                 String symbol = this.safeString(symbolAndTimeFrame, 0);

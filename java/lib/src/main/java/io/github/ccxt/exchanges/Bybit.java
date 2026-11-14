@@ -11047,9 +11047,9 @@ public class Bybit extends BybitApi
         {
             String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object entry = (grouped == null || marketId == null ? null : grouped.get(marketId));
-            for (var j = 0; j < (switch ((Object)(entry)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); j++)
+            for (var j = 0; j < ((List<?>)entry).size(); j++)
             {
-                Long id = this.safeInteger(Helpers.GetValue(entry, j), "id");
+                Long id = this.safeInteger((entry == null || j < 0 || j >= ((List<?>)entry).size() ? null : ((List<?>)entry).get(j)), "id");
                 Helpers.addElementToObject(Helpers.GetValue(entry, j), "id", id);
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
@@ -11075,7 +11075,7 @@ public class Bybit extends BybitApi
         //  ]
         //
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, (Object) null);
             String marketId = this.safeString(tier, "symbol");
@@ -11085,16 +11085,16 @@ public class Bybit extends BybitApi
             {
                 minNotional = this.safeNumber(Helpers.GetValue(info, (((long) i) - 1L)), "riskLimitValue", (Object) null);
             }
-            HashMap<String, Object> j39v12 = new HashMap<String, Object>();
-            j39v12.put("tier", this.safeInteger(tier, "id"));
-            j39v12.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-            j39v12.put("currency", marketResolved.get("settle"));
-            j39v12.put("minNotional", minNotional);
-            j39v12.put("maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null));
-            j39v12.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
-            j39v12.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
-            j39v12.put("info", tier);
-            ((List<Object>)tiers).add(j39v12);
+            HashMap<String, Object> j39v9 = new HashMap<String, Object>();
+            j39v9.put("tier", this.safeInteger(tier, "id"));
+            j39v9.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+            j39v9.put("currency", marketResolved.get("settle"));
+            j39v9.put("minNotional", minNotional);
+            j39v9.put("maxNotional", this.safeNumber(tier, "riskLimitValue", (Object) null));
+            j39v9.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
+            j39v9.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
+            j39v9.put("info", tier);
+            ((List<Object>)tiers).add(j39v9);
         }
         return tiers;
     }
@@ -12338,11 +12338,11 @@ public class Bybit extends BybitApi
                 ((Map<String, Object>)requestHeaders).put("X-BAPI-SIGN", signature);
             } else
             {
-                Map<String, Object> query = this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v16 = new HashMap<String, Object>();
-                    j39v16.put("api_key", this.apiKey);
-                    j39v16.put("recv_window", this.options.get("recvWindow"));
-                    j39v16.put("timestamp", timestamp);
-                    yield j39v16; } }));
+                Map<String, Object> query = this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v13 = new HashMap<String, Object>();
+                    j39v13.put("api_key", this.apiKey);
+                    j39v13.put("recv_window", this.options.get("recvWindow"));
+                    j39v13.put("timestamp", timestamp);
+                    yield j39v13; } }));
                 Map<String,Object> sortedQuery = this.keysort(query);
                 String auth = this.rawencode(sortedQuery, true);
                 Object signature = null;
