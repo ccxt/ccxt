@@ -7873,8 +7873,9 @@ func (this *Xt) Sign(path string, optionalArgs ...any) map[string]any {
 			return jsonBody
 		}()
 		var payloadString any = ""
+		var timestampPart string = "&xt-validate-t" + "imestamp=" + *timestamp // we can't glue timestamp, breaks in php
 		if (endpoint == "spot") || (endpoint == "user") {
-			var spotPrefix string = "xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.ApiKey + "&xt-validate-recvwindow=" + *recvWindow + "&xt-validate-t" + "imestamp=" + *timestamp
+			var spotPrefix string = "xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.ApiKey + "&xt-validate-recvwindow=" + *recvWindow + timestampPart
 			if isUndefinedBody {
 				if urlencoded != "" {
 					url = *apiUrl + payload + "?" + urlencoded
@@ -7888,7 +7889,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) map[string]any {
 			headersValue["xt-validate-algorithms"] = "HmacSHA256"
 			headersValue["xt-validate-recvwindow"] = recvWindow
 		} else {
-			var futurePrefix string = "xt-validate-appkey=" + this.ApiKey + "&xt-validate-t" + "imestamp=" + *timestamp // we can't glue timestamp, breaks in php
+			var futurePrefix string = "xt-validate-appkey=" + this.ApiKey + timestampPart
 			if method == "GET" {
 				if urlencoded != "" {
 					url = *apiUrl + payload + "?" + urlencoded
