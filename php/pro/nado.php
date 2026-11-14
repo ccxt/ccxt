@@ -1133,7 +1133,7 @@ class nado extends \ccxt\async\nado {
         return $result;
     }
 
-    public function watch_execute_request(string $requestIdString, array $request) {
+    public function watch_execute_request(string $requestIdString, array $request): PromiseInterface {
         return Async\async(self::do_watch_execute_request(...))($requestIdString, $request);
     }
 
