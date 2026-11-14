@@ -7451,16 +7451,6 @@ export class RustTranspilerBuilder {
                     `${indent}${n} = Value::Bool(${e});`],
 
 
-            // `set_value(...)`, `append_to_array(...)`, and
-            // `add_element_to_object(...)` take the value arg by move.
-            // A bare-identifier final arg moves the local out, breaking
-            // any later use (apex `timeStamp`, coinbaseexchange/
-            // krakenfutures/poloniex `trade`). Clone it.
-            [/\b((?:set_value|append_to_array|add_element_to_object)\([^;]*?,\s*)([a-zA-Z_][a-zA-Z0-9_]*)\)(\s*;)/g,
-                (whole: string, prefix: string, ident: string, tail: string) => {
-                    if (ident === 'self') return whole;
-                    return `${prefix}${ident}.clone())${tail}`;
-                }],
 
             // Paren-wrapped bool RHS in plain assignment: `X = (is_Y(...));`
             // (allows trailing whitespace/comments on the same line)
@@ -7469,39 +7459,7 @@ export class RustTranspilerBuilder {
                     `${indent}${lhs} = Value::Bool(${expr});`],
 
 
-            // (Auto-clone in `Value::Array(vec![...])` is done by the
-            // paren-balanced `cloneInArrayLiterals` walker below; running a
-            // regex here doesn't see nested parens correctly.)
 
-            // Auto-clone simple identifier args inside `&[...]` slice
-            // literals in CALL-ARGUMENT position. Allow Value::X inside the
-            // bracket so calls like `&[id, Value::Null, marketType]` work.
-            //   foo(x, &[market, Value::Null, params])
-            //     → foo(x, &[market.clone(), Value::Null, params.clone()])
-            [/([,(])\s*&\[([a-zA-Z_][a-zA-Z0-9_:, .]*?)\]/g,
-                (_: string, prefix: string, inside: string) => {
-                    if (inside.includes('(') || inside.includes(')')) {
-                        // Skip slices that contain nested call expressions;
-                        // those need paren-balanced parsing we don't have here.
-                        return `${prefix} &[${inside}]`;
-                    }
-                    const parts = inside.split(',').map(s => s.trim());
-                    const out = parts.map(p =>
-                        /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(p) && p !== 'self'
-                            ? `${p}.clone()` : p
-                    ).join(', ');
-                    return `${prefix} &[${out}]`;
-                }],
-
-            // Auto-clone simple identifier values in `m.insert(...)` calls
-            // (inside `Value::Map { ... }` builders). The same local is
-            // often inserted under multiple keys; the first insert moves it.
-            //   m.insert("X", marketId); → m.insert("X", marketId.clone());
-            [/(\bm\.insert\([^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
-                (whole: string, prefix: string, ident: string, suffix: string) => {
-                    if (ident === 'self') return whole;
-                    return `${prefix}${ident}.clone()${suffix}`;
-                }],
 
 
 
@@ -10667,106 +10625,6 @@ export class RustTranspilerBuilder {
 
 
     /**
-     * Paren-balanced walker over `&[...]` slice literals in call-arg
-     * position. Clones bare identifiers among the slice elements.
-     */
-    cloneInRefSlices(content: string): string {
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            // Look for `, &[` or `( &[` start markers.
-            const re = /[,(]\s*&\[/g;
-            re.lastIndex = i;
-            const m = re.exec(content);
-            if (!m) { out += content.slice(i); break; }
-            const matchStart = m.index;
-            const prefix = m[0][0]; // `,` or `(`
-            out += content.slice(i, matchStart);
-            out += prefix === '(' ? '(&[' : ', &[';
-            // Find the matching `]` (balance brackets/parens/braces).
-            const j = balancedCloseIndex(content, m.index + m[0].length);
-            if (j >= content.length) { out += content.slice(matchStart); break; }
-            const inside = content.slice(m.index + m[0].length, j);
-            // Recurse so nested slices get processed too.
-            const insideRec = this.cloneInRefSlices(inside);
-            const parts = this.splitArgs(insideRec) ?? [];
-            const boolPrefix = /^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\(/;
-            const cloned = parts.map(p => {
-                const t = p.trim();
-                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self') {
-                    return `${t}.clone()`;
-                }
-                if (boolPrefix.test(t)) {
-                    return `Value::Bool(${t})`;
-                }
-                return p;
-            }).join(', ');
-            out += cloned + ']';
-            i = j + 1;
-        }
-        return out;
-    }
-
-    /**
-     * Walks `Value::Array(vec![...])` literals and clones simple identifier
-     * args (paren-balanced — handles nested calls in element positions).
-     */
-    cloneInArrayLiterals(content: string): string {
-        // The AST transpiler emits `Value::from(vec![...])` (the
-        // `From<Vec<Value>>` impl; older builds emitted the `Value::List`
-        // fn alias). Match either spelling.
-        const markers = ['Value::Array(vec![', 'Value::List(vec![', 'Value::from(vec!['];
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            // Find the nearest marker at or after `i`.
-            let idx = -1; let marker = '';
-            for (const mk of markers) {
-                const ix = content.indexOf(mk, i);
-                if (ix >= 0 && (idx === -1 || ix < idx)) { idx = ix; marker = mk; }
-            }
-            if (idx < 0) { out += content.slice(i); break; }
-            out += content.slice(i, idx);
-            // find matching `])` (the vec!'s closing bracket)
-            let depth = 1;
-            let j = idx + marker.length;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '[' || c === '(' || c === '{') depth++;
-                    else if (c === ']' || c === ')' || c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(idx); break; }
-            // content[j] is the `]` closing the vec!, expect `)` after
-            const rawInside = content.slice(idx + marker.length, j);
-            // Recurse first so nested `Value::List(vec![…])` args have
-            // their own inner identifiers cloned before we split the
-            // outer arg list.
-            const recurInside = this.cloneInArrayLiterals(rawInside);
-            const args = this.splitArgs(recurInside) ?? [];
-            const cloned = args.map(a => {
-                const t = a.trim();
-                return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self'
-                    ? `${t}.clone()` : a;
-            }).join(', ');
-            // Preserve original spelling (List vs Array).
-            out += `${marker.replace(/\(vec!\[$/, '')}(vec![${cloned}])`;
-            // skip past `]` then trailing `)` of `vec!(...)`
-            i = j + 1;
-            if (content[i] === ')') i++; // outer `)` of Value::List/Array(...)
-        }
-        return out;
-    }
-
-    /**
      * rust-05: brace-balanced block index of `content` — string/char/comment
      * aware (a `{` in a comment or panic message must not skew the nesting),
      * `parent` linking each `{` to its enclosing block.
@@ -12094,13 +11952,11 @@ ${arms.join('\n')}
         // unwind past the parent method and leave its last_request_*
         // unset).
         content = this.rewriteTryCatchAsync(content);
-        content = this.cloneInRefSlices(content);
         // `self.super_X(...)` → `self.parent.X(...)`.
         if (parentCore) {
             content = content.replace(/\bself\.super_(\w+)\(/g, 'self.parent.$1(');
         }
         content = this.autoCloneCallArgs(content);
-        content = this.cloneInArrayLiterals(content);
         content = this.rewriteValueFieldAccess(content);
         // Must run AFTER rewriteValueFieldAccess so `precise.decimals = X`
         // (now `get_value(&precise, ...) = X`) is rewritten to set_value.
@@ -12209,23 +12065,6 @@ ${arms.join('\n')}
         // arg lists for `self.<mut>(... )` so the two borrows don't
         // conflict at the call site.
         content = this.hoistSelfArgFromMutCall(content);
-
-        // Clone bare-identifier args passed to known cache / order-book
-        // methods on local variables (`candles.get_limit(symbol, limit)`,
-        // `cache.append(liquidation)`, …). The base `autoCloneCallArgs`
-        // pass only catches well-known prefixes — these are
-        // local-receiver method calls so it doesn't fire.
-        content = this.cloneIdentArgsToCalls(
-            content,
-            /\b([a-zA-Z_]\w*)\.(append|store|store_array|reset|update|get_limit|limit|reusable_future)\(/g,
-        );
-
-        // Same for WS-class factories: `ArrayCacheBySymbolById::new(limit)`
-        // moves `limit`; subsequent reuse needs `.clone()`.
-        content = this.cloneIdentArgsToCalls(
-            content,
-            /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(/g,
-        );
 
         // Wrap `error.clone()` in a `Value::from(...)` when it appears
         // inside a Value-slice arg to `client.reject(...)`. The TS
@@ -13159,9 +12998,6 @@ impl std::ops::DerefMut for ${coreName} {
 
 
 
-        // Re-apply `&[...]` auto-clone using paren-balanced walker so it
-        // handles slices that contain `Value::Str(...)` etc.
-        basePart = this.cloneInRefSlices(basePart);
 
         // Clone bare identifier args in `ternary(cond, a, b)` calls.
 
@@ -13170,7 +13006,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Auto-clone simple identifier args inside `Value::Array(vec![...])`
         // literals (paren-balanced).
-        basePart = this.cloneInArrayLiterals(basePart);
 
         // Convert `<localVar>.<field>` (Value property access) to get_value.
         // String-aware: skips contents of `"..."` literals.
@@ -13609,7 +13444,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // catch_unwind keeps the catch body, so a test can assert that a call throws
                 content = this.rewriteTryCatchAsync(content);
                 content = this.autoCloneCallArgs(content);
-                content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
@@ -14015,7 +13849,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
                 content = this.wrapBoolValueArgs(content);
                 content = this.autoCloneCallArgs(content);
-                content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
@@ -14063,32 +13896,6 @@ impl std::ops::DerefMut for ${coreName} {
                     '$1::new(Value::Null)',
                 );
 
-                // Auto-clone args passed to known cache / order-book methods.
-                // The base `autoCloneCallArgs` pass only matches well-known
-                // helper prefixes (`self.X`, `exchange.X`, `assert`, …) — it
-                // doesn't recognise method calls on arbitrary Value-typed
-                // locals like `timestampCache.append(ohlcv1)`, which means the
-                // raw arg is moved and the next reference fails to borrow-
-                // check. Append `.clone()` to bare-identifier arguments only;
-                // expression args (`Value::Null`, `Value::Map({...})`, etc.)
-                // are not at risk of being moved-from beyond the call site.
-                const cloneIdent = (s: string) =>
-                    /^[a-zA-Z_]\w*$/.test(s.trim()) ? `${s.trim()}.clone()` : s;
-                content = this.cloneIdentArgsToCalls(
-                    content,
-                    /\b([a-zA-Z_]\w*)\.(append|store|store_array|reset|update|get_limit)\(/g,
-                );
-
-                // Same idea for the WS factory constructors:
-                //   `OrderBook::new(snapshot, depth)`
-                //   `ArrayCacheBySymbolById::new(maxSize)`
-                // — clone bare-identifier args so the test can rebuild the
-                // book/cache later with the same snapshot.
-                content = this.cloneIdentArgsToCalls(
-                    content,
-                    /\b((?:Indexed|Counted)?OrderBook|ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(/g,
-                );
-
                 // Side-extraction rewrite. TS uses reference semantics:
                 //   const bids = book['bids'];
                 //   bids.store(p, s);  // mutates book.bids in place
@@ -14133,50 +13940,6 @@ impl std::ops::DerefMut for ${coreName} {
         }
 
         this.writeBaseTestsWsModFile(outDir, written);
-    }
-
-    /**
-     * Walk through every call site whose opening `(` is matched by
-     * `headRe`, balance-parse the arg list (so nested `Value::Int(5)`
-     * etc. count), then append `.clone()` to each bare-identifier arg.
-     * Expression args (`Value::Null`, literals, …) are left untouched.
-     * Used by `transpileBaseTestsWs` to fix the move-once borrow
-     * pattern in transpiled cache / order-book test bodies.
-     */
-    cloneIdentArgsToCalls(content: string, headRe: RegExp): string {
-        let out = '';
-        let i = 0;
-        const re = new RegExp(headRe.source, headRe.flags.includes('g') ? headRe.flags : headRe.flags + 'g');
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const headEnd = m.index + m[0].length;
-            out += content.slice(i, headEnd);
-            // Balance-parse to find the matching closing `)`.
-            let depth = 1, j = headEnd, inStr = false, esc = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (esc) { esc = false; j++; continue; }
-                if (c === '\\') { esc = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                    if (depth === 0) break;
-                }
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(headEnd); i = content.length; break; }
-            const argsRaw = content.slice(headEnd, j);
-            const args = this.splitArgs(argsRaw) ?? [];
-            const rewritten = args
-                .map(a => /^[a-zA-Z_]\w*$/.test(a.trim()) ? `${a.trim()}.clone()` : a)
-                .join(', ');
-            out += rewritten + ')';
-            i = j + 1;
-            re.lastIndex = i;
-        }
-        out += content.slice(i);
-        return out;
     }
 
     /**
@@ -14399,7 +14162,6 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapBoolValueArgs(content);
         content = this.rewriteTryCatchAsync(content);
         content = this.autoCloneCallArgs(content);
-        content = this.cloneInArrayLiterals(content);
         // `symbol in exchange.markets` → `in_op(get_value(exchange,
         // "markets"), symbol)` deep-clones the whole markets map. In
         // `test.ticker.rs` that guard runs once per ticker, so for a 3k-
@@ -14783,7 +14545,6 @@ impl std::ops::DerefMut for ${coreName} {
             // `try { createOrder } catch { capture last_request_body }`),
             // so transpile it properly instead of dropping the catch.
             content = this.rewriteTryCatchAsync(content);
-            content = this.cloneInRefSlices(content);
             // Go-style interface dispatch: retype `exchange.<live_method>(args)`
             // → `crate::live_dispatch::dispatch(&exchange, "<method>", vec![args])`.
             // Mirrors what runExchangeTestPipeline does for the per-test
@@ -14791,7 +14552,6 @@ impl std::ops::DerefMut for ${coreName} {
             // are already formed and can be flattened into the vec.
             content = this.rewriteExchangeMethodCalls(content);
             content = this.autoCloneCallArgs(content);
-            content = this.cloneInArrayLiterals(content);
             content = this.rewriteValueFieldAccess(content);
             content = this.rewriteGetValueAssignments(content);
             content = this.stripMutSelfFieldClones(content);
