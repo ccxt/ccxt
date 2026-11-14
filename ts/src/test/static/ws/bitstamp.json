@@ -323,6 +323,301 @@
                     }
                 ]
             }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "synthetic snapshot between delta timestamps replays deletion before lower ask",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "url": "wss://ws.bitstamp.net",
+                "httpResponse": {
+                    "timestamp": "1793892102",
+                    "microtimestamp": "1793892102687378",
+                    "bids": [
+                        [
+                            "100",
+                            "1"
+                        ],
+                        [
+                            "98",
+                            "2"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "101",
+                            "1"
+                        ]
+                    ]
+                },
+                "messages": [
+                    {
+                        "event": "bts:subscription_succeeded",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {}
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892101601610",
+                            "timestamp": "1793892101",
+                            "bids": [],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892101801610",
+                            "timestamp": "1793892101",
+                            "bids": [],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892102001610",
+                            "timestamp": "1793892102",
+                            "bids": [],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892102401610",
+                            "timestamp": "1793892102",
+                            "bids": [],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892102831075",
+                            "timestamp": "1793892102",
+                            "bids": [
+                                [
+                                    "100",
+                                    "0"
+                                ]
+                            ],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892103139095",
+                            "timestamp": "1793892103",
+                            "bids": [],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892103446268",
+                            "timestamp": "1793892103",
+                            "bids": [],
+                            "asks": [
+                                [
+                                    "99",
+                                    "1"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "bts:subscribe",
+                        "data": {
+                            "channel": "diff_order_book_ethusdt"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "bids": [
+                        [
+                            98,
+                            2
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            99,
+                            1
+                        ],
+                        [
+                            101,
+                            1
+                        ]
+                    ],
+                    "nonce": 1793892103446268,
+                    "timestamp": 1793892103000,
+                    "datetime": "2026-11-05T15:21:43.000Z"
+                }
+            },
+            {
+                "description": "synthetic prices with captured add then delete timestamps remove stale level",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "url": "wss://ws.bitstamp.net",
+                "httpResponse": {
+                    "timestamp": "1793892102",
+                    "microtimestamp": "1793892102687378",
+                    "bids": [
+                        [
+                            "2043.35",
+                            "1"
+                        ],
+                        [
+                            "2042",
+                            "2"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "2044",
+                            "1"
+                        ]
+                    ]
+                },
+                "messages": [
+                    {
+                        "event": "bts:subscription_succeeded",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {}
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892101601610",
+                            "timestamp": "1793892101",
+                            "bids": [],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892101801610",
+                            "timestamp": "1793892101",
+                            "bids": [],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892102001610",
+                            "timestamp": "1793892102",
+                            "bids": [],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892102401610",
+                            "timestamp": "1793892102",
+                            "bids": [],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892102831075",
+                            "timestamp": "1793892102",
+                            "bids": [
+                                [
+                                    "2043.35",
+                                    "4.360149"
+                                ]
+                            ],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892103139095",
+                            "timestamp": "1793892103",
+                            "bids": [
+                                [
+                                    "2043.35",
+                                    "0.000000"
+                                ]
+                            ],
+                            "asks": []
+                        }
+                    },
+                    {
+                        "event": "data",
+                        "channel": "diff_order_book_ethusdt",
+                        "data": {
+                            "microtimestamp": "1793892103446268",
+                            "timestamp": "1793892103",
+                            "bids": [],
+                            "asks": [
+                                [
+                                    "2043",
+                                    "1"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "bts:subscribe",
+                        "data": {
+                            "channel": "diff_order_book_ethusdt"
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "bids": [
+                        [
+                            2042,
+                            2
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2043,
+                            1
+                        ],
+                        [
+                            2044,
+                            1
+                        ]
+                    ],
+                    "nonce": 1793892103446268,
+                    "timestamp": 1793892103000,
+                    "datetime": "2026-11-05T15:21:43.000Z"
+                }
+            }
         ]
     }
 }
