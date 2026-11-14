@@ -2471,7 +2471,7 @@ export default class coinbaseinternational extends Exchange {
         }, marketResolved);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
