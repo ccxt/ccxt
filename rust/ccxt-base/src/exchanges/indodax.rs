@@ -995,7 +995,7 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut keys: Vec<Value> = Value::Array(tickers.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut parsedTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1371,7 +1371,7 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-        let mut marketIds: Vec<Value> = Value::Array(ordersDict.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut marketIds: Vec<Value> = Value::Array(ordersDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut exchangeOrders: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -1822,34 +1822,34 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut transactions: Value = Value::from(vec![]);
+        let mut transactions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut currency: Option<crate::types::Currency> = None;
         if (code == Value::Null) {
-            let mut withdrawKeys: Vec<Value> = Value::Array(withdraw.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+            let mut withdrawKeys: Vec<Value> = Value::Array(withdraw.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_842: bool = true;
                 while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (withdrawKeys.len() as i64) } {
                 let mut key: Value = withdrawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                transactions = self.array_concat(transactions, withdraw.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                transactions = self.array_concat(Value::Arr(transactions), withdraw.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_list();
             }
             }
-            let mut depositKeys: Vec<Value> = Value::Array(deposit.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+            let mut depositKeys: Vec<Value> = Value::Array(deposit.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_843: bool = true;
                 while { if !__for_first_843 { i += 1; } __for_first_843 = false; i < (depositKeys.len() as i64) } {
                 let mut key: Value = depositKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                transactions = self.array_concat(transactions, deposit.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                transactions = self.array_concat(Value::Arr(transactions), deposit.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_list();
             }
             }
         }  else {
             currency = Some(self.currency(code));
             let mut withdraws: crate::value::List = self.safe_list(Value::Map(withdraw), crate::value::KeyRead::key_read(&&currency, "id"), &[Value::from(vec![])]).into_list();
             let mut deposits: crate::value::List = self.safe_list(Value::Map(deposit), crate::value::KeyRead::key_read(&&currency, "id"), &[Value::from(vec![])]).into_list();
-            transactions = self.array_concat(&withdraws, &deposits);
+            transactions = self.array_concat(&withdraws, &deposits).into_list();
         }
-        return self.parse_transactions(transactions, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&transactions, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

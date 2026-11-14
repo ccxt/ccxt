@@ -1892,7 +1892,7 @@ if _try_result.is_err() {
         let mut url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.as_deref())]));
         let mut marketIds: Vec<Value> = Vec::new();
-        let mut subscribeHashes: Value = Value::from(vec![]);
+        let mut subscribeHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut subMessageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -1901,7 +1901,7 @@ if _try_result.is_err() {
             let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             marketIds.push(marketId.clone());
-            if let Value::Arr(__a) = &mut subscribeHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), marketId).into())); };
+            std::sync::Arc::make_mut(&mut subscribeHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), marketId).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), symbol).into()));
         }
         }
@@ -1932,7 +1932,7 @@ if _try_result.is_err() {
             if ((match (&(get_value(&keys, &Value::Int(i))), &(Value::Str(format!("{}{}", channel, ".").into()))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
                 Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
                 (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s),
-                Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64() == Some(0.0)) && !self.in_array(keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), subscribeHashes.clone()) {
+                Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64() == Some(0.0)) && !self.in_array(keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &subscribeHashes) {
                 remaining = (remaining + 1);
             }
         }
@@ -1967,7 +1967,7 @@ if _try_result.is_err() {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ticker".into()));
-                m.insert("subscribeHashes".to_string(), subscribeHashes);
+                m.insert("subscribeHashes".to_string(), Value::Arr(subscribeHashes));
                 m.insert("subMessageHashes".to_string(), Value::from(subMessageHashes));
                 m.insert("symbols".to_string(), tickerSymbols);
             m
@@ -3026,55 +3026,55 @@ if _try_result.is_err() {
         // ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
         let mut frameHex: String = self.binary_to_base16(message, &[]);
-        let mut frameLength: Value = Value::from(self.parse_to_int(Value::Float(((((frameHex.chars().count() as i64)) as f64) / 2.0))));
-        if frameLength.as_f64().unwrap_or(f64::NAN) < ((8i64) as f64) {
+        let mut frameLength: Option<i64> = self.parse_to_int(Value::Float(((((frameHex.chars().count() as i64)) as f64) / 2.0)));
+        if (frameLength.is_some() && frameLength < Some(8)) {
             return Value::Null;
         }
         let mut blockLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(Value::from(frameHex.clone()), Value::Int(0), Value::Int(2)));
         let mut templateId: Option<i64> = self.parse_to_int(self.sbe_read_uint(Value::from(frameHex.clone()), Value::Int(2), Value::Int(2)));
         let mut schemaId: Option<i64> = self.parse_to_int(self.sbe_read_uint(Value::from(frameHex.clone()), Value::Int(4), Value::Int(2)));
-        if (schemaId != Some(1)) || (frameLength.as_f64().unwrap_or(f64::NAN) < Value::from((if let Some(__m0) = blockLength { Some((__m0 + 8)) } else { None })).as_f64().unwrap_or(f64::NAN)) {
+        if (schemaId != Some(1)) || (matches!((frameLength, ((if let Some(__m0) = blockLength { Some((__m0 + 8)) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) < (__r as f64))) {
             return Value::Null;
         }
         let mut channel: Option<String> = None;
         let mut data: Value = Value::Null;
         if (templateId == Some(1)) {
-            data = self.parse_sbe_trade(Value::from(frameHex.clone()), Value::from(blockLength), frameLength.clone());
+            data = self.parse_sbe_trade(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("trades.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(2)) {
-            data = self.parse_sbe_bbo(Value::from(frameHex.clone()), Value::from(blockLength), frameLength.clone());
+            data = self.parse_sbe_bbo(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("bbo.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(3)) {
             // the snapshot and deltas feeds send the same frame, handleOrderBook tells them apart by package type
-            data = self.parse_sbe_order_book(Value::from(frameHex.clone()), Value::from(blockLength), frameLength.clone());
+            data = self.parse_sbe_order_book(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("order_book.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(4)) {
-            data = self.parse_sbe_market_summary(client, Value::from(frameHex.clone()), Value::from(blockLength), frameLength.clone());
+            data = self.parse_sbe_market_summary(client, Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
             channel = Some("markets_summary".to_string());
         }  else if (templateId == Some(5)) {
-            data = self.parse_sbe_funding_data(Value::from(frameHex.clone()), Value::from(blockLength), frameLength.clone());
+            data = self.parse_sbe_funding_data(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
             channel = Some("funding_data".to_string());
         }  else if (templateId == Some(20)) {
-            data = self.parse_sbe_order(Value::from(frameHex.clone()), Value::from(blockLength), frameLength.clone());
+            data = self.parse_sbe_order(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("orders.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(21)) {
-            data = self.parse_sbe_fill(Value::from(frameHex.clone()), Value::from(blockLength), frameLength.clone());
+            data = self.parse_sbe_fill(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
             if (data != Value::Null) {
                 channel = Some(format!("{}{}", Value::Str("fills.".into()), self.safe_string_k(data.clone(), "market", &[Value::Str("".into())])));
             }
         }  else if (templateId == Some(22)) {
-            data = self.parse_sbe_position(Value::from(frameHex.clone()), Value::from(blockLength), frameLength.clone());
+            data = self.parse_sbe_position(Value::from(frameHex.clone()), Value::from(blockLength), Value::from(frameLength));
             channel = Some("positions".to_string());
         }  else if (templateId == Some(23)) {
-            data = self.parse_sbe_account(Value::from(frameHex), Value::from(blockLength), frameLength);
+            data = self.parse_sbe_account(Value::from(frameHex), Value::from(blockLength), Value::from(frameLength));
             channel = Some("account".to_string());
         }
         if (data == Value::Null) {

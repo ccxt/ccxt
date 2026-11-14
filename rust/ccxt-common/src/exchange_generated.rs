@@ -796,7 +796,7 @@ pub trait ExchangeBase:
         }
         let mut length: i64 = usedProxies.len() as i64;
         if length > 1 {
-            let mut joinedProxyNames: Value = Value::Str(usedProxies.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into());
+            let mut joinedProxyNames: String = usedProxies.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",");
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " you have multiple conflicting proxy settings (").into()), joinedProxyNames).into()), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")));
         }
         return proxyUrl;
@@ -864,7 +864,7 @@ pub trait ExchangeBase:
         // check
         let mut length: i64 = usedProxies.len() as i64;
         if length > 1 {
-            let mut joinedProxyNames: Value = Value::Str(usedProxies.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into());
+            let mut joinedProxyNames: String = usedProxies.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",");
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " you have multiple conflicting proxy settings (").into()), joinedProxyNames).into()), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")));
         }
         return Value::from(vec![httpProxy, httpsProxy, socksProxy]);
@@ -901,7 +901,7 @@ pub trait ExchangeBase:
         // check
         let mut length: i64 = usedProxies.len() as i64;
         if length > 1 {
-            let mut joinedProxyNames: Value = Value::Str(usedProxies.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into());
+            let mut joinedProxyNames: String = usedProxies.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",");
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " you have multiple conflicting proxy settings (").into()), joinedProxyNames).into()), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")));
         }
         return Value::from(vec![wsProxy, wssProxy, wsSocksProxy]);
@@ -2350,7 +2350,7 @@ pub trait ExchangeBase:
                 m.insert("createMarketOrderWs".to_string(), Value::Str("createOrderWs".into()));
             m
         });
-        let mut targets: Vec<Value> = Value::Array(fallbacks.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut targets: Vec<Value> = Value::Array(fallbacks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_81: bool = true;
@@ -2997,8 +2997,8 @@ pub trait ExchangeBase:
         { let __t = self.map_to_safe_map(marketsById); self.markets_by_id = __t; }
         let mut marketsSortedBySymbol: indexmap::IndexMap<String, Value> = self.keysort(self.markets.clone(), &[]).as_map().cloned().unwrap_or_default();
         let mut marketsSortedById: indexmap::IndexMap<String, Value> = self.keysort(self.markets_by_id.clone(), &[]).as_map().cloned().unwrap_or_default();
-        self.symbols = Value::Array(marketsSortedBySymbol.keys().map(|__k| Value::Str(__k.clone().into())).collect()).into_list();
-        self.ids = Value::Array(marketsSortedById.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+        self.symbols = Value::Array(marketsSortedBySymbol.keys().cloned().map(Value::from).collect()).into_list();
+        self.ids = Value::Array(marketsSortedById.keys().cloned().map(Value::from).collect());
         let mut numCurrencies: i64 = 0;
         if (currencies != Value::Null) {
             let mut keys: Vec<Value> = object_keys(&currencies).as_array().cloned().unwrap_or_default();
@@ -3084,7 +3084,7 @@ pub trait ExchangeBase:
         }
         { let __t = self.index_by_safe(self.currencies.clone(), Value::Str("id".into())); self.currencies_by_id = __t; }
         let mut currenciesSortedByCode: indexmap::IndexMap<String, Value> = self.keysort(self.currencies.clone(), &[]).as_map().cloned().unwrap_or_default();
-        self.codes = Value::Array(currenciesSortedByCode.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+        self.codes = Value::Array(currenciesSortedByCode.keys().cloned().map(Value::from).collect());
         if (self.markets.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " setMarkets() markets not set")));
         }
@@ -3139,7 +3139,7 @@ pub trait ExchangeBase:
 
     fn safe_balance(&self, mut balance: Value) -> Value {
         let mut balances: indexmap::IndexMap<String, Value> = self.omit(balance.clone(), &["info", "timestamp", "datetime", "free", "used", "total"], &[]).as_map().cloned().unwrap_or_default();
-        let mut codes: Vec<Value> = Value::Array(balances.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut codes: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut freeBalance: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3194,7 +3194,7 @@ pub trait ExchangeBase:
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map(freeBalance)); }
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("used".into(), Value::Map(usedBalance)); }
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("total".into(), Value::Map(totalBalance)); }
-        let mut debtBalanceArray: Vec<Value> = Value::Array(debtBalance.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut debtBalanceArray: Vec<Value> = Value::Array(debtBalance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut length: i64 = debtBalanceArray.len() as i64;
         if (length != 0) {
             if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("debt".into(), Value::Map(debtBalance)); }
@@ -8911,9 +8911,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          */
         let mut optionsLength: i64 = options.len() as i64;
         if (argument == Value::Null) || ((optionsLength > 0) && (!(self.in_array(argument, options.clone())))) {
-            let mut messageOptions: Value = Value::Str(options.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into());
+            let mut messageOptions: String = options.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default();
             let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires a ").into()), argumentName).into()), " argument");
-            if (!matches!(&messageOptions, Value::Str(__s15) if __s15 == "")) {
+            if (messageOptions != "") {
                 message.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ", one of ", "(").into()), messageOptions).into()), ")"));
             }
             panic!("{}", crate::exchange_errors::arguments_required(message));
@@ -9686,7 +9686,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn remove_repeated_trades_from_array(&self, mut input: Value) -> Value {
         let __input_empty = Vec::new();
         let input = input.as_array().unwrap_or(&__input_empty);
-        let mut uniqueResult: Value = Value::Map({
+        let mut uniqueResult: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -9709,12 +9709,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 id = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("t_".into()), Value::Str(format!("{}", timestamp.map(Value::from).unwrap_or(Value::Null)).into())).into()), "_").into()), side).into()), "_").into());
                 id = Value::Str(format!("{}{}", id, (Value::Str(format!("{}{}", Value::Str(format!("{}{}", price, "_").into()), amount).into()))).into());
             }
-            if (id != Value::Null) && !(matches!((&uniqueResult, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut uniqueResult { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), Value::Dict(entry)); }
+            if (id != Value::Null) && !(matches!(&id, Value::Str(__k) if uniqueResult.contains_key(__k.as_ref()))) {
+                uniqueResult.insert(crate::runtime::stringify_param(&id), Value::Dict(entry));
             }
         }
         }
-        let mut values: Value = Value::Array(uniqueResult.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
+        let mut values: Value = Value::Array(uniqueResult.values().cloned().collect());
         return values;
 
     Value::Null
@@ -9730,9 +9730,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_169: bool = true;
             while { if !__for_first_169 { i += 1; } __for_first_169 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if !self.in_array(key.clone(), removeKeys.clone()) {
-                newDict.insert(crate::runtime::stringify_param(&key), (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if !self.in_array(&key, removeKeys.clone()) {
+                newDict.insert(key.as_deref().unwrap_or("null").to_string(), (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
             }
         }
         }

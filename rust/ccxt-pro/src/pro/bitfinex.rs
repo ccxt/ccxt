@@ -1293,8 +1293,8 @@ impl Bitfinex {
             }
         }
         }
-        let mut payload: Value = Value::Str(stringArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":").into());
-        let mut localChecksum: Value = self.crc32(&[payload, Value::Bool(true)]);
+        let mut payload: String = stringArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":");
+        let mut localChecksum: Value = self.crc32(&[Value::from(payload), Value::Bool(true)]);
         let mut responseChecksum: Value = self.safe_integer(message, Value::Int(2), &[]);
         if (responseChecksum.as_f64() != localChecksum.as_f64()) {
             __ch.remove_subscription(messageHash.as_str());
@@ -1432,7 +1432,7 @@ impl Bitfinex {
             updatedTypes.insert(balanceType.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
         }
         }
-        let mut updatesKeys: Vec<Value> = Value::Array(updatedTypes.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut updatesKeys: Vec<Value> = Value::Array(updatedTypes.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_106: bool = true;
@@ -1731,7 +1731,7 @@ impl Bitfinex {
         }
         let mut name: String = "orders".to_string();
         client.resolve(Value::from(&self.orders), name.as_str());
-        let mut keys: Vec<Value> = Value::Array(symbolIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(symbolIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_109: bool = true;

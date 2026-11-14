@@ -1826,7 +1826,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn sign_clob_order(&self, message: impl Into<crate::Value>, networkId: &str) -> Option<String> {
         let mut message: Value = message.into();
         let mut networkId: Value = networkId.into();
-        let mut orderStruct: Value = Value::from(vec![Value::Map({
+        let mut orderStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("trader".into()));
         m.insert("type".to_string(), Value::Str("address".into()));
@@ -1874,7 +1874,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         return self.sign_orderbook_typed_data(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("Order".to_string(), orderStruct);
+        m.insert("Order".to_string(), Value::Arr(orderStruct));
     m
 }), message, networkId.as_str().unwrap_or_default());
 }
@@ -1889,7 +1889,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn sign_cancel_all(&self, message: impl Into<crate::Value>, networkId: &str) -> Option<String> {
         let mut message: Value = message.into();
         let mut networkId: Value = networkId.into();
-        let mut cancelStruct: Value = Value::from(vec![Value::Map({
+        let mut cancelStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("trader".into()));
         m.insert("type".to_string(), Value::Str("address".into()));
@@ -1907,7 +1907,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         return self.sign_orderbook_typed_data(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("CancelAll".to_string(), cancelStruct);
+        m.insert("CancelAll".to_string(), Value::Arr(cancelStruct));
     m
 }), message, networkId.as_str().unwrap_or_default());
 }
@@ -2425,7 +2425,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.privateKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelAllOrders() requires a privateKey to sign the cancellation")));
         }
-        let mut trader: Value = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
+        let mut trader: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(params.clone(), "market_id", &[Value::Str("0".into())]).as_str().map(str::to_owned);
         let mut networkId: Option<String> = self.safe_string_k(params.clone(), "network_id", &[self.safe_string(self.options.clone(), Value::Str("defaultNetworkId".into()), &[Value::Str("56".into())])]).as_str().map(str::to_owned);
         if (outcome != Value::Null) {
@@ -2441,7 +2441,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Option<String> = self.safe_string_k(params, "timestamp", &[Value::from(self.number_to_string(Value::Int(self.seconds())))]).as_str().map(str::to_owned);
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trader".to_string(), trader.clone());
+                m.insert("trader".to_string(), Value::from(trader.as_deref()));
                 m.insert("marketId".to_string(), Value::from(marketId.as_deref()));
                 m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
             m
@@ -2449,7 +2449,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut signature: Option<String> = self.sign_cancel_all(Value::Map(message), networkId.as_deref().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trader".to_string(), trader);
+                m.insert("trader".to_string(), trader.map(Value::from).unwrap_or(Value::Null));
                 m.insert("market_id".to_string(), Value::from(self.parse_to_int(marketId.map(Value::from).unwrap_or(Value::Null))));
                 m.insert("timestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
@@ -2974,7 +2974,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }), Value::Str("latest".into())]);
         let mut raw: Value = self.eth_rpc(rpcUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("eth_call".into()), callParams).await;
-        let mut balanceString: Value = self.from_wei_with_decimals(raw.clone(), decimals).map(Value::from).unwrap_or(Value::Null);
+        let mut balanceString: Option<String> = self.from_wei_with_decimals(raw.clone(), decimals);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::Map({
@@ -2987,8 +2987,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-        account.insert("free".into(), balanceString.clone());
-        account.insert("total".into(), balanceString);
+        account.insert("free".into(), Value::from(balanceString.as_deref()));
+        account.insert("total".into(), balanceString.map(Value::from).unwrap_or(Value::Null));
         result.insert(currency.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         return self.safe_balance(Value::Map(result));
         Value::Null
@@ -3151,7 +3151,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
         // globally unique, so do NOT fall back to networkId — that would prefix every handle.
         // eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
-        let mut marketSymbol: Value = self.slug_to_market_symbol(eventSlug.clone(), Value::from(slug.as_deref()));
+        let mut marketSymbol: Option<String> = self.slug_to_market_symbol(eventSlug.clone(), Value::from(slug.as_deref())).as_str().map(str::to_owned);
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         let mut tokenObj: crate::value::Dict = self.safe_dict_k(raw.clone(), "token", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3209,7 +3209,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("id".to_string(), Value::from(outcomeCompositeId.clone()));
                     m.insert("outcomeId".to_string(), Value::from(outcomeCompositeId));
                     m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("market".to_string(), marketSymbol.clone());
+                    m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
                     m.insert("label".to_string(), Value::from(outcomeLabel.as_deref()));
                     m.insert("active".to_string(), Value::Bool(active));
                     m.insert("winner".to_string(), winner);
@@ -3250,7 +3250,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null")).into()));
-        m.insert("market".to_string(), marketSymbol);
+        m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("marketType".to_string(), (if (outcomesLength > 2) { Value::Str("categorical".into()) } else { Value::Str("binary".into()) }));
         m.insert("executionModel".to_string(), Value::from(marketExecutionModel));
         m.insert("base".to_string(), Value::from(slug.as_deref()));

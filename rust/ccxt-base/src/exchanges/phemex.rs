@@ -1428,8 +1428,8 @@ impl Phemex {
             return value;
         }
         let mut parts: Value = Value::Array(if let Some(__s) = value.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
-        let mut valueOption: Value = Value::Str(parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("")).unwrap_or_default().into());
-        parts = Value::Array(if let Some(__s) = valueOption.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
+        let mut valueOption: String = parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("")).unwrap_or_default();
+        parts = Value::Array(valueOption.split(" ").map(Value::from).collect());
         return self.safe_number(parts, Value::Int(0), &[]);
 
     Value::Null

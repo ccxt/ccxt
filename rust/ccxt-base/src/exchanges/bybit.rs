@@ -4172,13 +4172,13 @@ impl Bybit {
             while { if !__for_first_498 { j += 1; } __for_first_498 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&chain));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(self.safe_integer_k(&chain, "chainDeposit", &[]).as_f64() == Some(1.0)));
         m.insert("withdraw".to_string(), Value::Bool(self.safe_integer_k(&chain, "chainWithdraw", &[]).as_f64() == Some(1.0)));
@@ -5530,8 +5530,8 @@ impl Bybit {
         let mut fundingInterval: Option<i64> = self.safe_integer_k(&info, "fundingInterval", &[]).as_i64();
         let mut intervalString: Option<String> = None;
         if (fundingInterval.is_some()) {
-            let mut interval: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = fundingInterval { Some((__l as f64) / 60.0) } else { None }))));
-            intervalString = Some(format!("{}{}", Value::Str(format!("{}", interval).into()), Value::Str("h".into())));
+            let mut interval: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = fundingInterval { Some((__l as f64) / 60.0) } else { None })));
+            intervalString = Some(format!("{}{}", Value::Str(format!("{}", Value::from(interval)).into()), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7892,7 +7892,7 @@ impl Bybit {
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            orderItem.insert(idKey.clone(), (if (Some(idKey.as_str()) == Some("orderId")) { id.map(Value::from).unwrap_or(Value::Null) } else { clientOrderId.map(Value::from).unwrap_or(Value::Null) }));
+            orderItem.insert(idKey.clone(), (if (idKey == "orderId") { id.map(Value::from).unwrap_or(Value::Null) } else { clientOrderId.map(Value::from).unwrap_or(Value::Null) }));
             ordersRequests.push(Value::Map(orderItem));
         }
         }
@@ -13394,13 +13394,13 @@ impl Bybit {
             let mut disableFrom: bool = self.safe_bool_k(&entry, "disableFrom", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut disableTo: bool = self.safe_bool_k(&entry, "disableTo", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut inactive: bool = (disableFrom || disableTo);
-            let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map({
+            let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&entry));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("networks".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string_k(&entry, "coinType", &[]));
         m.insert("name".to_string(), self.safe_string_k(&entry, "fullName", &[]));

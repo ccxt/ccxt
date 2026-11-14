@@ -1766,7 +1766,7 @@ impl P2b {
             m
         })]).as_map().cloned().unwrap_or_default();
         let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut keys: Vec<Value> = Value::Array(result.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(result.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1042: bool = true;

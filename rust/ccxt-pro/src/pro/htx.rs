@@ -929,16 +929,16 @@ impl Htx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut limitResolved: Value = Value::from(self.parse_to_int((if (limit == Value::Null) { self.safe_integer_k(&options, "depth", &[Value::Int(150)]) } else { limit.clone() })));
-        if !self.in_array(limitResolved.clone(), &allowedLimits) {
+        let mut limitResolved: Option<i64> = self.parse_to_int((if (limit == Value::Null) { self.safe_integer_k(&options, "depth", &[Value::Int(150)]) } else { limit.clone() }));
+        if !self.in_array(Value::from(limitResolved), &allowedLimits) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")));
         }
         let mut messageHash: String = "".to_string();
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (market).spot {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".mbp.").into()), Value::Str(format!("{}", limitResolved).into()));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".mbp.").into()), Value::Str(format!("{}", Value::from(limitResolved)).into()));
         }  else {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".depth.size_").into()), Value::Str(format!("{}", limitResolved).into())).into()), ".high_freq");
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".depth.size_").into()), Value::Str(format!("{}", Value::from(limitResolved)).into())).into()), ".high_freq");
         }
         let mut url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[(market).linear.map(Value::Bool).unwrap_or_default(), Value::Bool(false), Value::Bool(true)]);
         let mut method: Value = Value::Str("handle_order_book_subscription".into()).clone();
@@ -991,13 +991,13 @@ impl Htx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut depth: Value = Value::from(self.parse_to_int(self.safe_integer_k(&options, "depth", &[Value::Int(150)])));
+        let mut depth: Option<i64> = self.parse_to_int(self.safe_integer_k(&options, "depth", &[Value::Int(150)]));
         let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut subMessageHash: String = "".to_string();
         if (market).spot {
-            subMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".mbp.").into()), Value::Str(format!("{}", depth).into()));
+            subMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".mbp.").into()), Value::Str(format!("{}", Value::from(depth)).into()));
         }  else {
-            subMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".depth.size_").into()), Value::Str(format!("{}", depth).into())).into()), ".high_freq");
+            subMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".depth.size_").into()), Value::Str(format!("{}", Value::from(depth)).into())).into()), ".high_freq");
         }
         if !(market).spot {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("data_type".into(), Value::Str("incremental".into())); }
@@ -3826,7 +3826,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut timestamp: Value = self.ymdhms(Value::Int(self.milliseconds()), &[Value::Str("T".into())]);
+            let mut timestamp: Option<String> = self.ymdhms(Value::Int(self.milliseconds()), &[Value::Str("T".into())]).as_str().map(str::to_owned);
             let mut signatureParams: Value = Value::Null;
             if (type_var.as_deref() == Some("spot")) {
                 signatureParams = Value::Map({
@@ -3834,7 +3834,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("accessKey".to_string(), self.apiKey.clone());
                         m.insert("signatureMethod".to_string(), Value::Str("HmacSHA256".into()));
                         m.insert("signatureVersion".to_string(), Value::Str("2.1".into()));
-                        m.insert("timestamp".to_string(), timestamp.clone());
+                        m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
                     m
                 });
             }  else {
@@ -3843,7 +3843,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("AccessKeyId".to_string(), self.apiKey.clone());
                         m.insert("SignatureMethod".to_string(), Value::Str("HmacSHA256".into()));
                         m.insert("SignatureVersion".to_string(), Value::Str("2".into()));
-                        m.insert("Timestamp".to_string(), timestamp.clone());
+                        m.insert("Timestamp".to_string(), Value::from(timestamp.as_deref()));
                     m
                 });
             }
@@ -3859,7 +3859,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("accessKey".to_string(), self.apiKey.clone());
                         m.insert("signatureMethod".to_string(), Value::Str("HmacSHA256".into()));
                         m.insert("signatureVersion".to_string(), Value::Str("2.1".into()));
-                        m.insert("timestamp".to_string(), timestamp.clone());
+                        m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
                         m.insert("signature".to_string(), Value::from(signature.clone()));
                     m
                 });
@@ -3878,7 +3878,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("AccessKeyId".to_string(), self.apiKey.clone());
                         m.insert("SignatureMethod".to_string(), Value::Str("HmacSHA256".into()));
                         m.insert("SignatureVersion".to_string(), Value::Str("2".into()));
-                        m.insert("Timestamp".to_string(), timestamp);
+                        m.insert("Timestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                         m.insert("Signature".to_string(), Value::from(signature));
                     m
                 }));

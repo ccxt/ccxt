@@ -4236,14 +4236,14 @@ impl Kucoin {
             while { if !__for_first_889 { j += 1; } __for_first_889 = false; j < chainsLength } {
             let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
             let mut chainId: Option<String> = self.safe_string_k(&chain, "chainId", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            let mut networkCode: Option<String> = self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), chainId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), self.safe_string_k(&chain, "chainName", &[]));
-        m.insert("code".to_string(), networkCode.clone());
+        m.insert("code".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number2(&chain, Value::Str("withdrawalMinFee".into()), Value::Str("minWithdrawFee".into()), &[]));
         m.insert("deposit".to_string(), self.safe_bool_k(&chain, "isDepositEnabled", &[]));
@@ -9807,11 +9807,11 @@ impl Kucoin {
             trades = self.safe_list_k(data, "items", &[Value::from(vec![])]);
         }
         // v1 may put a bare list or dict under data; normalize once for parseTrades
-        let mut tradesList: Value = Value::from(vec![]);
+        let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (trades != Value::Null) {
-            tradesList = self.to_array(trades);
+            tradesList = self.to_array(trades).into_list();
         }
-        return self.parse_trades(tradesList, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&tradesList, market.as_ref(), &[since, limit]);
 
     Value::Null
 }
@@ -14858,7 +14858,7 @@ if _try_result.is_err() {
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         if uta {
             let mut accountMode: Value = Value::Str("unified".into());
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(&paramsRequest, Value::Str("cancelOrders".into()), Value::Str("accountMode".into()), &[accountMode.clone()]).as_array().cloned().unwrap_or_default(); accountMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -14875,7 +14875,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            orders = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
         }  else {
             let mut requestKey: String = "orderIdsList".to_string();
             if useClientorderId {
@@ -14904,9 +14904,9 @@ if _try_result.is_err() {
             //       ]
             //   }
             //
-            orders = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         }
-        return self.parse_orders(orders, market.as_ref(), &[]);
+        return self.parse_orders(&orders, market.as_ref(), &[]);
         Value::Null
         }).await?))
     }

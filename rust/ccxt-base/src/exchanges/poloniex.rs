@@ -1480,11 +1480,11 @@ impl Poloniex {
         //         ]
         //     ]
         //
-        let mut candles: Value = Value::from(vec![]);
+        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            candles = response;
+            candles = response.into_list();
         }
-        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2047,14 +2047,14 @@ impl Poloniex {
             while { if !__for_first_1084 { j += 1; } __for_first_1084 = false; j < chainsLength } {
             let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
             let mut chainId: Option<String> = self.safe_string_k(&chain, "blockchain", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            let mut networkCode: Option<String> = self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), chainId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), Value::Null);
-        m.insert("code".to_string(), networkCode.clone());
+        m.insert("code".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(&chain, "withdrawFee", &[]));
         m.insert("deposit".to_string(), self.safe_bool_k(&chain, "depositEnable", &[]));
@@ -3854,11 +3854,11 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_1091: bool = true;
             while { if !__for_first_1091 { i += 1; } __for_first_1091 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), self.safe_number_k(response.clone(), "makerRate", &[]));
         m.insert("taker".to_string(), self.safe_number_k(response.clone(), "takerRate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -4545,21 +4545,21 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut entries: Value = Value::from(vec![]);
+        let mut entries: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            entries = response;
+            entries = response.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_1094: bool = true;
             while { if !__for_first_1094 { i += 1; } __for_first_1094 = false; i < (entries.len() as i64) } {
-            let mut entry: crate::value::Dict = self.safe_dict(entries.clone(), Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&entries, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
             let mut currencies: crate::value::List = Value::Array(entry.keys().cloned().map(Value::from).collect()).into_list();
-            let mut currencyId: Option<String> = self.safe_string_opt(&currencies, Value::Int(0), &[]);
-            data.insert(currencyId.as_deref().unwrap_or("null").to_string(), self.safe_value(&entry, currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
+            let mut currencyId: Option<String> = self.safe_string(&currencies, Value::Int(0), &[]).as_str().map(str::to_owned);
+            data.insert(currencyId.as_deref().unwrap_or("null").to_string(), self.safe_value(&entry, Value::from(currencyId.as_deref()), &[]));
         }
         }
         return self.parse_deposit_withdraw_fees(Value::Map(data), &[codes]);

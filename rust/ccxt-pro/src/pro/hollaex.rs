@@ -585,7 +585,7 @@ impl Hollaex {
         }
         // non-symbol specific
         client.resolve(Value::from(&self.myTrades), channel.as_deref());
-        let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(marketIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_379: bool = true;
@@ -741,7 +741,7 @@ impl Hollaex {
         }
         // non-symbol specific
         client.resolve(Value::from(&self.orders), channel.as_deref());
-        let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(marketIds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_381: bool = true;

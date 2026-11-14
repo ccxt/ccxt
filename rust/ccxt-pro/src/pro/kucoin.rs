@@ -2601,12 +2601,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn get_cache_index(&self, mut orderbook: Value, mut cache: Value) -> Value {
         let mut firstDelta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(0), &[]).into_dict();
-        let mut nonce: Value = self.safe_integer_k(orderbook, "nonce", &[]);
+        let mut nonce: Option<i64> = self.safe_integer_k(orderbook, "nonce", &[]).as_i64();
         let mut firstDeltaStart: Option<i64> = self.safe_integer_n(&firstDelta, Value::from(vec![Value::Str("sequenceStart".into()), Value::Str("sequence".into()), Value::Str("O".into())]), &[]).as_i64();
-        if (nonce == Value::Null) || (firstDeltaStart.is_none()) {
+        if (nonce.is_none()) || (firstDeltaStart.is_none()) {
             return Value::Int(-1);
         }
-        if nonce.as_f64().unwrap_or(f64::NAN) < Value::from((if let Some(__l) = firstDeltaStart { Some(__l - 1) } else { None })).as_f64().unwrap_or(f64::NAN) {
+        if matches!((nonce, ((if let Some(__l) = firstDeltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) < (__r as f64)) {
             return Value::Int(-1);
         }
         {
@@ -2615,11 +2615,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_457 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_457 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
             let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), i.clone(), &[]).into_dict();
             let mut deltaStart: Option<i64> = self.safe_integer_n(&delta, Value::from(vec![Value::Str("sequenceStart".into()), Value::Str("sequence".into()), Value::Str("O".into())]), &[]).as_i64();
-            let mut deltaEnd: Value = self.safe_integer_n(&delta, Value::from(vec![Value::Str("sequenceEnd".into()), Value::Str("sequence".into()), Value::Str("C".into())]), &[]); // todo check
-            if (deltaStart.is_none()) || (deltaEnd == Value::Null) {
+            let mut deltaEnd: Option<i64> = self.safe_integer_n(&delta, Value::from(vec![Value::Str("sequenceEnd".into()), Value::Str("sequence".into()), Value::Str("C".into())]), &[]).as_i64(); // todo check
+            if (deltaStart.is_none()) || (deltaEnd.is_none()) {
                 continue;
             }
-            if (nonce.as_f64().unwrap_or(f64::NAN) >= Value::from((if let Some(__l) = deltaStart { Some(__l - 1) } else { None })).as_f64().unwrap_or(f64::NAN)) && (nonce.as_f64().unwrap_or(f64::NAN) < deltaEnd.as_f64().unwrap_or(f64::NAN)) {
+            if (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) && ((nonce.is_some() && deltaEnd.is_some() && nonce < deltaEnd)) {
                 return i;
             }
         }
@@ -3606,53 +3606,53 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut uniformType: Value = self.safe_string(&accountsByType, type_var.clone(), &[type_var.clone()]);
-        let mut isClassicFuturesMethod: Value = (Value::Bool(uniformType.as_str() == Some("contract")));
-        let mut subscriptionHash: Value = Value::Str("/account/balance".into());
-        if matches!(&isClassicFuturesMethod, Value::Bool(true)) {
-            subscriptionHash = Value::Str("/contractAccount/wallet".into());
+        let mut uniformType: Option<String> = self.safe_string(&accountsByType, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        let mut isClassicFuturesMethod: bool = uniformType.as_deref() == Some("contract");
+        let mut subscriptionHash: Option<String> = Some("/account/balance".to_string());
+        if isClassicFuturesMethod {
+            subscriptionHash = Some("/contractAccount/wallet".to_string());
         }
         let mut url: Value = Value::Null;
         if utaOption {
             url = self.get_uta_url().await;
             subscriptionHash = uniformType.clone();
         }  else {
-            url = self.negotiate(true, &[isClassicFuturesMethod]).await;
+            url = self.negotiate(true, &[Value::Bool(isClassicFuturesMethod)]).await;
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
-        self.set_balance_cache(client.as_value(), uniformType.clone());
+        self.set_balance_cache(client.as_value(), Value::from(uniformType.as_deref()));
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
-            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", uniformType, ":fetchBalanceSnapshot").into()))).await;
+            crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", uniformType.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
-        let mut messageHash: String = format!("{}{}", uniformType, ":balance");
+        let mut messageHash: String = format!("{}{}", uniformType.as_deref().unwrap_or("null"), ":balance");
         if utaOption {
             let mut extendedParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("accountType".to_string(), uniformType.clone());
+                    m.insert("accountType".to_string(), Value::from(uniformType.as_deref()));
                 m
             });
             let mut channel: String = "balance".to_string();
             let __ws_arg_4 = self.extend(Value::Map(extendedParams), &[&paramsOmitted]);
-            return self.subscribe_private_uta(Value::from(vec![Value::from(messageHash.clone())]), subscriptionHash.as_str().unwrap_or_default(), channel.as_str(), None, &[__ws_arg_4]).await;
+            return self.subscribe_private_uta(Value::from(vec![Value::from(messageHash.clone())]), subscriptionHash.as_deref().unwrap_or_default(), channel.as_str(), None, &[__ws_arg_4]).await;
         }  else {
             let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), requestId.clone());
                     m.insert("type".to_string(), Value::Str("subscribe".into()));
-                    m.insert("topic".to_string(), subscriptionHash.clone());
+                    m.insert("topic".to_string(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("response".to_string(), Value::Bool(true));
                     m.insert("privateChannel".to_string(), Value::Bool(true));
                 m
             });
             let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOmitted]).into_dict();
-            if !(client.has_subscription(&subscriptionHash)) {
-                client.add_subscription(&requestId, subscriptionHash.clone());
+            if !(client.has_subscription(subscriptionHash.as_deref())) {
+                client.add_subscription(&requestId, subscriptionHash.map(Value::from).unwrap_or(Value::Null));
             }
-            return self.watch(&url, messageHash.as_str(), &message, &uniformType, Value::Null).await;
+            return self.watch(&url, messageHash.as_str(), &message, uniformType.as_deref(), Value::Null).await;
         }
         Value::Null
         }).await?))

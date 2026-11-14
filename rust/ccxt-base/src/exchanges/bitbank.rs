@@ -975,11 +975,11 @@ impl Bitbank {
             let mut pair: crate::value::Dict = pairs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k(&pair, "name", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
-            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            result.insert(symbol.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&pair));
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("maker".to_string(), self.safe_number_k(&pair, "maker_fee_rate_quote", &[]));
         m.insert("taker".to_string(), self.safe_number_k(&pair, "taker_fee_rate_quote", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));

@@ -2116,7 +2116,7 @@ impl Xt {
             while { if !__for_first_1186 { i += 1; } __for_first_1186 = false; i < (currenciesData.len() as i64) } {
             let mut entry: crate::value::Dict = currenciesData.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut networkEntry: crate::value::Dict = self.safe_dict(&chainsDataIndexed, currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2132,13 +2132,13 @@ impl Xt {
                 while { if !__for_first_1185 { j += 1; } __for_first_1185 = false; j < (rawNetworks.len() as i64) } {
                 let mut rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&rawNetwork, "chain", &[]).as_str().map(str::to_owned);
-                let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]));
-                if (networkCode != Value::Null) {
-                    networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+                let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]);
+                if (networkCode.is_some()) {
+                    networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&rawNetwork));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("name".to_string(), Value::Null);
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(&rawNetwork, "withdrawFeeAmount", &[]));
@@ -2179,12 +2179,12 @@ impl Xt {
             }  else {
                 type_var = Some("other".to_string());
             }
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&entry));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("name".to_string(), self.safe_string_k(&entry, "fullName", &[]));
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
@@ -5095,22 +5095,22 @@ impl Xt {
         //         }
         //     }
         //
-        let mut orders: Value = Value::from(vec![]);
+        let mut orders: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut resultDict: Option<crate::value::Dict> = self.safe_dict_k(&response, "result", &[]).into_opt_dict();
         if (resultDict.is_some()) {
-            orders = self.safe_list_k(&resultDict, "items", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&resultDict, "items", &[Value::from(vec![])]).into_list();
         }  else {
-            orders = self.safe_list_k(&response, "result", &[Value::from(vec![])]);
+            orders = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
         }
         if trailing {
             // the track endpoints do not support a server-side state filter
             // and return entries in every state, so filter by status first,
             // otherwise since/limit could cut off matching rows
-            let mut parsedOrders: crate::value::List = self.parse_orders(orders.clone(), market.as_ref(), &[]).into_list();
+            let mut parsedOrders: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[]).into_list();
             let mut filteredOrders: crate::value::List = self.filter_by(Value::Arr(parsedOrders), Value::Str("status".into()), status, &[]).into_list();
             return self.filter_by_since_limit(&filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         }
-        return self.parse_orders(orders, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
 
     Value::Null
 }

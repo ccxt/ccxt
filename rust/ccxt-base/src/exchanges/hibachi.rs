@@ -781,7 +781,7 @@ impl Hibachi {
         networks.insert(networkId.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(networkId.clone()));
-        m.insert("network".to_string(), Value::from(networkId.clone()));
+        m.insert("network".to_string(), Value::from(networkId));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -807,14 +807,14 @@ impl Hibachi {
 }));
     m
 }));
-        let mut code: Value = self.safe_currency_code(Value::Str("USDT".into()), None).map(Value::from).unwrap_or(Value::Null);
-        if (code != Value::Null) {
-            result.insert(crate::runtime::stringify_param(&code), self.safe_currency_structure(Value::Map({
+        let mut code: Option<String> = self.safe_currency_code(Value::Str("USDT".into()), None);
+        if (code.is_some()) {
+            result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("USDT".into()));
         m.insert("name".to_string(), Value::Str("USDT".into()));
         m.insert("type".to_string(), Value::Str("fiat".into()));
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.000001".into()), &[]));
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("fee".to_string(), Value::Null);
@@ -1316,11 +1316,11 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_734: bool = true;
             while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), Value::from(makerFeeRate));
         m.insert("taker".to_string(), Value::from(takerFeeRate));
         m.insert("percentage".to_string(), Value::Bool(true));

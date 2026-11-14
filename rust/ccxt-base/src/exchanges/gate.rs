@@ -4393,13 +4393,13 @@ if _try_result.is_err() {
             while { if !__for_first_690 { j += 1; } __for_first_690 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "name", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&chain));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(!(self.safe_bool_k(&chain, "deposit_disabled", &[Value::Bool(false)]).as_bool() == Some(true))));
         m.insert("withdraw".to_string(), Value::Bool(!(self.safe_bool_k(&chain, "withdraw_disabled", &[Value::Bool(false)]).as_bool() == Some(true))));
@@ -7561,11 +7561,11 @@ if _try_result.is_err() {
             if (market).spot {
                 request.insert("amount".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
             }  else {
-                let mut signedAmount: Value = self.get_gate_futures_signed_amount(symbol.as_str(), side.as_str(), amount).map(Value::from).unwrap_or(Value::Null);
+                let mut signedAmount: Option<String> = self.get_gate_futures_signed_amount(symbol.as_str(), side.as_str(), amount);
                 if self.is_gate_futures_contract_with_decimal_size(Some(&market)).as_bool() == Some(true) {
-                    request.insert("size".into(), signedAmount.clone());
+                    request.insert("size".into(), Value::from(signedAmount.as_deref()));
                 }  else {
-                    request.insert("size".into(), self.parse_to_numeric(signedAmount));
+                    request.insert("size".into(), self.parse_to_numeric(signedAmount.map(Value::from).unwrap_or(Value::Null)));
                 }
             }
         }
@@ -9409,11 +9409,11 @@ if _try_result.is_err() {
         //         }
         //     ]
         //
-        let mut responseList: Value = Value::from(vec![]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (response != Value::Null) {
-            responseList = self.to_array(response);
+            responseList = self.to_array(response).into_list();
         }
-        return self.parse_positions(responseList, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.parse_positions(&responseList, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -10115,13 +10115,13 @@ if _try_result.is_err() {
             let mut bodyPayload: Option<String> = (if (bodyJson.is_none()) { Some("".to_string()) } else { bodyJson.clone() });
             let mut bodySignature: String = self.hash(self.encode(bodyPayload.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha512".into()), &[]);
             let mut nonce: i64 = self.nonce().as_i64().unwrap_or_default();
-            let mut timestamp: Value = Value::from(self.parse_to_int(Value::Float(((nonce as f64) / 1000.0))));
-            let mut timestampString: Value = Value::Str(format!("{}", timestamp).into());
+            let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((nonce as f64) / 1000.0)));
+            let mut timestampString: Value = Value::Str(format!("{}", Value::from(timestamp)).into());
             let mut signaturePath: String = format!("{}{}", Value::Str(format!("{}{}", "/api/", self.version.clone()).into()), entirePath);
             let mut payloadArray: Value = Value::from(vec![(if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), Value::from(signaturePath), Value::from(rawQueryString), Value::from(bodySignature), timestampString.clone()]);
             // eslint-disable-next-line quotes
-            let mut payload: Value = Value::Str(payloadArray.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into());
-            let mut signature: String = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
+            let mut payload: String = payloadArray.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default();
+            let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
             signedHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("KEY".to_string(), self.apiKey.clone());
@@ -11698,11 +11698,11 @@ if _try_result.is_err() {
         //        ...
         //    ]
         //
-        let mut responseList: Value = Value::from(vec![]);
+        let mut responseList: crate::value::List = std::sync::Arc::new(Vec::new());
         if (response != Value::Null) {
-            responseList = self.to_array(response);
+            responseList = self.to_array(response).into_list();
         }
-        return self.parse_positions(responseList, &[symbols, Value::Dict(paramsValue)]);
+        return self.parse_positions(&responseList, &[symbols, Value::Dict(paramsValue)]);
         Value::Null
         }).await?))
     }

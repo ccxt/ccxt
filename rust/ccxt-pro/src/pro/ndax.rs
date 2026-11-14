@@ -450,7 +450,7 @@ impl Ndax {
         //     ]
         //
         let mut name: String = "SubscribeTrades".to_string();
-        let mut updates: Value = Value::Map({
+        let mut updates: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -470,11 +470,11 @@ impl Ndax {
                 CacheStore::put(&mut self.trades, &symbol.clone().map(Value::from).unwrap_or(Value::Null), tradesArray);
             }
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut updates { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                updates.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
-        let mut symbols: Vec<Value> = Value::Array(updates.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbols: Vec<Value> = Value::Array(updates.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_519: bool = true;
@@ -667,7 +667,7 @@ impl Ndax {
         }
         }
         let mut name: String = "SubscribeTicker".to_string();
-        let mut marketIds: Vec<Value> = Value::Array(updates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut marketIds: Vec<Value> = Value::Array(updates.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_523: bool = true;

@@ -1539,7 +1539,7 @@ impl Polymarket {
                 continue;
             }
             // Market outcome (no outcome suffix)
-            let mut marketSymbol: Value = self.slug_to_market_symbol(eventSlug.clone(), Value::from(marketSlug.as_deref()));
+            let mut marketSymbol: Option<String> = self.slug_to_market_symbol(eventSlug.clone(), Value::from(marketSlug.as_deref())).as_str().map(str::to_owned);
             // Build outcomes array
             let mut outcomes: Vec<Value> = Vec::new();
             {
@@ -1577,7 +1577,7 @@ impl Polymarket {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
                         m.insert("outcomeId".to_string(), clobTokenId);
-                        m.insert("market".to_string(), marketSymbol.clone());
+                        m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
                         m.insert("label".to_string(), outcomeLabel);
                         m.insert("price".to_string(), Value::from(outcomePrice));
                         m.insert("active".to_string(), Value::Bool((active && !(closed))));
@@ -1602,7 +1602,7 @@ impl Polymarket {
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), conditionId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("market".to_string(), marketSymbol);
+                    m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
                     m.insert("marketType".to_string(), Value::from(marketType));
                     m.insert("executionModel".to_string(), Value::Str("clob".into()));
                     m.insert("collateral".to_string(), Value::Str("USDC".into()));
@@ -3738,7 +3738,7 @@ impl Polymarket {
         let mut appDomainData: Value = self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into())]), Value::from(vec![Value::from(&domainTypeHash), Value::from(&nameHash), Value::from(&versionHash),
             self.convert_to_big_int(Value::from(self.number_to_string(Value::from(chainIdValue)))), exchangeAddress]));
         let mut appDomainSep: String = format!("{}{}", Value::Str("0x".into()), self.hash(appDomainData, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
-        let mut typedDataSignStruct: Value = Value::from(vec![Value::Map({
+        let mut typedDataSignStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("contents".into()));
         m.insert("type".to_string(), Value::Str("Order".into()));
@@ -3782,7 +3782,7 @@ impl Polymarket {
         });
         let mut innerEncoded: Value = self.eth_encode_structured_data(Value::Map(orderDomain), Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("TypedDataSign".to_string(), typedDataSignStruct);
+                m.insert("TypedDataSign".to_string(), Value::Arr(typedDataSignStruct));
                 m.insert("Order".to_string(), orderStruct);
             m
         }), Value::Map(innerValue));

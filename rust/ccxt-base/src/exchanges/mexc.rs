@@ -2346,13 +2346,13 @@ impl Mexc {
             while { if !__for_first_947 { j += 1; } __for_first_947 = false; j < (chains.len() as i64) } {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string2(&chain, Value::Str("netWork".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
-            let mut network: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (network != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&network), Value::Map({
+            let mut network: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (network.is_some()) {
+                networks.insert(network.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&chain));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), network.clone());
+        m.insert("network".to_string(), Value::from(network.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(&chain, "depositEnable", &[Value::Bool(false)]));
         m.insert("withdraw".to_string(), self.safe_bool_k(&chain, "withdrawEnable", &[Value::Bool(false)]));
@@ -3158,9 +3158,9 @@ impl Mexc {
         let mut candles: Value = Value::from(vec![]);
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
         let mut omitUntil: bool = (until.is_some()) && (since == Value::Null);
-        let mut paramsUntil: Value = Value::from(&paramsPaginate);
+        let mut paramsUntil: crate::value::Dict = Value::from(&paramsPaginate).into_dict();
         if omitUntil {
-            paramsUntil = self.omit(&paramsPaginate, &["until"], &[]);
+            paramsUntil = self.omit(&paramsPaginate, &["until"], &[]).into_dict();
         }
         if (market).spot {
             if (since != Value::Null) {
@@ -3188,7 +3188,7 @@ impl Mexc {
             if (until.is_some()) {
                 request.insert("endTime".into(), Value::from((if let Some(__l) = until { Some(__l + 1) } else { None }))); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
-            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+            let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
             let mut response: crate::value::List = self.spot_public_get_klines(&[__ws_arg_6]).await.into_list();
             //
             //     [
@@ -3222,8 +3222,8 @@ impl Mexc {
                     }
                 }
             }
-            let mut priceType: Option<String> = self.safe_string_k(paramsUntil.clone(), "price", &[Value::Str("default".into())]).as_str().map(str::to_owned);
-            let mut paramsOmitted: crate::value::Dict = self.omit(paramsUntil, Value::Str("price".into()), &[]).into_dict();
+            let mut priceType: Option<String> = self.safe_string_k(&paramsUntil, "price", &[Value::Str("default".into())]).as_str().map(str::to_owned);
+            let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::Str("price".into()), &[]).into_dict();
             let mut response: Value = Value::Null;
             if (priceType.as_deref() == Some("default")) {
                 let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -4555,18 +4555,18 @@ impl Mexc {
             if (limit == Value::Null) {
                 request.insert("page_size".into(), Value::Int(100)); // max
             }
-            let mut data: Value = Value::from(vec![]);
+            let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
             if (trigger == Some(true)) {
                 request.insert("states".into(), Value::Int(1)); // untriggered
                 let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&swapParams]);
                 let mut triggerResponse: crate::value::Dict = self.contract_private_get_planorder_list_orders(&[__ws_arg_28]).await.into_dict();
-                data = self.safe_list_k(&triggerResponse, "data", &[Value::from(vec![])]);
+                data = self.safe_list_k(&triggerResponse, "data", &[Value::from(vec![])]).into_list();
             }  else {
                 let __ws_arg_29 = self.extend(Value::Map(request), &[&swapParams]);
                 let mut swapResponse: crate::value::Dict = self.contract_private_get_order_list_open_orders(&[__ws_arg_29]).await.into_dict();
-                data = self.safe_list_k(&swapResponse, "data", &[Value::from(vec![])]);
+                data = self.safe_list_k(&swapResponse, "data", &[Value::from(vec![])]).into_list();
             }
-            return self.parse_orders(data, market.as_ref(), &[since, limit, Value::Dict(swapParams)]);
+            return self.parse_orders(&data, market.as_ref(), &[since, limit, Value::Dict(swapParams)]);
         }
         Value::Null
         }).await?))
@@ -7379,11 +7379,11 @@ impl Mexc {
         let mut fromId: Option<String> = self.safe_string(Value::Map(accounts.clone()), fromAccount.clone(), &[fromAccount.clone()]).as_str().map(str::to_owned);
         let mut toId: Option<String> = self.safe_string(Value::Map(accounts.clone()), toAccount.clone(), &[toAccount.clone()]).as_str().map(str::to_owned);
         if (fromId.is_none()) {
-            let mut keys: Value = Value::Array(accounts.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+            let mut keys: Value = Value::Array(accounts.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fromAccount must be one of ").into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
         if (toId.is_none()) {
-            let mut keys: Value = Value::Array(accounts.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+            let mut keys: Value = Value::Array(accounts.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " toAccount must be one of ").into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

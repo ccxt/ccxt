@@ -2300,11 +2300,11 @@ impl Hyperliquid {
         //         }
         //     ]
         //
-        let mut candles: Value = Value::from(vec![]);
+        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            candles = response;
+            candles = response.into_list();
         }
-        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, Value::from(originalSince), limit, Value::Bool(useTail)]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, Value::from(originalSince), limit, Value::Bool(useTail)]);
         Value::Null
         }).await?))
     }
@@ -2394,11 +2394,11 @@ impl Hyperliquid {
         //         }
         //     ]
         //
-        let mut fills: Value = Value::from(vec![]);
+        let mut fills: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            fills = response;
+            fills = response.into_list();
         }
-        return self.parse_trades(fills, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&fills, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4489,15 +4489,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     ]
         //
         let mut result: Vec<Value> = Vec::new();
-        let mut fundings: Value = Value::from(vec![]);
+        let mut fundings: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            fundings = response;
+            fundings = response.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_821: bool = true;
             while { if !__for_first_821 { i += 1; } __for_first_821 = false; i < (fundings.len() as i64) } {
-            let mut entry: Option<crate::value::Dict> = self.safe_dict(fundings.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut entry: Option<crate::value::Dict> = self.safe_dict(&fundings, Value::Int(i), &[]).into_opt_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "time", &[]).as_i64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4596,15 +4596,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     ]
         //
         let mut orderWithStatus: Vec<Value> = Vec::new();
-        let mut rawOrders: Value = Value::from(vec![]);
+        let mut rawOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            rawOrders = response;
+            rawOrders = response.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_822: bool = true;
             while { if !__for_first_822 { i += 1; } __for_first_822 = false; i < (rawOrders.len() as i64) } {
-            let mut order: crate::value::Dict = self.safe_dict(rawOrders.clone(), Value::Int(i), &[]).into_dict();
+            let mut order: crate::value::Dict = self.safe_dict(&rawOrders, Value::Int(i), &[]).into_dict();
             let mut extendOrder: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -4793,35 +4793,35 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // Hyperliquid returns the full status history for each order,
         // so a canceled order appears twice: once as 'open' and once as 'canceled'.
         // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
-        let mut deduplicatedByOid: Value = Value::Map({
+        let mut deduplicatedByOid: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut historicalOrders: Value = Value::from(vec![]);
+        let mut historicalOrders: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            historicalOrders = response;
+            historicalOrders = response.into_list();
         }
         {
                         let mut i: i64 = 0;
             let mut __for_first_823: bool = true;
             while { if !__for_first_823 { i += 1; } __for_first_823 = false; i < (historicalOrders.len() as i64) } {
-            let mut rawOrder: crate::value::Dict = historicalOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut rawOrder: crate::value::Dict = historicalOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut entry: crate::value::Dict = self.safe_dict_k(&rawOrder, "order", &[Value::from(&rawOrder)]).into_dict();
             let mut oid: Option<String> = self.safe_string_k_opt(&entry, "oid", &[]);
             if (oid.is_some()) {
-                if !(matches!((&deduplicatedByOid, &oid.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), Value::from(&rawOrder)); }
+                if !(matches!(&oid.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if deduplicatedByOid.contains_key(__k.as_ref()))) {
+                    deduplicatedByOid.insert(oid.as_deref().unwrap_or("null").to_string(), Value::from(&rawOrder));
                 }  else {
-                    let mut existingTimestamp: Option<i64> = self.safe_integer((if let (Some(__m), Some(__k)) = (deduplicatedByOid.as_map(), oid.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]).as_i64();
+                    let mut existingTimestamp: Option<i64> = self.safe_integer(deduplicatedByOid.get(oid.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]).as_i64();
                     let mut currentTimestamp: Option<i64> = self.safe_integer_k(&rawOrder, "statusTimestamp", &[]).as_i64();
                     if (currentTimestamp.is_some()) && ((existingTimestamp.is_none()) || (currentTimestamp.is_some() && existingTimestamp.is_some() && currentTimestamp > existingTimestamp)) {
-                        if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), Value::Dict(rawOrder)); }
+                        deduplicatedByOid.insert(oid.as_deref().unwrap_or("null").to_string(), Value::Dict(rawOrder));
                     }
                 }
             }
         }
         }
-        let mut deduplicated: crate::value::List = Value::Array(deduplicatedByOid.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        let mut deduplicated: crate::value::List = Value::Array(deduplicatedByOid.values().cloned().collect()).into_list();
         return self.parse_orders(&deduplicated, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -5213,11 +5213,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     ]
         //
-        let mut myFills: Value = Value::from(vec![]);
+        let mut myFills: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            myFills = response;
+            myFills = response.into_list();
         }
-        return self.parse_trades(myFills, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&myFills, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

@@ -1814,12 +1814,12 @@ impl Hashkey {
             while { if !__for_first_726 { j += 1; } __for_first_726 = false; j < (networks.len() as i64) } {
             let mut network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&network, "chainType", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (networkCode != Value::Null) {
-                parsedNetworks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (networkCode.is_some()) {
+                parsedNetworks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -3935,8 +3935,8 @@ impl Hashkey {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut orderIds: Value = Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
-        request.insert("ids".into(), orderIds);
+        let mut orderIds: String = ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default();
+        request.insert("ids".into(), Value::from(orderIds));
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4575,11 +4575,11 @@ impl Hashkey {
         if (type_var.as_str() != Some("LIMIT_MAKER")) && isMakerTimeInForce {
             timeInForceParsed = Value::Str("PO".into());
         }
-        let mut typeValue: Value = self.parse_order_type(type_var.as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut typeValue: Option<String> = self.parse_order_type(type_var.as_str());
         if (type_var.as_str() == Some("LIMIT_MAKER")) || isMakerTimeInForce {
-            return Value::from(vec![typeValue.clone(), timeInForceParsed.clone(), Value::Bool(true)]);
+            return Value::from(vec![Value::from(typeValue.as_deref()), timeInForceParsed.clone(), Value::Bool(true)]);
         }
-        return Value::from(vec![typeValue, timeInForceParsed, Value::Null]);
+        return Value::from(vec![typeValue.map(Value::from).unwrap_or(Value::Null), timeInForceParsed, Value::Null]);
 
     Value::Null
 }

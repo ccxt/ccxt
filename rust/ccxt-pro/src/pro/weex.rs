@@ -1996,7 +1996,7 @@ impl Weex {
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut data: crate::value::List = message.get("d").cloned().unwrap_or_default().into_list();
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2011,13 +2011,13 @@ impl Weex {
             let mut parsed: crate::value::Dict = self.parse_ws_my_trade(&trade, None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
             trades.append(Value::Dict(parsed));
         }
         }
         let mut messageHash: String = "myTrades".to_string();
-        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbolKeys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolKeys.clone().into()]);
         if matches!(self.safe_bool_k(&market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             messageHash = "myContractTrades".to_string();
@@ -2258,7 +2258,7 @@ impl Weex {
         //     }
         //
         let mut data: crate::value::List = message.get("d").cloned().unwrap_or_default().into_list();
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2279,12 +2279,12 @@ impl Weex {
             orders.append(Value::from(&parsed));
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
         let mut messageHash: String = "orders".to_string();
-        let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut symbolKeys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbolKeys.clone().into()]);
         if matches!(self.safe_bool_k(&market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             messageHash = "contractOrders".to_string();

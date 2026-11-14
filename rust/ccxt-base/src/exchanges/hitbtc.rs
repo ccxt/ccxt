@@ -1958,8 +1958,8 @@ impl Hitbtc {
         });
         if (symbolsNormalized.is_some()) {
             let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
-            let mut delimited: Value = Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into());
-            request.insert("symbols".into(), delimited);
+            let mut delimited: String = marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",");
+            request.insert("symbols".into(), Value::from(delimited));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_ticker(&[__ws_arg_3]).await.into_dict();
@@ -2603,9 +2603,9 @@ impl Hitbtc {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+            let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(&orderbook, "timestamp", &[]));
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_order_book(&orderbook, symbol.clone(), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_order_book(&orderbook, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bid".into()), Value::Str("ask".into())]));
         }
         }
         return Value::Map(result);
@@ -4009,9 +4009,9 @@ impl Hitbtc {
                 request.insert("network_code".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: Value = Value::from(&paramsWithdrawTag);
+        let mut paramsOmitted: crate::value::Dict = Value::from(&paramsWithdrawTag).into_dict();
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
-            paramsOmitted = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]);
+            paramsOmitted = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict();
         }
         let mut withdrawOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4021,7 +4021,7 @@ impl Hitbtc {
         if includeFee {
             request.insert("include_fee".into(), Value::Bool(true));
         }
-        let __ws_arg_56 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_56 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_wallet_crypto_withdraw(&[__ws_arg_56]).await.into_dict();
         return self.parse_transaction(&response, Some(&currency));
         Value::Null

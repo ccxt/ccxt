@@ -2903,11 +2903,11 @@ impl Okx {
                     m.insert("instType".to_string(), Value::Str("ANY".into()));
                 m
             });
-            let mut args: Value = Value::from(vec![self.extend(Value::Map(arg), &[params.clone()])]);
+            let mut args: crate::value::List = std::sync::Arc::new(vec![self.extend(Value::Map(arg), &[params.clone()])]);
             let mut nonSymbolRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("subscribe".into()));
-                    m.insert("args".to_string(), args);
+                    m.insert("args".to_string(), Value::Arr(args));
                 m
             });
             let mut url: Option<String> = self.get_url(Value::from(channel.clone()), &[Value::Str("private".into())]);
@@ -3295,7 +3295,7 @@ impl Okx {
             self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
         }
         let mut myTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -3308,14 +3308,14 @@ impl Okx {
             myTrades.append(Value::from(&trade));
             let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
         }
         }
         if (channel.is_some()) {
             let mut messageHash: String = format!("{}{}", channel.as_deref().unwrap_or("null"), "::myTrades");
             client.resolve(Value::from(&self.myTrades), messageHash.as_str());
-            let mut tradeSymbols: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut tradeSymbols: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_554: bool = true;

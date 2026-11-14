@@ -1468,7 +1468,7 @@ impl Krakenfutures {
         if (feed.as_deref() == Some("open_orders_verbose_snapshot")) {
             messageHash = "orders:verbose".to_string();
         }
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1485,7 +1485,7 @@ impl Krakenfutures {
             let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
-                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
             let mut parsedId: Option<String> = self.safe_string_k(&parsed, "id", &[]).as_str().map(str::to_owned);
             if (parsedId.is_some()) {
@@ -1529,7 +1529,7 @@ impl Krakenfutures {
                         // rows are copies in the value-type runtimes (php), and
                         // append also feeds the newUpdates accounting
                         cachedOrders.append(cachedOrder);
-                        if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&cachedSymbol), Value::Bool(true)); }
+                        symbols.insert(crate::runtime::stringify_param(&cachedSymbol), Value::Bool(true));
                     }
                 }
             }
@@ -1539,7 +1539,7 @@ impl Krakenfutures {
         let mut length: Value = get_array_length(&Value::from(&self.orders));
         if length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             client.resolve(Value::from(&self.orders), messageHash.as_str());
-            let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_439: bool = true;
@@ -2269,7 +2269,7 @@ impl Krakenfutures {
             stored.append(Value::Dict(parsedTrade));
         }
         }
-        let mut tradeSymbolKeys: Vec<Value> = Value::Array(tradeSymbols.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut tradeSymbolKeys: Vec<Value> = Value::Array(tradeSymbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_445: bool = true;

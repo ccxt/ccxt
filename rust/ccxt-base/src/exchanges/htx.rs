@@ -3754,8 +3754,8 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_766: bool = true;
             while { if !__for_first_766 { i += 1; } __for_first_766 = false; i < (symbolsValue.len() as i64) } {
-            let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            result.insert(crate::runtime::stringify_param(&symbol), self.fetch_trading_limits_by_id((self.market_id(symbol.clone())).as_str(), &[params.clone()]).await);
+            let mut symbol: Option<String> = symbolsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.fetch_trading_limits_by_id((self.market_id(Value::from(symbol.as_deref()))).as_str(), &[params.clone()]).await);
         }
         }
         return Value::Map(result);
@@ -5879,13 +5879,13 @@ impl Htx {
             if (uniqueChainId.is_some()) {
                 if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networkNamesByChainIds".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(uniqueChainId.as_deref().unwrap_or("null").to_string(), title); } }
             }
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]));
-            if (networkCode != Value::Null) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            let mut networkCode: Option<String> = self.network_id_to_code(&[uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
+            if (networkCode.is_some()) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&chainEntry));
         m.insert("id".to_string(), uniqueChainId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
@@ -6273,7 +6273,7 @@ impl Htx {
                         }
                     }
                     }
-                    let mut subCodes: Vec<Value> = Value::Array(subResult.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+                    let mut subCodes: Vec<Value> = Value::Array(subResult.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_777: bool = true;
@@ -9850,9 +9850,9 @@ impl Htx {
     m
 })]).into_dict();
         let mut includeFee: bool = self.safe_bool_k(&withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsFee: Value = Value::from(&paramsNetwork);
+        let mut paramsFee: crate::value::Dict = Value::from(&paramsNetwork).into_dict();
         if includeFee {
-            paramsFee = self.omit(&paramsNetwork, Value::Str("fee".into()), &[]);
+            paramsFee = self.omit(&paramsNetwork, Value::Str("fee".into()), &[]).into_dict();
         }
         if includeFee {
             let mut fee: Option<f64> = self.safe_number_k(&paramsNetwork, "fee", &[]).as_f64();
@@ -9888,7 +9888,7 @@ impl Htx {
             amountValue = self.parse_number(amountAfterFee.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         request.insert("amount".into(), Value::from(amountValue));
-        let __ws_arg_115 = self.extend(Value::Map(request), &[paramsFee]);
+        let __ws_arg_115 = self.extend(Value::Map(request), &[&paramsFee]);
         let mut response: crate::value::Dict = self.spot_private_post_v1_dw_withdraw_api_create(&[__ws_arg_115]).await.into_dict();
         return self.parse_transaction(&response, Some(&currency));
         Value::Null
@@ -10046,7 +10046,7 @@ impl Htx {
             let __ws_arg_120 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.private_post_dw_transfer_out_margin(&[__ws_arg_120]).await;
         }  else {
-            let mut query: Value = Value::from(&paramsSubType);
+            let mut query: crate::value::Dict = Value::from(&paramsSubType).into_dict();
             if (subType.as_deref() == Some("linear")) {
                 if (fromAccountIdStr.as_str() == Some("swap")) || (fromAccount.as_str() == Some("linear-swap")) {
                     fromAccountId = Value::Str("linear-swap".into());
@@ -10055,7 +10055,7 @@ impl Htx {
                 }
                 // check if cross-margin or isolated
                 let mut symbol: Option<String> = self.safe_string_k(&paramsSubType, "symbol", &[]).as_str().map(str::to_owned);
-                query = self.omit(&paramsSubType, Value::Str("symbol".into()), &[]);
+                query = self.omit(&paramsSubType, Value::Str("symbol".into()), &[]).into_dict();
                 if (symbol.is_some()) {
                     symbol = self.market_id(symbol.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     request.insert("margin-account".into(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -10065,7 +10065,7 @@ impl Htx {
             }
             request.insert("from".into(), (if fromSpot { Value::Str("spot".into()) } else { fromAccountId }));
             request.insert("to".into(), (if toSpot { Value::Str("spot".into()) } else { toAccountId }));
-            let __ws_arg_121 = self.extend(Value::Map(request), &[query]);
+            let __ws_arg_121 = self.extend(Value::Map(request), &[&query]);
             response = self.v2_private_post_account_transfer(&[__ws_arg_121]).await;
         }
         //
@@ -10808,8 +10808,8 @@ impl Htx {
                 let mut auth: Value = Value::from(self.urlencode(sortedRequest, &[Value::Bool(true)])); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 let mut content: Value = Value::from(vec![method.clone(), self.hostname.clone(), url.clone(), auth.clone()]);
-                let mut payload: Value = Value::Str(content.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
-                let mut signature: String = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+                let mut payload: String = content.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default(); // eslint-disable-line quotes
+                let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("Signature".to_string(), Value::from(signature));
@@ -10913,8 +10913,8 @@ impl Htx {
                 let mut auth: Value = (Value::from(self.urlencode(request.clone(), &[Value::Bool(true)]))).as_str().map(|__s| Value::Str(__s.replace("%2c", "%2C").into())).unwrap_or_else(|| (Value::from(self.urlencode(request, &[Value::Bool(true)]))).clone()); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 let mut content2: Value = Value::from(vec![method.clone(), hostname.clone(), url.clone(), auth.clone()]);
-                let mut payload: Value = Value::Str(content2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
-                let mut signature: String = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+                let mut payload: String = content2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default(); // eslint-disable-line quotes
+                let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("&".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("Signature".to_string(), Value::from(signature));

@@ -2139,7 +2139,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut postitionsIds: Vec<Value> = Value::Array(rawPositions.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut postitionsIds: Vec<Value> = Value::Array(rawPositions.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }

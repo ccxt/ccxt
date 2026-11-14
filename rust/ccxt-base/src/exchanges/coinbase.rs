@@ -2260,7 +2260,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-        let mut baseIds: Vec<Value> = Value::Array(rates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut baseIds: Vec<Value> = Value::Array(rates.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3067,7 +3067,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut ratesIds: Vec<Value> = Value::Array(rates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut ratesIds: Vec<Value> = Value::Array(rates.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut currencies: crate::value::List = self.array_concat(&fiatData, &cryptoData).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3254,7 +3254,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut baseIds: Vec<Value> = Value::Array(rates.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut baseIds: Vec<Value> = Value::Array(rates.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut delimiter: String = "-".to_string();
         {
                         let mut i: i64 = 0;
@@ -3822,14 +3822,14 @@ if _try_result.is_err() {
             response = self.v3_private_get_brokerage_accounts(&[__ws_arg_27]).await;
             // an explicit params.cursor means the caller pages manually
             if (self.safe_string_k(&paramsMarketType, "cursor", &[]) == Value::Null) {
-                let mut accounts: Value = self.safe_list_k(response.clone(), "accounts", &[Value::from(vec![])]);
+                let mut accounts: crate::value::List = self.safe_list_k(response.clone(), "accounts", &[Value::from(vec![])]).into_list();
                 let mut page: Value = response.clone();
                 let mut cursor: Option<String> = self.safe_string_k(page.clone(), "cursor", &[]).as_str().map(str::to_owned);
                 while matches!(self.safe_bool_k(page.clone(), "has_next", &[Value::Bool(false)]), Value::Bool(true)) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
                     request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
                     let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
                     page = self.v3_private_get_brokerage_accounts(&[__ws_arg_28]).await;
-                    accounts = self.array_concat(accounts, self.safe_list_k(page.clone(), "accounts", &[Value::from(vec![])]));
+                    accounts = self.array_concat(Value::Arr(accounts), self.safe_list_k(page.clone(), "accounts", &[Value::from(vec![])])).into_list();
                     let mut nextCursor: Option<String> = self.safe_string_k(page.clone(), "cursor", &[]).as_str().map(str::to_owned);
                     if (nextCursor == cursor) {
                         break;
@@ -3840,7 +3840,7 @@ if _try_result.is_err() {
                 let __ws_arg_30 = self.safe_string_k(page, "cursor", &[]);
                 response = self.extend(response, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("accounts".to_string(), accounts);
+                        m.insert("accounts".to_string(), Value::Arr(accounts));
                         m.insert("has_next".to_string(), __ws_arg_29);
                         m.insert("cursor".to_string(), __ws_arg_30);
                     m
@@ -7053,13 +7053,13 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_548: bool = true;
             while { if !__for_first_548 { i += 1; } __for_first_548 = false; i < (self.symbols.len() as i64) } {
-            let mut symbol: Value = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbol: String = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (isSpot && (market).spot) || (!isSpot && !(market).spot) {
-                result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                result.insert(symbol.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("maker".to_string(), Value::from(maker_fee));
         m.insert("taker".to_string(), Value::from(taker_fee));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -7207,7 +7207,7 @@ if _try_result.is_err() {
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
-        let mut nonce: Value = self.random_bytes(Value::Int(16));
+        let mut nonce: Option<String> = self.random_bytes(Value::Int(16)).as_str().map(str::to_owned);
         let mut aud: String = "retail_rest_api_proxy".to_string();
         if useEddsa {
             aud = "cdp_service".to_string();
@@ -7239,7 +7239,7 @@ if _try_result.is_err() {
             return Value::from(jwt(&request, seed, Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("kid".to_string(), self.apiKey.clone());
-        m.insert("nonce".to_string(), nonce.clone());
+        m.insert("nonce".to_string(), Value::from(nonce.as_deref()));
         m.insert("alg".to_string(), Value::Str("EdDSA".into()));
     m
 })));
@@ -7247,7 +7247,7 @@ if _try_result.is_err() {
             return Value::from(jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("kid".to_string(), self.apiKey.clone());
-        m.insert("nonce".to_string(), nonce);
+        m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
         m.insert("alg".to_string(), Value::Str("ES256".into()));
     m
 })));
@@ -7355,8 +7355,8 @@ if _try_result.is_err() {
                     authorizationString = Some(format!("{}{}", "Bearer ", token.as_deref().unwrap_or("null")));
                 }  else {
                     let mut nonce: Option<i64> = self.parse_to_int(self.nonce());
-                    let mut timestamp: Value = Value::from(self.parse_to_int(Value::from((if let Some(__l) = nonce { Some((__l as f64) / 1000.0) } else { None }))));
-                    let mut timestampString: Value = Value::Str(format!("{}", timestamp).into());
+                    let mut timestamp: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = nonce { Some((__l as f64) / 1000.0) } else { None })));
+                    let mut timestampString: Value = Value::Str(format!("{}", Value::from(timestamp)).into());
                     let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestampString, method).into()), savedPath).into()), payload.as_deref().unwrap_or("null"));
                     let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Some(crate::value::Dict::new({

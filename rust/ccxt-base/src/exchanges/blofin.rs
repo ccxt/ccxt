@@ -3195,7 +3195,7 @@ impl Blofin {
         let mut networkCode: Value = networkCode.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut aliasedCode: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkCodeAliases")).cloned().unwrap_or(Value::Null), networkCode.clone(), &[networkCode.clone()]).as_str().map(str::to_owned);
-        let mut unifiedCode: Value = self.safe_string(self.networkAliases.clone(), Value::from(aliasedCode.as_deref()), &[Value::from(aliasedCode.as_deref())]);
+        let mut unifiedCode: Option<String> = self.safe_string(self.networkAliases.clone(), Value::from(aliasedCode.as_deref()), &[Value::from(aliasedCode.as_deref())]).as_str().map(str::to_owned);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
         if (currency != Value::Null) {
@@ -3203,7 +3203,7 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut currencyNetwork: crate::value::Dict = self.safe_dict(&currencyNetworks, unifiedCode.clone(), &[]).into_dict();
+            let mut currencyNetwork: crate::value::Dict = self.safe_dict(&currencyNetworks, Value::from(unifiedCode.as_deref()), &[]).into_dict();
             let mut currencyNetworkId: Option<String> = self.safe_string_k(&currencyNetwork, "id", &[]).as_str().map(str::to_owned);
             if (currencyNetworkId.is_some()) {
                 return currencyNetworkId.map(Value::from).unwrap_or(Value::Null);
@@ -3212,16 +3212,16 @@ impl Blofin {
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
-        let mut direct: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), unifiedCode.clone(), &[]).as_str().map(str::to_owned);
+        let mut direct: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), Value::from(unifiedCode.as_deref()), &[]).as_str().map(str::to_owned);
         if (direct.is_some()) {
             return direct.map(Value::from).unwrap_or(Value::Null);
         }
-        let mut prefix: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkPrefixes")).cloned().unwrap_or(Value::Null), unifiedCode.clone(), &[]).as_str().map(str::to_owned);
+        let mut prefix: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkPrefixes")).cloned().unwrap_or(Value::Null), Value::from(unifiedCode.as_deref()), &[]).as_str().map(str::to_owned);
         if (prefix.is_some()) {
-            let mut suffix: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkSuffixes")).cloned().unwrap_or(Value::Null), unifiedCode.clone(), &[unifiedCode.clone()]).as_str().map(str::to_owned);
+            let mut suffix: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networkSuffixes")).cloned().unwrap_or(Value::Null), Value::from(unifiedCode.as_deref()), &[Value::from(unifiedCode.as_deref())]).as_str().map(str::to_owned);
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix.as_deref().unwrap_or("null"), " ").into()), "(").into()), suffix.as_deref().unwrap_or("null")).into()), ")").into());
         }
-        return unifiedCode;
+        return unifiedCode.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -3447,7 +3447,7 @@ impl Blofin {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).as_map().cloned().unwrap_or_default();
-                let mut networkKeys: Vec<Value> = Value::Array(networks.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+                let mut networkKeys: Vec<Value> = Value::Array(networks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 let mut networkKeysLength: i64 = networkKeys.len() as i64;
                 if (networkKeysLength == 1) {
                     networkCode = self.safe_string(&networkKeys, Value::Int(0), &[]).as_str().map(str::to_owned);

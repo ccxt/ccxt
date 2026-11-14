@@ -1936,16 +1936,16 @@ impl Backpack {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         let mut firstDelta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(0), &[]).into_dict();
-        let mut nonce: Value = self.safe_integer_k(orderbook, "nonce", &[]);
+        let mut nonce: Option<i64> = self.safe_integer_k(orderbook, "nonce", &[]).as_i64();
         let mut firstDeltaStart: Option<i64> = self.safe_integer_k(&firstDelta, "U", &[]).as_i64();
         let mut cacheLength: i64 = cache.len() as i64;
-        if (nonce == Value::Null) {
+        if (nonce.is_none()) {
             return Value::from(cacheLength);
         }
         if (firstDeltaStart.is_none()) {
             return Value::Int(-1);
         }
-        if nonce.as_f64().unwrap_or(f64::NAN) < Value::from((if let Some(__l) = firstDeltaStart { Some(__l - 1) } else { None })).as_f64().unwrap_or(f64::NAN) {
+        if matches!((nonce, ((if let Some(__l) = firstDeltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) < (__r as f64)) {
             return Value::Int(-1);
         }
         {
@@ -1954,11 +1954,11 @@ impl Backpack {
             while { if !__for_first_50 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_50 = false; i.as_f64().unwrap_or(f64::NAN) < (cacheLength as f64) } {
             let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), i.clone(), &[]).into_dict();
             let mut deltaStart: Option<i64> = self.safe_integer_k(&delta, "U", &[]).as_i64();
-            let mut deltaEnd: Value = self.safe_integer_k(&delta, "u", &[]);
-            if (deltaStart.is_none()) || (deltaEnd == Value::Null) {
+            let mut deltaEnd: Option<i64> = self.safe_integer_k(&delta, "u", &[]).as_i64();
+            if (deltaStart.is_none()) || (deltaEnd.is_none()) {
                 return Value::from(cacheLength);
             }
-            if (nonce.as_f64().unwrap_or(f64::NAN) >= Value::from((if let Some(__l) = deltaStart { Some(__l - 1) } else { None })).as_f64().unwrap_or(f64::NAN)) && (nonce.as_f64().unwrap_or(f64::NAN) < deltaEnd.as_f64().unwrap_or(f64::NAN)) {
+            if (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) && ((nonce.is_some() && deltaEnd.is_some() && nonce < deltaEnd)) {
                 return i;
             }
         }

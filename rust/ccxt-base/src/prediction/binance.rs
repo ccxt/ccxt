@@ -818,11 +818,11 @@ impl Binance {
                 let mut __for_first_1217: bool = true;
                 while { if !__for_first_1217 { i += 1; } __for_first_1217 = false; i < responseLength } {
                 let mut rawTopic: Option<crate::value::Dict> = self.safe_dict(&response, Value::Int(i), &[]).into_opt_dict();
-                let mut topicId: Option<String> = self.safe_string_k_opt(&rawTopic, "marketTopicId", &[]);
+                let mut topicId: Option<String> = self.safe_string_k(&rawTopic, "marketTopicId", &[]).as_str().map(str::to_owned);
                 if (topicId.is_some()) {
-                    let mut already: Option<String> = self.safe_string(Value::Map(seen.clone()), topicId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                    let mut already: Option<String> = self.safe_string(Value::Map(seen.clone()), Value::from(topicId.as_deref()), &[]).as_str().map(str::to_owned);
                     if (already.is_none()) {
-                        seen.insert(topicId.as_deref().unwrap_or("null").to_string(), topicId.map(Value::from).unwrap_or(Value::Null));
+                        seen.insert(topicId.as_deref().unwrap_or("null").to_string(), Value::from(topicId.as_deref()));
                         if let Value::Arr(__a) = &mut collected { std::sync::Arc::make_mut(__a).push(rawTopic.map_or(Value::Null, Value::Dict)); }
                     }
                 }

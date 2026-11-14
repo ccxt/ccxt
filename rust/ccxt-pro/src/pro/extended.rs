@@ -728,7 +728,7 @@ impl Extended {
         let mut stored: Option<crate::pro::cache::Cache> = self.myTrades.clone();
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut rawTrades: crate::value::List = self.safe_list_k(&data, "trades", &[Value::from(vec![])]).into_list();
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -745,11 +745,11 @@ impl Extended {
                 m
             })]), None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
-            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+            symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             stored.append(Value::Dict(trade));
         }
         }
-        let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_309: bool = true;
@@ -929,7 +929,7 @@ impl Extended {
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut rawOrders: Option<crate::value::List> = self.safe_list_k(&data, "orders", &[]).into_opt_list();
-        let mut symbols: Value = Value::Map({
+        let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -946,11 +946,11 @@ impl Extended {
                 m
             })]), None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
-            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+            symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             orders.append(Value::Dict(order));
         }
         }
-        let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_314: bool = true;

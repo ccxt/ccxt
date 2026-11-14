@@ -1092,10 +1092,10 @@ impl Nado {
         let mut spotLeverage: Option<bool> = self.safe_bool2(Value::from(&paramsRecvWindow), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]).as_bool();
         let mut placeRequiresUnfilled: Option<bool> = self.safe_bool2(Value::from(&paramsRecvWindow), Value::Str("placeRequiresUnfilled".into()), Value::Str("place_requires_unfilled".into()), &[self.safe_bool_k(&editOrderOptions, "placeRequiresUnfilled", &[Value::Bool(true)])]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsRecvWindow, &["expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled"], &[]).into_dict();
-        let mut sender: Value = self.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
+        let mut sender: Option<String> = self.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
         let mut cancelTx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sender".to_string(), sender.clone());
+                m.insert("sender".to_string(), Value::from(sender.as_deref()));
                 m.insert("productIds".to_string(), Value::from(vec![Value::from(productId)]));
                 m.insert("digests".to_string(), Value::from(vec![id]));
                 m.insert("nonce".to_string(), cancelNonce);
@@ -1103,7 +1103,7 @@ impl Nado {
         });
         let mut order: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sender".to_string(), sender);
+                m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("priceX18".to_string(), priceX18.map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amountX18);
                 m.insert("expiration".to_string(), expiration.map(Value::from).unwrap_or(Value::Null));

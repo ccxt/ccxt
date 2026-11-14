@@ -2503,7 +2503,7 @@ impl Predictfun {
                 m.insert("verifyingContract".to_string(), verifyingContract.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut orderStruct: Value = Value::from(vec![Value::Map({
+        let mut orderStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("salt".into()));
         m.insert("type".to_string(), Value::Str("uint256".into()));
@@ -2568,7 +2568,7 @@ impl Predictfun {
         // the order hash the venue indexes the order by
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("Order".to_string(), orderStruct);
+                m.insert("Order".to_string(), Value::Arr(orderStruct));
             m
         }), order);
         // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,

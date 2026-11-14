@@ -674,7 +674,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut testPrefixString: Value = (if isPublicTest.as_bool() == Some(true) { Value::Str("PUBLIC_TESTS".into()) } else { Value::Str("PRIVATE_TESTS".into()) });
         if Value::Int(failedMethods.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            let mut errorsString: Value = Value::Str(failedMethods.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ").into());
+            let mut errorsString: String = failedMethods.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ");
             dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), testPrefixString.clone(), Value::Str(format!("{}{}", "Failed methods : ", errorsString).into())]);
         }
         if is_true(&self.info) {

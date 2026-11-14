@@ -1463,16 +1463,16 @@ impl Independentreserve {
                         let mut i: i64 = 0;
             let mut __for_first_835: bool = true;
             while { if !__for_first_835 { i += 1; } __for_first_835 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut fee: crate::value::Dict = self.safe_dict(Value::Map(fees.clone()), Value::from((market).base.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), self.safe_dict_k(&fee, "info", &[]));
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "fee", &[]));
         m.insert("taker".to_string(), self.safe_number_k(&fee, "fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -1793,8 +1793,8 @@ impl Independentreserve {
             self.check_required_credentials(&[]);
             // independentreserve requires an increasing nonce
             let mut rawNonce: i64 = self.incrementing_nonce();
-            let mut nonce: Value = Value::from(self.parse_to_int(Value::from(rawNonce)));
-            let mut auth: Vec<Value> = vec![Value::from(url.clone()), Value::Str(format!("{}{}", "apiKey=", self.apiKey.clone()).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::Str(format!("{}", nonce).into())).into())];
+            let mut nonce: Option<i64> = self.parse_to_int(Value::from(rawNonce));
+            let mut auth: Vec<Value> = vec![Value::from(url.clone()), Value::Str(format!("{}{}", "apiKey=", self.apiKey.clone()).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::Str(format!("{}", Value::from(nonce)).into())).into())];
             let mut paramsDict: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1809,14 +1809,14 @@ impl Independentreserve {
                 auth.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, "=").into()), value).into()));
             }
             }
-            let mut message: Value = Value::Str(auth.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into());
-            let mut signature: String = self.hmac(self.encode(message), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+            let mut message: String = auth.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",");
+            let mut signature: String = self.hmac(self.encode(Value::from(message)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut query: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
             query.insert("apiKey".into(), self.apiKey.clone());
-            query.insert("nonce".into(), nonce);
+            query.insert("nonce".into(), Value::from(nonce));
             query.insert("signature".into(), Value::from(signature.to_uppercase()));
             {
                                 let mut i: i64 = 0;

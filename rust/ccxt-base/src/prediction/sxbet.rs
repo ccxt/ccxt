@@ -627,7 +627,7 @@ impl Sxbet {
         // letters+digits only so it survives shortenSlug in one atomic word)
         let mut hashSuffix: Value = marketHash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 6).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
         let mut marketSlug: String = format!("{}{}", Value::Str(format!("{}{}", self.shorten_slug(outcomeOneName.clone().map(Value::from).unwrap_or(Value::Null)), Value::Str("_".into())).into()), hashSuffix);
-        let mut marketSymbol: Value = self.slug_to_market_symbol(Value::from(eventSlug.as_deref()), Value::from(marketSlug.clone()));
+        let mut marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(eventSlug.as_deref()), Value::from(marketSlug.clone())).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_upper_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: bool = status.as_deref() == Some("ACTIVE");
         // guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
@@ -650,7 +650,7 @@ impl Sxbet {
                     m.insert("id".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
                     m.insert("outcomeId".to_string(), outcomeIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null));
                     m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("market".to_string(), marketSymbol.clone());
+                    m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
                     m.insert("label".to_string(), label.map(Value::from).unwrap_or(Value::Null));
                     m.insert("active".to_string(), Value::Bool(active));
                     m.insert("winner".to_string(), Value::Null);
@@ -663,7 +663,7 @@ impl Sxbet {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketHash.clone());
-        m.insert("market".to_string(), marketSymbol);
+        m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("base".to_string(), Value::Str("USDC".into()));
         m.insert("quote".to_string(), Value::Str("USDC".into()));
         m.insert("settle".to_string(), Value::Null);
@@ -1297,7 +1297,7 @@ impl Sxbet {
         let mut tokenName: Option<String> = self.fetch_erc20_name(rpcUrl.as_deref(), tokenAddress.as_deref().unwrap_or_default()).await.as_str().map(str::to_owned);
         let mut defaultDeadlineSeconds: i64 = self.safe_integer_k(self.options.clone(), "approveDeadlineSeconds", &[Value::Int(7200)]).as_i64().unwrap_or(7200);
         let mut deadline: Option<i64> = self.safe_integer_k(&paramsSpender, "deadline", &[Value::Int(((self.seconds()) + defaultDeadlineSeconds))]).as_i64();
-        let mut value: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(amount))), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut value: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(amount))), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), tokenName.map(Value::from).unwrap_or(Value::Null));
@@ -1340,7 +1340,7 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
                 m.insert("owner".to_string(), owner.clone());
                 m.insert("spender".to_string(), spender.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("value".to_string(), value.clone());
+                m.insert("value".to_string(), Value::from(value.as_deref()));
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("deadline".to_string(), Value::from(deadline));
             m
@@ -1353,7 +1353,7 @@ impl Sxbet {
                 m.insert("owner".to_string(), owner);
                 m.insert("spender".to_string(), spender.map(Value::from).unwrap_or(Value::Null));
                 m.insert("tokenAddress".to_string(), tokenAddress.map(Value::from).unwrap_or(Value::Null));
-                m.insert("value".to_string(), value);
+                m.insert("value".to_string(), value.map(Value::from).unwrap_or(Value::Null));
                 m.insert("deadline".to_string(), Value::from(self.number_to_string(Value::from(deadline))));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
             m
@@ -1450,9 +1450,9 @@ impl Sxbet {
         let mut baseToken: Option<String> = self.safe_string_k(&activeAsset, "baseToken", &[]).as_str().map(str::to_owned);
         let mut oddsLadderStepSize: Option<String> = self.number_to_string(self.safe_integer_k(obv3, "oddsLadderStepSize", &[Value::Int(125)]));
         let mut roundedProbability: Value = self.round_odds_to_ladder(probability.as_deref(), oddsLadderStepSize.as_deref().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
-        let mut percentageOdds: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&roundedProbability, &Value::Str("100000000000000000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut percentageOdds: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&roundedProbability, &Value::Str("100000000000000000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         let mut amountStr: Option<String> = self.number_to_string(amount.clone());
-        let mut totalBetSize: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut totalBetSize: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         let mut saltNumber: Option<String> = self.safe_string_k(params.clone(), "salt", &[Value::from(self.number_to_string(Value::Int(self.milliseconds())))]).as_str().map(str::to_owned);
         // the request body carries the salt in 32-byte-hex form; the signed struct carries the
         // same value in uint256 form - both parse to one number server-side. assign to bare locals
@@ -1525,8 +1525,8 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketHash".to_string(), Value::from(marketHash.clone()));
                 m.insert("baseToken".to_string(), baseToken.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("totalBetSize".to_string(), totalBetSize.clone());
-                m.insert("percentageOdds".to_string(), percentageOdds.clone());
+                m.insert("totalBetSize".to_string(), Value::from(totalBetSize.as_deref()));
+                m.insert("percentageOdds".to_string(), Value::from(percentageOdds.as_deref()));
                 m.insert("salt".to_string(), saltNumber.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("maker".to_string(), maker.clone());
@@ -1540,8 +1540,8 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
                 m.insert("marketHash".to_string(), Value::from(marketHash));
                 m.insert("maker".to_string(), maker);
-                m.insert("totalBetSize".to_string(), totalBetSize);
-                m.insert("percentageOdds".to_string(), percentageOdds);
+                m.insert("totalBetSize".to_string(), totalBetSize.map(Value::from).unwrap_or(Value::Null));
+                m.insert("percentageOdds".to_string(), percentageOdds.map(Value::from).unwrap_or(Value::Null));
                 m.insert("salt".to_string(), Value::from(saltHex));
                 m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("baseToken".to_string(), baseToken.map(Value::from).unwrap_or(Value::Null));

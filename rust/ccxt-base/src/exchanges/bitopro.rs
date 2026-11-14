@@ -1222,11 +1222,11 @@ impl Bitopro {
                         let mut i: i64 = 0;
             let mut __for_first_408: bool = true;
             while { if !__for_first_408 { i += 1; } __for_first_408 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), first.clone().map_or(Value::Null, Value::Dict));
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), Value::from(maker));
         m.insert("taker".to_string(), Value::from(taker));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -2311,9 +2311,9 @@ impl Bitopro {
             m
         });
         let mut hasNetwork: bool = paramsWithdrawTag.contains_key("network");
-        let mut paramsOmitted: Value = Value::from(&paramsWithdrawTag);
+        let mut paramsOmitted: crate::value::Dict = Value::from(&paramsWithdrawTag).into_dict();
         if hasNetwork {
-            paramsOmitted = self.omit(&paramsWithdrawTag, &["network"], &[]);
+            paramsOmitted = self.omit(&paramsWithdrawTag, &["network"], &[]).into_dict();
         }
         if hasNetwork {
             let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
@@ -2330,7 +2330,7 @@ impl Bitopro {
         if (tagWithdrawTag.is_some()) {
             request.insert("message".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_wallet_withdraw_currency(&[__ws_arg_17]).await.into_dict();
         let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

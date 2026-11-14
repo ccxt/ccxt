@@ -6663,11 +6663,11 @@ if _try_result.is_err() {
             while { if !__for_first_372 { j += 1; } __for_first_372 = false; j < chainsLength } {
             let mut chain: Option<crate::value::Dict> = self.safe_dict(&chains, Value::Int(j), &[]).into_opt_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
-            let mut network: Value = Value::from(self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
-            if (network == Value::Null) {
+            let mut network: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            if (network.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a network argument")));
             }
-            network = (if let Some(__s) = network.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+            network = network.as_deref().map(str::to_uppercase);
             let mut withdrawableString: Option<String> = self.safe_string_k(&chain, "withdrawable", &[]).as_str().map(str::to_owned);
             let mut rechargeableString: Option<String> = self.safe_string_k(&chain, "rechargeable", &[]).as_str().map(str::to_owned);
             let mut withdrawable: Value = (Value::Bool(withdrawableString.as_deref() == Some("true")));
@@ -6676,11 +6676,11 @@ if _try_result.is_err() {
             deposit = (if (deposit == Value::Null) { rechargeable.clone() } else { Value::Bool((deposit.as_bool() == Some(true) || matches!(&rechargeable, Value::Bool(true)))) });
             let mut withdrawMinScale: Option<String> = self.safe_string_k(&chain, "withdrawMinScale", &[]).as_str().map(str::to_owned);
             let mut precision: Option<String> = self.parse_precision(&[withdrawMinScale.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            networks.insert(crate::runtime::stringify_param(&network), Value::Map({
+            networks.insert(network.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone().map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), network.clone());
+        m.insert("network".to_string(), Value::from(network.as_deref()));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -9185,12 +9185,12 @@ if _try_result.is_err() {
             request.insert("startTime".into(), since.clone());
             if (until.is_none()) {
                 calculatedEndTime = self.sum(&[since.clone(), Value::from(recentDuration)]);
-                if since.as_f64().unwrap_or(f64::NAN) > Value::from((if let Some(__r) = recentDuration { Some(now - __r) } else { None })).as_f64().unwrap_or(f64::NAN) {
+                if matches!((since.as_i64(), ((if let Some(__r) = recentDuration { Some(now - __r) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) > (__r as f64)) {
                     calculatedEndTime = Value::from(now);
                 }
                 request.insert("endTime".into(), calculatedEndTime.clone());
             }
-            if (recentEndpointAvailableDays.is_some()) && (since.as_f64().unwrap_or(f64::NAN) <= Value::from((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = recentEndpointAvailableDays { Some(__l - 1) } else { None })) { Some(__l * msInDay) } else { None })) { Some(now - __r) } else { None })).as_f64().unwrap_or(f64::NAN)) {
+            if (recentEndpointAvailableDays.is_some()) && (matches!((since.as_i64(), ((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = recentEndpointAvailableDays { Some(__l - 1) } else { None })) { Some(__l * msInDay) } else { None })) { Some(now - __r) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) <= (__r as f64))) {
                 historicalEndpointNeeded = true;
             }
         }
@@ -9199,10 +9199,10 @@ if _try_result.is_err() {
             calculatedEndTime = Value::from(untilEndTime);
             request.insert("endTime".into(), Value::from(untilEndTime));
             if (since == Value::Null) {
-                let mut untilStartTime: Value = Value::from((if let (Some(__l), Some(__r)) = (untilEndTime, recentDuration) { Some(__l - __r) } else { None }));
-                calculatedStartTime = untilStartTime.clone();
+                let mut untilStartTime: Option<i64> = (if let (Some(__l), Some(__r)) = (untilEndTime, recentDuration) { Some(__l - __r) } else { None });
+                calculatedStartTime = Value::from(untilStartTime);
                 // we do not need to set "startTime" here
-                if (recentEndpointAvailableDays.is_some()) && (untilStartTime.as_f64().unwrap_or(f64::NAN) <= Value::from((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = recentEndpointAvailableDays { Some(__l - 1) } else { None })) { Some(__l * msInDay) } else { None })) { Some(now - __r) } else { None })).as_f64().unwrap_or(f64::NAN)) {
+                if (recentEndpointAvailableDays.is_some()) && (matches!((untilStartTime, ((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = recentEndpointAvailableDays { Some(__l - 1) } else { None })) { Some(__l * msInDay) } else { None })) { Some(now - __r) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) <= (__r as f64))) {
                     historicalEndpointNeeded = true;
                 }
             }
@@ -17203,13 +17203,13 @@ if _try_result.is_err() {
             while { if !__for_first_388 { i += 1; } __for_first_388 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map({
+            let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&entry));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), code.clone());
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("networks".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("name".to_string(), Value::Null);

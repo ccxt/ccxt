@@ -1208,7 +1208,7 @@ impl Coinbaseexchange {
                     }  else if (type_var.as_deref() == Some("received")) || (type_var.as_deref() == Some("done")) {
                         let mut info: crate::value::Dict = self.extend(previousInfo, &[message]).into_dict();
                         let mut order: indexmap::IndexMap<String, Value> = self.parse_ws_order(&info, None).as_map().cloned().unwrap_or_default();
-                        let mut keys: Vec<Value> = Value::Array(order.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+                        let mut keys: Vec<Value> = Value::Array(order.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut i: i64 = 0;
                             let mut __for_first_239: bool = true;

@@ -860,7 +860,7 @@ impl Bullish {
                 self.orders = Some(ArrayCacheBySymbolById::new(limit));
             }
             let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-            let mut symbols: Value = Value::Map({
+            let mut symbols: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -872,13 +872,13 @@ impl Bullish {
                 orders.append(Value::from(&parsedOrder));
                 let mut symbol: Option<String> = self.safe_string_k_opt(&parsedOrder, "symbol", &[]);
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                    symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 }
             }
             }
             let mut messageHash: String = "orders".to_string();
             client.resolve(Value::from(&orders), messageHash.as_str());
-            let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_177: bool = true;
@@ -1001,7 +1001,7 @@ impl Bullish {
                 self.myTrades = Some(ArrayCacheBySymbolById::new(limit));
             }
             let mut trades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-            let mut symbols: Value = Value::Map({
+            let mut symbols: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
@@ -1013,13 +1013,13 @@ impl Bullish {
                 trades.append(Value::from(&parsedTrade));
                 let mut symbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
                 if (symbol.is_some()) {
-                    if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
+                    symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 }
             }
             }
             let mut messageHash: String = "myTrades".to_string();
             client.resolve(Value::from(&trades), messageHash.as_str());
-            let mut keys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_179: bool = true;

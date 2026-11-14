@@ -692,7 +692,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
         }
         }
-        let mut replacementKeys: Vec<Value> = Value::Array(replacements.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut replacementKeys: Vec<Value> = Value::Array(replacements.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_200: bool = true;
@@ -716,8 +716,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
         }
         }
-        let mut joined: Value = Value::Str(parts.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("_").into());
-        return (if let Some(__s) = joined.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut joined: String = parts.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("_");
+        return Value::from(joined.to_uppercase());
 
     Value::Null
 }

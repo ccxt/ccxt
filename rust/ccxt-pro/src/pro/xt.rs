@@ -456,10 +456,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn get_cache_index(&self, mut orderbook: Value, mut cache: Value) -> Value {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        let mut nonce: Value = self.safe_integer_k(orderbook, "nonce", &[]);
+        let mut nonce: Option<i64> = self.safe_integer_k(orderbook, "nonce", &[]).as_i64();
         let mut firstDelta: crate::value::Dict = self.safe_dict(cache.clone(), Value::Int(0), &[]).into_dict();
         let mut firstDeltaNonce: Option<i64> = self.safe_integer2(&firstDelta, Value::Str("i".into()), Value::Str("u".into()), &[]).as_i64();
-        if (nonce != Value::Null) && (firstDeltaNonce.is_some()) && (nonce.as_f64().unwrap_or(f64::NAN) < Value::from((if let Some(__l) = firstDeltaNonce { Some(__l - 1) } else { None })).as_f64().unwrap_or(f64::NAN)) {
+        if (nonce.is_some()) && (firstDeltaNonce.is_some()) && (matches!((nonce, ((if let Some(__l) = firstDeltaNonce { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) < (__r as f64))) {
             return Value::Int(-1);
         }
         {
@@ -467,8 +467,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_729: bool = true;
             while { if !__for_first_729 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_729 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
             let mut delta: crate::value::Dict = self.safe_dict(cache.clone(), i.clone(), &[]).into_dict();
-            let mut deltaNonce: Value = self.safe_integer2(&delta, Value::Str("i".into()), Value::Str("u".into()), &[]);
-            if (deltaNonce != Value::Null) && (nonce != Value::Null) && (deltaNonce.as_f64().unwrap_or(f64::NAN) >= nonce.as_f64().unwrap_or(f64::NAN)) {
+            let mut deltaNonce: Option<i64> = self.safe_integer2(&delta, Value::Str("i".into()), Value::Str("u".into()), &[]).as_i64();
+            if (deltaNonce.is_some()) && (nonce.is_some()) && ((deltaNonce.is_some() && nonce.is_some() && deltaNonce >= nonce)) {
                 return i;
             }
         }

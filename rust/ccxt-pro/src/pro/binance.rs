@@ -1701,14 +1701,14 @@ impl Binance {
                 let mut __for_first_58: bool = true;
                 while { if !__for_first_58 { i += 1; } __for_first_58 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
                 let mut messageItem: Value = self.safe_value(messages.clone(), Value::Int(i), &[]);
-                let mut U: Value = self.safe_integer_k(messageItem.clone(), "U", &[]);
-                let mut u: Value = self.safe_integer_k(messageItem.clone(), "u", &[]);
-                if (U == Value::Null) || (u == Value::Null) {
+                let mut U: Option<i64> = self.safe_integer_k(messageItem.clone(), "U", &[]).as_i64();
+                let mut u: Option<i64> = self.safe_integer_k(messageItem.clone(), "u", &[]).as_i64();
+                if (U.is_none()) || (u.is_none()) {
                     continue;
                 }
                 let mut pu: Option<i64> = self.safe_integer_k(messageItem.clone(), "pu", &[]).as_i64();
-                let mut snapshotNonce: Value = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]);
-                if (snapshotNonce == Value::Null) {
+                let mut snapshotNonce: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]).as_i64();
+                if (snapshotNonce.is_none()) {
                     // every comparison against an undefined nonce is false, only pu === undefined matches
                     if (type_var.as_deref() == Some("linear")) && (pu.is_none()) {
                         self.handle_order_book_message(client.clone(), messageItem.clone(), Value::from(&orderbook));
@@ -1717,22 +1717,20 @@ impl Binance {
                 }
                 if (type_var.as_deref() == Some("linear")) {
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if u.as_f64().unwrap_or(f64::NAN) < snapshotNonce.as_f64().unwrap_or(f64::NAN) {
+                    if (u.is_some() && snapshotNonce.is_some() && u < snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    if (U.as_f64().unwrap_or(f64::NAN) <= snapshotNonce.as_f64().unwrap_or(f64::NAN)) && (u.as_f64().unwrap_or(f64::NAN) >= snapshotNonce.as_f64().unwrap_or(f64::NAN)) || ((pu == snapshotNonce.as_i64())) {
+                    if ((U.is_some() && snapshotNonce.is_some() && U <= snapshotNonce)) && ((u.is_some() && snapshotNonce.is_some() && u >= snapshotNonce)) || (pu == snapshotNonce) {
                         self.handle_order_book_message(client.clone(), messageItem.clone(), Value::from(&orderbook));
                     }
                 }  else {
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if u.as_f64().unwrap_or(f64::NAN) <= snapshotNonce.as_f64().unwrap_or(f64::NAN) {
+                    if (u.is_some() && snapshotNonce.is_some() && u <= snapshotNonce) {
                         continue;
                     }
                     // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                    if (((match (&(U), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                        _ => Value::Null })).as_f64().unwrap_or(f64::NAN) <= snapshotNonce.as_f64().unwrap_or(f64::NAN)) && (((match (&(u), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-                        (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) >= snapshotNonce.as_f64().unwrap_or(f64::NAN)) {
+                    if (matches!((((if let Some(__l) = U { Some(__l - 1) } else { None })), snapshotNonce), (Some(__l), Some(__r)) if (__l as f64) <= (__r as f64))) && (matches!((((if let Some(__l) = u { Some(__l - 1) } else { None })), snapshotNonce), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) {
                         self.handle_order_book_message(client.clone(), messageItem, Value::from(&orderbook));
                     }
                 }
@@ -1819,28 +1817,20 @@ impl Binance {
             return;
         }
         let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
-        let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-        if (nonce == Value::Null) {
+        let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
+        if (nonce.is_none()) {
             // 2. Buffer the events you receive from the stream.
             crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), message.clone());
         }  else {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                let mut U: Value = (match __pro_message.get("U").cloned() {
-                    Some(Value::Int(__n)) => Value::Int(__n),
-                    Some(Value::Float(__f)) => Value::Int(__f as i64),
-                    Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } },
-                    _ => Value::Null
-                });
-                if (U == Value::Null) {
+                let mut U: Option<i64> = (match __pro_message.get("U").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
+                    Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+                if (U.is_none()) {
                     return true;
                 }
-                let mut u: Value = (match __pro_message.get("u").cloned() {
-                    Some(Value::Int(__n)) => Value::Int(__n),
-                    Some(Value::Float(__f)) => Value::Int(__f as i64),
-                    Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } },
-                    _ => Value::Null
-                });
-                if (u == Value::Null) {
+                let mut u: Option<i64> = (match __pro_message.get("u").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
+                    Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+                if (u.is_none()) {
                     return true;
                 }
                 let mut pu: Option<i64> = (match __pro_message.get("pu").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
@@ -1848,22 +1838,20 @@ impl Binance {
                 if (pu.is_none()) {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
-                    if u.as_f64().unwrap_or(f64::NAN) > nonce.as_f64().unwrap_or(f64::NAN) {
+                    if (u.is_some() && nonce.is_some() && u > nonce) {
                         let mut timestamp: Option<i64> = self.safe_integer_k(orderbook.clone(), "timestamp", &[]).as_i64();
                         let mut conditional: Option<bool> = None;
                         if (timestamp.is_none()) {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-                            conditional = Some((((match (&(U), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                                _ => Value::Null })).as_f64().unwrap_or(f64::NAN) <= nonce.as_f64().unwrap_or(f64::NAN)) && (((match (&(u), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
-                                (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) >= nonce.as_f64().unwrap_or(f64::NAN)));
+                            conditional = Some((matches!((((if let Some(__l) = U { Some(__l - 1) } else { None })), nonce), (Some(__l), Some(__r)) if (__l as f64) <= (__r as f64))) && (matches!((((if let Some(__l) = u { Some(__l - 1) } else { None })), nonce), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))));
                         }  else {
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-                            conditional = Some(((match (&(U), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64() == nonce.as_f64());
+                            conditional = Some(((if let Some(__l) = U { Some(__l - 1) } else { None })) == nonce);
                         }
                         if (conditional == Some(true)) {
                             self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
-                            let mut newNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]);
-                            if nonce.as_f64().unwrap_or(f64::NAN) < newNonce.as_f64().unwrap_or(f64::NAN) {
+                            let mut newNonce: i64 = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
+                            if (nonce.is_some() && nonce < Some(newNonce)) {
                                 client.resolve(orderbook.clone(), messageHash.as_str());
                             }
                         }  else {
@@ -1876,13 +1864,13 @@ impl Binance {
                 }  else {
                     // future
                     // 4. Drop any event where u is < lastUpdateId in the snapshot
-                    if u.as_f64().unwrap_or(f64::NAN) >= nonce.as_f64().unwrap_or(f64::NAN) {
+                    if (u.is_some() && nonce.is_some() && u >= nonce) {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-                        if (U.as_f64().unwrap_or(f64::NAN) <= nonce.as_f64().unwrap_or(f64::NAN)) || ((pu == nonce.as_i64())) {
+                        if ((U.is_some() && nonce.is_some() && U <= nonce)) || (pu == nonce) {
                             self.handle_order_book_message(client.clone(), message, orderbook.clone());
-                            let mut newNonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]);
-                            if nonce.as_f64().unwrap_or(f64::NAN) <= newNonce.as_f64().unwrap_or(f64::NAN) {
+                            let mut newNonce: i64 = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
+                            if (nonce.is_some() && nonce <= Some(newNonce)) {
                                 client.resolve(orderbook.clone(), messageHash.as_str());
                             }
                         }  else {
@@ -4637,7 +4625,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).as_map().cloned().unwrap_or_default();
-            let mut subscriptionKeys: Vec<Value> = Value::Array(clientSubscriptions.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+            let mut subscriptionKeys: Vec<Value> = Value::Array(clientSubscriptions.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_73: bool = true;

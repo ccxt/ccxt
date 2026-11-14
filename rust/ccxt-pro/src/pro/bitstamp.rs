@@ -1395,7 +1395,7 @@ impl Bitstamp {
                 m.insert("private-my_trades".to_string(), Value::Str("handle_my_trades".into()).clone());
             m
         });
-        let mut keys: Vec<Value> = Value::Array(methods.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(methods.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_140: bool = true;

@@ -907,7 +907,7 @@ impl Limitless {
         let mut winningOutcomeIndex: Value = self.safe_integer_k(raw.clone(), "winningOutcomeIndex", &[]);
         let mut marketResolved: Value = (Value::Bool(winningOutcomeIndex != Value::Null));
         let mut resolvedOutcome: Option<String> = None;
-        let mut marketSymbol: Value = self.slug_to_market_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
         let mut collateralToken: crate::value::Dict = self.safe_dict_k(raw.clone(), "collateralToken", &[Value::Map({
@@ -959,7 +959,7 @@ impl Limitless {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("outcomeId".to_string(), tokenId.clone());
-                    m.insert("market".to_string(), marketSymbol.clone());
+                    m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
                     m.insert("label".to_string(), outcomeLabel.clone());
                     m.insert("active".to_string(), active.clone());
                     m.insert("winner".to_string(), winner);
@@ -985,7 +985,7 @@ impl Limitless {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("market".to_string(), marketSymbol);
+        m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("marketType".to_string(), (if (outcomesLength > 2) { Value::Str("categorical".into()) } else { Value::Str("binary".into()) }));
         m.insert("executionModel".to_string(), Value::Str("clob".into()));
         m.insert("collateral".to_string(), Value::Str("USDC".into()));
@@ -4263,9 +4263,9 @@ if _try_result.is_err() {
         let __tags_empty = Vec::new();
         let tags = tags.as_array().unwrap_or(&__tags_empty);
         let mut categoriesResponse: Value = self.limitless_public_get_categories(&[]).await;
-        let mut categories: Value = Value::from(vec![]);
+        let mut categories: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&categoriesResponse, Value::Arr(_))) {
-            categories = categoriesResponse;
+            categories = categoriesResponse.into_list();
         }
         let mut wanted: Vec<Value> = Vec::new();
         {
@@ -4281,7 +4281,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1336: bool = true;
             while { if !__for_first_1336 { i += 1; } __for_first_1336 = false; i < categoriesLength } {
-            let mut category: crate::value::Dict = self.safe_dict(categories.clone(), Value::Int(i), &[]).into_dict();
+            let mut category: crate::value::Dict = self.safe_dict(&categories, Value::Int(i), &[]).into_dict();
             let mut name: String = self.safe_string_lower_k(&category, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut categoryId: Option<String> = self.safe_string_k(&category, "id", &[]).as_str().map(str::to_owned);
             let mut matched: bool = false;

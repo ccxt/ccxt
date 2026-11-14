@@ -1642,15 +1642,15 @@ impl Modetrade {
             while { if !__for_first_961 { j += 1; } __for_first_961 = false; j < (networks.len() as i64) } {
             let mut network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             // TODO: transform chain id to human readable name
-            let mut networkId: Value = self.safe_string_k(&network, "chain_id", &[Value::Str("".into())]);
+            let mut networkId: String = self.safe_string_k(&network, "chain_id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut precision: Option<String> = self.parse_precision(&[self.safe_string_k(&network, "decimals", &[])]).as_str().map(str::to_owned);
             if (precision.is_some()) {
                 minPrecision = (if (minPrecision.is_none()) { precision.clone() } else { crate::precise::Precise::stringMin(&precision.clone().map(Value::from).unwrap_or(Value::Null), &minPrecision.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
             }
-            resultingNetworks.insert(crate::runtime::stringify_param(&networkId), Value::Map({
+            resultingNetworks.insert(networkId.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), networkId.clone());
-        m.insert("network".to_string(), networkId.clone());
+        m.insert("id".to_string(), Value::from(networkId.clone()));
+        m.insert("network".to_string(), Value::from(networkId));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -2662,11 +2662,11 @@ impl Modetrade {
                                 let mut i: i64 = 0;
                 let mut __for_first_965: bool = true;
                 while { if !__for_first_965 { i += 1; } __for_first_965 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&maker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())), &[]));
         m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&taker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));

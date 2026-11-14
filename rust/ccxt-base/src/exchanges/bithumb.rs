@@ -1058,7 +1058,7 @@ impl Bithumb {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                let mut currencyIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
+                let mut currencyIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_391: bool = true;
@@ -1720,7 +1720,7 @@ impl Bithumb {
                     }
                 }
                 }
-                let mut requiredQuoteIds: Value = Value::Array(requiredQuotes.keys().map(|__k| Value::Str(__k.clone().into())).collect());
+                let mut requiredQuoteIds: Value = Value::Array(requiredQuotes.keys().cloned().map(Value::from).collect());
                 let mut populatedQuotes: Option<String> = self.safe_string(requiredQuoteIds.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
                 if (populatedQuotes.is_some()) {
                     quotes = requiredQuoteIds;
