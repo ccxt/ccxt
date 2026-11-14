@@ -272,7 +272,7 @@ pub trait DerivedExchange {
     /// parent's inherent one. Binance spot then signs its ws-api subscribe with
     /// a seconds timestamp and the venue answers -1130.
     fn nonce(&self) -> Value { Value::Null }
-    fn sign(&self, _path: Value, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
+    fn sign(&self, _path: &str, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
     fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
 }
 
@@ -1842,7 +1842,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // Static dispatch to the derived exchange's sign override.
         let signed = crate::exchange::DerivedExchange::sign(
             self,
-            Value::Str(path.to_string().into()),
+            path,
             api_arg,
             Value::Str(verb.to_string().into()),
             params.clone(),

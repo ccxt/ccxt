@@ -11802,10 +11802,10 @@ ${arms.join('\n')}
             let traitIdx = 0;
             for (const kind of inh.paramKinds) {
                 if (kind === 'value') {
-                    callArgs.push(args[traitIdx] ?? 'crate::Value::Null');
+                    callArgs.push(rustDispatch.isSlotStr(args[traitIdx] ?? '', traitIdx) ? `crate::Value::from(${args[traitIdx]})` : args[traitIdx] ?? 'crate::Value::Null');
                     traitIdx++;
                 } else if (rustDispatch.isTyped(kind)) {
-                    callArgs.push(rustDispatch.fromValue(kind, args[traitIdx] ?? 'crate::Value::Null'));
+                    callArgs.push(rustDispatch.slotArg(kind, args[traitIdx] ?? 'crate::Value::Null', traitIdx));
                     traitIdx++;
                 } else if (kind === 'slice') {
                     const rest = args.slice(traitIdx).map((a, i) => rustDispatch.slotValue(a, traitIdx + i)).join(', ');
