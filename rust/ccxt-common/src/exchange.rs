@@ -884,6 +884,10 @@ impl Exchange {
         assign(&mut self.timeframes, get("timeframes"));
         assign(&mut self.fees, get("fees"));
         assign(&mut self.features, get("features"));
+        // `userAgent` (describe() or user config): a string, a `{ 'User-Agent': .. }`
+        // dict, or `false` to send none; `userAgents` replaces the base table.
+        assign(&mut self.userAgent, get("userAgent"));
+        assign(&mut self.userAgents, get("userAgents"));
         let rate_limit = get("rateLimit");
         if matches!(rate_limit, Value::Int(_) | Value::Float(_)) {
             self.rateLimit = rate_limit;
@@ -1070,10 +1074,22 @@ impl Exchange {
         }
     }
 
+    /// The User-Agent sent with every request, picked as Exchange.ts `fetch` does:
+    /// `userAgent`, else `user_agent`, else `userAgents['chrome']` when both are unset;
+    /// a dict value sends its `User-Agent` entry; `false` or `''` sends none.
     fn user_agent_str(&self) -> Option<&str> {
-        match &self.userAgent { Value::Str(s) => Some(s.as_ref()), _ => match &self.user_agent {
-            Value::Str(s) => Some(s.as_ref()), _ => None
-        }}
+        let chosen = match (&self.userAgent, &self.user_agent) {
+            (Value::Null, Value::Null) => self.userAgents.as_map().and_then(|m| m.get("chrome")),
+            (Value::Null, ua) | (ua, _) => Some(ua),
+        };
+        let header = match chosen {
+            Some(Value::Dict(m)) => m.get("User-Agent"),
+            other => other,
+        };
+        match header {
+            Some(Value::Str(s)) if !s.is_empty() => Some(s.as_ref()),
+            _ => None,
+        }
     }
 
 
@@ -2754,6 +2770,51 @@ pub(crate) fn url_pct(s: &str) -> String {
         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
         _ => format!("%{b:02X}"),
     }).collect()
+}
+
+/// The User-Agent pick, against the real constructor and `initialize_properties`.
+#[cfg(test)]
+mod user_agent_tests {
+    use super::Exchange;
+    use crate::Value;
+    use super::HashMap;
+
+    const CHROME: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36";
+    const CHROME39: &str = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36";
+
+    fn described(user_agent: Value) -> Value {
+        let mut m = HashMap::new();
+        m.insert("userAgent".to_string(), user_agent);
+        Value::Map(m)
+    }
+
+    #[test]
+    fn unset_user_agent_falls_back_to_user_agents_chrome() {
+        let mut ex = Exchange::new(None);
+        assert_eq!(ex.user_agent_str(), Some(CHROME));
+        ex.initialize_properties(described(Value::Null));
+        assert_eq!(ex.user_agent_str(), Some(CHROME));
+    }
+
+    #[test]
+    fn described_user_agent_is_applied() {
+        let mut ex = Exchange::new(None);
+        ex.initialize_properties(described(Value::Str(CHROME39.into())));
+        assert_eq!(ex.user_agent_str(), Some(CHROME39));
+    }
+
+    #[test]
+    fn dict_user_agent_sends_its_header_and_false_sends_none() {
+        let mut ex = Exchange::new(None);
+        let mut header = HashMap::new();
+        header.insert("User-Agent".to_string(), Value::Str("ccxt-test".into()));
+        ex.initialize_properties(described(Value::Map(header)));
+        assert_eq!(ex.user_agent_str(), Some("ccxt-test"));
+        ex.initialize_properties(described(Value::Bool(false)));
+        assert_eq!(ex.user_agent_str(), None);
+        ex.userAgent = Value::Str("".into());
+        assert_eq!(ex.user_agent_str(), None);
+    }
 }
 
 /// Pins the `mock_response` contract that `request_typed` implements: the canned
