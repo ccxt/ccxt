@@ -97,7 +97,7 @@ class kucoin(ccxt.async_support.kucoin):
             },
         })
 
-    async def negotiate(self, privateChannel: bool, isFuturesMethod: bool = False, params: dict = {}):
+    async def negotiate(self, privateChannel: bool, isFuturesMethod: bool = False, params: dict = {}) -> str:
         connectId = 'public'
         if privateChannel:
             connectId = 'private'
