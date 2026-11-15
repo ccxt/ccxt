@@ -2133,6 +2133,43 @@ mod ohlcvs_by_symbol_key_read_tests {
     }
 }
 
+#[cfg(test)]
+mod prediction_outcome_record_tests {
+    use super::{FromRaw, IntoRaw, Market};
+    use crate::value::{get_value_k, KeyRead};
+    use crate::Value;
+
+    fn outcome_token() -> Value {
+        let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), Value::Str("FED:YES".into()));
+        m.insert("outcome".to_string(), Value::Str("FED:YES".into()));
+        m.insert("outcomeId".to_string(), Value::Str("123".into()));
+        m.insert("market".to_string(), Value::Null);
+        Value::Map(m)
+    }
+
+    // ral-48c / ral-49c: `loadOutcome` hands back `Option<Market>`; the outcome identity keys the
+    // venue bodies read stay on the record, and the by-name arm boxes back exactly the cached token
+    #[test]
+    fn outcome_record_keeps_its_identity_keys() {
+        let token: Option<Market> = FromRaw::from_raw(outcome_token());
+        assert_eq!((&token).key_read("outcome"), Value::Str("FED:YES".into()));
+        assert_eq!((&token).key_read("outcomeId"), Value::Str("123".into()));
+        assert_eq!((&token).key_read("market"), Value::Null);
+        assert_eq!(token.as_ref().map(|m| m.symbol.as_str()), Some("FED:YES"));
+        assert_eq!(token.into_raw(), outcome_token());
+    }
+
+    // a cache miss (`safeValue` answers Null) is `None` and boxes back to Null, as the `-> Value` method answered
+    #[test]
+    fn missing_outcome_is_none() {
+        let miss: Option<Market> = FromRaw::from_raw(Value::Null);
+        assert!(miss.is_none());
+        assert_eq!((&miss).key_read("outcome"), Value::Null);
+        assert_eq!(get_value_k(&miss.into_raw(), "outcome"), Value::Null);
+    }
+}
+
 /// An untyped unified return (`setLeverage`, `setMarginMode`, unsubscribe acks) passes the payload through.
 impl FromRaw for Value { fn from_raw(v: Value) -> Self { v } }
 impl IntoRaw for Value { fn into_raw(self) -> Value { self } }
