@@ -1048,14 +1048,15 @@ impl ClientHandle {
 
     /// `client.subscriptions[key] = val`: writes the live client and the
     /// handle's snapshot (what `add_element_to_object(&mut subscriptions, ..)` did).
-    pub fn add_subscription(&mut self, key: &Value, val: Value) {
-        match (&mut self.subscriptions, key) {
+    /// ral-51s: the key is `impl ValueKey` (a boxed `&Value`, or a typed `&str` / `Option<&str>` boxed to the same key).
+    pub fn add_subscription(&mut self, key: impl crate::value::ValueKey, val: Value) {
+        key.with_key(|key| match (&mut self.subscriptions, key) {
             (Value::Dict(m), Value::Str(k)) => {
                 crate::value::try_ws_subs_write(m, k, &val);
                 Arc::make_mut(m).insert(k.to_string(), val);
             }
             (other, _) => crate::runtime::add_element_to_object(other, key, val),
-        }
+        })
     }
     /// `key in client.subscriptions`, read from the handle's snapshot.
     pub fn has_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.subscriptions, key.into()) }
@@ -1348,6 +1349,23 @@ pub fn value_on_pong(client: &Value) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // ral-51s: a typed `&str` / `Option<&str>` key writes the same entry the boxed `&Value` key wrote
+    #[test]
+    fn add_subscription_str_key_matches_the_boxed_key() {
+        let mut boxed = ClientHandle::from_value(Value::Null);
+        boxed.subscriptions = Value::Map(Default::default());
+        let mut typed = ClientHandle::from_value(Value::Null);
+        typed.subscriptions = Value::Map(Default::default());
+        let key = String::from("unsubscribe:7");
+        boxed.add_subscription(&Value::from(key.as_str()), Value::Bool(true));
+        typed.add_subscription(key.as_str(), Value::Bool(true));
+        assert_eq!(boxed.subscriptions, typed.subscriptions);
+        assert!(typed.has_subscription(key.as_str()));
+        boxed.add_subscription(&Value::Null, Value::Int(1));
+        typed.add_subscription(None::<&str>, Value::Int(1));
+        assert_eq!(boxed.subscriptions, typed.subscriptions);
+    }
     use tokio_tungstenite::tungstenite::Message as WsMessage;
 
     // A minimal mock exchange WS server: accepts one connection, waits for a
