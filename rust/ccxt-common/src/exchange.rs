@@ -1994,8 +1994,16 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             if let Some(v) = self.dispatch_to_derived("fetch_currencies", Vec::new()).await {
                 currencies = v;
             }
+            // Exchange.ts loadMarketsHelper: fetchMarkets reads the just-fetched
+            // currencies from `options['cachedCurrencies']` (latoken, kraken, bitso, hyperliquid).
+            // Moved in and taken back out below: one object, as in JS.
+            set_cached_currencies(&mut self.options, std::mem::take(&mut currencies));
         }
-        let fetched = match self.dispatch_to_derived("fetch_markets", Vec::new()).await {
+        let fetched = self.dispatch_to_derived("fetch_markets", Vec::new()).await;
+        if let Some(c) = take_cached_currencies(&mut self.options) {
+            currencies = c;
+        }
+        let fetched = match fetched {
             Some(v) => v,
             None => return Value::Null,
         };
@@ -2770,6 +2778,43 @@ pub(crate) fn url_pct(s: &str) -> String {
         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
         _ => format!("%{b:02X}"),
     }).collect()
+}
+
+/// Writes `options['cachedCurrencies']`, as Exchange.ts loadMarketsHelper does
+/// before its fetchMarkets call.
+fn set_cached_currencies(options: &mut Value, currencies: Value) {
+    if let Value::Dict(d) = options {
+        Arc::make_mut(d).insert("cachedCurrencies".to_string(), currencies);
+    }
+}
+
+/// Deletes `options['cachedCurrencies']` after fetchMarkets, handing the value back.
+fn take_cached_currencies(options: &mut Value) -> Option<Value> {
+    match options {
+        Value::Dict(d) => Arc::make_mut(d).shift_remove("cachedCurrencies"),
+        _ => None,
+    }
+}
+
+/// `options['cachedCurrencies']` lives only around fetchMarkets.
+#[cfg(test)]
+mod cached_currencies_tests {
+    use super::{set_cached_currencies, take_cached_currencies, Exchange};
+    use crate::Value;
+    use super::HashMap;
+
+    #[test]
+    fn cached_currencies_set_then_removed() {
+        let mut ex = Exchange::new(None);
+        let mut c = HashMap::new();
+        c.insert("BTC".to_string(), Value::Str("x".into()));
+        set_cached_currencies(&mut ex.options, Value::Map(c));
+        let cached = crate::get_value(&ex.options, &Value::Str("cachedCurrencies".into()));
+        assert_eq!(cached.as_map().map(|m| m.len()), Some(1));
+        let back = take_cached_currencies(&mut ex.options);
+        assert_eq!(back.as_ref().and_then(|v| v.as_map()).map(|m| m.len()), Some(1));
+        assert!(crate::get_value(&ex.options, &Value::Str("cachedCurrencies".into())).is_null());
+    }
 }
 
 /// The User-Agent pick, against the real constructor and `initialize_properties`.
