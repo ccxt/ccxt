@@ -257,6 +257,7 @@ class cex extends \ccxt\async\cex {
     }
 
     public function handle_trades_inner(Client $client, array $message) {
+        // elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
         $data = $this->safe_list($message, 'data', array());
         $symbol = $this->safe_string($this->options['watchTrades'], 'symbol');
         if ($symbol === null) {
@@ -271,8 +272,7 @@ class cex extends \ccxt\async\cex {
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
             $index = $dataLength - 1 - $i;
-            $rawTrade = $data[$index];
-            $parsed = $this->parse_ws_old_trade($rawTrade, $market);
+            $parsed = $this->parse_ws_old_trade($data[$index], $market);
             $stored->append($parsed);
         }
         $messageHash = 'trades';
