@@ -17,7 +17,7 @@ import {
 // each direct dependency in runtime/rust/externs.json.
 //
 // A run does NOT go through cargo. It invokes rustc on the user's main.rs with
-// one `--extern name=<rlib>` per allowed crate and `-L dependency=<deps>`,
+// one `--extern name=<rlib>` per allowed crate and `-L dependency=<dir>`,
 // the way Compiler Explorer links its prebuilt crates. That gives us:
 //   - speed: only the user's single-file crate compiles (~1s incl. the link);
 //     ccxt is never rebuilt or even re-checked (no cargo fingerprinting);
@@ -36,7 +36,10 @@ const MANIFEST = path.join(RUST_ROOT, "externs.json");
 type Manifest = {
   rustc: string;
   edition: string;
-  deps: string; // relative to RUST_ROOT
+  // Dirs holding the dependency rlibs, relative to RUST_ROOT: target/debug/deps,
+  // or one target/debug/build/<pkg>/<hash>/out per crate under cargo's newer
+  // build-dir layout.
+  deps: string[];
   externs: Record<string, string>; // crate name -> rlib path relative to RUST_ROOT
   // Native search paths build scripts emitted (rustc-link-search). Those are
   // not recorded in the rlib, so cargo passes them on the final link — and so
@@ -71,8 +74,9 @@ export function rustcArgs(manifest: Manifest, src: string, out: string): string[
     // Linking is most of a run's build time (the binary pulls in the venues it
     // touches from the ccxt rlibs); skipping std's debuginfo shrinks that work.
     "-C", "strip=debuginfo",
-    "-L", `dependency=${path.join(RUST_ROOT, manifest.deps)}`,
   ];
+  const deps = typeof manifest.deps === "string" ? [manifest.deps] : manifest.deps; // pre-list manifests
+  for (const d of deps) args.push("-L", `dependency=${path.join(RUST_ROOT, d)}`);
   for (const p of manifest.native ?? []) args.push("-L", p);
   for (const [name, rlib] of Object.entries(manifest.externs)) {
     args.push("--extern", `${name}=${path.join(RUST_ROOT, rlib)}`);

@@ -162,9 +162,10 @@ installs the nightly-restart cron automatically.
   and Maven at provision time (Docker resolves the jars in a throwaway build
   stage, so Maven never ships in the image).
 - **Rust** → `runtime/rust` cargo project depending on the `ccxt`, `ccxt-pro` and
-  `ccxt-prediction` crates (+ `tokio`, `serde_json`, `futures`), built once into
-  `runtime/rust/target/debug/deps`, plus `externs.json` naming the exact rlib of
-  each crate. Needs a Rust toolchain (rustup) and ~6 GB of RAM at provision time;
+  `ccxt-prediction` crates (+ `tokio`, `serde_json`, `futures`), built once,
+  plus `externs.json` naming the exact rlib of each crate and every directory
+  holding dependency rlibs (`target/debug/deps`, or one dir per crate under
+  cargo ≥ 1.100's build-dir layout). Needs a Rust toolchain (rustup) and ~6 GB of RAM at provision time;
   Docker builds it in a throwaway stage so cargo and its registry never ship.
   Only a curated set of venues is compiled in — see **How Rust runs**.
 
@@ -238,7 +239,9 @@ The playground follows Compiler Explorer. `setup-runtimes.sh` cargo-builds a
 project depending on ccxt once and records, from cargo's JSON artifact messages,
 the exact rlib of each crate a snippet may use (`ccxt`, `ccxt_pro`,
 `ccxt_prediction`, `tokio`, `serde_json`, `futures`) plus build-script native
-search paths, in `runtime/rust/externs.json`. A run writes `main.rs` to its own
+search paths, in `runtime/rust/externs.json`. (The dependency dirs are recorded
+from those messages too, never hard-coded: since 1.100, cargo no longer collects
+rlibs in `target/debug/deps` but gives each crate its own `build/<pkg>/<hash>/out`.) A run writes `main.rs` to its own
 temp dir and calls the **toolchain's real `rustc`** (pinned in `externs.json`:
 the rlibs only link with the exact compiler that built them, and the rustup proxy
 would need `RUSTUP_HOME` in the scrubbed env) with one `--extern` per crate. This

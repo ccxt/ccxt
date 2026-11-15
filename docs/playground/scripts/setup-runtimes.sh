@@ -306,15 +306,22 @@ const [root, rustc, venues, prediction] = process.argv.slice(2);
 const wanted = new Set(["ccxt", "ccxt_pro", "ccxt_prediction", "tokio", "serde_json", "futures"]);
 const externs = {};
 const native = new Set();
+// Every directory holding a library artifact. Cargo up to ~1.99 puts them all
+// in target/debug/deps; newer cargo (build-dir layout) gives each crate its own
+// target/debug/build/<pkg>/<hash>/out. Either way rustc needs an
+// -L dependency=<dir> for each, to resolve the transitive crates by hash.
+const depDirs = new Set();
 const lines = fs.readFileSync(path.join(root, "build.jsonl"), "utf8").split("\n").filter(Boolean);
 for (const line of lines) {
   const msg = JSON.parse(line);
   if (msg.reason === "build-script-executed") {
     for (const p of msg.linked_paths || []) native.add(p);
   }
-  if (msg.reason !== "compiler-artifact" || !wanted.has(msg.target.name)) continue;
-  if (!msg.target.kind.includes("lib")) continue;
-  const rlib = msg.filenames.find((f) => f.endsWith(".rlib"));
+  if (msg.reason !== "compiler-artifact") continue;
+  const libs = msg.filenames.filter((f) => /\.(rlib|rmeta|so|dylib)$/.test(f));
+  for (const f of libs) depDirs.add(path.relative(root, path.dirname(f)));
+  if (!wanted.has(msg.target.name) || !msg.target.kind.includes("lib")) continue;
+  const rlib = libs.find((f) => f.endsWith(".rlib"));
   if (rlib) externs[msg.target.name] = path.relative(root, rlib);
 }
 const missing = [...wanted].filter((n) => !externs[n]);
@@ -322,7 +329,7 @@ if (missing.length) { console.error("missing rlibs: " + missing.join(", ")); pro
 const manifest = {
   rustc,
   edition: "2021",
-  deps: path.join("target", "debug", "deps"),
+  deps: [...depDirs].sort(),
   externs,
   // "native=/abs/path" or "/abs/path" → passed through as -L
   native: [...native],
@@ -339,8 +346,8 @@ JS
       const m = require(process.argv[1] + "/externs.json");
       const path = require("path");
       const { execFileSync } = require("child_process");
-      const args = ["--edition", m.edition, "--crate-type", "bin", "-C", "opt-level=0",
-        "-L", "dependency=" + path.join(process.argv[1], m.deps)];
+      const args = ["--edition", m.edition, "--crate-type", "bin", "-C", "opt-level=0"];
+      for (const d of m.deps) args.push("-L", "dependency=" + path.join(process.argv[1], d));
       for (const p of m.native) args.push("-L", p);
       for (const [n, f] of Object.entries(m.externs)) args.push("--extern", n + "=" + path.join(process.argv[1], f));
       args.push("-o", path.join(process.argv[1], "smoke"), path.join(process.argv[1], "src", "main.rs"));
@@ -356,9 +363,10 @@ JS
     echo "    warning: rust prebuild failed (Rust tab will show the provision message)"
     rm -f "$RUST_ROOT/externs.json"
   fi
-  # Keep target/debug/deps (the rlibs runs link against) and Cargo.lock; drop
-  # what runs never read. build/ holds build-script outputs — keep it, since
-  # native search paths may point into it.
+  # Keep the library artifacts runs link against (target/debug/deps, or
+  # target/debug/build/** under cargo's newer build-dir layout — which also
+  # holds the build-script outputs native search paths point into) and
+  # Cargo.lock; drop what runs never read.
   rm -rf "$RUST_ROOT/build.jsonl" "$RUST_ROOT/smoke" "$RUST_ROOT/target/debug/incremental" \
          "$RUST_ROOT/target/debug/playground" "$RUST_ROOT/target/debug/.fingerprint"
 else
