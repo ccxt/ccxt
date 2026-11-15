@@ -1191,10 +1191,10 @@ impl Weex {
         let mut firstSymbol: Option<String> = self.safe_string(&firstEntry, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut firstMarket: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut isContract: bool = (firstMarket).contract;
-        let mut priceType: Value = Value::Str("LAST_PRICE".into());
+        let mut priceType: Option<String> = Some("LAST_PRICE".to_string());
         let mut paramsPriceType: Value = Value::from(&paramsOmitted);
         if (isContract == true) {
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(&paramsOmitted, Value::from(callerMethodName.clone()), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]).as_array().cloned().unwrap_or_default(); priceType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params2(&paramsOmitted, Value::from(callerMethodName.clone()), Value::Str("price".into()), Value::Str("priceType".into()), &[Value::from(&priceType)]).into_list(); priceType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         {
                         let mut i: i64 = 0;
@@ -1210,7 +1210,7 @@ impl Weex {
             let mut unifiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), Value::from(unifiedTimeframe.clone()), &[Value::from(unifiedTimeframe.clone())]).as_str().map(str::to_owned);
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, "@kline_").into()), interval.as_deref().unwrap_or("null")).into()), "_").into()), priceType);
+            let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, "@kline_").into()), interval.as_deref().unwrap_or("null")).into()), "_").into()), priceType.as_deref().unwrap_or("null"));
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unifiedTimeframe);
             channels.push(Value::from(channel));
             messageHashes.push(Value::from(messageHash));
@@ -1292,10 +1292,10 @@ impl Weex {
         let mut firstSymbol: Option<String> = self.safe_string(&firstEntry, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut firstMarket: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut isContract: bool = (firstMarket).contract;
-        let mut priceType: Value = Value::Str("LAST_PRICE".into());
+        let mut priceType: Option<String> = Some("LAST_PRICE".to_string());
         let mut paramsPriceType: Value = Value::from(&paramsOmitted);
         if (isContract == true) {
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(&paramsOmitted, Value::from(callerMethodName.clone()), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]).as_array().cloned().unwrap_or_default(); priceType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params2(&paramsOmitted, Value::from(callerMethodName.clone()), Value::Str("price".into()), Value::Str("priceType".into()), &[Value::from(&priceType)]).into_list(); priceType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         {
                         let mut i: i64 = 0;
@@ -1311,7 +1311,7 @@ impl Weex {
             let mut unifiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
             let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), Value::from(unifiedTimeframe.clone()), &[Value::from(unifiedTimeframe.clone())]).as_str().map(str::to_owned);
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, "@kline_").into()), interval.as_deref().unwrap_or("null")).into()), "_").into()), priceType);
+            let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, "@kline_").into()), interval.as_deref().unwrap_or("null")).into()), "_").into()), priceType.as_deref().unwrap_or("null"));
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unifiedTimeframe);
             let mut unSubMessageHash: String = format!("{}{}", "unsubscribe::", messageHash);
             channels.push(Value::from(channel));

@@ -2939,9 +2939,8 @@ impl Ndax {
         //
         let mut depositInfoString: Value = self.safe_string(depositAddress.clone(), Value::Str("DepositInfo".into()), &[Value::Str("[]".into())]);
         let mut depositInfo: Value = json_parse(&depositInfoString);
-        let mut depositInfoLength: Value = get_array_length(&depositInfo);
-        let mut lastString: String = self.safe_string(depositInfo, (match (&(depositInfoLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut depositInfoLength: i64 = get_array_length(&depositInfo).as_i64().unwrap_or_default();
+        let mut lastString: String = self.safe_string(depositInfo, Value::Int((depositInfoLength - 1)), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = Value::Array(lastString.split("?memo=").map(Value::from).collect()).into_list();
         let mut address: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);

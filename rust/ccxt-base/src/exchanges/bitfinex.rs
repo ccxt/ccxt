@@ -5250,8 +5250,8 @@ impl Bitfinex {
         //         0.0025               // funding payment cap
         //     ]
         //
-        let mut interestLength: Value = get_array_length(&interest);
-        let mut openInterestIndex: i64 = (if (interestLength.as_f64() == Some(23.0)) { 17 } else { 18 });
+        let mut interestLength: i64 = get_array_length(&interest).as_i64().unwrap_or_default();
+        let mut openInterestIndex: i64 = (if (interestLength == 23) { 17 } else { 18 });
         let mut timestamp: Option<i64> = self.safe_integer(interest.clone(), Value::Int(1), &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string(interest.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         return self.safe_open_interest(Value::Map({

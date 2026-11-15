@@ -1407,9 +1407,9 @@ impl Hibachi {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut takerFee: Option<f64> = self.safe_number_k(&market, "taker", &[self.safe_number_k(self.options.clone(), "defaultTakerFee", &[Value::Float(0.00045)])]).as_f64();
         let mut makerFee: Option<f64> = self.safe_number_k(&market, "maker", &[self.safe_number_k(self.options.clone(), "defaultMakerFee", &[Value::Float(0.00015)])]).as_f64();
-        let mut takerFeeValue: Value = (if (takerFee.is_none()) { Value::Int(0) } else { Value::from(takerFee) });
-        let mut makerFeeValue: Value = (if (makerFee.is_none()) { Value::Int(0) } else { Value::from(makerFee) });
-        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&Value::from(self.number_to_string(takerFeeValue)), &Value::from(self.number_to_string(makerFeeValue))), &[]).as_f64();
+        let mut takerFeeValue: f64 = takerFee.unwrap_or(0.0);
+        let mut makerFeeValue: f64 = makerFee.unwrap_or(0.0);
+        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&Value::from(self.number_to_string(Value::from(takerFeeValue))), &Value::from(self.number_to_string(Value::from(makerFeeValue)))), &[]).as_f64();
         let mut sideInternal: String = "".to_string();
         if (side.as_str() == Some("sell")) {
             sideInternal = "ASK".to_string();

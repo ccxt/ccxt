@@ -11247,10 +11247,10 @@ impl Okx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut type_var: Value = (if (market).spot { Value::Str("MARGIN".into()) } else { self.convert_to_instrument_type((Value::from((market).market_type.clone())).as_str()).map(Value::from).unwrap_or(Value::Null) });
+        let mut type_var: Option<String> = (if (market).spot { Some("MARGIN".to_string()) } else { self.convert_to_instrument_type((Value::from((market).market_type.clone())).as_str()) });
         let mut instFamily: Option<String> = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "instFamily", &[]).as_str().map(str::to_owned);
         if (instFamily.is_none()) || (instFamily.as_deref() == Some("")) {
-            if (type_var.as_str() != Some("MARGIN")) {
+            if (type_var.as_deref() != Some("MARGIN")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchMarketLeverageTiers() cannot fetch leverage tiers for ").into()), symbol)));
             }
         }
@@ -11261,12 +11261,12 @@ impl Okx {
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), type_var.clone());
+                m.insert("instType".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("tdMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
                 m.insert("instFamily".to_string(), instFamily.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        if (type_var.as_str() == Some("MARGIN")) {
+        if (type_var.as_deref() == Some("MARGIN")) {
             request.insert("instId".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsMarginMode]);

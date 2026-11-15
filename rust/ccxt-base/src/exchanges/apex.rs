@@ -1866,8 +1866,8 @@ impl Apex {
                 let mut newMarketId: Option<String> = self.add_hyphen_before_usdt(marketId.as_str().unwrap_or_default());
                 if (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, newMarketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                     let mut markets: Value = (if let (Some(__m), Some(__k)) = (self.markets_by_id.as_map(), newMarketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-                    let mut numMarkets: Value = get_array_length(&markets);
-                    if numMarkets.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                    let mut numMarkets: i64 = get_array_length(&markets).as_i64().unwrap_or_default();
+                    if numMarkets > 0 {
                         if is_equal(&crate::value::get_value_k(&get_value(&markets, &Value::Int(0)), "id2"), &marketId) {
                             marketResolved = get_value(&markets, &Value::Int(0));
                         }
@@ -2012,14 +2012,14 @@ impl Apex {
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("postOnly".into()), &[]).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_n(&paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut accountId: Option<String> = self.get_account_id().await.as_str().map(str::to_owned);
-        let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(Value::from(accountId.as_deref())).map(Value::from).unwrap_or(Value::Null) });
+        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni(Value::from(accountId.as_deref())) });
         let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted2, &["clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"], &[]).into_dict();
         let mut finalOrderPrice: Option<String> = orderPrice; // java req
         let mut orderToSign: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("slotId".to_string(), finalClientOrderId.clone());
-                m.insert("nonce".to_string(), finalClientOrderId.clone());
+                m.insert("slotId".to_string(), finalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("nonce".to_string(), finalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("pairId".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
                 m.insert("size".to_string(), Value::from(orderSize.as_deref()));
                 m.insert("price".to_string(), finalOrderPrice.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2045,7 +2045,7 @@ impl Apex {
                     (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
                 m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
-                m.insert("clientId".to_string(), finalClientOrderId);
+                m.insert("clientId".to_string(), finalClientOrderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("6956".into())]));
             m
         });
@@ -2165,7 +2165,7 @@ impl Apex {
         let mut amountNumber: Option<i64> = self.parse_to_int((match (&(amountValue), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         let mut timestampSeconds: Option<i64> = self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut finalClientOrderId: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[])).map(Value::from).unwrap_or(Value::Null) });
+        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[])) });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[]).into_dict();
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();
@@ -2180,7 +2180,7 @@ impl Apex {
                     m.insert("tokenId".to_string(), Value::from(tokenId.clone()));
                     m.insert("amount".to_string(), Value::from(format!("{}", Value::from(amountNumber))));
                     m.insert("fee".to_string(), Value::Str("0".into()));
-                    m.insert("nonce".to_string(), finalClientOrderId.clone());
+                    m.insert("nonce".to_string(), finalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("timestampSeconds".to_string(), Value::from(expireTime));
                     m.insert("isContract".to_string(), Value::Bool(true));
                 m
@@ -2190,7 +2190,7 @@ impl Apex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("amount".to_string(), amount.clone());
                     m.insert("expireTime".to_string(), Value::from(expireTime));
-                    m.insert("clientWithdrawId".to_string(), finalClientOrderId.clone());
+                    m.insert("clientWithdrawId".to_string(), finalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("signature".to_string(), signature);
                     m.insert("token".to_string(), code.clone());
                     m.insert("ethAddress".to_string(), Value::from(ethAddress));
@@ -2235,7 +2235,7 @@ impl Apex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
                     m.insert("timestamp".to_string(), Value::from(ts));
-                    m.insert("clientTransferId".to_string(), finalClientOrderId);
+                    m.insert("clientTransferId".to_string(), finalClientOrderId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("signature".to_string(), signature);
                     m.insert("zkAccountId".to_string(), Value::from(zkAccountId));
                     m.insert("subAccountId".to_string(), Value::from(subAccountId));

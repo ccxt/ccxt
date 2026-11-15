@@ -1032,7 +1032,7 @@ impl Htx {
         //     }
         //
         let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut messageHash: Option<String> = self.safe_string_k_opt(subscription.clone(), "messageHash", &[]);
+        let mut messageHash: Option<String> = self.safe_string_k(subscription.clone(), "messageHash", &[]).as_str().map(str::to_owned);
         if (messageHash.is_none()) {
             return;
         }
@@ -1065,14 +1065,14 @@ impl Htx {
                 // retry to synchronize if we have not reached maxAttempts yet
                 if Some(numAttempts) < maxAttempts {
                     // safety guard
-                    if (__ch.has_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null))) {
+                    if (__ch.has_subscription(messageHash.as_deref())) {
                         let mut nextAttempts: i64 = (numAttempts + 1);
                         let mut delayTime: Option<i64> = Some(1000);
                         if (lastTimestamp.is_some()) && (snapshotTimestamp.is_some()) {
                             delayTime = (if let Some(__m1) = ((if let (Some(__l), Some(__r)) = (lastTimestamp, snapshotTimestamp) { Some(__l - __r) } else { None })) { Some((1000 + __m1)) } else { None });
                         }
                         if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("numAttempts".into(), Value::from(nextAttempts)); }
-                        __ch.add_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null), subscription.clone());
+                        __ch.add_subscription(messageHash.as_deref(), subscription.clone());
                         self.delay(Value::from(delayTime), &[Value::Str("watch_order_book_snapshot".into()).clone(), client.clone(), message, subscription.clone()]).await;
                     }
                 }  else {
@@ -1092,17 +1092,17 @@ impl Htx {
                 if (symbol.is_some()) {
                     CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
                 }
-                client.resolve(Value::from(&orderbook), &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                client.resolve(Value::from(&orderbook), messageHash.as_deref());
             }
          #[allow(unreachable_code)] { false }})).await;
 match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
             if (messageHash.is_some()) {
-                __ch.remove_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                __ch.remove_subscription(messageHash.as_deref());
             }
             if (symbol.is_some()) {
                 CacheStore::forget(&mut self.orderbooks, &symbol);
             }
-            client.reject(e, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+            client.reject(e, messageHash.as_deref());
          } }
 }
 

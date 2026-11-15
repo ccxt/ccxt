@@ -1673,8 +1673,8 @@ impl Deribit {
         let mut time: i64 = self.milliseconds();
         let mut timeString: Option<String> = self.number_to_string(Value::from(time));
         let mut nonce: Option<String> = timeString.clone();
-        let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
+        let mut messageHash: String = "authenticated".to_string();
+        let mut future: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (future == Value::Null) {
             self.check_required_credentials(&[]);
             let mut requestId: i64 = self.request_id();
@@ -1698,8 +1698,8 @@ impl Deribit {
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-            future = self.watch(url.as_deref(), &messageHash, __ws_arg_0, &messageHash, Value::Null).await;
-            client.add_subscription(&messageHash, future.clone());
+            future = self.watch(url.as_deref(), &messageHash[..], __ws_arg_0, &messageHash[..], Value::Null).await;
+            client.add_subscription(messageHash.as_str(), future.clone());
         }
         return future;
 

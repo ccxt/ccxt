@@ -7087,8 +7087,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut __for_first_82: bool = true;
             while { if !__for_first_82 { i += 1; } __for_first_82 = false; i < (positions.len() as i64) } {
             let mut position: Option<&crate::types::Position> = positions.get(i as usize);
-            let mut contracts: Value = self.safe_number_k(&position, "contracts", &[Value::Int(0)]);
-            if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+            let mut contracts: Option<f64> = self.safe_number_k(&position, "contracts", &[Value::Int(0)]).as_f64();
+            if (contracts.is_some()) && (contracts > Some(0.0)) {
                 cache.append(position);
             }
         }
@@ -7874,7 +7874,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut error: crate::value::Dict = __pro_message.get("error").cloned().unwrap_or_default().into_dict();
         let mut code: Option<i64> = self.safe_integer_k(&error, "code", &[]).as_i64();
         let mut msg: Option<String> = self.safe_string_k(&error, "msg", &[]).as_str().map(str::to_owned);
-        let mut codeValue: Option<i64> = (if (code.is_none()) { Some(0) } else { code });
+        let mut codeValue: i64 = code.unwrap_or(0);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.handle_errors(Value::from(codeValue), msg.map(Value::from).unwrap_or(Value::Null), client.url(), Value::Str("".into()), Value::Map({
                 let mut m = indexmap::IndexMap::new();

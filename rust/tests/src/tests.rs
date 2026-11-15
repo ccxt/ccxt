@@ -928,12 +928,12 @@ if _try_result.is_err() {
         }
         }
         let mut ranked: Value = exchange.sort_by(candidates, Value::Str("volume".into()), &[Value::Bool(true)]);
-        let mut rankedLength: Value = get_array_length(&ranked);
-        if (rankedLength.as_f64() == Some(0.0)) {
+        let mut rankedLength: i64 = get_array_length(&ranked).as_i64().unwrap_or_default();
+        if (rankedLength == 0) {
             return defaultSymbols;
         }
         let mut result: Vec<Value> = vec![exchange.safe_string(get_value(&ranked, &Value::Int(0)), Value::Str("symbol".into()), &[])];
-        if rankedLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+        if rankedLength > 1 {
             result.push(exchange.safe_string(get_value(&ranked, &Value::Int(1)), Value::Str("symbol".into()), &[]));
         }
         return Value::from(result);
@@ -1078,8 +1078,8 @@ if _try_result.is_err() {
                 while { if !__for_first_1631 { i += 1; } __for_first_1631 = false; i < (marketKeys.len() as i64) } {
                 let mut market: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &marketKeys.get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut outcomesList: Value = exchange.safe_list(market, Value::Str("outcomes".into()), &[Value::from(vec![])]);
-                let mut outcomesListLength: Value = get_array_length(&outcomesList);
-                if outcomesListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                let mut outcomesListLength: i64 = get_array_length(&outcomesList).as_i64().unwrap_or_default();
+                if outcomesListLength > 0 {
                     outcomeSymbol = exchange.safe_string(get_value(&outcomesList, &Value::Int(0)), Value::Str("outcome".into()), &[]);
                     if (outcomeSymbol != Value::Null) {
                         break;
@@ -1147,8 +1147,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 }), Value::Str("events".into()), &[Value::from(vec![])]);
                 self.assert_prediction_events(exchange.clone(), eventsList.clone());
-                let mut eventsLength: Value = get_array_length(&eventsList);
-                if eventsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                let mut eventsLength: i64 = get_array_length(&eventsList).as_i64().unwrap_or_default();
+                if eventsLength > 0 {
                     eventId = exchange.safe_string(get_value(&eventsList, &Value::Int(0)), Value::Str("id".into()), &[]);
                 }
                 if (eventId != Value::Null) && (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".into())), Value::Str("fetchEvent".into()), &[Value::Bool(false)]), &Value::Bool(true))) {
@@ -1174,11 +1174,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
                 // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
                 let mut extraScopes: Value = exchange.safe_list(self.skippedSettingsForExchange.clone(), Value::Str("preferredEventScopes".into()), &[Value::from(vec![])]);
-                let mut extraScopesLength: Value = get_array_length(&extraScopes);
+                let mut extraScopesLength: i64 = get_array_length(&extraScopes).as_i64().unwrap_or_default();
                 {
                                         let mut si: i64 = 0;
                     let mut __for_first_1632: bool = true;
-                    while { if !__for_first_1632 { si += 1; } __for_first_1632 = false; (si as f64) < extraScopesLength.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1632 { si += 1; } __for_first_1632 = false; si < extraScopesLength } {
                     scopesToTest.push(get_value(&extraScopes, &Value::Int(si)));
                 }
                 }
@@ -1195,8 +1195,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             m.insert("events".to_string(), scopedEvents);
                         m
                     }), Value::Str("events".into()), &[Value::from(vec![])]);
-                    let mut scopedListLength: Value = get_array_length(&scopedList);
-                    assert((scopedListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents scoped by ").into()), exchange.json(scope)).into()), " returned no events - the parameter path may be broken").into())]);
+                    let mut scopedListLength: i64 = get_array_length(&scopedList).as_i64().unwrap_or_default();
+                    assert((scopedListLength > 0), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents scoped by ").into()), exchange.json(scope)).into()), " returned no events - the parameter path may be broken").into())]);
                     self.assert_prediction_events(exchange.clone(), scopedList);
                 }
                 }
@@ -1213,8 +1213,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             m.insert("events".to_string(), limited);
                         m
                     }), Value::Str("events".into()), &[Value::from(vec![])]);
-                    let mut limitedListLength: Value = get_array_length(&limitedList);
-                    assert((limitedListLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents did not honour limit=1").into())]);
+                    let mut limitedListLength: i64 = get_array_length(&limitedList).as_i64().unwrap_or_default();
+                    assert((limitedListLength <= 1), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " fetchEvents did not honour limit=1").into())]);
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
@@ -1309,12 +1309,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         assert((exchange.safe_string(event.clone(), Value::Str("event".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event missing the unified event handle").into()), logText).into())]);
         let mut markets: Value = exchange.safe_list(event.clone(), Value::Str("markets".into()), &[]);
         assert((markets != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event missing markets").into()), logText).into())]);
-        let mut marketsLength: Value = get_array_length(&markets);
+        let mut marketsLength: i64 = get_array_length(&markets).as_i64().unwrap_or_default();
         assert((exchange.safe_string(event.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event must not carry the deprecated symbol key").into()), logText).into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1636: bool = true;
-            while { if !__for_first_1636 { i += 1; } __for_first_1636 = false; (i as f64) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1636 { i += 1; } __for_first_1636 = false; i < marketsLength } {
             let mut market: Value = get_value(&markets, &Value::Int(i));
             assert(Value::Bool(is_equal(&exchange.is_dictionary(market.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event market should be a dict").into()), logText).into())]);
             assert((exchange.safe_string(market.clone(), Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event market missing the unified market handle").into()), logText).into())]);
@@ -1322,11 +1322,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert((exchange.safe_string(market.clone(), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event market must not carry the deprecated symbol key").into()), logText).into())]);
             let mut outcomes: Value = exchange.safe_list(market, Value::Str("outcomes".into()), &[]);
             assert((outcomes != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event market missing outcomes").into()), logText).into())]);
-            let mut outcomesLength: Value = get_array_length(&outcomes);
+            let mut outcomesLength: i64 = get_array_length(&outcomes).as_i64().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1635: bool = true;
-                while { if !__for_first_1635 { j += 1; } __for_first_1635 = false; (j as f64) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1635 { j += 1; } __for_first_1635 = false; j < outcomesLength } {
                 assert((exchange.safe_string(get_value(&outcomes, &Value::Int(j)), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " event outcome must not carry the deprecated symbol key").into()), logText).into())]);
             }
             }
@@ -2486,14 +2486,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // exclude them per entry without touching the response skipKeys
         let mut sentSkipKeys: Value = exchange.safe_list(data, Value::Str("sentSkipKeys".into()), &[Value::from(vec![])]);
         let mut sentMessages: Value = getWsSentMessages(exchange.clone(), url);
-        let mut sentLength: Value = get_array_length(&sentMessages);
-        let mut expectedLength: Value = get_array_length(&expectedSent);
-        assert((sentLength.as_f64() == expectedLength.as_f64()), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("sent ws messages count mismatch: sent ".into()), to_string_val(&sentLength)).into()), ", expected ").into()),
-            to_string_val(&expectedLength)).into()), " ").into()), jsonStringify(sentMessages.clone())).into())]);
+        let mut sentLength: i64 = get_array_length(&sentMessages).as_i64().unwrap_or_default();
+        let mut expectedLength: i64 = get_array_length(&expectedSent).as_i64().unwrap_or_default();
+        assert((sentLength == expectedLength), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("sent ws messages count mismatch: sent ".into()), Value::Str(format!("{}", sentLength).into())).into()), ", expected ").into()), Value::Str(format!("{}",
+            expectedLength).into())).into()), " ").into()), jsonStringify(sentMessages.clone())).into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1653: bool = true;
-            while { if !__for_first_1653 { i += 1; } __for_first_1653 = false; (i as f64) < expectedLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1653 { i += 1; } __for_first_1653 = false; i < expectedLength } {
             let mut unifiedSent: Value = jsonParse(jsonStringify(get_value(&sentMessages, &Value::Int(i))));
             self.assert_static_response_output(exchange.clone(), sentSkipKeys.clone(), unifiedSent, get_value(&expectedSent, &Value::Int(i)));
         }

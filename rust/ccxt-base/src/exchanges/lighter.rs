@@ -3510,7 +3510,7 @@ if _try_result.is_err() {
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         let mut tifAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "time_in_force", &[]).as_i64();
-        let mut tif: Value = (if (tifAsInteger.is_some()) { self.parse_order_time_in_force_integer(Value::from(tifAsInteger).as_f64().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null) } else { self.safe_string_k(order.clone(), "time_in_force", &[]) });
+        let mut tif: Option<String> = (if (tifAsInteger.is_some()) { self.parse_order_time_in_force_integer(Value::from(tifAsInteger).as_f64().unwrap_or_default()) } else { self.safe_string_k(order.clone(), "time_in_force", &[]).as_str().map(str::to_owned) });
         let mut reduceOnlyAsBool: Option<bool> = self.safe_bool_k(order.clone(), "reduce_only", &[]).as_bool();
         let mut reduceOnlyAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "reduce_only", &[]).as_i64();
         let mut reduceOnly: Option<bool> = reduceOnlyAsBool;
@@ -3529,8 +3529,8 @@ if _try_result.is_err() {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp_k(order.clone(), "updated_at", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), self.parse_order_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), self.parse_order_time_in_force(tif.as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), Value::Bool(tif.as_str() == Some("post-only")));
+        m.insert("timeInForce".to_string(), self.parse_order_time_in_force(tif.as_deref()).map(Value::from).unwrap_or(Value::Null));
+        m.insert("postOnly".to_string(), Value::Bool(tif.as_deref() == Some("post-only")));
         m.insert("reduceOnly".to_string(), reduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));

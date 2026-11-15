@@ -395,9 +395,9 @@ impl Poloniex {
         self.check_required_credentials(&[]);
         let mut timestamp: Option<String> = self.number_to_string(Value::Int(self.milliseconds()));
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut messageHash: Value = Value::Str("authenticated".into());
+        let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
-        let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
+        let mut future: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (future == Value::Null) {
             let mut accessPath: String = "/ws".to_string();
             let mut requestString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "GET\n", accessPath).into()), "\nsignTimestamp=").into()), timestamp.as_deref().unwrap_or("null"));
@@ -418,7 +418,7 @@ impl Poloniex {
                 m
             });
             let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-            future = self.watch(url.as_str(), &messageHash, &message, &messageHash, Value::Null).await;
+            future = self.watch(url.as_str(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
             //
             //    {
             //        "data": {
@@ -439,7 +439,7 @@ impl Poloniex {
             //        "channel": "auth"
             //    }
             //
-            client.add_subscription(&messageHash, future.clone());
+            client.add_subscription(messageHash.as_str(), future.clone());
         }
         return future;
 
@@ -489,7 +489,7 @@ impl Poloniex {
             }
             marketIds = self.market_ids(&[symbols.clone()]);
         }
-        let mut symbolsSuffix: Value = (if (symbols == Value::Null) { Value::Str("".into()) } else { Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()) });
+        let mut symbolsSuffix: String = (if (symbols == Value::Null) { "".to_string() } else { symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default() });
         let mut symbolsHash: Value = Value::Null;
         if self.is_empty(symbols).as_bool() == Some(true) {
             symbolsHash = messageHash.clone();

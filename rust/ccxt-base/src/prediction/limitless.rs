@@ -2390,15 +2390,15 @@ impl Limitless {
         if (outcome != Value::Null) {
             self.load_outcome(outcome, &[]).await;
         }
-        let mut length: Value = get_array_length(&ids);
-        if length.as_f64().unwrap_or(f64::NAN) > ((50i64) as f64) {
+        let mut length: i64 = get_array_length(&ids).as_i64().unwrap_or_default();
+        if length > 50 {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchOrdersByIds can only fetch up to 50 orders at a time")));
         }
         let mut items: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1321: bool = true;
-            while { if !__for_first_1321 { i += 1; } __for_first_1321 = false; (i as f64) < length.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1321 { i += 1; } __for_first_1321 = false; i < length } {
             let mut id: Option<String> = self.safe_string(ids.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             let mut item: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -1075,7 +1075,7 @@ impl Hyperliquid {
                 fetchDexesList = dexesProvided.into_list();
             }
         }  else {
-            let mut fetchDexesLength: Value = get_array_length(&fetchDexes);
+            let mut fetchDexesLength: i64 = get_array_length(&fetchDexes).as_i64().unwrap_or_default();
             // index 0 is the null main dex, so the loop runs 1..maxLimit to load
             // exactly maxLimit dexes. do NOT rewrite this as `i <= maxLimit`: the
             // python transpiler collapses every for-loop bound to an exclusive
@@ -1083,13 +1083,13 @@ impl Hyperliquid {
             // too few (build/transpile.ts treats <, <=, > and >= identically)
             let mut maxIteration: i64 = (maxLimit + 1);
             {
-                                let mut i: Value = Value::Int(1);
+                                let mut i: i64 = 1;
                 let mut __for_first_800: bool = true;
-                while { if !__for_first_800 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_800 = false; i.as_f64().unwrap_or(f64::NAN) < (maxIteration as f64) } {
-                if i.as_f64().unwrap_or(f64::NAN) >= fetchDexesLength.as_f64().unwrap_or(f64::NAN) {
+                while { if !__for_first_800 { i += 1; } __for_first_800 = false; i < maxIteration } {
+                if i >= fetchDexesLength {
                     break;
                 }
-                let mut dex: Option<crate::value::Dict> = self.safe_dict(fetchDexes.clone(), i.clone(), &[Value::Map({
+                let mut dex: Option<crate::value::Dict> = self.safe_dict(fetchDexes.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_opt_dict();
@@ -4067,15 +4067,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("time".to_string(), (match (&(Value::from(nonce)), &(timeout)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             m
         });
-        let mut vaultAddress: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelAllOrdersAfter".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        vaultAddress = self.format_vault_address(vaultAddress.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_str(), None).into_dict();
+        let mut vaultAddress: Option<String> = None;
+        { let __destr_tmp = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelAllOrdersAfter".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).into_list(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        vaultAddress = self.format_vault_address(vaultAddress.as_deref());
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         request.insert("action".into(), Value::Map(cancelAction));
         request.insert("signature".into(), Value::Dict(signature));
-        if (vaultAddress != Value::Null) {
+        if (vaultAddress.is_some()) {
             params2 = self.omit(params2, Value::Str("vaultAddress".into()), &[]);
-            request.insert("vaultAddress".into(), vaultAddress);
+            request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         return response;

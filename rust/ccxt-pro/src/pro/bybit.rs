@@ -1622,8 +1622,8 @@ impl Bybit {
             let mut firstMarket: crate::types::Market = (match self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             defaultLimit = (if (firstMarket).spot { 50 } else { 500 });
         }
-        let mut limit: Value = (if (limitParam.is_none()) { Value::from(defaultLimit) } else { Value::from(limitParam) });
-        channel.push_str(&(Value::Str(format!("{}", limit).into())).to_string());
+        let mut limit: i64 = limitParam.unwrap_or(defaultLimit);
+        channel.push_str(&limit.to_string());
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut topics: Vec<Value> = Vec::new();
@@ -3391,13 +3391,13 @@ impl Bybit {
 }));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url));
         let mut newTopics: Vec<Value> = Vec::new();
-        let mut topicsLength: Value = get_array_length(&topics);
-        let mut messageHashesLength: Value = Value::Int(messageHashes.len() as i64);
-        if (topicsLength.as_f64() == messageHashesLength.as_f64()) {
+        let mut topicsLength: i64 = get_array_length(&topics).as_i64().unwrap_or_default();
+        let mut messageHashesLength: i64 = messageHashes.len() as i64;
+        if (topicsLength == messageHashesLength) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_207: bool = true;
-                while { if !__for_first_207 { i += 1; } __for_first_207 = false; (i as f64) < topicsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_207 { i += 1; } __for_first_207 = false; i < topicsLength } {
                 let mut messageHash: Option<String> = messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if !(client.has_subscription(messageHash.as_deref())) {
                     newTopics.push(get_value(&topics, &Value::Int(i)));
@@ -3435,7 +3435,7 @@ impl Bybit {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_210: bool = true;
-                while { if !__for_first_210 { i += 1; } __for_first_210 = false; (i as f64) < topicsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_210 { i += 1; } __for_first_210 = false; i < topicsLength } {
                 let mut topic: Value = get_value(&topics, &Value::Int(i));
                 if !(matches!(&topic, Value::Str(__k) if subscribedTopics.contains_key(__k.as_ref()))) {
                     newTopics.push(topic.clone());

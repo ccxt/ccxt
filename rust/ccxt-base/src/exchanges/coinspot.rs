@@ -1324,7 +1324,7 @@ impl Coinspot {
         //          },
         //      ]
         // }
-        let mut buyTrades: Value = self.safe_list_k(&response, "buyorders", &[Value::from(vec![])]);
+        let mut buyTrades: crate::value::List = self.safe_list_k(&response, "buyorders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_585: bool = true;
@@ -1332,7 +1332,7 @@ impl Coinspot {
             add_element_to_object(get_value_mut(&mut buyTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("buy".into()));
         }
         }
-        let mut sellTrades: Value = self.safe_list_k(&response, "sellorders", &[Value::from(vec![])]);
+        let mut sellTrades: crate::value::List = self.safe_list_k(&response, "sellorders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_586: bool = true;
@@ -1340,7 +1340,7 @@ impl Coinspot {
             add_element_to_object(get_value_mut(&mut sellTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("sell".into()));
         }
         }
-        let mut trades: crate::value::List = self.array_concat(buyTrades, sellTrades).into_list();
+        let mut trades: crate::value::List = self.array_concat(Value::Arr(buyTrades), Value::Arr(sellTrades)).into_list();
         return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))

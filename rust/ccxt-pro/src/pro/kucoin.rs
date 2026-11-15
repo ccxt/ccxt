@@ -560,10 +560,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), subscriptionHash.clone());
                 m.insert("response".to_string(), Value::Bool(true));
@@ -572,7 +572,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url));
         if !(client.has_subscription(&subscriptionHash)) {
-            client.add_subscription(&requestId, subscriptionHash.clone());
+            client.add_subscription(requestId.as_str(), subscriptionHash.clone());
         }
         return self.watch(url, messageHash, &message, &subscriptionHash, subscription).await;
 
@@ -588,7 +588,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut urlType: String = "spot".to_string();
         if (market).contract {
@@ -602,7 +602,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
                 m.insert("action".to_string(), Value::from(action));
                 m.insert("channel".to_string(), channel);
                 m.insert("tradeType".to_string(), Value::from(tradeType));
@@ -613,7 +613,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         if !(client.has_subscription(&messageHash)) {
-            client.add_subscription(&requestId, messageHash.clone());
+            client.add_subscription(requestId.as_str(), messageHash.clone());
         }
         return self.watch(url.as_deref(), &messageHash, &message, &messageHash, subscription).await;
 
@@ -630,7 +630,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
         self.check_required_credentials(&[]);
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         let mut action: String = "subscribe".to_string();
         if (subscription != Value::Null) {
             let mut unsubscribe: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -638,7 +638,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
                 m.insert("action".to_string(), Value::from(action));
                 m.insert("channel".to_string(), channel);
             m
@@ -651,7 +651,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut url: Option<String> = self.get_uta_url().await.as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         if !(client.has_subscription(&subscribeHash)) {
-            client.add_subscription(&requestId, subscribeHash.clone());
+            client.add_subscription(requestId.as_str(), subscribeHash.clone());
         }
         return self.watch_multiple(url.as_deref(), messageHashes, &message, Value::from(vec![subscribeHash]), subscription).await;
 
@@ -730,10 +730,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), topic);
                 m.insert("response".to_string(), Value::Bool(true));
@@ -747,7 +747,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_447 { i += 1; } __for_first_447 = false; i < (subscriptionHashes.len() as i64) } {
             let mut subscriptionHash: String = self.safe_string(subscriptionHashes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if !(client.has_subscription(subscriptionHash.as_str())) {
-                client.add_subscription(&requestId, Value::from(subscriptionHash));
+                client.add_subscription(requestId.as_str(), Value::from(subscriptionHash));
             }
         }
         }
@@ -763,10 +763,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId.clone()));
                 m.insert("type".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("topic".to_string(), topic);
                 m.insert("response".to_string(), Value::Bool(true));
@@ -774,7 +774,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
         if (subscription != Value::Null) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&requestId), requestId.clone()); }
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert(requestId.clone(), Value::from(requestId.clone())); }
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url));
         {
@@ -783,7 +783,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_448 { i += 1; } __for_first_448 = false; i < (subscriptionHashes.len() as i64) } {
             let mut subscriptionHash: String = self.safe_string(subscriptionHashes.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if !(client.has_subscription(subscriptionHash.as_str())) {
-                client.add_subscription(&requestId, Value::from(subscriptionHash));
+                client.add_subscription(requestId.as_str(), Value::from(subscriptionHash));
             }
         }
         }
@@ -1007,7 +1007,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         let mut market: Option<crate::types::Market> = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: bool = self.safe_bool_k(&market, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut urlType: String = "spot".to_string();
@@ -1022,7 +1022,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId.clone());
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
                 m.insert("action".to_string(), Value::from(action));
                 m.insert("channel".to_string(), channel.clone());
                 m.insert("tradeType".to_string(), Value::from(tradeType));
@@ -1034,7 +1034,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHashWithSymbols: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), join(&symbols, &Value::Str(",".into())));
         if !(client.has_subscription(messageHashWithSymbols.as_str())) {
-            client.add_subscription(&requestId, Value::from(messageHashWithSymbols));
+            client.add_subscription(requestId.as_str(), Value::from(messageHashWithSymbols));
         }
         return self.watch_multiple(url.as_deref(), messageHashes.clone(), &message, messageHashes.clone(), subscription).await;
 
@@ -3637,10 +3637,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let __ws_arg_4 = self.extend(Value::Map(extendedParams), &[&paramsOmitted]);
             return self.subscribe_private_uta(Value::from(vec![Value::from(messageHash.clone())]), subscriptionHash.as_deref().unwrap_or_default(), channel.as_str(), None, &[__ws_arg_4]).await;
         }  else {
-            let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+            let mut requestId: String = format!("{}", self.request_id());
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), requestId.clone());
+                    m.insert("id".to_string(), Value::from(requestId.as_str()));
                     m.insert("type".to_string(), Value::Str("subscribe".into()));
                     m.insert("topic".to_string(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("response".to_string(), Value::Bool(true));
@@ -3649,7 +3649,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             let mut message: crate::value::Dict = self.extend(Value::Map(request), &[&paramsOmitted]).into_dict();
             if !(client.has_subscription(subscriptionHash.as_deref())) {
-                client.add_subscription(&requestId, subscriptionHash.map(Value::from).unwrap_or(Value::Null));
+                client.add_subscription(requestId.as_str(), subscriptionHash.map(Value::from).unwrap_or(Value::Null));
             }
             return self.watch(&url, messageHash.as_str(), &message, uniformType.as_deref(), Value::Null).await;
         }
@@ -4031,8 +4031,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_463: bool = true;
             while { if !__for_first_463 { i += 1; } __for_first_463 = false; i < (positions.len() as i64) } {
             let mut position: Option<&crate::types::Position> = positions.get(i as usize);
-            let mut contracts: Value = self.safe_number_k(&position, "contracts", &[Value::Int(0)]);
-            if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+            let mut contracts: Option<f64> = self.safe_number_k(&position, "contracts", &[Value::Int(0)]).as_f64();
+            if (contracts.is_some()) && (contracts > Some(0.0)) {
                 cache.append(position);
             }
         }

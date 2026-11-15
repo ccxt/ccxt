@@ -12184,13 +12184,13 @@ impl Binance {
         }
         if stock.as_bool() == Some(true) {
             let mut nowMs: i64 = self.milliseconds();
-            let mut untilResolved: Option<i64> = (if (until.is_some()) { until } else { Some(nowMs) });
+            let mut untilResolved: i64 = until.unwrap_or(nowMs);
             if (until.is_none()) {
                 request.insert("endTime".into(), Value::from(untilResolved));
             }
             if (since == Value::Null) {
                 let mut oneWeek: i64 = 604800000; // 7 * 24 * 60 * 60 * 1000
-                request.insert("startTime".into(), Value::from((if let Some(__l) = untilResolved { Some(__l - oneWeek) } else { None })));
+                request.insert("startTime".into(), Value::Int((untilResolved - oneWeek)));
             }
         }
         let mut response: Option<crate::value::List> = None;
@@ -15761,9 +15761,8 @@ impl Binance {
         let mut initialMarginPercentageString: Option<String> = None;
         if (leverageString.is_some()) {
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString, &Value::Int(8)).as_str().map(str::to_owned);
-            let mut leverage: Value = Value::from(self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null)));
-            let mut rational: bool = self.is_round_number((match (&(Value::Int(1000)), &(leverage)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
-                Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_bool() == Some(true);
+            let mut leverage: Option<i64> = self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut rational: bool = self.is_round_number(Value::from((if let Some(__r) = leverage { if __r != 0 { Some(1000 % __r) } else { None } } else { None }))).as_bool() == Some(true);
             if !rational {
                 initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1e-8".into())), &Value::Str("1".into()), &Value::Int(8)).as_str().map(str::to_owned);
             }
@@ -16125,9 +16124,8 @@ impl Binance {
         let mut initialMarginPercentageString: Option<String> = None;
         let mut leverageString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "leverage", &[])); // portfolio-margin accounts may return leverage "0", see #29244
         if (leverageString.is_some()) {
-            let mut leverage: Value = Value::from(self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null)));
-            let mut rational: bool = self.is_round_number((match (&(Value::Int(1000)), &(leverage)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
-                Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_bool() == Some(true);
+            let mut leverage: Option<i64> = self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut rational: bool = self.is_round_number(Value::from((if let Some(__r) = leverage { if __r != 0 { Some(1000 % __r) } else { None } } else { None }))).as_bool() == Some(true);
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString, &Value::Int(8)).as_str().map(str::to_owned);
             if !rational {
                 initialMarginPercentageString = crate::precise::Precise::stringAdd(&initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1e-8".into())).as_str().map(str::to_owned);
@@ -20436,7 +20434,7 @@ if _try_result.is_err() {
         let mut startTime: Option<i64> = (if (since != Value::Null) { since.as_i64() } else { Some((now - msInThirtyDays)) });
         request.insert("startTime".into(), Value::from(startTime));
         let mut endTime: Option<i64> = self.safe_integer2(params.clone(), Value::Str("endTime".into()), Value::Str("until".into()), &[]).as_i64();
-        let mut endTimeResolved: Option<i64> = (if (endTime.is_some()) { endTime } else { Some(now) });
+        let mut endTimeResolved: i64 = endTime.unwrap_or(now);
         request.insert("endTime".into(), Value::from(endTimeResolved));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
@@ -20455,7 +20453,7 @@ if _try_result.is_err() {
             let __ws_arg_229 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.sapi_get_asset_convert_transfer_query_by_page(&[__ws_arg_229]).await.into_opt_dict();
         }  else {
-            if ((if let (Some(__l), Some(__r)) = (endTimeResolved, startTime) { Some(__l - __r) } else { None })) > Some(msInThirtyDays) {
+            if ((if let Some(__r) = startTime { Some(endTimeResolved - __r) } else { None })) > Some(msInThirtyDays) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")));
             }
             if (limit != Value::Null) {

@@ -2830,11 +2830,11 @@ impl Nado {
         if (id.is_none()) {
             return;
         }
-        let mut messageHash: Option<String> = self.safe_string_opt(__ch.subscriptions.clone(), Value::Str(format!("{}{}", "authentication:", id.as_deref().unwrap_or("null")).into()), &[]);
+        let mut messageHash: Option<String> = self.safe_string(__ch.subscriptions.clone(), Value::Str(format!("{}{}", "authentication:", id.as_deref().unwrap_or("null")).into()), &[]).as_str().map(str::to_owned);
         if (messageHash.is_some()) {
             __ch.remove_subscription(&(Value::Str(format!("{}{}", "authentication:", id.as_deref().unwrap_or("null")).into())));
-            __ch.add_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null), Value::Bool(true));
-            client.resolve(message, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+            __ch.add_subscription(messageHash.as_deref(), Value::Bool(true));
+            client.resolve(message, messageHash.as_deref());
         }
 }
 

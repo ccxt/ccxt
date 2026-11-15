@@ -483,8 +483,8 @@ impl Independentreserve {
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut orderBook: crate::value::Dict = message.get("Data").cloned().unwrap_or_default().into_dict();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook:", symbol).into()), ":").into()), depth).into());
-        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook:", symbol).into()), ":").into()), depth);
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -503,7 +503,7 @@ impl Independentreserve {
             orderbook.reset(Value::Dict(snapshot));
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
-            __ch.add_subscription(&messageHash, self.extend(subscription, &[Value::Map({
+            __ch.add_subscription(messageHash.as_str(), self.extend(subscription, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("receivedSnapshot".to_string(), Value::Bool(true));
     m
@@ -545,14 +545,14 @@ impl Independentreserve {
             let mut responseChecksum: Option<i64> = self.safe_integer_k(&orderBook, "Crc32", &[]).as_i64();
             if (Some(calculatedChecksum) != responseChecksum) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(Value::from(symbol.as_str())))));
-                __ch.remove_subscription(&messageHash);
+                __ch.remove_subscription(messageHash.as_str());
                 CacheStore::forget(&mut self.orderbooks, &symbol);
-                client.reject(error, &messageHash);
+                client.reject(error, messageHash.as_str());
                 return;
             }
         }
         if receivedSnapshot {
-            client.resolve(Value::from(&orderbook), &messageHash);
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
 }
 

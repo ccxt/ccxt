@@ -1807,11 +1807,11 @@ impl Sxbet {
             }
             let mut orderItems: Vec<Value> = Vec::new();
             let mut chunkIds: Value = self.array_slice(ids.clone(), Value::from(start), &[Value::from(end)]);
-            let mut chunkIdsLength: Value = get_array_length(&chunkIds);
+            let mut chunkIdsLength: i64 = get_array_length(&chunkIds).as_i64().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1507: bool = true;
-                while { if !__for_first_1507 { i += 1; } __for_first_1507 = false; (i as f64) < chunkIdsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1507 { i += 1; } __for_first_1507 = false; i < chunkIdsLength } {
                 orderItems.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("orderId".to_string(), get_value(&chunkIds, &Value::Int(i)));
@@ -3041,7 +3041,7 @@ impl Sxbet {
         let mut ask: Option<f64> = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage, &oneDenom)), &[]).as_f64() } else { None });
         let mut updatedAt: Option<i64> = self.safe_integer_k(ownOdds, "updatedAt", &[]).as_i64();
         let mut now: i64 = self.milliseconds();
-        let mut timestamp: Option<i64> = (if (updatedAt.is_some()) { updatedAt } else { Some(now) });
+        let mut timestamp: i64 = updatedAt.unwrap_or(now);
         let mut average: Option<f64> = None;
         if (bid.is_some()) && (ask.is_some()) {
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(bid))), &Value::from(self.number_to_string(Value::from(ask)))), &Value::Str("2".into())), &[]).as_f64();

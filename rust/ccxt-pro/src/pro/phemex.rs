@@ -1868,14 +1868,14 @@ impl Phemex {
             }
             }
         }  else {
-            let mut messageLength: Value = get_array_length(&message);
-            if (messageLength.as_f64() == Some(0.0)) {
+            let mut messageLength: i64 = get_array_length(&message).as_i64().unwrap_or_default();
+            if (messageLength == 0) {
                 return;
             }
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_631: bool = true;
-                while { if !__for_first_631 { i += 1; } __for_first_631 = false; (i as f64) < messageLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_631 { i += 1; } __for_first_631 = false; i < messageLength } {
                 let mut update: Value = get_value(&message, &Value::Int(i));
                 let mut action: Option<String> = self.safe_string_k(update.clone(), "action", &[]).as_str().map(str::to_owned);
                 if (action.is_some()) && (action.as_deref() != Some("Cancel")) {
@@ -2321,8 +2321,8 @@ impl Phemex {
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut requestId: i64 = self.request_id();
-        let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
+        let mut messageHash: String = "authenticated".to_string();
+        let mut future: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (future == Value::Null) {
             let mut expiryDelta: i64 = self.safe_integer_k(self.options.clone(), "expires", &[Value::Int(120)]).as_i64().unwrap_or(120);
             let mut expiration: i64 = ((self.seconds()) + expiryDelta);
@@ -2336,13 +2336,13 @@ impl Phemex {
                     m.insert("id".to_string(), Value::from(requestId));
                 m
             });
-            let mut subscriptionHash: Value = Value::Str(format!("{}", requestId).into());
+            let mut subscriptionHash: String = format!("{}", requestId);
             let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-            if !(client.has_subscription(&messageHash)) {
-                client.add_subscription(&subscriptionHash, Value::Str("handle_authenticate".into()).clone());
+            if !(client.has_subscription(messageHash.as_str())) {
+                client.add_subscription(subscriptionHash.as_str(), Value::Str("handle_authenticate".into()).clone());
             }
-            future = self.watch(url.as_deref(), &messageHash, &message, &messageHash, Value::Null).await;
-            client.add_subscription(&messageHash, future.clone());
+            future = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
+            client.add_subscription(messageHash.as_str(), future.clone());
         }
         return future;
 

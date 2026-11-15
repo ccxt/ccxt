@@ -9535,7 +9535,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut __for_first_164: bool = true;
                     while { if !__for_first_164 { j += 1; } __for_first_164 = false; j < responseLength } {
                     if (cursorValue == Value::Null) {
-                        let mut index: Value = Value::Int((((responseLength - j)) - 1));
+                        let mut index: i64 = (((responseLength - j)) - 1);
                         let mut entry: crate::value::Dict = self.safe_dict(response.clone(), index, &[]).into_dict();
                         let mut info: crate::value::Dict = self.safe_dict_k(&entry, "info", &[]).into_dict();
                         if (cursorReceived != Value::Null) {
@@ -10430,29 +10430,29 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn timeframe_from_milliseconds(&self, mut ms: Value) -> Value {
-        let mut msInt: Value = Value::from(self.parse_to_int(ms));
-        if msInt.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
+        let mut msInt: Option<i64> = self.parse_to_int(ms);
+        if (msInt.is_some() && msInt <= Some(0)) {
             return Value::Str("".into());
         }
         let mut second: i64 = 1000;
-        let mut minute: Value = Value::Int((60 * second));
-        let mut hour: Value = (match (&(Value::Int(60)), &(minute)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut day: Value = (match (&(Value::Int(24)), &(hour)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        let mut week: Value = (match (&(Value::Int(7)), &(day)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-        if ((match (&(msInt), &(week)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }).as_f64() == Some(0.0)) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int((match ((msInt).as_f64(), (week).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))).into()), Value::Str("w".into())).into());
+        let mut minute: i64 = (60 * second);
+        let mut hour: i64 = (60 * minute);
+        let mut day: i64 = (24 * hour);
+        let mut week: i64 = (7 * day);
+        if (((if let (Some(__l), Some(__r)) = (msInt, Some(week)) { if __r != 0 { Some(__l % __r) } else { None } } else { None })) == Some(0)) {
+            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int((match ((Value::from(msInt)).as_f64(), (Value::from(week)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))).into()), Value::Str("w".into())).into());
         }
-        if ((match (&(msInt), &(day)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }).as_f64() == Some(0.0)) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int((match ((msInt).as_f64(), (day).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))).into()), Value::Str("d".into())).into());
+        if (((if let (Some(__l), Some(__r)) = (msInt, Some(day)) { if __r != 0 { Some(__l % __r) } else { None } } else { None })) == Some(0)) {
+            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int((match ((Value::from(msInt)).as_f64(), (Value::from(day)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))).into()), Value::Str("d".into())).into());
         }
-        if ((match (&(msInt), &(hour)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }).as_f64() == Some(0.0)) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int((match ((msInt).as_f64(), (hour).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))).into()), Value::Str("h".into())).into());
+        if (((if let (Some(__l), Some(__r)) = (msInt, Some(hour)) { if __r != 0 { Some(__l % __r) } else { None } } else { None })) == Some(0)) {
+            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int((match ((Value::from(msInt)).as_f64(), (Value::from(hour)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))).into()), Value::Str("h".into())).into());
         }
-        if ((match (&(msInt), &(minute)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }).as_f64() == Some(0.0)) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int((match ((msInt).as_f64(), (minute).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))).into()), Value::Str("m".into())).into());
+        if (((if let (Some(__l), Some(__r)) = (msInt, Some(minute)) { if __r != 0 { Some(__l % __r) } else { None } } else { None })) == Some(0)) {
+            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int((match ((Value::from(msInt)).as_f64(), (Value::from(minute)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))).into()), Value::Str("m".into())).into());
         }
-        if ((match (&(msInt), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }).as_f64() == Some(0.0)) {
-            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int((match ((msInt).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))).into()), Value::Str("s".into())).into());
+        if (((if let Some(__l) = msInt { Some(__l % 1000) } else { None })) == Some(0)) {
+            return Value::Str(format!("{}{}", Value::Str(format!("{}", Value::from(self.parse_to_int(Value::from((if let Some(__l) = msInt { Some((__l as f64) / 1000.0) } else { None }))))).into()), Value::Str("s".into())).into());
         }
         return Value::Str("".into());
 

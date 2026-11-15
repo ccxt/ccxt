@@ -1562,7 +1562,7 @@ impl Bitbank {
 }));
         let mut tagAndParams: Value = self.handle_param_string(params.clone(), Value::Str("tag".into()), &[]);
         let mut tagWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address, code.clone(), tagWithdrawTag]);
         if !(matches!(&params, Value::Dict(__d) if __d.contains_key("uuid"))) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " uuid is required for withdrawal")));
@@ -1577,7 +1577,7 @@ impl Bitbank {
                 m.insert("amount".to_string(), amount);
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: crate::value::Dict = self.private_post_user_request_withdrawal(&[__ws_arg_10]).await.into_dict();
         //
         //     {

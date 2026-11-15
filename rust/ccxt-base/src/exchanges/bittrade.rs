@@ -2833,11 +2833,11 @@ impl Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_450: bool = true;
             while { if !__for_first_450 { i += 1; } __for_first_450 = false; i < (success.len() as i64) } {
-            let mut order: Option<String> = self.safe_string_opt(success.clone(), Value::Int(i), &[]);
+            let mut order: Option<String> = self.safe_string(success.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             result.push(self.safe_order(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), order.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("id".to_string(), order.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("info".to_string(), Value::from(order.as_deref()));
+                    m.insert("id".to_string(), Value::from(order.as_deref()));
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
             }), None));

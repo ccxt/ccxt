@@ -9165,13 +9165,13 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut timeframeLimitValue: Option<i64> = self.safe_integer(&maxLimitPerTimeframe, timeframe.clone(), &[]).as_i64();
         // the per-timeframe cap only applies to a user-supplied limit
-        let mut timeframeLimit: Option<i64> = (if (timeframeLimitValue.is_none()) { Some(maxLimitForRecentEndpoint) } else { timeframeLimitValue });
+        let mut timeframeLimit: i64 = timeframeLimitValue.unwrap_or(maxLimitForRecentEndpoint);
         let mut requestedLimit: i64 = limit.as_i64().unwrap_or(defaultLimit);
         let mut limitCapped: i64 = (if (requestedLimit > maxLimitForRecentEndpoint) { maxLimitForRecentEndpoint } else { requestedLimit });
         // the per-timeframe cap only applies to a user-supplied limit
-        let mut recentLimit: Option<i64> = (if ((limit != Value::Null) && ((timeframeLimit.is_some() && Some(limitCapped) > timeframeLimit))) { timeframeLimit } else { Some(limitCapped) });
-        let mut limitResolved: Option<i64> = recentLimit;
-        let mut recentDuration: Option<i64> = (if let Some(__l) = recentLimit { Some(__l * duration) } else { None });
+        let mut recentLimit: i64 = (if ((limit != Value::Null) && (limitCapped > timeframeLimit)) { timeframeLimit } else { limitCapped });
+        let mut limitResolved: i64 = recentLimit;
+        let mut recentDuration: i64 = (recentLimit * duration);
         let mut recentEndpointDaysMap: crate::value::Dict = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("fetchOHLCV")).cloned().unwrap_or(Value::Null), Value::Str("maxRecentDaysPerTimeframe".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9186,8 +9186,8 @@ if _try_result.is_err() {
             calculatedStartTime = since.clone();
             request.insert("startTime".into(), since.clone());
             if (until.is_none()) {
-                calculatedEndTime = Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), recentDuration) { Some((__m0 + __m1)) } else { None }));
-                if matches!((since.as_i64(), ((if let Some(__r) = recentDuration { Some(now - __r) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) > (__r as f64)) {
+                calculatedEndTime = Value::from((if let Some(__m0) = since.as_i64() { Some((__m0 + recentDuration)) } else { None }));
+                if since.as_i64() > Some(((now - recentDuration))) {
                     calculatedEndTime = Value::from(now);
                 }
                 request.insert("endTime".into(), calculatedEndTime.clone());
@@ -9201,7 +9201,7 @@ if _try_result.is_err() {
             calculatedEndTime = Value::from(untilEndTime);
             request.insert("endTime".into(), Value::from(untilEndTime));
             if (since == Value::Null) {
-                let mut untilStartTime: Option<i64> = (if let (Some(__l), Some(__r)) = (untilEndTime, recentDuration) { Some(__l - __r) } else { None });
+                let mut untilStartTime: Option<i64> = (if let Some(__l) = untilEndTime { Some(__l - recentDuration) } else { None });
                 calculatedStartTime = Value::from(untilStartTime);
                 // we do not need to set "startTime" here
                 if (recentEndpointAvailableDays.is_some()) && (matches!((untilStartTime, ((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = recentEndpointAvailableDays { Some(__l - 1) } else { None })) { Some(__l * msInDay) } else { None })) { Some(now - __r) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) <= (__r as f64))) {
@@ -9211,16 +9211,16 @@ if _try_result.is_err() {
         }
         if historicalEndpointNeeded {
             // only for "historical-candles" - ensure we use correct max limit
-            let mut historicalLimit: Option<i64> = (if (recentLimit > Some(maxLimitForHistoryEndpoint)) { Some(maxLimitForHistoryEndpoint) } else { recentLimit });
+            let mut historicalLimit: i64 = (if (recentLimit > maxLimitForHistoryEndpoint) { maxLimitForHistoryEndpoint } else { recentLimit });
             limitResolved = historicalLimit;
-            let mut historicalDuration: Option<i64> = (if let Some(__l) = historicalLimit { Some(__l * duration) } else { None });
+            let mut historicalDuration: i64 = (historicalLimit * duration);
             calculatedStartTime = (match (&(calculatedEndTime), &(Value::from(historicalDuration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             request.insert("startTime".into(), calculatedStartTime.clone());
             // for contract, maximum 90 days allowed between start-end times
             if !(market).spot {
                 let mut maxDistanceForContracts: i64 = (90 * msInDay);
                 // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if (calculatedEndTime != Value::Null) && (historicalDuration > Some(maxDistanceForContracts)) {
+                if (calculatedEndTime != Value::Null) && (historicalDuration > maxDistanceForContracts) {
                     calculatedEndTime = self.sum(&[calculatedStartTime, Value::from(maxDistanceForContracts)]);
                     request.insert("endTime".into(), calculatedEndTime);
                 }
@@ -9263,7 +9263,7 @@ if _try_result.is_err() {
             }  else {
                 if !limitDefined {
                     request.insert("limit".into(), Value::Int(1000));
-                    limitResolved = Some(1000);
+                    limitResolved = 1000;
                 }
                 let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[&paramsProductType]);
                 response = self.public_spot_get_v2_spot_market_candles(&[__ws_arg_39]).await;
@@ -9274,7 +9274,7 @@ if _try_result.is_err() {
             if !(historicalEndpointNeeded) && ((priceType.as_deref() == Some("mark")) || (priceType.as_deref() == Some("index"))) {
                 if !limitDefined {
                     std::sync::Arc::make_mut(&mut extended).insert("limit".into(), Value::Int(1000));
-                    limitResolved = Some(1000);
+                    limitResolved = 1000;
                 }
                 // Recent endpoint for mark/index prices
                 // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
@@ -9294,7 +9294,7 @@ if _try_result.is_err() {
                 }  else {
                     if !limitDefined {
                         std::sync::Arc::make_mut(&mut extended).insert("limit".into(), Value::Int(1000));
-                        limitResolved = Some(1000);
+                        limitResolved = 1000;
                     }
                     response = self.public_mix_get_v2_mix_market_candles(&[Value::Dict(extended)]).await;
                 }
@@ -13679,8 +13679,7 @@ if _try_result.is_err() {
         if useHistoryEndpoint {
             method = Some("privateMixGetV2MixPositionHistoryPosition".to_string());
         }  else {
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsPaginate.clone(), Value::Str("fetchPositions".into()), Value::Str("method".into()), &[Value::Str("privateMixGetV2MixPositionAllPosition".into())]).as_array().cloned().unwrap_or_default();
-                method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params(paramsPaginate.clone(), Value::Str("fetchPositions".into()), Value::Str("method".into()), &[Value::Str("privateMixGetV2MixPositionAllPosition".into())]).into_list(); method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbols != Value::Null) {
@@ -14280,8 +14279,8 @@ if _try_result.is_err() {
         }  else {
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let mut method: Option<String> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsProductType.clone(), Value::Str("fetchFundingRate".into()), Value::Str("method".into()), &[Value::Str("publicMixGetV2MixMarketCurrentFundRate".into())]).as_array().cloned().unwrap_or_default();
-                method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params(paramsProductType.clone(), Value::Str("fetchFundingRate".into()), Value::Str("method".into()), &[Value::Str("publicMixGetV2MixMarketCurrentFundRate".into())]).into_list(); method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
+                paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if (method.as_deref() == Some("publicMixGetV2MixMarketCurrentFundRate")) {
                 let __ws_arg_114 = self.extend(Value::Map(request.clone()), &[paramsProductType.clone()]);
                 response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_114]).await.into_opt_dict();

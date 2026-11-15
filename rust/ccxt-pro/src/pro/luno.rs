@@ -702,11 +702,11 @@ impl Luno {
  * @returns {boolean} true if the order was found in this side, false otherwise
  */
     pub fn reduce_order_volume(&self, mut orderSide: crate::pro::order_book::Side, mut orderId: Value, mut tradedAmount: Value) -> Value {
-        let mut sideLength: Value = orderSide.length();
+        let mut sideLength: i64 = orderSide.length().as_i64().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_482: bool = true;
-            while { if !__for_first_482 { i += 1; } __for_first_482 = false; (i as f64) < sideLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_482 { i += 1; } __for_first_482 = false; i < sideLength } {
             let mut order: Value = orderSide.level(&Value::Int(i));
             let mut entryId: Option<String> = self.safe_string(order.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
             if ((entryId.as_deref() == orderId.as_str())) {

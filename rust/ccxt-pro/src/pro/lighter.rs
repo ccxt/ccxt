@@ -1370,7 +1370,7 @@ impl Lighter {
                                 let mut j: i64 = 0;
                 let mut __for_first_471: bool = true;
                 while { if !__for_first_471 { j += 1; } __for_first_471 = false; j < tradesLength } {
-                let mut jReversed: Value = Value::Int((((tradesLength - 1)) - j));
+                let mut jReversed: i64 = (((tradesLength - 1)) - j);
                 let mut tradeRaw: Value = self.safe_dict(&trades, jReversed, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m

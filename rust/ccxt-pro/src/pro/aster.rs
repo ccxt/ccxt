@@ -2432,8 +2432,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut __for_first_33: bool = true;
             while { if !__for_first_33 { i += 1; } __for_first_33 = false; i < (positions.len() as i64) } {
             let mut position: Option<&crate::types::Position> = positions.get(i as usize);
-            let mut contracts: Value = self.safe_number_k(&position, "contracts", &[Value::Int(0)]);
-            if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
+            let mut contracts: Option<f64> = self.safe_number_k(&position, "contracts", &[Value::Int(0)]).as_f64();
+            if (contracts.is_some()) && (contracts > Some(0.0)) {
                 cache.append(position);
             }
         }

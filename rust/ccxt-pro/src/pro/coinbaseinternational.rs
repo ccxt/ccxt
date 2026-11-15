@@ -2521,9 +2521,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }) }).into_opt_dict();
         let mut expiresIn: i64 = self.safe_integer_k(&result, "expires_in", &[Value::Int(900)]).as_i64().unwrap_or(900);
         let mut ratio: Option<f64> = self.safe_number_k(self.options.clone(), "wsAuthRefreshRatio", &[]).as_f64();
-        let mut refreshRatio: Option<f64> = (if (ratio.is_none()) { Some(0.8) } else { ratio });
+        let mut refreshRatio: f64 = ratio.unwrap_or(0.8);
         let mut now: Value = Value::Int(self.milliseconds());
-        { let __be_tmp = self.sum(&[now.clone(), Value::from(self.parse_to_int(Value::from((if let Some(__r) = refreshRatio { Some((((expiresIn * 1000)) as f64) * __r) } else { None }))))]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsAuthRefreshAt".into(), __be_tmp); } }
+        { let __be_tmp = self.sum(&[now.clone(), Value::from(self.parse_to_int(Value::Float(((((expiresIn * 1000)) as f64) * refreshRatio))))]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsAuthRefreshAt".into(), __be_tmp); } }
         crate::set_value(&mut client, &Value::Str("lastPong".into()), now);
         client.resolve(&result, "authenticated");
 }
@@ -2547,12 +2547,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("authenticate", &[params]).into_dict();
         let mut url: Option<String> = self.get_ws_url(&[Value::Bool(true)]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
+        let mut messageHash: String = "authenticated".to_string();
+        let mut future: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (future != Value::Null) {
             let mut refreshAt: Option<i64> = self.safe_integer_k(self.options.clone(), "wsAuthRefreshAt", &[]).as_i64();
-            if (refreshAt.is_some()) && ((refreshAt.is_some() && Some((self.milliseconds())) >= refreshAt)) && !(client.has_future(&messageHash)) {
-                client.remove_subscription(&messageHash);
+            if (refreshAt.is_some()) && ((refreshAt.is_some() && Some((self.milliseconds())) >= refreshAt)) && !(client.has_future(messageHash.as_str())) {
+                client.remove_subscription(messageHash.as_str());
                 future = Value::Null;
             }
         }
@@ -2583,10 +2583,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("params".to_string(), Value::Map(paramsAuth));
                 m
             });
-            future = Value::from(client.reusable_future(messageHash.clone()));
+            future = Value::from(client.reusable_future(messageHash.as_str()));
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsResolved]);
-            self.watch(url.as_deref(), &messageHash, __ws_arg_5, &messageHash, Value::Null).await;
-            client.add_subscription(&messageHash, future.clone());
+            self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Null).await;
+            client.add_subscription(messageHash.as_str(), future.clone());
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

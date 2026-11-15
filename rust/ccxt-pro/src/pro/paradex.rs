@@ -1692,8 +1692,8 @@ if _try_result.is_err() {
         // the whole connection
         let mut unsubscribe: Value = self.unsubscribe_request(channel.clone());
         let mut subscribe: Value = self.subscribe_request(channel.clone());
-        let mut unsubscribeHash: Value = Value::Str(format!("{}{}", Value::Str("request:".into()), self.safe_string_k(unsubscribe.clone(), "id", &[])).into());
-        __ch.add_subscription(&unsubscribeHash, Value::Map({
+        let mut unsubscribeHash: String = format!("{}{}", Value::Str("request:".into()), self.safe_string_k(unsubscribe.clone(), "id", &[]));
+        __ch.add_subscription(unsubscribeHash.as_str(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), unsubscribe.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         m.insert("messageHashes".to_string(), Value::from(vec![]));

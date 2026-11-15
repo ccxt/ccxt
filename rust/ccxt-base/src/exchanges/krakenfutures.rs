@@ -1742,7 +1742,7 @@ impl Krakenfutures {
                                 let mut i: i64 = 0;
                 let mut __for_first_871: bool = true;
                 while { if !__for_first_871 { i += 1; } __for_first_871 = false; i < length } {
-                let mut index: Value = Value::Int((((length - 1)) - i));
+                let mut index: i64 = (((length - 1)) - i);
                 let mut element: crate::value::Dict = self.safe_dict(&elements, index, &[]).into_dict();
                 let mut event: crate::value::Dict = self.safe_dict_k(&element, "event", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();

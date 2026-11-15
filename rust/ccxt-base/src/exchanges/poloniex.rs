@@ -1356,8 +1356,8 @@ impl Poloniex {
         //             "1740770099999",
         //           ],
         //
-        let mut ohlcvLength: Value = get_array_length(&ohlcv);
-        let mut isContract: bool = ohlcvLength.as_f64() == Some(9.0);
+        let mut ohlcvLength: i64 = get_array_length(&ohlcv).as_i64().unwrap_or_default();
+        let mut isContract: bool = ohlcvLength == 9;
         if isContract {
             return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(7), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
         }

@@ -1681,8 +1681,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if !(match &(subscription) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 let mut subId: Value = self.safe_integer_k(subscription.clone(), "id", &[]);
                 if (subId != Value::Null) && (subId.as_f64() == id.as_f64()) {
-                    let mut method: Value = self.safe_value_k(subscription, "method", &[]);
-                    if (method != Value::Null) {
+                    let mut method: Option<String> = self.safe_value_k(subscription, "method", &[]).as_str().map(str::to_owned);
+                    if (method.is_some()) {
                         self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                         return;
                     }

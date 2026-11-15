@@ -391,8 +391,8 @@ impl Bitfinex {
                 m.insert("chanId".to_string(), Value::from(channelId.clone()));
             m
         });
-        let mut unSubChanMsg: Value = Value::Str(format!("{}{}", "unsubscribe:", channelId).into());
-        client.add_subscription(&unSubChanMsg, Value::from(subMessageHash.clone()));
+        let mut unSubChanMsg: String = format!("{}{}", "unsubscribe:", channelId);
+        client.add_subscription(unSubChanMsg.as_str(), Value::from(subMessageHash.clone()));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
@@ -515,8 +515,8 @@ impl Bitfinex {
                 m.insert("chanId".to_string(), Value::from(channelId.clone()));
             m
         });
-        let mut unSubChanMsg: Value = Value::Str(format!("{}{}", "unsubscribe:", channelId).into());
-        client.add_subscription(&unSubChanMsg, Value::from(subMessageHash.clone()));
+        let mut unSubChanMsg: String = format!("{}{}", "unsubscribe:", channelId);
+        client.add_subscription(unSubChanMsg.as_str(), Value::from(subMessageHash.clone()));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
@@ -1542,14 +1542,14 @@ impl Bitfinex {
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("key"))) {
             // handle ohlcv differently because the message is different
             let mut key: String = (match __pro_message.get("key").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-            let mut subKeyId: Value = Value::Str(format!("{}{}", "unsubscribe:", key).into());
-            __ch.add_subscription(&subKeyId, channelId.clone());
+            let mut subKeyId: String = format!("{}{}", "unsubscribe:", key);
+            __ch.add_subscription(subKeyId.as_str(), channelId.clone());
         }  else {
             let mut marketId: Option<String> = self.safe_string_k(message.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
             if (unifiedChannel.is_some()) {
-                let mut subId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", unifiedChannel.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null")).into());
-                __ch.add_subscription(&subId, channelId);
+                let mut subId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", unifiedChannel.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
+                __ch.add_subscription(subId.as_str(), channelId);
             }
         }
         return message;
@@ -1879,13 +1879,13 @@ impl Bitfinex {
                 m.insert("tu".to_string(), Value::Str("handle_my_trade".into()).clone());
             m
         });
-        let mut method: Value = Value::Null;
+        let mut method: Option<String> = None;
         if (channelId.as_deref() == Some("0")) {
-            method = self.safe_value(&privateMethods, name.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            method = self.safe_value(&privateMethods, name.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }  else {
-            method = self.safe_value2(&publicMethods, name.map(Value::from).unwrap_or(Value::Null), channel.map(Value::from).unwrap_or(Value::Null), &[]);
+            method = self.safe_value2(&publicMethods, name.map(Value::from).unwrap_or(Value::Null), channel.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }
-        if (method != Value::Null) {
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client, message, subscription]);
         }
 }

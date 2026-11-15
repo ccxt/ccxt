@@ -2634,7 +2634,7 @@ impl Backpack {
         if (limitResolved.is_some()) {
             limitResolved = (if let Some(__m0) = limitResolved { Some(i64::min(__m0, maxLimit)) } else { None });
         }
-        let mut windowLimit: Option<i64> = (if (limitResolved.is_none()) { Some(defaultLimit) } else { limitResolved });
+        let mut windowLimit: i64 = limitResolved.unwrap_or(defaultLimit);
         let mut now: i64 = self.milliseconds();
         let mut startTime: Option<i64> = since.as_i64();
         let mut untilValue: Option<i64> = until;
@@ -2642,12 +2642,12 @@ impl Backpack {
             if (untilValue.is_none()) {
                 untilValue = Some(now);
             }
-            startTime = (if let (Some(__l), Some(__r)) = (untilValue, ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some(__l - __r) } else { None });
+            startTime = (if let Some(__l) = untilValue { Some(__l - ((windowLimit * duration))) } else { None });
         }
         request.insert("startTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = startTime { Some((__l as f64) / 1000.0) } else { None })))));
         // set until value
         if (untilValue.is_none()) {
-            let mut windowEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (startTime, ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None });
+            let mut windowEnd: Option<i64> = (if let Some(__m0) = startTime { Some((__m0 + ((windowLimit * duration)))) } else { None });
             untilValue = (if let Some(__m1) = windowEnd { Some(i64::min(now, __m1)) } else { None });
         }
         request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = untilValue { Some((__l as f64) / 1000.0) } else { None })))));
@@ -5074,19 +5074,19 @@ impl Backpack {
         let mut recvWindow: Value = recvWindow.into();
         let mut instruction: Value = instruction.into();
         let mut payload: String = "".to_string();
-        let mut paramsLength: Value = get_array_length(&params);
+        let mut paramsLength: i64 = get_array_length(&params).as_i64().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_261: bool = true;
-            while { if !__for_first_261 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_261 = false; i.as_f64().unwrap_or(f64::NAN) < paramsLength.as_f64().unwrap_or(f64::NAN) } {
-            let mut order: crate::value::Dict = self.safe_dict(params.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_261 { i += 1; } __for_first_261 = false; i < paramsLength } {
+            let mut order: crate::value::Dict = self.safe_dict(params.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
             let mut sortedOrder: crate::value::Dict = self.keysort(Value::Dict(order), &[]).into_dict();
             let mut orderQuery: String = self.urlencode(&sortedOrder, &[]);
             payload.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instruction=", instruction).into()), "&").into()), orderQuery).into()), "&"));
-            if (i.as_f64() == ((match (&(paramsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64()) {
+            if (i == ((paramsLength - 1))) {
                 payload.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "timestamp=", ts).into()), "&window=").into()), recvWindow));
             }
         }

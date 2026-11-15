@@ -2214,13 +2214,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return Value::from(vec![]);
         }
         let mut traderParam: Option<String> = self.safe_string2(params.clone(), Value::Str("trader".into()), Value::Str("address".into()), &[]).as_str().map(str::to_owned);
-        let mut trader: Value = (if (traderParam.is_some()) { traderParam.clone().map(Value::from).unwrap_or(Value::Null) } else { self.wallet_address_or_undefined().map(Value::from).unwrap_or(Value::Null) });
-        if (trader == Value::Null) {
+        let mut trader: Option<String> = (if (traderParam.is_some()) { traderParam } else { self.wallet_address_or_undefined() });
+        if (trader.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrders() for AMM history requires a trader address or wallet/privateKey")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("address".to_string(), trader);
+                m.insert("address".to_string(), trader.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut outcomeObj: Option<crate::types::Market> = None;

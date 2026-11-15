@@ -2547,9 +2547,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "subscription": { maxratecount: 125, name: "openOrders" }
         //     }
         //
-        let mut channelId: Option<String> = match __pro_message.get("channelID").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+        let mut channelId: Option<String> = (match __pro_message.get("channelID") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (channelId.is_some()) {
-            __ch.add_subscription(&channelId.clone().map(Value::from).unwrap_or(Value::Null), message);
+            __ch.add_subscription(channelId.as_deref(), message);
         }
 }
 

@@ -2573,7 +2573,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.handle_route_and_params("fetchTransfers", &[params]);
+        let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchTransfers", &[params]).into_dict();
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchTransfers() requires a currency code argument")));
         }
@@ -2597,13 +2597,13 @@ impl Coinbaseinternational {
         if (limit != Value::Null) {
             request.insert("count".into(), limit.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsResolved.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsResolved, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(paramsResolved.clone(), Value::Str("until".into()), &[]) } else { paramsResolved });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsResolved, Value::Str("until".into()), &[]).into_dict() } else { paramsResolved });
         self.authenticate_v2(&[]).await;
-        let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_get_transaction_log(&[__ws_arg_6]).await.into_dict();
         //
         //     {
@@ -2970,7 +2970,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsResolved: Value = self.handle_route_and_params("fetchDepositsWithdrawals", &[params]);
+        let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchDepositsWithdrawals", &[params]).into_dict();
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDepositsWithdrawals() requires a currency code argument")));
         }
@@ -2990,16 +2990,16 @@ impl Coinbaseinternational {
                 m.insert("end_timestamp".to_string(), Value::from(now));
             m
         });
-        let mut until: Option<i64> = self.safe_integer_k(paramsResolved.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsResolved, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
         if (limit != Value::Null) {
             request.insert("count".into(), limit.clone());
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(paramsResolved.clone(), Value::Str("until".into()), &[]) } else { paramsResolved });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsResolved, Value::Str("until".into()), &[]).into_dict() } else { paramsResolved });
         self.authenticate_v2(&[]).await;
-        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_get_transaction_log(&[__ws_arg_8]).await.into_dict();
         //
         //     {
@@ -4590,8 +4590,8 @@ impl Coinbaseinternational {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " public/auth did not return an expiry")));
         }
         let mut ratio: Option<f64> = self.safe_number_k(self.options.clone(), "accessTokenRefreshRatio", &[]).as_f64();
-        let mut refreshRatio: Option<f64> = (if (ratio.is_none()) { Some(0.8) } else { ratio });
-        let mut tokenRefreshInMilliseconds: Option<i64> = self.parse_to_int(Value::from((if let (Some(__l), Some(__r)) = (((if let Some(__l) = expiresIn { Some(__l * 1000) } else { None })), refreshRatio) { Some((__l as f64) * __r) } else { None })));
+        let mut refreshRatio: f64 = ratio.unwrap_or(0.8);
+        let mut tokenRefreshInMilliseconds: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = expiresIn { Some(__l * 1000) } else { None })) { Some((__l as f64) * refreshRatio) } else { None })));
         self.token = accessToken.clone();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), accessToken.clone()); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), Value::from((if let Some(__m1) = tokenRefreshInMilliseconds { Some((now + __m1)) } else { None }))); }

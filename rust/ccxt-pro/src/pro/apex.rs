@@ -466,7 +466,7 @@ impl Apex {
                         let mut j: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { j += 1; } __for_first_2 = false; j < length } {
-            let mut index: Value = Value::Int((((length - j)) - 1));
+            let mut index: i64 = (((length - j)) - 1);
             let mut parsed: crate::value::Dict = self.parse_ws_trade(self.safe_dict(&trades, index, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

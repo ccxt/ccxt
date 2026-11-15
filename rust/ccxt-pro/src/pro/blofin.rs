@@ -1693,7 +1693,7 @@ impl Blofin {
                 m.insert("funding-rate".to_string(), Value::Str("handle_funding_rate".into()).clone());
             m
         });
-        let mut method: Value = Value::Null;
+        let mut method: Option<String> = None;
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (event.as_deref() == Some("subscribe")) {
             return;
@@ -1709,11 +1709,11 @@ impl Blofin {
         }
         let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
         let mut channelName: Option<String> = self.safe_string_k(&arg, "channel", &[]).as_str().map(str::to_owned);
-        method = self.safe_value(&methods, channelName.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (method == Value::Null) && (channelName.as_deref().unwrap_or_default().contains("candle")) {
-            method = methods.get("candle").cloned().unwrap_or(Value::Null);
+        method = self.safe_value(&methods, channelName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (method.is_none()) && (channelName.as_deref().unwrap_or_default().contains("candle")) {
+            method = methods.get("candle").cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         }
-        if (method != Value::Null) {
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client, message]);
         }
 }

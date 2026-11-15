@@ -1447,13 +1447,13 @@ impl Bitvavo {
         let mut marketId: Option<String> = (match __pro_message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, "@").into()), (match __pro_message.get("market").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) })).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event, "@").into()), (match __pro_message.get("market").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }));
         let mut orderbook: Value = Value::from(self.orderbooks.lookup(&symbol));
         if (orderbook == Value::Null) {
             return;
         }
         if (self.safe_integer_k(orderbook.clone(), "nonce", &[]) == Value::Null) {
-            let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[Value::Map({
+            let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1463,7 +1463,7 @@ impl Bitvavo {
             let mut watchingOrderBookSnapshot: Option<bool> = self.safe_bool(subscription.clone(), flagKey.clone(), &[]).as_bool();
             if (watchingOrderBookSnapshot.is_none()) {
                 add_element_to_object(&mut subscription, &flagKey, Value::Bool(true));
-                __ch.add_subscription(&messageHash, subscription.clone());
+                __ch.add_subscription(messageHash.as_str(), subscription.clone());
                 let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchOrderBookSnapshot", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1475,7 +1475,7 @@ impl Bitvavo {
             crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), message.clone());
         }  else {
             self.handle_order_book_message(client.clone(), message, orderbook.clone());
-            client.resolve(orderbook, &messageHash);
+            client.resolve(orderbook, messageHash.as_str());
         }
 }
 
@@ -2833,8 +2833,8 @@ impl Bitvavo {
 }));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
+        let mut messageHash: String = "authenticated".to_string();
+        let mut future: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (future == Value::Null) {
             let mut timestamp: i64 = self.milliseconds();
             let mut stringTimestamp: String = format!("{}", timestamp);
@@ -2850,8 +2850,8 @@ impl Bitvavo {
                 m
             });
             let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-            future = self.watch(url.as_deref(), &messageHash, &message, &messageHash, Value::Null).await;
-            client.add_subscription(&messageHash, future.clone());
+            future = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
+            client.add_subscription(messageHash.as_str(), future.clone());
         }
         return future;
 

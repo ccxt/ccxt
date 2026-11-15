@@ -1302,8 +1302,8 @@ impl Gemini {
         let mut data: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webGetRestApi".into()), Value::Bool(false), &[Value::Str("<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>".into())]).await;
         let mut error: String = format!("{}{}", self.id.clone(), " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
         let mut tables: Value = split(&data, &Value::Str("tbody>".into()));
-        let mut numTables: Value = tables.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64));
-        if numTables.as_f64().unwrap_or(f64::NAN) < ((2i64) as f64) {
+        let mut numTables: i64 = tables.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_i64().unwrap_or_default();
+        if numTables < 2 {
             panic!("{}", crate::exchange_errors::not_supported(error.clone()));
         }
         let mut table: String = self.safe_string(tables, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

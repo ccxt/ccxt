@@ -524,8 +524,8 @@ impl Backpack {
             }
             let mut symbol: Value = Value::from((market).symbol.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", kind, ":").into()), symbol).into()), "@").into()), topic).into());
-            let mut subscriptionKey: Value = Value::Str(format!("{}{}", "marketData:", topic).into());
-            let mut subscriptions: Value = self.safe_dict((client).subscriptions.clone(), subscriptionKey.clone(), &[Value::Map({
+            let mut subscriptionKey: String = format!("{}{}", "marketData:", topic);
+            let mut subscriptions: Value = self.safe_dict((client).subscriptions.clone(), Value::from(subscriptionKey.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -546,7 +546,7 @@ impl Backpack {
 }));
                 messageHashes.push(messageHash.clone());
             }
-            client.add_subscription(&subscriptionKey, subscriptions.clone());
+            client.add_subscription(subscriptionKey.as_str(), subscriptions.clone());
             let mut subscriptionHashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
             let mut subscriptionsLength: i64 = subscriptionHashes.len() as i64;
             if !unwatch || (subscriptionsLength == 0) {

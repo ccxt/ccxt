@@ -3281,7 +3281,7 @@ impl Bitvavo {
         //       "message": ""
         //   }
         //
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fee.clone());
                 m.insert("withdraw".to_string(), Value::Map({
@@ -3308,16 +3308,16 @@ impl Bitvavo {
         if (networkId.as_deref() == Some("Mainnet")) {
             networkId = currencyCode.clone();
         }
-        let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]));
-        if (networkCode != Value::Null) {
+        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]);
+        if (networkCode.is_some()) {
             { let __be_tmp = Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deposit".to_string(), crate::value::get_value_k(&result, "deposit"));
-        m.insert("withdraw".to_string(), crate::value::get_value_k(&result, "withdraw"));
+        m.insert("deposit".to_string(), result.get("deposit").cloned().unwrap_or(Value::Null));
+        m.insert("withdraw".to_string(), result.get("withdraw").cloned().unwrap_or(Value::Null));
     m
-}); if let Value::Dict(__rda) = &mut result { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("networks".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&networkCode), __be_tmp); } } };
+}); if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(networkCode.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
