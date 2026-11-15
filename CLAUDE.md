@@ -443,7 +443,7 @@ User-facing skills under `.claude/skills/ccxt-<lang>/` are for callers asking AI
 These files are **hand-written and nothing regenerates them**, so they drift silently. A Nov 2026 audit found invented methods, signatures missing `type`/`price`, deprecated methods recommended, a Go skill written against a package layout that doesn't exist, and C# examples using property names that don't compile. Agents copy these docs word for word, so a wrong doc means wrong code.
 
 - **Same PR as the code.** If your change touches a unified method's name, arguments, return shape, deprecation or `has`/`features` semantics, update the AI docs in the same PR.
-- **Run `npm run check-ai-docs`.** It is offline and fast. It checks pinned versions against `package.json`, checks that every `` - `method(args)` `` reference entry exists in `ts/src` without extra positional args, and checks that no deprecated base stub is recommended.
+- **Run `npm run check-ai-docs`.** It is offline and fast, but not in CI yet, so run it yourself. It checks pinned versions against `package.json`; that every `` - `method(args)` `` reference entry exists in `ts/src` (any casing) and follows the base signature's argument names and order; and that deprecated base methods (throwing stubs or JSDoc `@deprecated`) appear only on lines that say so.
 - **Compile what you write.** The checker cannot tell whether a code block compiles. For any snippet you add or change, compile or run it in its language before committing. Detailed recipes and the binding gotchas are in `.claude/rules/ai-docs.md`.
 - **Never document from memory or from another language.** Copy shapes from the source of truth: `ts/src/base/Exchange.ts` for signatures; `go/v4/exchange_wrapper_structs.go` for Go options; `cs/ccxt/base/Exchange.TradingMethods.cs` and `Exchange.Types.cs` for C#; `python/ccxt/base/exchange.py` and `php/Exchange.php` for snake_case.
 
@@ -512,7 +512,7 @@ Verified across recent (`pacifica.ts`, `weex.ts`, `hyperliquid.ts`, `aster.ts`) 
 ## 11. Pull-request etiquette
 
 - **One PR per exchange.** Don't bundle multiple exchanges.
-- Commit only `ts/src/**` (+ rarely hand-written base / static JSON fixtures). Generated files in your diff means you committed build output — undo that.
+- Commit only `ts/src/**` (+ rarely hand-written base / static JSON fixtures, and the hand-written docs listed in §8 — `wiki/`, `examples/`, `llms*.txt`, `.claude/skills/ccxt-*`). Generated files in your diff means you committed build output — undo that.
 - Set the pre-push hook once: `git config core.hooksPath .git-templates/hooks`.
 - Don't add language-specific behaviour. If something can't be uniform across all five langs, ask in the PR first.
 

@@ -59,7 +59,7 @@ await exchange.Close();
 | **Rate limits** | Strict (1-2 req/sec) | More lenient (continuous stream) |
 | **Best for** | Trading, account management | Price monitoring, arbitrage detection |
 
-**Method naming:** C# uses PascalCase - `FetchTicker` not `fetchTicker`, `WatchTicker` not `watchTicker`. Exceptions that stay camelCase: `unWatch*` methods, synchronous helpers (`amountToPrecision`, `priceToPrecision`, `setSandboxMode`, `market`) and properties (`apiKey`, `secret`, `has`, `features`, `markets`, `verbose`). Result structs use lowercase fields (`ticker.last`, `order.id`, `balance["BTC"].free`).
+**Method naming:** C# uses PascalCase - `FetchTicker` not `fetchTicker`, `WatchTicker` not `watchTicker`. Exceptions that stay camelCase: `unWatch*` methods, synchronous helpers (`amountToPrecision`, `priceToPrecision`, `setSandboxMode`; `exchange.market(symbol)` returns the raw dictionary, while `exchange.Market(symbol)` returns the typed `Market` struct) and properties (`apiKey`, `secret`, `has`, `features`, `markets`, `verbose`). Result structs use lowercase fields (`ticker.last`, `order.id`, `balance["BTC"].free`).
 
 ## Creating Exchange Instance
 
@@ -329,7 +329,7 @@ var order = await exchange.CreateOrder("BTC/USDT", "limit", "buy", Convert.ToDou
 var candles = await exchange.FetchOHLCV("BTC/USDT", "1h", since, null, new Dictionary<string, object> { { "paginate", true } });
 ```
 
-### Stop streaming without closing (ccxt.pro)
+### Unsubscribing and closing (ccxt.pro)
 ```csharp
 using ccxt.pro;
 
@@ -442,7 +442,7 @@ The unified way to attach conditions to any `createOrder` call is through `param
 - `addMargin(symbol, amount)` / `reduceMargin(symbol, amount)` / `setMargin(symbol, amount)` - Adjust isolated position margin
 - `fetchMarginAdjustmentHistory(symbol, type, since, limit)` - Margin adjustment history
 
-Deprecated and always throw `NotSupported`: `fetchBorrowRate`, `fetchBorrowRates`, `borrowMargin`, `repayMargin` — use the cross/isolated variants above.
+Deprecated and always throw `NotSupported`: `fetchBorrowRate`, `borrowMargin`, `repayMargin` — use the cross/isolated variants above (there is no `fetchBorrowRates`; use `fetchCrossBorrowRates` / `fetchIsolatedBorrowRates`).
 
 ### Derivatives & Futures
 
@@ -522,7 +522,7 @@ Exchange-specific (implemented by only a few venues, not in the base class): `fe
 - `amountToPrecision(symbol, amount)` - Round an amount to the market's step (returns a string)
 - `priceToPrecision(symbol, price)` - Round a price to the market's tick (returns a string)
 - `costToPrecision(symbol, cost)` - Round a cost
-- `currencyToPrecision(code, amount)` - Round a currency amount
+- `currencyToPrecision(code, fee)` - Round a currency amount (e.g. a fee)
 - `milliseconds()` / `iso8601(ts)` / `parse8601(str)` - Time helpers
 - `setSandboxMode(true)` - Switch to the exchange's testnet (call right after construction)
 

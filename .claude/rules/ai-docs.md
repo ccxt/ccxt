@@ -16,7 +16,7 @@ Scope: `llms.txt`, `llms-full.txt` and `.claude/skills/ccxt-{typescript,python,p
 npm run check-ai-docs      # offline; must print "AI-facing docs OK"
 ```
 
-The checker covers names, positional arity, deprecations and version pins. It does **not** check code blocks, so compile the blocks you touch with the recipes below. Each one wraps every fenced block of a file in its own function and builds it. Ignore "declared and not used" and "redeclared" errors (those come from intentional "wrong vs right" pairs and from continuation snippets); every other error is real.
+The checker covers method names (any casing), argument names and order against the base signature, deprecations (throwing stubs and JSDoc `@deprecated`) and version pins. Exchange-only methods are checked for existence only. It runs locally; it is not wired into CI yet. It does **not** check code blocks, so compile the blocks you touch with the recipes below. Each one wraps every fenced block of a file in its own function and builds it. Ignore "declared and not used" and "redeclared" errors (those come from intentional "wrong vs right" pairs and from continuation snippets); every other error is real.
 
 ## Shared method reference
 
@@ -47,7 +47,7 @@ The `## Complete Method Reference` block is the same text in the TS, Python, PHP
 
 Do these in a scratch directory, never inside the repo.
 
-**Go**: a module with `replace github.com/ccxt/ccxt/go/v4 => <repo>/go/v4`, then build every snippet as a function:
+**Go**: a module with `replace github.com/ccxt/ccxt/go/v4 => <repo>/go/v4`, then build every snippet as a function. `go/v4/go.mod` requires Go 1.25, so with an older toolchain set `GOTOOLCHAIN=go1.25.0` (or newer):
 
 ```bash
 GOFLAGS=-mod=mod go build -gcflags=-e -o /dev/null .

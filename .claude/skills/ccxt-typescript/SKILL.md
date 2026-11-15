@@ -360,7 +360,7 @@ const trades = await exchange.fetchMyTrades ('BTC/USDT', since, undefined, { pag
 ```
 Supported on methods the exchange marks as paginatable (most `fetchOHLCV`, `fetchTrades`, `fetchMyTrades`, `fetchOrders`, `fetchFundingRateHistory`, ...).
 
-### Stop streaming without closing
+### Unsubscribing and closing
 ```typescript
 await exchange.unWatchTicker ('BTC/USDT')            // check exchange.has['unWatchTicker'] first
 await exchange.close ()                              // closes every subscription and socket
@@ -469,7 +469,7 @@ The unified way to attach conditions to any `createOrder` call is through `param
 - `addMargin(symbol, amount)` / `reduceMargin(symbol, amount)` / `setMargin(symbol, amount)` - Adjust isolated position margin
 - `fetchMarginAdjustmentHistory(symbol, type, since, limit)` - Margin adjustment history
 
-Deprecated and always throw `NotSupported`: `fetchBorrowRate`, `fetchBorrowRates`, `borrowMargin`, `repayMargin` — use the cross/isolated variants above.
+Deprecated and always throw `NotSupported`: `fetchBorrowRate`, `borrowMargin`, `repayMargin` — use the cross/isolated variants above (there is no `fetchBorrowRates`; use `fetchCrossBorrowRates` / `fetchIsolatedBorrowRates`).
 
 ### Derivatives & Futures
 
@@ -549,7 +549,7 @@ Exchange-specific (implemented by only a few venues, not in the base class): `fe
 - `amountToPrecision(symbol, amount)` - Round an amount to the market's step (returns a string)
 - `priceToPrecision(symbol, price)` - Round a price to the market's tick (returns a string)
 - `costToPrecision(symbol, cost)` - Round a cost
-- `currencyToPrecision(code, amount)` - Round a currency amount
+- `currencyToPrecision(code, fee)` - Round a currency amount (e.g. a fee)
 - `milliseconds()` / `iso8601(ts)` / `parse8601(str)` - Time helpers
 - `setSandboxMode(true)` - Switch to the exchange's testnet (call right after construction)
 

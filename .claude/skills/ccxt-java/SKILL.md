@@ -184,7 +184,7 @@ List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, null);
 
 ### Fetching OHLCV (Candlesticks)
 ```java
-List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 10L, null);
+List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 10L); // typed overloads take up to 4 args
 for (OHLCV c : candles) {
     System.out.println(c.timestamp + " O:" + c.open + " H:" + c.high + " L:" + c.low + " C:" + c.close);
 }
@@ -370,7 +370,8 @@ String price = exchange.priceToPrecision("BTC/USDT", 64123.456789);
 // let CCXT paginate history for you
 Map<String, Object> params = new HashMap<>();
 params.put("paginate", true);
-List<OHLCV> history = exchange.fetchOHLCV("BTC/USDT", "1d", 1704067200000L, null, params);
+// with params use the *Async overload and join (the 5-arg fetchOHLCV returns a CompletableFuture)
+List<OHLCV> history = exchange.fetchOHLCVAsync("BTC/USDT", "1d", 1704067200000L, null, params).join();
 ```
 
 Conditional orders use unified `params` keys on `createOrder`: `triggerPrice`, `stopLossPrice`, `takeProfitPrice`, `reduceOnly`, `postOnly`, `clientOrderId`. Every `watch*` stream has an `unWatch*` (for example `unWatchTicker(symbol, params)`); `close()` stops them all. Always test orders on a testnet or at the minimum size first.

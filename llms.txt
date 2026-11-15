@@ -124,7 +124,7 @@ System.out.println(ticker.symbol + " " + ticker.last);
 - **Attach conditions through `params`.** Use `triggerPrice`, `stopLossPrice`, `takeProfitPrice`, `stopLoss: { triggerPrice, price }`, `takeProfit: {...}`, `reduceOnly`, `postOnly`, `clientOrderId`. `stopPrice` is a legacy alias.
 - **Unsubscribe cleanly.** Every `watch*` stream has an `unWatch*` (`unWatchTicker`, `unWatchOrderBook`, ...); `close()` ends all streams and sockets.
 - **Withdrawals:** `withdraw(code, amount, address, params)`, with the memo/tag and network in params (`{ tag, network }`).
-- **Deprecated (always throw):** `fetchBorrowRate(s)`, `borrowMargin`, `repayMargin`. Use `fetchCrossBorrowRate`, `fetchIsolatedBorrowRate`, `borrowCrossMargin` / `borrowIsolatedMargin` and the matching `repay*`.
+- **Deprecated (always throw):** `fetchBorrowRate`, `borrowMargin`, `repayMargin` (and `fetchBorrowRates` does not exist). Use `fetchCrossBorrowRate`, `fetchIsolatedBorrowRate`, `borrowCrossMargin` / `borrowIsolatedMargin` and the matching `repay*`.
 
 ## API Methods Overview
 

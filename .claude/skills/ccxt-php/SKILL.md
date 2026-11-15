@@ -361,11 +361,12 @@ $candles = $exchange->fetch_ohlcv('BTC/USDT', '1h', $since, null, array('paginat
 $trades = $exchange->fetch_my_trades('BTC/USDT', $since, null, array('paginate' => true, 'paginationCalls' => 20));
 ```
 
-### Stop streaming without closing (ccxt.pro)
+### Unsubscribing and closing (ccxt.pro)
 ```php
-// inside your async flow
-yield $exchange->un_watch_ticker('BTC/USDT'); // check $exchange->has['unWatchTicker'] first
-yield $exchange->close();
+use function React\Async\await;
+
+await($exchange->un_watch_ticker('BTC/USDT')); // stop one stream; check $exchange->has['unWatchTicker'] first
+await($exchange->close());                     // stop every stream and close the socket
 ```
 
 ## Complete Method Reference
@@ -471,7 +472,7 @@ The unified way to attach conditions to any `createOrder` call is through `param
 - `addMargin(symbol, amount)` / `reduceMargin(symbol, amount)` / `setMargin(symbol, amount)` - Adjust isolated position margin
 - `fetchMarginAdjustmentHistory(symbol, type, since, limit)` - Margin adjustment history
 
-Deprecated and always throw `NotSupported`: `fetchBorrowRate`, `fetchBorrowRates`, `borrowMargin`, `repayMargin` — use the cross/isolated variants above.
+Deprecated and always throw `NotSupported`: `fetchBorrowRate`, `borrowMargin`, `repayMargin` — use the cross/isolated variants above (there is no `fetchBorrowRates`; use `fetchCrossBorrowRates` / `fetchIsolatedBorrowRates`).
 
 ### Derivatives & Futures
 
@@ -551,7 +552,7 @@ Exchange-specific (implemented by only a few venues, not in the base class): `fe
 - `amountToPrecision(symbol, amount)` - Round an amount to the market's step (returns a string)
 - `priceToPrecision(symbol, price)` - Round a price to the market's tick (returns a string)
 - `costToPrecision(symbol, cost)` - Round a cost
-- `currencyToPrecision(code, amount)` - Round a currency amount
+- `currencyToPrecision(code, fee)` - Round a currency amount (e.g. a fee)
 - `milliseconds()` / `iso8601(ts)` / `parse8601(str)` - Time helpers
 - `setSandboxMode(true)` - Switch to the exchange's testnet (call right after construction)
 
