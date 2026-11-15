@@ -4490,7 +4490,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("keepAliveListenKey".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPortfolioMargin: crate::value::Dict = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut subType: Value = self.handle_sub_type_and_params(Value::Str("keepAliveListenKey".into()), None, &[Value::from(&paramsPortfolioMargin)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = self.handle_sub_type_and_params(Value::Str("keepAliveListenKey".into()), None, &[Value::from(&paramsPortfolioMargin)]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         if (type_var.as_str() != Some("option")) && (type_var.as_str() != Some("stock")) {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
             // which would incorrectly convert type='option' to 'linear'.
@@ -4499,9 +4499,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // subType alone and would flip 'stock' to 'linear' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
-            if self.parent.is_linear(type_var.as_str().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
+            if self.parent.is_linear(type_var.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
                 type_var = Value::Str("linear".into());
-            }  else if self.parent.is_inverse(type_var.as_str().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
+            }  else if self.parent.is_inverse(type_var.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
                 type_var = Value::Str("inverse".into());
             }
         }
@@ -5281,10 +5281,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut type_var: Option<String> = None;
         let mut paramsMarketType: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(method.clone(), market, &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut subType: Value = self.handle_sub_type_and_params(method, market, &[Value::from(&paramsMarketType)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        if self.parent.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
+        let mut subType: Option<String> = self.handle_sub_type_and_params(method, market, &[Value::from(&paramsMarketType)]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        if self.parent.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             type_var = Some("linear".to_string());
-        }  else if self.parent.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
+        }  else if self.parent.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             type_var = Some("inverse".to_string());
         }
         return type_var.map(Value::from).unwrap_or(Value::Null);

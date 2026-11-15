@@ -3020,8 +3020,8 @@ impl Gemini {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut indexedByNetwork: crate::types::DepositAddresses = (match self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut networkCode: Value = self.handle_network_code_and_params(params).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        return self.safe_dict(crate::types::IntoRaw::into_raw(indexedByNetwork), networkCode, &[]);
+        let mut networkCode: Option<String> = self.handle_network_code_and_params(params).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        return self.safe_dict(crate::types::IntoRaw::into_raw(indexedByNetwork), networkCode.map(Value::from).unwrap_or(Value::Null), &[]);
         Value::Null
         }).await?))
     }

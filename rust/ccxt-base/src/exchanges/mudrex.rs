@@ -882,20 +882,20 @@ impl Mudrex {
             }), &[params.clone()]).into_dict();
             let mut response: crate::value::Dict = self.private_get_futures(&[Value::Dict(q)]).await.into_dict();
             let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
-            let mut items: Value = Value::from(vec![]);
+            let mut items: crate::value::List = std::sync::Arc::new(Vec::new());
             if matches!(&data, Value::Dict(_)) && !(matches!(&data, Value::Arr(_))) {
-                items = self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]);
+                items = self.safe_list_k(data.clone(), "items", &[Value::from(vec![])]).into_list();
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let mut itemsLength: i64 = items.len() as i64;
                 if (itemsLength == 0) {
-                    items = self.safe_list_k(data.clone(), "results", &[Value::from(vec![])]);
+                    items = self.safe_list_k(data.clone(), "results", &[Value::from(vec![])]).into_list();
                     itemsLength = items.len() as i64;
                 }
                 if (itemsLength == 0) && (in_op(&data, &Value::Str("symbol".into()))) {
-                    items = Value::from(vec![data.clone()]);
+                    items = std::sync::Arc::new(vec![data.clone()]);
                 }
             }  else {
-                items = self.to_array(data);
+                items = self.to_array(data).into_list();
             }
             let mut numItems: i64 = items.len() as i64;
             if (numItems == 0) {
@@ -906,7 +906,7 @@ impl Mudrex {
                                 let mut i: i64 = 0;
                 let mut __for_first_970: bool = true;
                 while { if !__for_first_970 { i += 1; } __for_first_970 = false; i < numItems } {
-                aggregated.push(items.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                aggregated.push(items.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
             if numItems < pageLimit {

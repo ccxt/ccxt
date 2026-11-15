@@ -734,8 +734,8 @@ impl Btcbox {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut numSymbols: f64 = ((self.symbols.len() as i64) as f64);
-        if numSymbols > ((1i64) as f64) {
+        let mut numSymbols: i64 = self.symbols.len() as i64;
+        if numSymbols > 1 {
             request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
@@ -805,8 +805,8 @@ impl Btcbox {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut numSymbols: f64 = ((self.symbols.len() as i64) as f64);
-        if numSymbols > ((1i64) as f64) {
+        let mut numSymbols: i64 = self.symbols.len() as i64;
+        if numSymbols > 1 {
             request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -917,8 +917,8 @@ impl Btcbox {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut numSymbols: f64 = ((self.symbols.len() as i64) as f64);
-        if numSymbols > ((1i64) as f64) {
+        let mut numSymbols: i64 = self.symbols.len() as i64;
+        if numSymbols > 1 {
             request.insert("coin".into(), Value::from((market).base_id.as_deref()));
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);

@@ -8104,13 +8104,13 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), market.as_ref(), &[params.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), market.as_ref(), &[params.clone()]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut trigger: bool = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("is_stop_order".into()), Value::Str("stop".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let requestrequestParamsVariable: Vec<Value> = self.fetch_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        if (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")) {
+        if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             if trigger {
                 let __ws_arg_45 = self.extend(&request, &[&requestParams]);
                 response = self.private_spot_get_price_orders_order_id(&[__ws_arg_45]).await.into_opt_dict();
@@ -8118,7 +8118,7 @@ if _try_result.is_err() {
                 let __ws_arg_46 = self.extend(&request, &[&requestParams]);
                 response = self.private_spot_get_orders_order_id(&[__ws_arg_46]).await.into_opt_dict();
             }
-        }  else if (type_var.as_str() == Some("swap")) {
+        }  else if (type_var.as_deref() == Some("swap")) {
             if trigger {
                 let __ws_arg_47 = self.extend(&request, &[&requestParams]);
                 response = self.private_futures_get_settle_price_orders_order_id(&[__ws_arg_47]).await.into_opt_dict();
@@ -8126,7 +8126,7 @@ if _try_result.is_err() {
                 let __ws_arg_48 = self.extend(&request, &[&requestParams]);
                 response = self.private_futures_get_settle_orders_order_id(&[__ws_arg_48]).await.into_opt_dict();
             }
-        }  else if (type_var.as_str() == Some("future")) {
+        }  else if (type_var.as_deref() == Some("future")) {
             if trigger {
                 let __ws_arg_49 = self.extend(&request, &[&requestParams]);
                 response = self.private_delivery_get_settle_price_orders_order_id(&[__ws_arg_49]).await.into_opt_dict();
@@ -8134,7 +8134,7 @@ if _try_result.is_err() {
                 let __ws_arg_50 = self.extend(&request, &[&requestParams]);
                 response = self.private_delivery_get_settle_orders_order_id(&[__ws_arg_50]).await.into_opt_dict();
             }
-        }  else if (type_var.as_str() == Some("option")) {
+        }  else if (type_var.as_deref() == Some("option")) {
             let __ws_arg_51 = self.extend(request, &[&requestParams]);
             response = self.private_options_get_orders_order_id(&[__ws_arg_51]).await.into_opt_dict();
         }  else {
@@ -8231,14 +8231,14 @@ if _try_result.is_err() {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
-        let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsPaginate)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".into()), market.as_ref(), &[Value::from(&paramsPaginate)]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let useHistoricalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsPaginate, Value::Str("fetchClosedOrders".into()), Value::Str("historical".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut useHistorical: bool = useHistoricalparamsHistoricalVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsHistorical: crate::value::Dict = useHistoricalparamsHistoricalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if !useHistorical && (((since == Value::Null) && (until.is_none())) || (type_var.as_str() != Some("swap"))) {
+        if !useHistorical && (((since == Value::Null) && (until.is_none())) || (type_var.as_deref() != Some("swap"))) {
             return self.fetch_orders_by_status(Some("finished"), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::from(&paramsHistorical)]).await;
         }
-        let requestparamsRequestVariable: Vec<Value> = self.prepare_request(market.as_ref(), &[type_var, self.omit(&paramsHistorical, Value::Str("type".into()), &[])]).as_array().cloned().unwrap_or_default();
+        let requestparamsRequestVariable: Vec<Value> = self.prepare_request(market.as_ref(), &[type_var.map(Value::from).unwrap_or(Value::Null), self.omit(&paramsHistorical, Value::Str("type".into()), &[])]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
@@ -8334,12 +8334,12 @@ if _try_result.is_err() {
         }
         let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut type_var: Value = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".into()), market.as_ref(), &[params.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".into()), market.as_ref(), &[params.clone()]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         // don't omit here, omits done in prepareOrdersByStatusRequest
         let requestrequestParamsVariable: Vec<Value> = self.prepare_orders_by_status_request(status.as_str(), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut spot: bool = ((type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")));
+        let mut spot: bool = ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")));
         let mut openStatus: bool = status.as_str().map(str::to_owned).as_deref() == Some("open");
         let mut openSpotOrders: bool = ((spot && openStatus) && (trigger != Some(true)));
         let mut response: Value = Value::Null;
@@ -8356,7 +8356,7 @@ if _try_result.is_err() {
                 let __ws_arg_55 = self.extend(&request, &[&requestParams]);
                 response = self.private_spot_get_price_orders(&[__ws_arg_55]).await;
             }
-        }  else if (type_var.as_str() == Some("swap")) {
+        }  else if (type_var.as_deref() == Some("swap")) {
             if (trigger == Some(true)) {
                 let __ws_arg_56 = self.extend(&request, &[&requestParams]);
                 response = self.private_futures_get_settle_price_orders(&[__ws_arg_56]).await;
@@ -8364,7 +8364,7 @@ if _try_result.is_err() {
                 let __ws_arg_57 = self.extend(&request, &[&requestParams]);
                 response = self.private_futures_get_settle_orders(&[__ws_arg_57]).await;
             }
-        }  else if (type_var.as_str() == Some("future")) {
+        }  else if (type_var.as_deref() == Some("future")) {
             if (trigger == Some(true)) {
                 let __ws_arg_58 = self.extend(&request, &[&requestParams]);
                 response = self.private_delivery_get_settle_price_orders(&[__ws_arg_58]).await;
@@ -8372,7 +8372,7 @@ if _try_result.is_err() {
                 let __ws_arg_59 = self.extend(&request, &[&requestParams]);
                 response = self.private_delivery_get_settle_orders(&[__ws_arg_59]).await;
             }
-        }  else if (type_var.as_str() == Some("option")) {
+        }  else if (type_var.as_deref() == Some("option")) {
             let __ws_arg_60 = self.extend(request, &[&requestParams]);
             response = self.private_options_get_orders(&[__ws_arg_60]).await;
         }  else {

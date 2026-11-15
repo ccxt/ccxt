@@ -2385,17 +2385,17 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list(&result, id.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
+        let mut trades: crate::value::List = self.safe_list(&result, id.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
         // trades is a sorted array: last (most recent trade) goes last
         let mut length: i64 = trades.len() as i64;
         if length <= 0 {
             return Value::from(vec![]);
         }
-        let mut lastTrade: Value = trades.as_array().and_then(|__arr| match &(Value::Int((length - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null);
+        let mut lastTrade: Value = crate::value::KeyRead::read(&&trades, &Value::Int((length - 1)));
         let mut lastTradeId: Option<String> = self.safe_string_k(&result, "last", &[]).as_str().map(str::to_owned);
-        if let Value::Arr(__a) = &mut lastTrade { std::sync::Arc::make_mut(__a).push(lastTradeId.map(Value::from).unwrap_or(Value::Null)); };
+        if let Value::Arr(__a) = &mut lastTrade { std::sync::Arc::make_mut(__a).push(lastTradeId.map(Value::from).unwrap_or(Value::Null)); }
         add_element_to_object(&mut trades, &Value::Int((length - 1)), lastTrade);
-        return self.parse_trades(trades, Some(&market), &[since, limit]);
+        return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4507,14 +4507,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __result_empty = indexmap::IndexMap::new();
         let result = result.as_map().unwrap_or(&__result_empty);
         let mut cursor: Option<String> = (match result.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut data: Value = (match result.get("withdrawals") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: crate::value::List = result.get("withdrawals").cloned().unwrap_or_default().into_list();
         let mut dataLength: i64 = data.len() as i64;
         if (cursor.is_some()) && dataLength > 0 {
-            let mut last: Value = get_value(&data, &Value::Int((dataLength - 1)));
+            let mut last: Value = crate::value::KeyRead::read(&&data, &Value::Int((dataLength - 1)));
             add_element_to_object(&mut last, &Value::Str("next_cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
             add_element_to_object(&mut data, &Value::Int((dataLength - 1)), last);
         }
-        return data;
+        return Value::Arr(data);
 
     Value::Null
 }

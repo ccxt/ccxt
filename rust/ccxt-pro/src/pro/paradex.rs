@@ -892,8 +892,8 @@ if _try_result.is_err() {
         //     }
         //
         // the future stays resolved, so later private watches on this connection skip the auth request
-        let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
-        if (future != Value::Null) {
+        let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
+        if ((future != crate::pro::ws_client::Flight::default())) {
             future.resolve(Value::Bool(true), None);
         }
 }

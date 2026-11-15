@@ -1714,8 +1714,8 @@ impl Polymarket {
                         if (authStatus.as_deref() == Some("ok")) {
                             // resolve the future object directly so it stays
                             // cached and later authenticate calls reuse it
-                            let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
-                            if (future != Value::Null) {
+                            let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
+                            if ((future != crate::pro::ws_client::Flight::default())) {
                                 future.resolve(Value::Bool(true), None);
                             }
                         }  else {

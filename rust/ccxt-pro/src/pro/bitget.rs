@@ -3652,7 +3652,7 @@ impl Bitget {
         //  { event: "login", code: 0 }
         //
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = self.safe_value(__ch.futures.clone(), Value::from(messageHash), &[]);
+        let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_str());
         future.resolve(Value::Bool(true), None);
 }
 

@@ -4691,8 +4691,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut definitions: indexmap::IndexMap<String, Value> = self.eip_definitions().as_map().cloned().unwrap_or_default();
         let mut ethEncodedMessage: crate::value::Bytes = self.eth_encode_structured_data(Value::Dict(domainData), definitions.get(structureType.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), messageData);
         let mut usesPrivKey: bool = self.uses_private_key().as_bool().unwrap_or_default(); // py transpiler needs this line separated
-        let mut secretOrPrivkey: Value = (if usesPrivKey { self.privateKey.clone() } else { self.secret.clone() });
-        let mut privateKeyWithoutZero: Value = self.remove0x_prefix(secretOrPrivkey);
+        let mut secretOrPrivkey: Option<String> = (if usesPrivKey { self.privateKey.as_str().map(str::to_owned) } else { self.secret.as_str().map(str::to_owned) });
+        let mut privateKeyWithoutZero: Value = self.remove0x_prefix(secretOrPrivkey.map(Value::from).unwrap_or(Value::Null));
         let mut signature: crate::value::Dict = ecdsa(Value::from(self.hash(&ethEncodedMessage, Value::Str("keccak".into()), &[Value::Str("hex".into())])), privateKeyWithoutZero.clone(), Value::Str("secp256k1".into()), Value::Null);
         request.insert("signature".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();

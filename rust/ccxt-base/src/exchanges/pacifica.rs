@@ -3636,19 +3636,19 @@ if _try_result.is_err() {
         let mut response: Value = response.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
-        let mut data: Value = (match response.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut data: crate::value::List = response.get("data").cloned().unwrap_or_default().into_list();
         let mut paginationCursor: Option<String> = (match response.get("next_cursor") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut hasMore: bool = (match response.get("has_more") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) }).as_bool().unwrap_or(false);
         let mut dataLength: i64 = data.len() as i64;
         if hasMore {
             if (paginationCursor.is_some()) && (dataLength > 0) {
-                let mut first: Option<crate::value::Dict> = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_opt_dict();
+                let mut first: Option<crate::value::Dict> = crate::value::KeyRead::read(&&data, &Value::Int(0)).into_opt_dict();
                 if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("next_cursor".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
                 if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("has_more".into(), Value::Bool(hasMore)); }
                 add_element_to_object(&mut data, &Value::Int(0), first.map_or(Value::Null, Value::Dict));
             }
         }
-        return data;
+        return Value::Arr(data);
 
     Value::Null
 }

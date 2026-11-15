@@ -2224,8 +2224,8 @@ impl Cex {
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let mut messageHash: Option<String> = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-            let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if (future != Value::Null) {
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_deref());
+            if ((future != crate::pro::ws_client::Flight::default())) {
                 client.reject(error.clone(), messageHash.as_deref());
                 return Value::Bool(true);
             }  else {
@@ -2288,8 +2288,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //         "timestamp":1448034593
         //     }
         //
-        let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
-        if (future != Value::Null) {
+        let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
+        if ((future != crate::pro::ws_client::Flight::default())) {
             future.resolve(Value::Bool(true), None);
         }
 }

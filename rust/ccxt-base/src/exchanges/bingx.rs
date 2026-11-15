@@ -5016,13 +5016,13 @@ impl Bingx {
             let mut hasStopLoss: bool = stopLossDict.is_some();
             let mut hasTakeProfit: bool = takeProfitDict.is_some();
             // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
-            let mut paramsStopLoss: Value = Value::from(&paramsPostOnly);
+            let mut paramsStopLoss: crate::value::Dict = Value::from(&paramsPostOnly).into_dict();
             if hasStopLoss {
-                paramsStopLoss = self.omit(&paramsPostOnly, Value::Str("stopLoss".into()), &[]);
+                paramsStopLoss = self.omit(&paramsPostOnly, Value::Str("stopLoss".into()), &[]).into_dict();
             }
-            let mut paramsTakeProfit: Value = paramsStopLoss.clone();
+            let mut paramsTakeProfit: Value = Value::from(&paramsStopLoss);
             if hasTakeProfit {
-                paramsTakeProfit = self.omit(paramsStopLoss, Value::Str("takeProfit".into()), &[]);
+                paramsTakeProfit = self.omit(&paramsStopLoss, Value::Str("takeProfit".into()), &[]);
             }
             if ((typeValue.as_deref() == Some("LIMIT")) || (typeValue.as_deref() == Some("TRIGGER_LIMIT")) || (typeValue.as_deref() == Some("STOP")) || (typeValue.as_deref() == Some("TAKE_PROFIT"))) && !isTrailing {
                 request.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), price))));

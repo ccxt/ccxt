@@ -1701,7 +1701,7 @@ impl Blofin {
             self.handle_unsubscription(client.clone(), message.clone());
             return;
         }  else if (event.as_deref() == Some("login")) {
-            let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticate_hash", &[]);
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticate_hash");
             future.resolve(Value::Bool(true), None);
             return;
         }  else if (event.as_deref() == Some("error")) {

@@ -1104,16 +1104,16 @@ impl Latoken {
             while { if !__for_first_912 { i += 1; } __for_first_912 = false; i < (bindings.len() as i64) } {
             let mut binding: crate::value::Dict = bindings.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&binding, "providerName", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+            let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
             // entries would land on the same unified code - keep the first one for a
             // deterministic binding id, since withdrawals resolve the chain through it
-            if (networkCode != Value::Null) && !(matches!(&networkCode, Value::Str(__k) if networks.contains_key(__k.as_ref()))) {
-                networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            if (networkCode.is_some()) && !(matches!(networkCode.as_deref(), Some(__k) if networks.contains_key(__k))) {
+                networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&binding));
         m.insert("id".to_string(), self.safe_string_k(&binding, "id", &[]));
-        m.insert("network".to_string(), networkCode.clone());
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);

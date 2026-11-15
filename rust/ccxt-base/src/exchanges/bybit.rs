@@ -3668,15 +3668,15 @@ impl Bybit {
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
         let mut result: crate::value::Dict = response.get("result").cloned().unwrap_or_default().into_dict();
-        let mut data: Value = self.safe_list_n(&result, Value::from(vec![Value::Str("list".into()), Value::Str("rows".into()), Value::Str("data".into()), Value::Str("dataList".into())]), &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_n(&result, Value::from(vec![Value::Str("list".into()), Value::Str("rows".into()), Value::Str("data".into()), Value::Str("dataList".into())]), &[Value::from(vec![])]).into_list();
         let mut paginationCursor: Option<String> = self.safe_string2(&result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]).as_str().map(str::to_owned);
         let mut dataLength: i64 = data.len() as i64;
         if (paginationCursor.is_some()) && (dataLength > 0) {
-            let mut first: Option<crate::value::Dict> = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut first: Option<crate::value::Dict> = crate::value::KeyRead::read(&&data, &Value::Int(0)).into_opt_dict();
             if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("nextPageCursor".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
             add_element_to_object(&mut data, &Value::Int(0), first.map_or(Value::Null, Value::Dict));
         }
-        return data;
+        return Value::Arr(data);
 
     Value::Null
 }
@@ -5176,7 +5176,7 @@ impl Bybit {
         let mut hasOptionSymbol: bool = false;
         if (symbols != Value::Null) {
             parsedSymbols = Value::from(vec![]);
-            let mut defaultType: Value = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), None, &[params.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); // don't omit here
+            let mut defaultType: Option<String> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), None, &[params.clone()]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned); // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
             let mut currentType: Value = Value::Null;
             {
@@ -5188,7 +5188,7 @@ impl Bybit {
                 // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
                 let mut isExchangeSpecificSymbol: bool = !symbol.as_deref().unwrap_or_default().contains("/");
                 if isExchangeSpecificSymbol {
-                    market = Some(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, defaultType.clone()]));
+                    market = Some(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, defaultType.clone().map(Value::from).unwrap_or(Value::Null)]));
                 }  else {
                     market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 }
@@ -6917,9 +6917,9 @@ impl Bybit {
         }  else {
             defaultMethod = Some("privatePostV5OrderCreate".to_string());
         }
-        let mut method: Value = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod.clone().map(Value::from).unwrap_or(Value::Null)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut method: Option<String> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("method".into()), &[defaultMethod.clone().map(Value::from).unwrap_or(Value::Null)]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut response: Option<crate::value::Dict> = None;
-        if (method.as_str() == Some("privatePostV5PositionTradingStop")) {
+        if (method.as_deref() == Some("privatePostV5PositionTradingStop")) {
             response = self.private_post_v5_position_trading_stop(&[Value::from(&orderRequest)]).await.into_opt_dict();
         }  else {
             response = self.private_post_v5_order_create(&[Value::Dict(orderRequest)]).await.into_opt_dict();

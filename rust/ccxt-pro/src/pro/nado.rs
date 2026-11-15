@@ -2006,8 +2006,8 @@ impl Nado {
         let mut messageHash: String = "authenticated".to_string();
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated != Value::Null) {
-            let mut future: Value = self.safe_value((client).futures.clone(), Value::from(messageHash.clone()), &[]);
-            if (future != Value::Null) {
+            let mut future: crate::pro::ws_client::Flight = client.get_future(messageHash.as_str());
+            if ((future != crate::pro::ws_client::Flight::default())) {
                 return crate::exchange_stubs::ws_await_flight(&future).await;
             }
             return authenticated;

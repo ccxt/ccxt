@@ -242,7 +242,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "sign_user_signed_action" => self.sign_user_signed_action(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
-                "update_spot_currency_code" => self.update_spot_currency_code(args.get(0).and_then(crate::Value::as_text).as_deref()),
+                "update_spot_currency_code" => crate::Value::from(self.update_spot_currency_code(args.get(0).and_then(crate::Value::as_text).as_deref())),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
@@ -1616,10 +1616,10 @@ impl Hyperliquid {
         let mut maker: Option<f64> = self.safe_number_k(&fees, "maker", &[]).as_f64();
         let mut amountPrecisionStr: Option<String> = self.safe_string_k(market.clone(), "szDecimals", &[]).as_str().map(str::to_owned);
         let mut amountPrecision: Option<i64> = self.parse_to_int(amountPrecisionStr.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut price: Value = self.safe_number_k(market.clone(), "markPx", &[Value::Int(0)]);
+        let mut price: Option<f64> = self.safe_number_k(market.clone(), "markPx", &[Value::Int(0)]).as_f64();
         let mut pricePrecision: Value = Value::Int(0);
-        if (price != Value::Null) {
-            pricePrecision = self.calculate_price_precision(price.as_f64().unwrap_or_default(), Value::from(amountPrecision).as_i64().unwrap_or_default(), 6);
+        if (price.is_some()) {
+            pricePrecision = self.calculate_price_precision(price.unwrap_or_default(), Value::from(amountPrecision).as_i64().unwrap_or_default(), 6);
         }
         let mut pricePrecisionStr: Option<String> = self.number_to_string(pricePrecision);
         let mut isDelisted: Option<bool> = self.safe_bool_k_opt(market.clone(), "isDelisted", &[]);
@@ -1697,18 +1697,16 @@ impl Hyperliquid {
     Value::Null
 }
 
-    pub fn update_spot_currency_code(&self, code: Option<&str>) -> Value {
+    pub fn update_spot_currency_code(&self, code: Option<&str>) -> Option<String> {
         let mut code: Value = code.into();
         if (code == Value::Null) {
-            return code;
+            return code.as_str().map(str::to_owned);
         }
         let mut spotCurrencyMapping: crate::value::Dict = self.safe_dict_k(self.options.clone(), "spotCurrencyMapping", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        return self.safe_string(&spotCurrencyMapping, code.clone(), &[code.clone()]);
-
-    Value::Null
+        return self.safe_string(&spotCurrencyMapping, code.clone(), &[code.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -1810,14 +1808,14 @@ impl Hyperliquid {
                 while { if !__for_first_807 { i += 1; } __for_first_807 = false; i < (balances.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
                 let mut unifiedCode: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "coin", &[]), None);
-                let mut code: Value = (if (isSpot) { self.update_spot_currency_code(unifiedCode.as_deref()) } else { unifiedCode.clone().map(Value::from).unwrap_or(Value::Null) });
+                let mut code: Option<String> = (if (isSpot) { self.update_spot_currency_code(unifiedCode.as_deref()) } else { unifiedCode });
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 let mut total: Option<String> = self.safe_string_k(&balance, "total", &[]).as_str().map(str::to_owned);
                 let mut used: Option<String> = self.safe_string_k(&balance, "hold", &[]).as_str().map(str::to_owned);
                 account.insert("total".into(), total.map(Value::from).unwrap_or(Value::Null));
                 account.insert("used".into(), used.map(Value::from).unwrap_or(Value::Null));
-                if (code != Value::Null) {
-                    spotBalances.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+                if (code.is_some()) {
+                    spotBalances.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
                 }
             }
             }
@@ -4016,8 +4014,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // "f" must be omitted when false, actions hashed with "f": false are rejected
             cancelAction.insert("f".into(), Value::Bool(true));
         }
-        let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("cancelOrdersForSymbols".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
+        let mut vaultAddressOption: Option<String> = self.handle_option_string_and_params2(params, Value::Str("cancelOrdersForSymbols".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_deref());
         let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         request.insert("action".into(), Value::Map(cancelAction));
         request.insert("signature".into(), Value::Dict(signature));
@@ -5911,8 +5909,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("ntli".to_string(), sz);
             m
         });
-        let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("modifyMargin".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
+        let mut vaultAddressOption: Option<String> = self.handle_option_string_and_params2(params, Value::Str("modifyMargin".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_deref());
         let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -6236,8 +6234,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if ((if let Some(__s) = code.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() != Some("USDC")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " withdraw() only support USDC")));
         }
-        let mut vaultAddressOption: Value = self.handle_option_string_and_params(params, Value::Str("withdraw".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
+        let mut vaultAddressOption: Option<String> = self.handle_option_string_and_params(params, Value::Str("withdraw".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_deref());
         let mut nonce: i64 = self.incrementing_nonce();
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

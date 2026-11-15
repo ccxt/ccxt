@@ -873,11 +873,11 @@ impl Lighter {
         if (signer != Value::Null) {
             return signer;
         }
-        let mut libraryPath: Value = self.handle_option_string_and_params(params, Value::Str("loadAccount".into()), Value::Str("libraryPath".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut libraryPath: Option<String> = self.handle_option_string_and_params(params, Value::Str("loadAccount".into()), Value::Str("libraryPath".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut lighterPrivateKeyIsSet: bool = (privateKey != Value::Null) && (privateKey.as_str() != Some(""));
-        if lighterPrivateKeyIsSet && (libraryPath != Value::Null) && (apiKeyIndex != Value::Null) && (accountIndex != Value::Null) {
+        if lighterPrivateKeyIsSet && (libraryPath.is_some()) && (apiKeyIndex != Value::Null) && (accountIndex != Value::Null) {
             // load lighter library, and create lighter client
-            signer = self.load_lighter_library(libraryPath.clone(), chainId.clone(), privateKey, Value::from(self.parse_to_int(apiKeyIndex.clone())), Value::from(self.parse_to_int(accountIndex.clone())), &[Value::Bool(true)]).await;
+            signer = self.load_lighter_library(libraryPath.clone().map(Value::from).unwrap_or(Value::Null), chainId.clone(), privateKey, Value::from(self.parse_to_int(apiKeyIndex.clone())), Value::from(self.parse_to_int(accountIndex.clone())), &[Value::Bool(true)]).await;
             self.set_auth_entry(accountIndex.clone(), apiKeyIndex.clone(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("signer".to_string(), signer.clone());
@@ -891,7 +891,7 @@ impl Lighter {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")));
             }
             // load lighter library without creating lighter client
-            signer = self.load_lighter_library(libraryPath, chainId, Value::Str("".into()), Value::from(self.parse_to_int(apiKeyIndex.clone())), Value::from(self.parse_to_int(accountIndex.clone())), &[Value::Bool(false)]).await;
+            signer = self.load_lighter_library(libraryPath.map(Value::from).unwrap_or(Value::Null), chainId, Value::Str("".into()), Value::from(self.parse_to_int(apiKeyIndex.clone())), Value::from(self.parse_to_int(accountIndex.clone())), &[Value::Bool(false)]).await;
             self.set_auth_entry(accountIndex.clone(), apiKeyIndex.clone(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("signer".to_string(), signer.clone());

@@ -3462,7 +3462,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut messageHash: String = "authenticated".to_string();
-        let mut future: Value = self.safe_value(__ch.futures.clone(), Value::from(messageHash), &[]);
+        let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_str());
         future.resolve(Value::Bool(true), None);
 }
 

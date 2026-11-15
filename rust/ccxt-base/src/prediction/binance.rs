@@ -2210,7 +2210,7 @@ impl Binance {
         if (self.safe_dict_k(self.options.clone(), "wallet", &[]) != Value::Null) {
             return self.safe_dict_k(self.options.clone(), "wallet", &[]);
         }
-        let mut walletAddress: Value = self.handle_option_string_and_params(params, methodName, Value::Str("walletAddress".into()), &[self.walletAddress.clone()]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut walletAddress: Option<String> = self.handle_option_string_and_params(params, methodName, Value::Str("walletAddress".into()), &[self.walletAddress.clone()]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut response: crate::value::Dict = self.sapi_private_get_wallet_list(&[]).await.into_dict();
         //
         // {
@@ -2224,7 +2224,7 @@ impl Binance {
         // }
         //
         let mut wallets: crate::value::List = self.safe_list_k(&response, "wallets", &[Value::from(vec![])]).into_list();
-        if (walletAddress == Value::Null) {
+        if (walletAddress.is_none()) {
             { let __be_tmp = self.safe_dict(&wallets, Value::Int(0), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), __be_tmp); } }
             return self.safe_dict_k(self.options.clone(), "wallet", &[]);
         }
@@ -2234,13 +2234,13 @@ impl Binance {
             let mut __for_first_1225: bool = true;
             while { if !__for_first_1225 { i += 1; } __for_first_1225 = false; i < walletLength } {
             let mut w: String = self.safe_string_k(wallets.get(i as usize).cloned().unwrap_or(Value::Null), "walletAddress", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            if ((Some(w.as_str()) == walletAddress.as_str())) {
+            if (walletAddress.as_deref() == Some(w.as_str())) {
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wallet".into(), wallets.get(i as usize).cloned().unwrap_or(Value::Null)); }
                 return self.safe_dict_k(self.options.clone(), "wallet", &[]);
             }
         }
         }
-        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), "fetchWallet could'n find wallet ").into()), walletAddress)));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), "fetchWallet could'n find wallet ").into()), walletAddress.as_deref().unwrap_or("null"))));
 
     Value::Null
 }

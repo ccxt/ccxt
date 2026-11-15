@@ -1023,14 +1023,14 @@ impl Derive {
             let mut signature: Option<String> = self.parent.sign_message(now.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default());
             let mut configuredWalletAddress: Option<String> = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]).as_str().map(str::to_owned);
             // v3: the owner wallet is the user's own EOA
-            let mut deriveWalletAddress: Value = (if ((configuredWalletAddress.is_none()) || (configuredWalletAddress.as_deref() == Some(""))) { self.walletAddress.clone() } else { configuredWalletAddress.clone().map(Value::from).unwrap_or(Value::Null) });
+            let mut deriveWalletAddress: Option<String> = (if ((configuredWalletAddress.is_none()) || (configuredWalletAddress.as_deref() == Some(""))) { self.walletAddress.as_str().map(str::to_owned) } else { configuredWalletAddress });
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(requestId));
                     m.insert("method".to_string(), Value::Str("public/login".into()));
                     m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("wallet".to_string(), deriveWalletAddress);
+        m.insert("wallet".to_string(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), now.map(Value::from).unwrap_or(Value::Null));
         m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
     m
@@ -1866,7 +1866,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut idsLength: i64 = ids.len() as i64;
         if idsLength > 0 {
             // client.resolve (message, messageHash);
-            let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
             future.resolve(Value::Bool(true), None);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));

@@ -11253,7 +11253,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut productType: Value = self.handle_product_type_and_params(Some(&market), &[params]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut productType: Option<String> = self.handle_product_type_and_params(Some(&market), &[params]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut requestList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -11264,7 +11264,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderId".to_string(), individualId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                    m.insert("category".to_string(), productType.clone());
+                    m.insert("category".to_string(), productType.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             requestList.push(Value::Map(order));

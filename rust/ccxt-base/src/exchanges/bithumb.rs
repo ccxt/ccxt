@@ -1657,12 +1657,12 @@ impl Bithumb {
                 if (firstMarketId.is_some()) && (self.safe_string(&requestedMarketIds, Value::Int(1), &[]) == Value::Null) {
                     expectedMarketId = firstMarketId.take();
                 }
-                let mut tickers: Value = Value::from(vec![]);
+                let mut tickers: crate::value::List = std::sync::Arc::new(Vec::new());
                 if (matches!(&response, Value::Arr(_))) {
-                    tickers = response.clone();
+                    tickers = response.into_list();
                 }  else if self.is_dictionary(response.clone()).as_bool() == Some(true) {
                     if (in_op(&response, &Value::Str("market".into()))) || (in_op(&response, &Value::Str("trade_date".into()))) || (in_op(&response, &Value::Str("trade_timestamp".into()))) {
-                        tickers = Value::from(vec![response.clone()]);
+                        tickers = std::sync::Arc::new(vec![response.clone()]);
                     }  else {
                         let mut ids: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                         {
@@ -1673,7 +1673,7 @@ impl Bithumb {
                             let mut ticker: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::from(id.as_deref()), &[]).into_opt_dict();
                             if (ticker.is_some()) {
                                 { let __be_tmp = self.safe_string_k(&ticker, "market", &[Value::from(id.as_deref())]); if let Some(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("market".into(), __be_tmp); }; }
-                                if let Value::Arr(__a) = &mut tickers { std::sync::Arc::make_mut(__a).push(ticker.map_or(Value::Null, Value::Dict)); };
+                                std::sync::Arc::make_mut(&mut tickers).push(ticker.map_or(Value::Null, Value::Dict));
                             }
                         }
                         }
@@ -1683,7 +1683,7 @@ impl Bithumb {
                                         let mut j: i64 = 0;
                     let mut __for_first_399: bool = true;
                     while { if !__for_first_399 { j += 1; } __for_first_399 = false; j < (tickers.len() as i64) } {
-                    let mut entry: crate::value::Dict = tickers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let mut entry: crate::value::Dict = tickers.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut marketId: Option<String> = self.safe_string_k(&entry, "market", &[Value::from(expectedMarketId.as_deref())]).as_str().map(str::to_owned);
                     if (marketId.is_none()) {
                         continue;

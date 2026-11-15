@@ -1906,8 +1906,8 @@ impl Hyperliquid {
         if (clientOrderId.is_some()) {
             std::sync::Arc::make_mut(&mut orderObj).insert("c".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut vaultAddressOption: Value = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
+        let mut vaultAddressOption: Option<String> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_deref());
         let mut orderAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("order".into()));
@@ -2111,8 +2111,8 @@ impl Hyperliquid {
             }
         }
         cancelAction.insert("cancels".into(), Value::Arr(cancelReq));
-        let mut vaultAddressOption: Value = self.handle_option_string_and_params(&paramsOmitted, Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
+        let mut vaultAddressOption: Option<String> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_deref());
         let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref()).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

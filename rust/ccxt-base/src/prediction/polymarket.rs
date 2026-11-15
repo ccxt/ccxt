@@ -2075,13 +2075,13 @@ impl Polymarket {
     m
 })]).into_dict();
         let mut mid: Option<f64> = self.safe_number_k(&midpointData, "mid", &[]).as_f64();
-        let mut bids: Value = self.safe_list_k(&bookData, "bids", &[Value::from(vec![])]);
-        let mut asks: Value = self.safe_list_k(&bookData, "asks", &[Value::from(vec![])]);
+        let mut bids: crate::value::List = self.safe_list_k(&bookData, "bids", &[Value::from(vec![])]).into_list();
+        let mut asks: crate::value::List = self.safe_list_k(&bookData, "asks", &[Value::from(vec![])]).into_list();
         let mut bidsLength: i64 = bids.len() as i64;
         let mut asksLength: i64 = asks.len() as i64;
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
-        let mut bestBid: Value = (if (bidsLength > 0) { bids.as_array().and_then(|__arr| match &(Value::Int((bidsLength - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut bestAsk: Value = (if (asksLength > 0) { asks.as_array().and_then(|__arr| match &(Value::Int((asksLength - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut bestBid: Value = (if (bidsLength > 0) { crate::value::KeyRead::read(&&bids, &Value::Int((bidsLength - 1))) } else { Value::Null });
+        let mut bestAsk: Value = (if (asksLength > 0) { crate::value::KeyRead::read(&&asks, &Value::Int((asksLength - 1))) } else { Value::Null });
         // book.last_trade_price is market-level and denominated in whichever token traded last —
         // on the complementary token it is the OTHER side's price, so only the per-token
         // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
@@ -4698,15 +4698,15 @@ if _try_result.is_err() {
             }
             return Value::Null;
         }
-        let mut apiKey: Value = (if (self.apiKey.clone() != Value::Null) { self.apiKey.clone() } else { self.safe_string_k(self.options.clone(), "l2ApiKey", &[]) });
+        let mut apiKey: Option<String> = (if (self.apiKey.clone() != Value::Null) { self.apiKey.as_str().map(str::to_owned) } else { self.safe_string_k(self.options.clone(), "l2ApiKey", &[]).as_str().map(str::to_owned) });
         let mut secret: Value = Value::Null;
         if (self.secret.clone() != Value::Null) {
             secret = self.secret.clone();
         }  else {
             secret = self.safe_string_k(self.options.clone(), "l2Secret", &[]);
         }
-        let mut passphrase: Value = (if (self.password.clone() != Value::Null) { self.password.clone() } else { self.safe_string_k(self.options.clone(), "l2Passphrase", &[]) });
-        let mut hasL2: bool = (apiKey != Value::Null) && (secret != Value::Null) && (passphrase != Value::Null);
+        let mut passphrase: Option<String> = (if (self.password.clone() != Value::Null) { self.password.as_str().map(str::to_owned) } else { self.safe_string_k(self.options.clone(), "l2Passphrase", &[]).as_str().map(str::to_owned) });
+        let mut hasL2: bool = (apiKey.is_some()) && (secret != Value::Null) && (passphrase.is_some());
         if hasL2 {
             return Value::Null;
         }
@@ -5187,19 +5187,19 @@ if _try_result.is_err() {
     m
 }));
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
-        let mut apiKey: Value = (if (self.apiKey.clone() != Value::Null) { self.apiKey.clone() } else { self.safe_string_k(self.options.clone(), "l2ApiKey", &[]) });
+        let mut apiKey: Option<String> = (if (self.apiKey.clone() != Value::Null) { self.apiKey.as_str().map(str::to_owned) } else { self.safe_string_k(self.options.clone(), "l2ApiKey", &[]).as_str().map(str::to_owned) });
         let mut secret: Value = Value::Null;
         if (self.secret.clone() != Value::Null) {
             secret = self.secret.clone();
         }  else {
             secret = self.safe_string_k(self.options.clone(), "l2Secret", &[]);
         }
-        let mut passphrase: Value = (if (self.password.clone() != Value::Null) { self.password.clone() } else { self.safe_string_k(self.options.clone(), "l2Passphrase", &[]) });
+        let mut passphrase: Option<String> = (if (self.password.clone() != Value::Null) { self.password.as_str().map(str::to_owned) } else { self.safe_string_k(self.options.clone(), "l2Passphrase", &[]).as_str().map(str::to_owned) });
         let mut auth: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("apiKey".to_string(), apiKey);
+                m.insert("apiKey".to_string(), apiKey.map(Value::from).unwrap_or(Value::Null));
                 m.insert("secret".to_string(), secret);
-                m.insert("passphrase".to_string(), passphrase);
+                m.insert("passphrase".to_string(), passphrase.map(Value::from).unwrap_or(Value::Null));
             m
         });
         // an empty markets list subscribes to every market the user is active in

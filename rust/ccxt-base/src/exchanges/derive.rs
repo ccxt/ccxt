@@ -5964,8 +5964,8 @@ impl Derive {
                 let mut signature: Option<String> = self.sign_message(now.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default());
                 let mut configuredWalletAddress: Option<String> = self.safe_string_k(self.options.clone(), "deriveWalletAddress", &[]).as_str().map(str::to_owned);
                 // v3: the owner wallet is the user's own EOA
-                let mut deriveWalletAddress: Value = (if ((configuredWalletAddress.is_none()) || (configuredWalletAddress.as_deref() == Some(""))) { self.walletAddress.clone() } else { configuredWalletAddress.clone().map(Value::from).unwrap_or(Value::Null) });
-                postHeaders.insert("X-DeriveWallet".into(), deriveWalletAddress);
+                let mut deriveWalletAddress: Option<String> = (if ((configuredWalletAddress.is_none()) || (configuredWalletAddress.as_deref() == Some(""))) { self.walletAddress.as_str().map(str::to_owned) } else { configuredWalletAddress });
+                postHeaders.insert("X-DeriveWallet".into(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null));
                 postHeaders.insert("X-DeriveTimestamp".into(), now.map(Value::from).unwrap_or(Value::Null));
                 postHeaders.insert("X-DeriveSignature".into(), signature.map(Value::from).unwrap_or(Value::Null));
             }

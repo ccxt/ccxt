@@ -4909,9 +4909,9 @@ impl Btse {
         //         }
         //     ]
         //
-        let mut safeResponse: Value = Value::from(vec![]);
+        let mut safeResponse: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&response, Value::Arr(_))) {
-            safeResponse = response.clone();
+            safeResponse = response.clone().into_list();
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4926,7 +4926,7 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_491: bool = true;
             while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (safeResponse.len() as i64) } {
-            let mut entrty: crate::value::Dict = self.safe_dict(safeResponse.clone(), Value::Int(i), &[]).into_dict();
+            let mut entrty: crate::value::Dict = self.safe_dict(&safeResponse, Value::Int(i), &[]).into_dict();
             let mut leverageValue: Option<i64> = self.safe_integer_k(&entrty, "leverage", &[]).as_i64();
             let mut positionDirection: Option<String> = self.safe_string_k(&entrty, "positionDirection", &[]).as_str().map(str::to_owned);
             marginMode = self.safe_string_lower_k(&entrty, "marginMode", &[]).as_str().map(str::to_owned);

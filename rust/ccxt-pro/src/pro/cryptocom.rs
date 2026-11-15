@@ -2349,7 +2349,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
-        let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
+        let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
         future.resolve(Value::Bool(true), None);
 }
 

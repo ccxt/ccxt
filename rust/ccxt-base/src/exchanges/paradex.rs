@@ -3660,15 +3660,15 @@ impl Paradex {
         //     ]
         //   }
         //
-        let mut orders: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
+        let mut orders: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         let mut paginationCursor: Option<String> = self.safe_string_k(&response, "next", &[]).as_str().map(str::to_owned);
         let mut ordersLength: i64 = orders.len() as i64;
         if (paginationCursor.is_some()) && (ordersLength > 0) {
-            let mut first: Option<crate::value::Dict> = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_opt_dict();
+            let mut first: Option<crate::value::Dict> = crate::value::KeyRead::read(&&orders, &Value::Int(0)).into_opt_dict();
             if let Some(__d) = &mut first { std::sync::Arc::make_mut(__d).insert("next".into(), paginationCursor.map(Value::from).unwrap_or(Value::Null)); }
             add_element_to_object(&mut orders, &Value::Int(0), first.map_or(Value::Null, Value::Dict));
         }
-        return self.parse_orders(orders, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

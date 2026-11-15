@@ -1535,8 +1535,8 @@ impl Krakenfutures {
             }
         }
         }
-        let mut length: Value = get_array_length(&Value::from(&self.orders));
-        if length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+        let mut length: i64 = get_array_length(&Value::from(&self.orders)).as_i64().unwrap_or_default();
+        if length > 0 {
             client.resolve(Value::from(&self.orders), messageHash.as_str());
             let mut keys: Vec<Value> = Value::Array(symbols.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
@@ -2501,7 +2501,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut signature: String = self.hmac(&hashedChallenge, &base64Secret, Value::Str("sha512".into()), &[Value::Str("base64".into())]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("challenge".into(), challenge); }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signedChallenge".into(), Value::from(signature)); }
-            let mut future: Value = self.safe_value(__ch.futures.clone(), Value::from(messageHash.clone()), &[]);
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_str());
             future.resolve(Value::Bool(true), None);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));

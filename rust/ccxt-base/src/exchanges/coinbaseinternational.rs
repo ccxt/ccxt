@@ -1782,7 +1782,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchFundingRateHistory", &[params]).into_dict();
-        let mut paramsPaginate: Value = Value::from(&paramsResolved);
+        let mut paramsPaginate: crate::value::Dict = Value::from(&paramsResolved).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -1790,7 +1790,7 @@ impl Coinbaseinternational {
             if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until")));
             }
-            paramsPaginate = Value::Dict(paramsFinal);
+            paramsPaginate = paramsFinal;
         }
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() requires a symbol argument")));
@@ -1816,15 +1816,15 @@ impl Coinbaseinternational {
             let mut endTimestamp: Option<i64> = (if let (Some(__m0), Some(__m1)) = (sinceResolved, ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None });
             request.insert("end_timestamp".into(), Value::from(endTimestamp));
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let mut paramsOmitted: Value = paramsPaginate.clone();
+        let mut paramsOmitted: crate::value::Dict = Value::from(&paramsPaginate).into_dict();
         if (until.is_some()) || self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOmitted = self.omit(paramsPaginate, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict();
         }
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_get_funding_rate_history(&[__ws_arg_2]).await.into_dict();
         //
         //     {
@@ -4112,7 +4112,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchMyTrades", &[params]).into_dict();
-        let mut paramsPaginate: Value = Value::from(&paramsResolved);
+        let mut paramsPaginate: crate::value::Dict = Value::from(&paramsResolved).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -4120,7 +4120,7 @@ impl Coinbaseinternational {
             if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters")));
             }
-            paramsPaginate = Value::Dict(paramsFinal);
+            paramsPaginate = paramsFinal;
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4138,10 +4138,10 @@ impl Coinbaseinternational {
         if (limit != Value::Null) {
             request.insert("count".into(), limit.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsPaginate.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = paramsPaginate.clone();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
+        let mut paramsOmitted: crate::value::Dict = Value::from(&paramsPaginate).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOmitted = self.omit(paramsPaginate, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsPaginate, Value::Str("until".into()), &[]).into_dict();
         }
         self.authenticate_v2(&[]).await;
         let mut response: Option<crate::value::Dict> = None;
@@ -4151,10 +4151,10 @@ impl Coinbaseinternational {
             if self.is_native_deribit_credentials().as_bool() == Some(true) {
                 request.shift_remove("include_old");
             }
-            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_get_user_trades_by_instrument_and_time(&[__ws_arg_18]).await.into_opt_dict();
         }  else {
-            let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_get_user_trades_by_instrument(&[__ws_arg_19]).await.into_opt_dict();
         }
         //

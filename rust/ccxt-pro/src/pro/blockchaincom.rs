@@ -1194,8 +1194,8 @@ impl Blockchaincom {
         if (event.as_deref() != Some("subscribed")) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " received an authentication error: ").into()), json_stringify(&message))));
         }
-        let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
-        if (future != Value::Null) {
+        let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
+        if ((future != crate::pro::ws_client::Flight::default())) {
             future.resolve(Value::Bool(true), None);
         }
 }

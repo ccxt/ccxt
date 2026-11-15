@@ -1082,7 +1082,7 @@ impl Modetrade {
         let mut success: bool = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
         if success {
             // client.resolve (message, messageHash);
-            let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
+            let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
             future.resolve(Value::Bool(true), None);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));

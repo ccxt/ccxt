@@ -6975,11 +6975,11 @@ impl Binance {
         let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchTime".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[Value::from(defaultType)]).as_str().map(str::to_owned);
         let mut query: crate::value::Dict = self.omit(params.clone(), Value::Str("type".into()), &[]).into_dict();
-        let mut subType: Value = self.handle_sub_type_and_params(Value::Str("fetchTime".into()), None, &[params]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut subType: Option<String> = self.handle_sub_type_and_params(Value::Str("fetchTime".into()), None, &[params]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut response: Option<crate::value::Dict> = None;
-        if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
+        if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             response = self.fapi_public_get_time(&[Value::from(&query)]).await.into_opt_dict();
-        }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_str()).as_bool() == Some(true) {
+        }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             response = self.dapi_public_get_time(&[Value::from(&query)]).await.into_opt_dict();
         }  else {
             response = self.public_get_time(&[Value::Dict(query)]).await.into_opt_dict();
@@ -7395,9 +7395,9 @@ impl Binance {
             let mut res: Value = self.safe_value(&results, Value::Int(i), &[]);
             if fetchMargins && (matches!(&res, Value::Arr(_))) {
                 let mut keysList: Value = Value::Array((self.index_by(res.clone(), Value::Str("symbol".into()))).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-                let mut length: Value = get_array_length(&self.options.as_map().and_then(|__m| __m.get("crossMarginPairsData")).cloned().unwrap_or(Value::Null));
+                let mut length: i64 = get_array_length(&self.options.as_map().and_then(|__m| __m.get("crossMarginPairsData")).cloned().unwrap_or(Value::Null)).as_i64().unwrap_or_default();
                 // first one is the cross-margin promise
-                if (length.as_f64() == Some(0.0)) {
+                if (length == 0) {
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), keysList.clone()); }
                 }  else {
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), keysList); }

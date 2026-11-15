@@ -2656,12 +2656,12 @@ if _try_result.is_err() {
  */
     pub fn opinion_ws_url(&self) -> Option<String> {
         let mut hasDirectApiKey: bool = !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true));
-        let mut apiKey: Value = (if (hasDirectApiKey) { self.apiKey.clone() } else { self.safe_string_k(self.options.clone(), "apiKey", &[]) });
-        if (apiKey == Value::Null) {
+        let mut apiKey: Option<String> = (if (hasDirectApiKey) { self.apiKey.as_str().map(str::to_owned) } else { self.safe_string_k(self.options.clone(), "apiKey", &[]).as_str().map(str::to_owned) });
+        if (apiKey.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")));
         }
         let mut wsUrl: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        return Some(format!("{}{}", Value::Str(format!("{}{}", wsUrl, "?apikey=").into()), apiKey));
+        return Some(format!("{}{}", Value::Str(format!("{}{}", wsUrl, "?apikey=").into()), apiKey.as_deref().unwrap_or("null")));
 }
 
     pub fn ping(&self, mut client: Value) -> Value {
@@ -3357,11 +3357,11 @@ if _try_result.is_err() {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
                 let mut hasDirectApiKey: bool = !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true));
-                let mut apiKey: Value = (if (hasDirectApiKey) { self.apiKey.clone() } else { self.safe_string_k(self.options.clone(), "apiKey", &[]) });
-                if (apiKey == Value::Null) {
+                let mut apiKey: Option<String> = (if (hasDirectApiKey) { self.apiKey.as_str().map(str::to_owned) } else { self.safe_string_k(self.options.clone(), "apiKey", &[]).as_str().map(str::to_owned) });
+                if (apiKey.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), path).into()), " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")));
                 }
-                std::sync::Arc::make_mut(&mut headersExtended).insert("apikey".into(), apiKey);
+                std::sync::Arc::make_mut(&mut headersExtended).insert("apikey".into(), apiKey.map(Value::from).unwrap_or(Value::Null));
             }
         }
         let mut bodyValue: Option<String> = None;

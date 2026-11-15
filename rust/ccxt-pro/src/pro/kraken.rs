@@ -611,17 +611,17 @@ impl Kraken {
             }
         }
         let mut isCreateOrder: bool = method.as_str() == Some("createOrderWs");
-        let mut paramsCreate: Value = Value::from(&paramsPostOnly);
+        let mut paramsCreate: crate::value::Dict = Value::from(&paramsPostOnly).into_dict();
         if isCreateOrder {
-            paramsCreate = self.omit(&paramsPostOnly, &["reduceOnly", "timeInForce"], &[]);
+            paramsCreate = self.omit(&paramsPostOnly, &["reduceOnly", "timeInForce"], &[]).into_dict();
         }
-        let mut paramsPreset: Value = paramsCreate.clone();
+        let mut paramsPreset: crate::value::Dict = Value::from(&paramsCreate).into_dict();
         if isCreateOrder && (isPresetStopLoss || isPresetTakeProfit) {
-            paramsPreset = self.omit(paramsCreate, &["stopLoss", "takeProfit"], &[]);
+            paramsPreset = self.omit(&paramsCreate, &["stopLoss", "takeProfit"], &[]).into_dict();
         }
-        let mut paramsOmitted: Value = self.omit(paramsPreset, &["clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"], &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPreset, &["clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"], &[]).into_dict();
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".into(), Value::Map(orderParams.clone())); }
-        return Value::from(vec![request, paramsOmitted]);
+        return Value::from(vec![request, Value::Dict(paramsOmitted)]);
 
     Value::Null
 }
