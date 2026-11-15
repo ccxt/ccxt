@@ -388,6 +388,63 @@ function returnExprHasType(e: string, want: string, ctx?: SupplyReturnContext): 
     return false;
 }
 
+/** Static Java type of `e` is exactly Object: a local declared only `Object`, or a join of a ws Future / CompletableFuture<Object>. */
+function returnExprIsObject(e: string, body: string[]): boolean {
+    if (/^\w+$/.test(e)) {
+        let seen = false;
+        for (const l of body) {
+            const d = /^\s*(?:final )?([A-Za-z_][\w.]*(?:<[^=]*>)?) (\w+)(?: = .*)?;$/.exec(l);
+            if (d === null || d[2] !== e || d[1] === 'return' || d[1] === 'throw') continue;
+            if (d[1] !== 'Object') return false;
+            seen = true;
+        }
+        return seen;
+    }
+    // `((io.github.ccxt.ws.Future)x).getFuture().join()`: ws.Future.getFuture() is CompletableFuture<Object>
+    if (/^\(\(io\.github\.ccxt\.ws\.Future\)\w+\)\.getFuture\(\)\.join\(\)$/.test(e)) return true;
+    return false;
+}
+
+/**
+ * `res -> (T) res` converters only (String / Boolean / Map<String, Object>): when every `return` of the
+ * supply lambda (lines (from, to)) is a one-line statement of the supply body itself (no nested block
+ * lambda, no multi-line return), rewrite each return not already proven T to `return (T) (e);` and
+ * report true; the caller then leaves the tail without `.thenApply`. Same cast, same failure (the
+ * ClassCastException completes the future exceptionally either way). Edits `lines` only on success.
+ */
+function castSupplyReturnsInPlace(lines: string[], from: number, to: number, supplyIndent: string, m: MethodInfo, ctx?: SupplyReturnContext): boolean {
+    const want = m.isArray ? undefined : m.javaReturnType;
+    if (want === undefined || ![ 'String', 'Boolean', 'Map<String, Object>' ].includes(want)) return false;
+    const opened = lines.slice(from, to).findIndex(l => l.trim().endsWith('supplyAsync(() -> {'));
+    if (opened === -1) return false;
+    const start = from + opened + 1;
+    for (let k = start; k < to; k++) {
+        const l = lines[k];
+        if (/->\s*\{/.test(l) && !/\b(?:default|case\b[^>]*)\s*->\s*\{/.test(l)) return false;
+    }
+    const javaType = qualifyJavaType(want);
+    const edits: Array<[number, string]> = [];
+    for (let k = start; k < to; k++) {
+        const raw = lines[k];
+        if (!/^\s*return\b/.test(raw)) continue;
+        const r = /^(\s*)return (.*);$/.exec(raw.trimEnd());
+        if (r === null || !raw.startsWith(supplyIndent + '    ')) return false;
+        const e = r[2].trim();
+        if (e === 'null' || (want === 'Boolean' && (e === 'true' || e === 'false'))) continue;
+        // `return x;  // note` and string literals holding `;`: only plain statements are rewritten
+        if (/\/\/|\/\*/.test(e.replace(/"(?:[^"\\]|\\.)*"/g, '""'))) return false;
+        if (returnExprHasType(e, want, ctx)) continue;
+        // a direct cast compiles only from Object: anything else of another static type (Long reader,
+        // typed future) would be a compile error, so it keeps the lambda
+        if (!returnExprIsObject(e, lines.slice(start, to))) return false;
+        const body = /^[\w.]+$/.test(e) || wholeParens(e) && e.startsWith('(') && e.endsWith(')') ? e : `(${e})`;
+        edits.push([ k, `${r[1]}return (${javaType}) ${body};` ]);
+    }
+    if (edits.length === 0) return false;
+    for (const [ k, l ] of edits) lines[k] = l;
+    return true;
+}
+
 /**
  * Retype every `public CompletableFuture<Object> <name>(` declaration found in the table and
  * put the typed construction on the method's supplyAsync tail. Works on any transpiled tier text.
@@ -421,6 +478,12 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
                 // every `return` of the supply lambda already has the declared type: `supplyAsync`
                 // infers T from the retyped declaration, so the future is returned as-is (no cast lambda)
                 if (isAsyncLambdaClose(trimmed) && supplyBodyReturnsType(lines, i + 1, j, supplyIndent, m, ctx)) {
+                    converted = true;
+                    break;
+                }
+                // a reference-cast core (String / Boolean / Map) whose returns are all single-line
+                // statements of the supply body: cast each unproven return in place, no lambda
+                if (isAsyncLambdaClose(trimmed) && castSupplyReturnsInPlace(lines, i + 1, j, supplyIndent, m, ctx)) {
                     converted = true;
                     break;
                 }
@@ -465,7 +528,7 @@ export function javaTypedCoreDirectReturnSelfTest(): string[] {
         [ 'typed reader', 'Long', [ 'return this.safeInteger(parameters, "time");' ], false ],
         [ 'map local', 'Map<String, Object>', [ 'Map<String, Object> response = (Map<String, Object>) this.safeDict(parameters, "a", null);', 'return response;' ], false ],
         [ 'boolean literals', 'Boolean', [ 'if (parameters == null)', '{', '    return false;', '}', 'return true;' ], false ],
-        [ 'Object local keeps cast', 'String', [ 'Object result = this.safeValue(parameters, "k");', 'return result;' ], true ],
+        [ 'Object local cast in place (ral-49j)', 'String', [ 'Object result = this.safeValue(parameters, "k");', 'return result;' ], false ],
         [ 'joined future keeps cast', 'Map<String, Object>', [ 'return (this.fetchX(parameters)).join();' ], true ],
         [ 'reader of another type keeps cast', 'String', [ 'return this.safeInteger(parameters, "k");' ], true ],
         [ 'trailing call keeps cast', 'String', [ 'return this.safeString(a, "k").trim();' ], true ],
@@ -490,6 +553,11 @@ export function javaTypedCoreDirectReturnSelfTest(): string[] {
         [ 'joined typed core', 'Map<String, Object>', [ 'return (this.m(parameters)).join();' ], false ],
         [ 'joined untyped future keeps cast', 'Map<String, Object>', [ 'return (this.watch(parameters, null, null, null, null)).join();' ], true ],
         [ 'safeDict is Object: keeps cast', 'Map<String, Object>', [ 'return this.safeDict(parameters, "k", null);' ], true ],
+        // ral-49j: Object returns are cast in place, no lambda
+        [ 'joined ws Future cast in place', 'String', [ 'Object future = this.safeValue(parameters, "k");', 'if (future != null)', '{', '    return ((io.github.ccxt.ws.Future)future).getFuture().join();', '}', 'return null;' ], false ],
+        [ 'Object local cast in place', 'Boolean', [ 'Object r = this.safeValue(parameters, "k");', 'return r;' ], false ],
+        [ 'typed future of another type keeps cast', 'String', [ 'Object r = null;', 'if (r == null)', '{', '    return r;', '}', 'return (this.fetchX(parameters)).join();' ], true ],
+        [ 'Long core is no reference cast', 'Long', [ 'Object r = this.safeValue(parameters, "k");', 'return r;' ], true ],
     ];
     for (const [ label, type, body, cast ] of rows) {
         const out = typeCoreReturns(core(type, body), new Map([ [ 'm', info(type) ] ]));
