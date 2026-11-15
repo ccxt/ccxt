@@ -1216,8 +1216,8 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 })])).as_map().cloned().unwrap_or_default();
-            if !stock || (self.safe_string(Value::Map(currency.clone()), Value::Str("type".into()), &[]).as_str() == Some("stock")) {
-                currencies.insert(crate::runtime::stringify_param(&(currency.get("code").cloned().unwrap_or(Value::Null))), Value::Map(currency));
+            if !stock || (self.safe_string_k(&currency, "type", &[]).as_str() == Some("stock")) {
+                currencies.insert(crate::runtime::stringify_param(&(currency.get("code").cloned().unwrap_or(Value::Null))), Value::Map(currency.clone()));
             }
         }
         }

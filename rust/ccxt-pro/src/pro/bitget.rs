@@ -3274,7 +3274,7 @@ impl Bitget {
         if !(isStockOrUta) {
             args.insert("coin".into(), Value::Str("default".into()));
         }
-        let mut instTypeLower: String = self.safe_string_lower(Value::Map(args.clone()), Value::Str("instType".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut instTypeLower: String = self.safe_string_lower_k(&args, "instType", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "balance:", instTypeLower);
         return self.watch_private((isStockOrUta), messageHash.as_str(), messageHash.as_str(), Value::Map(args), &[paramsRequest]).await;
         Value::Null

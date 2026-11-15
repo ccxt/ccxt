@@ -2875,7 +2875,7 @@ if _try_result.is_err() {
         let mut isInternal: bool = (self.in_array(fromAccount.clone(), Value::from(vec![Value::Str("trading".into()), Value::Str("funding".into())]))) && self.in_array(toAccount.clone(), Value::from(vec![Value::Str("trading".into()), Value::Str("funding".into())]));
         let mut fromSubAccount: Value = fromAccount.clone();
         let mut toSubAccount: Value = toAccount.clone();
-        let mut paramsFundingAccountId: Value = params.clone();
+        let mut paramsFundingAccountId: crate::value::Dict = params.clone().into_dict();
         if isInternal {
             let tradingAccountIdparamsTradingAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("transfer".into()), Value::Str("tradingAccountId".into()), &[]).as_array().cloned().unwrap_or_default();
             let mut tradingAccountId: Value = tradingAccountIdparamsTradingAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2888,14 +2888,14 @@ if _try_result.is_err() {
             }
             fromSubAccount = (if (fromAccount.as_str() == Some("trading")) { tradingAccountId.clone() } else { fundingAccountId.clone() });
             toSubAccount = (if (toAccount.as_str() == Some("trading")) { tradingAccountId } else { fundingAccountId });
-            paramsFundingAccountId = Value::Dict(paramsFunding);
+            paramsFundingAccountId = paramsFunding;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("from_account_id".to_string(), self.safe_string_k(paramsFundingAccountId.clone(), "from_account_id", &[defaultFromAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
-                m.insert("from_sub_account_id".to_string(), self.safe_string_k(paramsFundingAccountId.clone(), "from_sub_account_id", &[fromSubAccount.clone()]));
-                m.insert("to_account_id".to_string(), self.safe_string_k(paramsFundingAccountId.clone(), "to_account_id", &[defaultFromAccountId.map(Value::from).unwrap_or(Value::Null)]));
-                m.insert("to_sub_account_id".to_string(), self.safe_string_k(paramsFundingAccountId.clone(), "to_sub_account_id", &[toSubAccount]));
+                m.insert("from_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "from_account_id", &[defaultFromAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
+                m.insert("from_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "from_sub_account_id", &[fromSubAccount.clone()]));
+                m.insert("to_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "to_account_id", &[defaultFromAccountId.map(Value::from).unwrap_or(Value::Null)]));
+                m.insert("to_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "to_sub_account_id", &[toSubAccount]));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("num_tokens".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
                 m.insert("signature".to_string(), self.default_signature());
@@ -2905,7 +2905,7 @@ if _try_result.is_err() {
         });
         let mut response: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_14 = self.extend(self.create_signed_request(&mut request, "EIP712_TRANSFER_TYPE", &[crate::Value::from(Some(&currency))]), &[paramsFundingAccountId]);
+            let __ws_arg_14 = self.extend(self.create_signed_request(&mut request, "EIP712_TRANSFER_TYPE", &[crate::Value::from(Some(&currency))]), &[&paramsFundingAccountId]);
             response = self.private_trading_post_full_v1_transfer(&[__ws_arg_14]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
@@ -4410,7 +4410,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut filledAmounts: crate::value::List = self.safe_list_k(&stateObj, "traded_size", &[Value::from(vec![])]).into_list();
         let mut avgPrices: crate::value::List = self.safe_list_k(&stateObj, "avg_fill_price", &[Value::from(vec![])]).into_list();
         let mut primaryOrderIndex: i64 = 0;
-        let mut firstLeg: Option<crate::value::Dict> = self.safe_dict(&legs, Value::from(primaryOrderIndex), &[]).into_opt_dict();
+        let mut firstLeg: Option<crate::value::Dict> = self.safe_dict(&legs, primaryOrderIndex, &[]).into_opt_dict();
         let mut legMarketId: Option<String> = self.safe_string_k(&firstLeg, "instrument", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Option<crate::types::Market> = (if (firstLeg.is_some()) { Some(self.safe_market(legMarketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { market.cloned() });
         if (firstLeg.is_some()) {

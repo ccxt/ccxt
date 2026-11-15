@@ -1624,8 +1624,8 @@ impl Deribit {
                     m.insert("user".to_string(), self.safe_value(&userHandlers, self.safe_string(&parts, Value::Int(1), &[]), &[]));
                 m
             });
-            let mut handler: Value = self.safe_value(&handlers, channelId.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (handler != Value::Null) {
+            let mut handler: Option<String> = self.safe_value(&handlers, channelId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (handler.is_some()) {
                 self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
                 return;
             }

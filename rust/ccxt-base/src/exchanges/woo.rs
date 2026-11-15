@@ -4202,7 +4202,7 @@ impl Woo {
         })]).into_dict();
         let __ws_arg_22 = self.extend(data, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("network".to_string(), self.safe_string_k(Value::Map(request), "network", &[]));
+        m.insert("network".to_string(), self.safe_string_k(&request, "network", &[]));
     m
 })]);
         return self.parse_deposit_address(__ws_arg_22, Some(&currency));

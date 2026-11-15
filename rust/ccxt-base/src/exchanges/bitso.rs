@@ -2427,11 +2427,11 @@ impl Bitso {
             if (code.is_some()) {
                 { let __be_tmp = Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deposit".to_string(), self.safe_number(self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]), Value::Str("deposit".into()), &[]));
+        m.insert("deposit".to_string(), self.safe_number(self.safe_dict(&result, Value::from(code.as_deref()), &[]), Value::Str("deposit".into()), &[]));
         m.insert("withdraw".to_string(), self.safe_number(&withdrawalFees, Value::from(currencyId.as_deref()), &[]));
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deposit".to_string(), self.safe_value(self.safe_dict(self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]), Value::Str("info".into()), &[]), Value::Str("deposit".into()), &[]));
+        m.insert("deposit".to_string(), self.safe_value(self.safe_dict(self.safe_dict(&result, Value::from(code.as_deref()), &[]), Value::Str("info".into()), &[]), Value::Str("deposit".into()), &[]));
         m.insert("withdraw".to_string(), self.safe_number(&withdrawalFees, Value::from(currencyId.as_deref()), &[]));
     m
 }));
@@ -2614,7 +2614,7 @@ impl Bitso {
             let mut code: Value = self.safe_currency_code(Value::from(currencyId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone())) {
                 let mut withdrawFee: Value = self.parse_number(crate::value::KeyRead::read(&&withdrawalResponse, &Value::from(currencyId)), &[]);
-                let mut resultValue: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]).into_opt_dict();
+                let mut resultValue: Option<crate::value::Dict> = self.safe_dict(&result, code.clone(), &[]).into_opt_dict();
                 if (resultValue.is_none()) {
                     result.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
     let mut m = indexmap::IndexMap::new();

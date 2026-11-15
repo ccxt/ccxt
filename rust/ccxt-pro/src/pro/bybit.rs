@@ -3707,7 +3707,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("unsubscribe".to_string(), Value::Str("handle_un_subscribe".into()).clone());
             m
         });
-        let mut exacMethod: Option<String> = self.safe_value(Value::Map(methods.clone()), Value::from(topic.as_str()), &[]).as_str().map(str::to_owned);
+        let mut exacMethod: Option<String> = self.safe_value(&methods, Value::from(topic.as_str()), &[]).as_str().map(str::to_owned);
         if (exacMethod.is_some()) {
             self.dispatch_ws_handler(&exacMethod, &[client.clone(), message.clone()]);
             return;

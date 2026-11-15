@@ -5415,7 +5415,7 @@ impl Woofipro {
                 if !isSandboxMode {
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".into())]);
                     if (path.as_str() == Some("batch-order")) {
-                        let mut ordersList: crate::value::List = self.safe_list(Value::Map(requestParams.clone()), Value::Str("orders".into()), &[Value::from(vec![])]).into_list();
+                        let mut ordersList: crate::value::List = self.safe_list_k(&requestParams, "orders", &[Value::from(vec![])]).into_list();
                         {
                                                         let mut i: i64 = 0;
                             let mut __for_first_1184: bool = true;

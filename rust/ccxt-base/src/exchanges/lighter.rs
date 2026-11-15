@@ -1289,7 +1289,7 @@ if _try_result.is_err() {
     m
 })]).as_map().cloned().unwrap_or_default();
         let mut accountIndexStr: Option<String> = self.number_to_string(accountIndex.clone());
-        let mut isStandardTier: Option<bool> = self.safe_bool(Value::Map(tiersForAccountIndexes.clone()), Value::from(accountIndexStr.as_deref()), &[]).as_bool();
+        let mut isStandardTier: Option<bool> = self.safe_bool(&tiersForAccountIndexes, Value::from(accountIndexStr.as_deref()), &[]).as_bool();
         if (isStandardTier.is_some()) {
             let mut cachedIsStandard: Value = (Value::Bool(isStandardTier == Some(true)));
             return cachedIsStandard;
@@ -2880,7 +2880,7 @@ if _try_result.is_err() {
                     let mut codeId: Option<String> = self.safe_string_k(&asset, "symbol", &[]).as_str().map(str::to_owned);
                     let mut code: Option<String> = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), None);
                     let __ws_arg_17 = self.account();
-                    let __ws_arg_18 = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[Value::Map({
+                    let __ws_arg_18 = self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2894,7 +2894,7 @@ if _try_result.is_err() {
                 }
             }  else {
                 let __ws_arg_19 = self.account();
-                let __ws_arg_20 = self.safe_dict(Value::Map(result.clone()), Value::Str("USDC".into()), &[Value::Map({
+                let __ws_arg_20 = self.safe_dict_k(&result, "USDC", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

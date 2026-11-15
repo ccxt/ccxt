@@ -1836,7 +1836,7 @@ impl Whitebit {
         //        ...
         //    }
         //
-        let mut depositWithdrawFees: Value = Value::Map({
+        let mut depositWithdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1852,14 +1852,14 @@ impl Whitebit {
             let mut feeInfo: Value = self.safe_dict(response.clone(), entry.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             if (code != Value::Null) && ((codesValue == Value::Null) || (self.in_array(code.clone(), codesValue.clone()))) {
-                let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(depositWithdrawFees.clone(), code.clone(), &[]).into_opt_dict();
+                let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(&depositWithdrawFees, code.clone(), &[]).into_opt_dict();
                 if (depositWithdrawFee.is_none()) {
-                    if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
+                    depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}))); }
+})));
                 }
-                add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".into())), &entry, feeInfo.clone());
+                add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("info".into())), &entry, feeInfo.clone());
                 let mut networkId: Option<String> = self.safe_string(&splitEntry, Value::Int(1), &[]).as_str().map(str::to_owned);
                 let mut withdraw: crate::value::Dict = self.safe_dict_k(feeInfo.clone(), "withdraw", &[]).into_dict();
                 let mut deposit: crate::value::Dict = self.safe_dict_k(feeInfo, "deposit", &[]).into_dict();
@@ -1882,7 +1882,7 @@ impl Whitebit {
                     let mut networkCode: Value = Value::from(self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 1, ((networkLength - 1))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l));
                         __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None }).map(Value::from).unwrap_or(Value::Null), code.clone()]));
                     if (networkCode != Value::Null) {
-                        add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into())), &networkCode, Value::Map({
+                        add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawResult.clone()));
         m.insert("deposit".to_string(), Value::Map(depositResult.clone()));
@@ -1890,23 +1890,23 @@ impl Whitebit {
 }));
                     }
                 }  else {
-                    add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("withdraw".into()), Value::Map(withdrawResult));
-                    add_element_to_object(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("deposit".into()), Value::Map(depositResult));
+                    if let Value::Dict(__d) = depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default() { std::sync::Arc::make_mut(__d).insert("withdraw".into(), Value::Map(withdrawResult)); }
+                    if let Value::Dict(__d) = depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default() { std::sync::Arc::make_mut(__d).insert("deposit".into(), Value::Map(depositResult)); }
                 }
             }
         }
         }
-        let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1151: bool = true;
             while { if !__for_first_1151 { i += 1; } __for_first_1151 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: crate::types::Currency = self.currency(code.clone());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); depositWithdrawFees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
         }
         }
-        return depositWithdrawFees;
+        return Value::Map(depositWithdrawFees);
 
     Value::Null
 }
@@ -3571,12 +3571,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestType: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut requestParams: Value = Value::from(&paramsMarketType);
+        let mut requestParams: crate::value::Dict = Value::from(&paramsMarketType).into_dict();
         if (marketType.as_deref() == Some("spot")) {
             let isMarginparamsIsMarginVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("cancelAllOrders".into()), Value::Str("isMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isMargin: bool = isMarginparamsIsMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsIsMargin: crate::value::Dict = isMarginparamsIsMarginVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            requestParams = Value::Dict(paramsIsMargin);
+            requestParams = paramsIsMargin;
             if isMargin {
                 std::sync::Arc::make_mut(&mut requestType).push(Value::Str("margin".into()));
             }  else {
@@ -3588,7 +3588,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cancelAllOrders() does not support ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " type")));
         }
         request.insert("type".into(), Value::Arr(requestType));
-        let __ws_arg_18 = self.extend(Value::Map(request), &[requestParams]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&requestParams]);
         let mut response: crate::value::List = self.v4_private_post_order_cancel_all(&[__ws_arg_18]).await.into_list();
         return self.parse_orders(&response, market.as_ref(), &[]);
         Value::Null

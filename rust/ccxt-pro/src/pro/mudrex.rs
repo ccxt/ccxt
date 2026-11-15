@@ -295,11 +295,11 @@ impl Mudrex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut innerOptions: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(wsOptions.clone()), Value::Str("options".into()), &[Value::Map({
+        let mut innerOptions: indexmap::IndexMap<String, Value> = self.safe_dict_k(&wsOptions, "options", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut headers: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(innerOptions.clone()), Value::Str("headers".into()), &[Value::Map({
+        let mut headers: indexmap::IndexMap<String, Value> = self.safe_dict_k(&innerOptions, "headers", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();

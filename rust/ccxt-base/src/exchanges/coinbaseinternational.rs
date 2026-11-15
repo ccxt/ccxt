@@ -4018,7 +4018,7 @@ impl Coinbaseinternational {
     m
 }));
         let mut paramsResolved: crate::value::Dict = self.handle_route_and_params("fetchOpenOrders", &[params]).into_dict();
-        let mut paramsPaginate: Value = Value::from(&paramsResolved);
+        let mut paramsPaginate: crate::value::Dict = Value::from(&paramsResolved).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsResolved, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -4026,7 +4026,7 @@ impl Coinbaseinternational {
             if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOpenOrders() does not support pagination")));
             }
-            paramsPaginate = Value::Dict(paramsFinal);
+            paramsPaginate = paramsFinal;
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4044,7 +4044,7 @@ impl Coinbaseinternational {
             request.insert("count".into(), limit.clone());
         }
         self.authenticate_v2(&[]).await;
-        let __ws_arg_17 = self.extend(Value::Map(request), &[paramsPaginate]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let mut response: crate::value::Dict = self.private_get_get_open_orders_by_instrument(&[__ws_arg_17]).await.into_dict();
         //
         //     {

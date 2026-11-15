@@ -702,7 +702,7 @@ impl Lighter {
             }
             }
         }  else {
-            let mut marketId: Option<String> = self.safe_string(Value::Map(data.clone()), Value::Str("market_id".into()), &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_k(&data, "market_id", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut ticker: crate::value::Dict = self.parse_ticker(Value::Map(data), Some(&market)).into_dict();

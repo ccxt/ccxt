@@ -891,7 +891,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     m
 }) }).as_map().cloned().unwrap_or_default();
         let mut topic: Option<String> = (match __pro_message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut marketId: Option<String> = self.safe_string(Value::Map(data.clone()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut timestamp: Option<i64> = (match __pro_message.get("ts") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         data.insert("date".into(), Value::from(timestamp));

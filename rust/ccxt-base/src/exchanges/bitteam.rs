@@ -1051,7 +1051,7 @@ impl Bitteam {
                 m
             })]);
         }
-        let mut statuses: crate::value::Dict = self.safe_dict(&statusesResponse, Value::from(numericId), &[Value::Map({
+        let mut statuses: crate::value::Dict = self.safe_dict(&statusesResponse, numericId, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

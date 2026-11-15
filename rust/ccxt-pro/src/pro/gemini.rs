@@ -903,22 +903,22 @@ impl Gemini {
         let mut market: crate::types::Market = self.safe_market(marketId, None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         // read-modify-write: the cached entry is copied out, updated, and stored back whole
-        let mut currentBidAsk: Value = Value::Map({
+        let mut currentBidAsk: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (matches!((&self.bidsasks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut cachedBidAsk: Value = (if let (Some(__m), Some(__k)) = (self.bidsasks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             currentBidAsk = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            }), &[cachedBidAsk]);
+    let mut m = indexmap::IndexMap::new();
+    m
+}), &[cachedBidAsk]).into_dict();
         }  else {
             let __ws_arg_0 = self.parse_ticker(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            }), None);
-            currentBidAsk = self.extend(__ws_arg_0, &[]);
+    let mut m = indexmap::IndexMap::new();
+    m
+}), None);
+            currentBidAsk = self.extend(__ws_arg_0, &[]).into_dict();
             add_element_to_object(&mut currentBidAsk, &Value::Str("symbol".into()), symbol.clone());
         }
         let mut messageHash: String = format!("{}{}", "bidsasks:", symbol);
@@ -950,8 +950,8 @@ impl Gemini {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        bidsAsksDict.insert(crate::runtime::stringify_param(&symbol), currentBidAsk.clone());
-        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), currentBidAsk); }
+        bidsAsksDict.insert(crate::runtime::stringify_param(&symbol), Value::from(&currentBidAsk));
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Dict(currentBidAsk)); }
         client.resolve(Value::Map(bidsAsksDict), messageHash.as_str());
 }
 

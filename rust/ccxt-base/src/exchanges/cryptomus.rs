@@ -1205,9 +1205,9 @@ impl Cryptomus {
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("market")) {
             let mut requiresPriceAndParams: Value = self.handle_option_bool_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
-            let mut paramsMarket: Value = Value::from(&paramsCost);
+            let mut paramsMarket: crate::value::Dict = Value::from(&paramsCost).into_dict();
             if sideBuy {
-                paramsMarket = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+                paramsMarket = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null).into_dict();
             }
             if sideBuy {
                 let mut createMarketBuyOrderRequiresPrice: Option<bool> = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
@@ -1224,7 +1224,7 @@ impl Cryptomus {
             }  else {
                 request.insert("quantity".into(), amountToString.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[paramsMarket]);
+            let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[&paramsMarket]);
             response = self.private_post_v2_user_api_exchange_orders_market(&[__ws_arg_3]).await.into_opt_dict();
         }  else if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {

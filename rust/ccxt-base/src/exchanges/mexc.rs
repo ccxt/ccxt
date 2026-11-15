@@ -3884,10 +3884,10 @@ impl Mexc {
         let mut order: indexmap::IndexMap<String, Value> = self.parse_order(&response, market).as_map().cloned().unwrap_or_default();
         order.insert("side".into(), side);
         order.insert("type".into(), type_var);
-        if (self.safe_string(Value::Map(order.clone()), Value::Str("price".into()), &[]) == Value::Null) {
+        if (self.safe_string_k(&order, "price", &[]) == Value::Null) {
             order.insert("price".into(), price);
         }
-        if (self.safe_string(Value::Map(order.clone()), Value::Str("amount".into()), &[]) == Value::Null) {
+        if (self.safe_string_k(&order, "amount", &[]) == Value::Null) {
             order.insert("amount".into(), amount);
         }
         return Value::Map(order);
@@ -7374,8 +7374,8 @@ impl Mexc {
                 m.insert("future".to_string(), Value::Str("FUTURES".into()));
             m
         });
-        let mut fromId: Option<String> = self.safe_string(Value::Map(accounts.clone()), fromAccount.clone(), &[fromAccount.clone()]).as_str().map(str::to_owned);
-        let mut toId: Option<String> = self.safe_string(Value::Map(accounts.clone()), toAccount.clone(), &[toAccount.clone()]).as_str().map(str::to_owned);
+        let mut fromId: Option<String> = self.safe_string(&accounts, fromAccount.clone(), &[fromAccount.clone()]).as_str().map(str::to_owned);
+        let mut toId: Option<String> = self.safe_string(&accounts, toAccount.clone(), &[toAccount.clone()]).as_str().map(str::to_owned);
         if (fromId.is_none()) {
             let mut keys: crate::value::List = Value::Array(accounts.keys().cloned().map(Value::from).collect()).into_list();
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fromAccount must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));

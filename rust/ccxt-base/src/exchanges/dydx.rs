@@ -2017,7 +2017,7 @@ impl Dydx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut pubKey: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(account.clone()), Value::Str("pub_key".into()), &[Value::Map({
+        let mut pubKey: indexmap::IndexMap<String, Value> = self.safe_dict_k(&account, "pub_key", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -2207,7 +2207,7 @@ impl Dydx {
         });
         let mut paramsOmitted: Value = self.omit(&paramsGoodTillBlockTimeInSeconds, &["reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"], &[]);
         let mut walletAddress: Option<String> = self.get_wallet_address().as_str().map(str::to_owned);
-        let mut clobPairId: i64 = self.safe_integer_k(Value::Map(marketInfo), "clobPairId", &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let mut clobPairId: i64 = self.safe_integer_k(&marketInfo, "clobPairId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut subaccountIdValue: Option<i64> = (if (subaccountIdOption.is_none()) { Some(0) } else { subaccountIdOption });
         let mut clientOrderIdValue: Option<i64> = (if (clientOrderId.is_none()) { Some(0) } else { clientOrderId });
         let mut orderFlagValue: Option<i64> = (if (orderFlag.is_none()) { Some(0) } else { orderFlag });

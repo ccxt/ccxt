@@ -1047,7 +1047,7 @@ impl Blockchaincom {
                 request.insert("ordType".into(), Value::Str("STOPLIMIT".into()));
             }
         }
-        let mut ordType: Option<String> = self.safe_string(Value::Map(request.clone()), Value::Str("ordType".into()), &[]).as_str().map(str::to_owned);
+        let mut ordType: Option<String> = self.safe_string_k(&request, "ordType", &[]).as_str().map(str::to_owned);
         let mut priceRequired: bool = false;
         let mut stopPriceRequired: bool = false;
         if (ordType.as_deref() == Some("LIMIT")) || (ordType.as_deref() == Some("STOPLIMIT")) {

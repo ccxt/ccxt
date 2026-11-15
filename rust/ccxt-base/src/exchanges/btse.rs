@@ -1691,7 +1691,7 @@ impl Btse {
                     if (usedCode.is_none()) {
                         continue;
                     }
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(useds.clone()), Value::from(usedCode.as_deref()), &[Value::Str("0".into())]), &self.safe_string_k(&usedRow, "balance", &[])); useds.insert(usedCode.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&useds, Value::from(usedCode.as_deref()), &[Value::Str("0".into())]), &self.safe_string_k(&usedRow, "balance", &[])); useds.insert(usedCode.as_deref().unwrap_or("null").to_string(), __be_tmp); }
                 }
                 }
                 {
@@ -1703,8 +1703,8 @@ impl Btse {
                     if (code == Value::Null) {
                         continue;
                     }
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(totals.clone()), code.clone(), &[Value::Str("0".into())]), &self.safe_string_k(&assetRow, "balance", &[])); totals.insert(crate::runtime::stringify_param(&code), __be_tmp); }
-                    { let __be_tmp = self.safe_string(Value::Map(useds.clone()), code.clone(), &[Value::Str("0".into())]); useds.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&totals, code.clone(), &[Value::Str("0".into())]), &self.safe_string_k(&assetRow, "balance", &[])); totals.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+                    { let __be_tmp = self.safe_string(&useds, code.clone(), &[Value::Str("0".into())]); useds.insert(crate::runtime::stringify_param(&code), __be_tmp); }
                 }
                 }
             }  else {
@@ -1714,8 +1714,8 @@ impl Btse {
                 if (code == Value::Null) {
                     continue;
                 }
-                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(totals.clone()), code.clone(), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("totalAmount".into()), Value::Str("total".into()), &[])); totals.insert(crate::runtime::stringify_param(&code), __be_tmp); }
-                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(Value::Map(frees.clone()), code.clone(), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("availableAmount".into()), Value::Str("available".into()), &[])); frees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&totals, code.clone(), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("totalAmount".into()), Value::Str("total".into()), &[])); totals.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&frees, code.clone(), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("availableAmount".into()), Value::Str("available".into()), &[])); frees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
             }
         }
         }
@@ -1726,9 +1726,9 @@ impl Btse {
             while { if !__for_first_482 { i += 1; } __for_first_482 = false; i < (codes.len() as i64) } {
             let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("total".into(), self.safe_string(Value::Map(totals.clone()), Value::from(code.as_deref()), &[]));
-            account.insert("free".into(), self.safe_string(Value::Map(frees.clone()), Value::from(code.as_deref()), &[]));
-            account.insert("used".into(), self.safe_string(Value::Map(useds.clone()), Value::from(code.as_deref()), &[]));
+            account.insert("total".into(), self.safe_string(&totals, Value::from(code.as_deref()), &[]));
+            account.insert("free".into(), self.safe_string(&frees, Value::from(code.as_deref()), &[]));
+            account.insert("used".into(), self.safe_string(&useds, Value::from(code.as_deref()), &[]));
             result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
@@ -3012,7 +3012,7 @@ impl Btse {
             let mut hedged: bool = false;
             { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("hedged".into()), &[Value::Bool(hedged)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             let mut marginMode: Option<String> = Some("cross".to_string());
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(&query, Value::Str("createOrder".into()), Value::Str("marginMode".into()), &[Value::from(&marginMode)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+            { let __destr_tmp = self.handle_option_string_and_params(&query, Value::Str("createOrder".into()), Value::Str("marginMode".into()), &[Value::from(&marginMode)]).into_list(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             if (marginMode.as_deref() == Some("isolated")) {
                 if hedged {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() cannot use isolated margin with hedged positions")));

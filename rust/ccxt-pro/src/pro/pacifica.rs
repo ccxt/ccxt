@@ -2374,7 +2374,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("unsubscribe".to_string(), Value::Str("handle_subscription_response".into()).clone());
             m
         });
-        let mut exacMethod: Option<String> = self.safe_value(Value::Map(methods.clone()), Value::from(topic.as_str()), &[]).as_str().map(str::to_owned);
+        let mut exacMethod: Option<String> = self.safe_value(&methods, Value::from(topic.as_str()), &[]).as_str().map(str::to_owned);
         if (exacMethod.is_some()) {
             self.dispatch_ws_handler(&exacMethod, &[client.clone(), message.clone()]);
             return;

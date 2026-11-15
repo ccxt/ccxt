@@ -1709,7 +1709,7 @@ impl Blofin {
         }
         let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
         let mut channelName: Option<String> = self.safe_string_k(&arg, "channel", &[]).as_str().map(str::to_owned);
-        method = self.safe_value(Value::Map(methods.clone()), channelName.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        method = self.safe_value(&methods, channelName.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (method == Value::Null) && (channelName.as_deref().unwrap_or_default().contains("candle")) {
             method = methods.get("candle").cloned().unwrap_or(Value::Null);
         }

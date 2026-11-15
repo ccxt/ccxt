@@ -2510,7 +2510,7 @@ impl Nado {
             if (assetCode.is_none()) {
                 continue;
             }
-            let mut previous: Option<crate::value::Dict> = self.safe_dict(Value::Map(assetsByCode.clone()), Value::from(assetCode.as_deref()), &[]).into_opt_dict();
+            let mut previous: Option<crate::value::Dict> = self.safe_dict(&assetsByCode, Value::from(assetCode.as_deref()), &[]).into_opt_dict();
             if (previous.is_none()) {
                 assetsByCode.insert(assetCode.as_deref().unwrap_or("null").to_string(), Value::from(&rawAsset));
             }  else {
@@ -2531,11 +2531,11 @@ impl Nado {
             while { if !__for_first_990 { i += 1; } __for_first_990 = false; i < (symbols.len() as i64) } {
             let mut market: crate::value::Dict = symbols.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k(&market, "product_id", &[]).as_str().map(str::to_owned);
-            let mut pair: crate::value::Dict = self.safe_dict(Value::Map(pairsById.clone()), id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut pair: crate::value::Dict = self.safe_dict(&pairsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut asset: crate::value::Dict = self.safe_dict(Value::Map(assetsById.clone()), id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut asset: crate::value::Dict = self.safe_dict(&assetsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2556,8 +2556,8 @@ impl Nado {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut baseAsset: crate::value::Dict = self.safe_dict(Value::Map(assetsByCode.clone()), base.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(&asset)]).into_dict();
-            let mut quoteAsset: crate::value::Dict = self.safe_dict(Value::Map(assetsByCode.clone()), quote.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+            let mut baseAsset: crate::value::Dict = self.safe_dict(&assetsByCode, base.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(&asset)]).into_dict();
+            let mut quoteAsset: crate::value::Dict = self.safe_dict(&assetsByCode, quote.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let mut baseId: Option<String> = self.safe_string_k(&baseAsset, "product_id", &[rawBaseId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut quoteId: Value = self.safe_string_k(&quoteAsset, "product_id", &[Value::from(rawQuoteId)]);
             let mut settleId: Value = (if contract { quoteId.clone() } else { Value::Null });
@@ -2686,7 +2686,7 @@ impl Nado {
             if (code.is_none()) {
                 continue;
             }
-            let mut previous: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]).into_opt_dict();
+            let mut previous: Option<crate::value::Dict> = self.safe_dict(&result, Value::from(code.as_deref()), &[]).into_opt_dict();
             let mut canDeposit: bool = self.safe_bool_k(currency.clone(), "can_deposit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             let mut canWithdraw: bool = self.safe_bool_k(currency, "can_withdraw", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if (previous.is_none()) {

@@ -2653,7 +2653,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut execType: Option<String> = self.safe_string_k(&first, "exec_type", &[]).as_str().map(str::to_owned);
                 channel = (if (execType.as_deref() == Some("trade")) { Some("myTrades".to_string()) } else { Some("orders".to_string()) });
             }
-            let mut methods: crate::value::Dict = Value::Map({
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("balances".to_string(), Value::Str("handle_balance".into()).clone());
                     m.insert("book".to_string(), Value::Str("handle_order_book".into()).clone());
@@ -2663,7 +2663,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("myTrades".to_string(), Value::Str("handle_my_trades".into()).clone());
                     m.insert("orders".to_string(), Value::Str("handle_orders".into()).clone());
                 m
-            }).into_dict();
+            });
             let mut method: Option<String> = self.safe_value(&methods, channel.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
@@ -2671,7 +2671,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             let mut event: Option<String> = self.safe_string2(message.clone(), Value::Str("event".into()), Value::Str("method".into()), &[]).as_str().map(str::to_owned);
-            let mut methods: crate::value::Dict = Value::Map({
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("heartbeat".to_string(), Value::Str("handle_heartbeat".into()).clone());
                     m.insert("systemStatus".to_string(), Value::Str("handle_system_status".into()).clone());
@@ -2683,7 +2683,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("cancel_all".to_string(), Value::Str("handle_cancel_all_orders".into()).clone());
                     m.insert("pong".to_string(), Value::Str("handle_pong".into()).clone());
                 m
-            }).into_dict();
+            });
             let mut method: Option<String> = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client, message]);

@@ -4482,9 +4482,9 @@ impl Hashkey {
                 type_var = Some("limit".to_string());
             }
         }
-        let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
+        let mut timeInForce: Option<String> = self.safe_string_k(order.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parse_order_type_time_in_force_and_post_only(type_var.as_deref(), timeInForce.as_str()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
+        { let __destr_tmp = self.parse_order_type_time_in_force_and_post_only(type_var.as_deref(), timeInForce.as_deref()).into_list(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
         let mut average: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[]));
         if (price.is_none()) {
             price = average.clone();
@@ -4507,7 +4507,7 @@ impl Hashkey {
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));

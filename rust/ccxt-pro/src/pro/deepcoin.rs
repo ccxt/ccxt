@@ -1940,7 +1940,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (action.as_deref() == Some("0")) {
             let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
             let mut subId: Option<i64> = self.safe_integer_k(&data, "L", &[]).as_i64();
-            let mut subscription: crate::value::Dict = self.safe_dict(&subscriptionsById, Value::from(subId), &[Value::Map({
+            let mut subscription: crate::value::Dict = self.safe_dict(&subscriptionsById, subId, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict(); // original watch subscription
@@ -1997,7 +1997,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         })]).into_dict();
         let mut requestId: Option<i64> = self.safe_integer_k(&data, "L", &[]).as_i64();
         let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
-        let mut subscription: crate::value::Dict = self.safe_dict(&subscriptionsById, Value::from(requestId), &[Value::Map({
+        let mut subscription: crate::value::Dict = self.safe_dict(&subscriptionsById, requestId, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();

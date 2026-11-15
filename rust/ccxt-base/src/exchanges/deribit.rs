@@ -1933,7 +1933,7 @@ impl Deribit {
                     inverse = Some(quote != settle);
                     linear = Some(settle == quote);
                 }
-                let mut parsedMarketValue: Option<bool> = self.safe_bool(Value::Map(parsedMarkets.clone()), Value::from(symbol.as_deref()), &[]).as_bool();
+                let mut parsedMarketValue: Option<bool> = self.safe_bool(&parsedMarkets, Value::from(symbol.as_deref()), &[]).as_bool();
                 if (parsedMarketValue.is_some()) {
                     continue;
                 }

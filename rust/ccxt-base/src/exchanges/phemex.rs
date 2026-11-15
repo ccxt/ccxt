@@ -4725,7 +4725,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::Int(200), &limit));
         }
-        let mut limitResolved: Option<i64> = self.safe_integer(Value::Map(request.clone()), Value::Str("limit".into()), &[]).as_i64();
+        let mut limitResolved: Option<i64> = self.safe_integer_k(&request, "limit", &[]).as_i64();
         let mut isUSDTSettled: bool = (type_var.as_deref() != Some("spot")) && ((symbol == Value::Null) || (self.safe_string_k(&market, "settle", &[]).as_str() == Some("USDT")));
         if isUSDTSettled {
             request.insert("currency".into(), Value::Str("USDT".into()));

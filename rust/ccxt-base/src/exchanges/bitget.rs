@@ -5925,7 +5925,7 @@ if _try_result.is_err() {
             m
         }).into_dict();
         if fetchMargins {
-            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(&results, Value::from(spotInstrumentsIndex), &[]).into_dict();
+            let mut instrumentsResponse: crate::value::Dict = self.safe_dict(&results, spotInstrumentsIndex, &[]).into_dict();
             let mut instruments: crate::value::List = self.safe_list_k(&instrumentsResponse, "data", &[Value::from(vec![])]).into_list();
             spotInstruments = self.index_by(Value::Arr(instruments), Value::Str("symbol".into())).into_dict();
         }
@@ -16284,10 +16284,10 @@ if _try_result.is_err() {
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        let mut result: Value = Value::Map({
+        let mut result: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(params, Some("fetchCrossBorrowRate"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -16307,9 +16307,9 @@ if _try_result.is_err() {
             //     }
             //
             result = self.safe_dict_k(&response, "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_dict();
         }  else {
             let __ws_arg_143 = self.extend(Value::Map(request), &[&paramsUTA]);
             response = self.private_margin_get_v2_margin_crossed_interest_rate_and_limit(&[__ws_arg_143]).await.into_opt_dict();
@@ -16343,11 +16343,11 @@ if _try_result.is_err() {
             result = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(&response, "requestTime", &[]).as_i64();
         add_element_to_object(&mut result, &Value::Str("timestamp".into()), Value::from(timestamp));
-        return self.parse_borrow_rate(result, Some(&currency));
+        return self.parse_borrow_rate(Value::Dict(result), Some(&currency));
         Value::Null
         }).await?))
     }

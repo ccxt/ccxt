@@ -4098,7 +4098,7 @@ impl Bitstamp {
             if (market.is_none()) {
                 market = self.get_market_from_trade(item.clone());
             }
-            let mut direction: String = (if (self.safe_string(Value::Map(parsedTrade.clone()), Value::Str("side".into()), &[]).as_str() == Some("buy")) { "in".to_string() } else { "out".to_string() });
+            let mut direction: String = (if (self.safe_string_k(&parsedTrade, "side", &[]).as_str() == Some("buy")) { "in".to_string() } else { "out".to_string() });
             return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
@@ -4121,11 +4121,11 @@ impl Bitstamp {
         }  else {
             let mut parsedTransaction: indexmap::IndexMap<String, Value> = self.parse_transaction(item.clone(), currency).as_map().cloned().unwrap_or_default();
             let mut direction: Option<String> = None;
-            let mut transactionCurrency: Option<String> = self.safe_string(Value::Map(parsedTransaction.clone()), Value::Str("currency".into()), &[]).as_str().map(str::to_owned);
+            let mut transactionCurrency: Option<String> = self.safe_string_k(&parsedTransaction, "currency", &[]).as_str().map(str::to_owned);
             let mut hasTransactionCurrency: bool = !(matches!(&item, Value::Dict(__d) if __d.contains_key("amount"))) && (transactionCurrency.is_some());
             let mut currencyResolved: Option<crate::types::Currency> = currency.cloned();
             if hasTransactionCurrency {
-                currencyResolved = Some(self.currency(self.safe_string(Value::Map(parsedTransaction.clone()), Value::Str("currency".into()), &[])));
+                currencyResolved = Some(self.currency(self.safe_string_k(&parsedTransaction, "currency", &[])));
             }
             if (matches!(&item, Value::Dict(__d) if __d.contains_key("amount"))) {
                 let mut amount: Option<String> = self.safe_string_k_opt(item.clone(), "amount", &[]);

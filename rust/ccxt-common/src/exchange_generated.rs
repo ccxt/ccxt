@@ -567,7 +567,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_dict(&self, dictionaryOrList: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
+    fn safe_dict(&self, dictionaryOrList: impl KeyRead, key: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut key: Value = key.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -3583,7 +3584,7 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-        let mut feeSide: Option<String> = self.safe_string(Value::Map(market.clone()), Value::Str("feeSide".into()), &[Value::Str("quote".into())]).as_str().map(str::to_owned);
+        let mut feeSide: Option<String> = self.safe_string_k(&market, "feeSide", &[Value::Str("quote".into())]).as_str().map(str::to_owned);
         let mut useQuote: Option<bool> = None;
         if (feeSide.as_deref() == Some("get")) {
             // the fee is always in the currency you get
@@ -3610,7 +3611,7 @@ pub trait ExchangeBase:
         }
         // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         let mut takerOrMakerResolved: Value = (if (type_var.as_str() == Some("market")) { Value::Str("taker".into()) } else { takerOrMaker });
-        let mut rate: Option<String> = (if (feeRate != Value::Null) { self.number_to_string(feeRate) } else { self.safe_string(Value::Map(market.clone()), takerOrMakerResolved.clone(), &[]).as_str().map(str::to_owned) });
+        let mut rate: Option<String> = (if (feeRate != Value::Null) { self.number_to_string(feeRate) } else { self.safe_string(&market, takerOrMakerResolved.clone(), &[]).as_str().map(str::to_owned) });
         cost = crate::precise::Precise::stringMul(&cost, &rate).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

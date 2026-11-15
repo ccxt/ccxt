@@ -3851,7 +3851,7 @@ impl Lbank {
                                 m
                             });
                             feesForCode.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::from(fee));
-                            let __ws_arg_26 = self.safe_dict(Value::Map(withdrawFees.clone()), Value::from(code.as_deref()), &[Value::Map({
+                            let __ws_arg_26 = self.safe_dict(&withdrawFees, Value::from(code.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3944,7 +3944,7 @@ impl Lbank {
                         m
                     });
                     feesForCode.insert(network.as_deref().unwrap_or("null").to_string(), self.parse_number(fee.map(Value::from).unwrap_or(Value::Null), &[]));
-                    let __ws_arg_28 = self.safe_dict(Value::Map(withdrawFees.clone()), Value::from(codeInner.as_deref()), &[Value::Map({
+                    let __ws_arg_28 = self.safe_dict(&withdrawFees, Value::from(codeInner.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4138,7 +4138,7 @@ impl Lbank {
                 if (code.is_some()) && ((codes == Value::Null) || self.in_array(&code, codes.clone())) {
                     let mut withdrawFee: Option<f64> = self.safe_number_k(fee.clone(), "fee", &[]).as_f64();
                     if (withdrawFee.is_some()) {
-                        let mut resultValue: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]).into_opt_dict();
+                        let mut resultValue: Option<crate::value::Dict> = self.safe_dict(&result, Value::from(code.as_deref()), &[]).into_opt_dict();
                         if (resultValue.is_none()) {
                             result.insert(code.as_deref().unwrap_or("null").to_string(), self.deposit_withdraw_fee(Value::from(vec![fee.clone()])));
                         }  else {
@@ -4171,7 +4171,7 @@ impl Lbank {
 }));
     m
 }));
-                            let __ws_arg_30 = self.safe_dict(self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[Value::Map({
+                            let __ws_arg_30 = self.safe_dict(self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("networks".into()), &[Value::Map({
@@ -4179,7 +4179,7 @@ impl Lbank {
     m
 })]);
                             let mut networks: crate::value::Dict = self.extend(__ws_arg_30, &[Value::Map(networkFees)]).into_dict();
-                            let __ws_arg_31 = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[Value::Map({
+                            let __ws_arg_31 = self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4189,7 +4189,7 @@ impl Lbank {
     m
 })]); result.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
                         }  else {
-                            let __ws_arg_32 = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[Value::Map({
+                            let __ws_arg_32 = self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4283,7 +4283,7 @@ impl Lbank {
 }));
     m
 }));
-                    let __ws_arg_33 = self.safe_dict(Value::Map(result.clone()), Value::Str("networks".into()), &[Value::Map({
+                    let __ws_arg_33 = self.safe_dict_k(&result, "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

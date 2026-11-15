@@ -12680,8 +12680,8 @@ impl Bybit {
         let mut result: Value = self.add_pagination_cursor_to_result(&response);
         let mut first: crate::value::Dict = self.safe_dict(result.clone(), Value::Int(0), &[]).into_dict();
         let mut total: i64 = result.len() as i64;
-        let mut lastIndex: Value = Value::Int((total - 1));
-        let mut last: crate::value::Dict = self.safe_dict(result.clone(), lastIndex.clone(), &[Value::Map({
+        let mut lastIndex: i64 = (total - 1);
+        let mut last: crate::value::Dict = self.safe_dict(result.clone(), lastIndex, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -12691,7 +12691,7 @@ impl Bybit {
         m.insert("nextPageCursor".to_string(), cursorValue.map(Value::from).unwrap_or(Value::Null));
     m
 }));
-        add_element_to_object(&mut result, &lastIndex, Value::Dict(last));
+        add_element_to_object(&mut result, &Value::from(lastIndex), Value::Dict(last));
         return self.to_array(result);
 
     Value::Null

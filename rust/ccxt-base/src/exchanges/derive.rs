@@ -5034,7 +5034,7 @@ impl Derive {
                 while { if !__for_first_634 { j += 1; } __for_first_634 = false; j < (collaterals.len() as i64) } {
                 let mut balance: crate::value::Dict = self.safe_dict(&collaterals, Value::Int(j), &[]).into_dict();
                 let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]), None);
-                let mut account: Value = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]);
+                let mut account: Value = self.safe_dict(&result, Value::from(code.as_deref()), &[]);
                 if (account == Value::Null) {
                     account = self.account();
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&balance, "amount", &[])); }
@@ -5048,7 +5048,7 @@ impl Derive {
             }
         }
         }
-        let mut usdcAccount: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), Value::Str("USDC".into()), &[]).into_opt_dict();
+        let mut usdcAccount: Option<crate::value::Dict> = self.safe_dict_k(&result, "USDC", &[]).into_opt_dict();
         if (usdcAccount.is_some()) {
             let mut totalUsdc: Option<String> = self.safe_string_k(&usdcAccount, "total", &[]).as_str().map(str::to_owned);
             let mut used: Option<String> = usedUsd;

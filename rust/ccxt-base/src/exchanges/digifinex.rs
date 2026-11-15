@@ -4012,7 +4012,7 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ledger_entry(&self, item: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {

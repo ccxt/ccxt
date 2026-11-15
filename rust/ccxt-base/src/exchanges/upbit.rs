@@ -2025,7 +2025,7 @@ impl Upbit {
             request.insert("identifier".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         if postOnly {
-            if (self.safe_string(Value::Map(request.clone()), Value::Str("ord_type".into()), &[]).as_str() != Some("limit")) {
+            if (self.safe_string_k(&request, "ord_type", &[]).as_str() != Some("limit")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " postOnly orders are only supported for limit orders")));
             }
             request.insert("time_in_force".into(), Value::Str("post_only".into()));
@@ -2035,7 +2035,7 @@ impl Upbit {
                 request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
-        if (self.safe_string(Value::Map(request.clone()), Value::Str("ord_type".into()), &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
+        if (self.safe_string_k(&request, "ord_type", &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a timeInForce parameter for best type orders")));
         }
         let mut response: Option<crate::value::Dict> = None;
@@ -2193,7 +2193,7 @@ impl Upbit {
             request.insert("new_smp_type".into(), selfTradePrevention.map(Value::from).unwrap_or(Value::Null));
         }
         if postOnly {
-            if (self.safe_string(Value::Map(request.clone()), Value::Str("new_ord_type".into()), &[]).as_str() != Some("limit")) {
+            if (self.safe_string_k(&request, "new_ord_type", &[]).as_str() != Some("limit")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " postOnly orders are only supported for limit orders")));
             }
             request.insert("new_time_in_force".into(), Value::Str("post_only".into()));
@@ -2203,7 +2203,7 @@ impl Upbit {
                 request.insert("new_time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
-        if (self.safe_string(Value::Map(request.clone()), Value::Str("new_ord_type".into()), &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
+        if (self.safe_string_k(&request, "new_ord_type", &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires a timeInForce parameter for best type orders")));
         }
         let mut paramsRequest: crate::value::Dict = self.omit(&paramsOrdType, &["newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"], &[]).into_dict();

@@ -1365,7 +1365,7 @@ impl Indodax {
             return self.parse_orders(rawOrders, market.as_ref(), &[since.clone(), limit.clone()]);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-        let mut ordersDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(Value::Map(openOrdersResult), "orders", &[Value::Map({
+        let mut ordersDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&openOrdersResult, "orders", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -1843,8 +1843,8 @@ impl Indodax {
             }
         }  else {
             currency = Some(self.currency(code));
-            let mut withdraws: crate::value::List = self.safe_list(Value::Map(withdraw), crate::value::KeyRead::key_read(&&currency, "id"), &[Value::from(vec![])]).into_list();
-            let mut deposits: crate::value::List = self.safe_list(Value::Map(deposit), crate::value::KeyRead::key_read(&&currency, "id"), &[Value::from(vec![])]).into_list();
+            let mut withdraws: crate::value::List = self.safe_list(&withdraw, crate::value::KeyRead::key_read(&&currency, "id"), &[Value::from(vec![])]).into_list();
+            let mut deposits: crate::value::List = self.safe_list(&deposit, crate::value::KeyRead::key_read(&&currency, "id"), &[Value::from(vec![])]).into_list();
             transactions = self.array_concat(&withdraws, &deposits).into_list();
         }
         return self.parse_transactions(&transactions, currency.as_ref(), &[since, limit]);

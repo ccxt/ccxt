@@ -2134,7 +2134,7 @@ impl Bittrade {
             let mut balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-            let mut account: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[self.account()]).as_map().cloned().unwrap_or_default();
+            let mut account: indexmap::IndexMap<String, Value> = self.safe_dict(&result, Value::from(code.as_deref()), &[self.account()]).as_map().cloned().unwrap_or_default();
             if (self.safe_string_k(&balance, "type", &[]).as_str() == Some("trade")) {
                 account.insert("free".into(), self.safe_string_k(&balance, "balance", &[]));
             }

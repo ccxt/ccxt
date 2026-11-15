@@ -727,7 +727,7 @@ impl Coinone {
                     m.insert("TRADE".to_string(), Value::Str("handle_trades".into()).clone());
                 m
             });
-            let mut exacMethod: Option<String> = self.safe_value(Value::Map(methods.clone()), topic.clone(), &[]).as_str().map(str::to_owned);
+            let mut exacMethod: Option<String> = self.safe_value(&methods, topic.clone(), &[]).as_str().map(str::to_owned);
             if (exacMethod.is_some()) {
                 self.dispatch_ws_handler(&exacMethod, &[client.clone(), message.clone()]);
                 return;

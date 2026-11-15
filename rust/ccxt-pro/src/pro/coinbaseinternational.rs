@@ -2478,8 +2478,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("user".to_string(), self.safe_value(&userHandlers, userChannel.map(Value::from).unwrap_or(Value::Null), &[]));
                 m
             });
-            let mut handler: Value = self.safe_value(&handlers, channelId.map(Value::from).unwrap_or(Value::Null), &[]);
-            if (handler == Value::Null) {
+            let mut handler: Option<String> = self.safe_value(&handlers, channelId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (handler.is_none()) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " no handler found for websocket channel ").into()), channel.as_deref().unwrap_or("null"))));
             }
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);

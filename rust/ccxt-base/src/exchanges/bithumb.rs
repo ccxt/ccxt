@@ -1748,7 +1748,7 @@ impl Bithumb {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).as_map().cloned().unwrap_or_default();
-                let mut timestamp: Option<i64> = self.safe_integer(Value::Map(data.clone()), Value::Str("date".into()), &[]).as_i64();
+                let mut timestamp: Option<i64> = self.safe_integer_k(&data, "date", &[]).as_i64();
                 let mut tickers: Value = self.omit(Value::Map(data.clone()), Value::Str("date".into()), &[]);
                 let mut currencyIds: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {

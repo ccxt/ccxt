@@ -3059,7 +3059,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (matches!(&channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if methods.contains_key(__k.as_ref()))) {
             let mut subscriptionHash: Option<String> = self.safe_string(__ch.subscriptions.clone(), id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), subscriptionHash.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut method: Value = methods.get(channel.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut method: Option<String> = methods.get(channel.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
             self.dispatch_ws_handler(&method, &[client, message.clone(), subscription]);
         }
         if (__ch.has_subscription(id.as_deref())) {

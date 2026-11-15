@@ -3481,7 +3481,7 @@ impl Blofin {
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut first: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(0), &[]).into_opt_dict();
         if (first.is_none()) {
-            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchDepositAddress() returned no address for ").into()), code).into()), " on ").into()), self.safe_string_k(Value::Map(request), "chain", &[chain.map(Value::from).unwrap_or(Value::Null)]))));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchDepositAddress() returned no address for ").into()), code).into()), " on ").into()), self.safe_string_k(&request, "chain", &[chain.map(Value::from).unwrap_or(Value::Null)]))));
         }
         return self.parse_deposit_address(&first, Some(&currency));
         Value::Null
@@ -3576,7 +3576,7 @@ impl Blofin {
         }
         if (chainsLength == 1.0) {
             // a single network means the currency-level fee is unambiguous
-            let mut networks: crate::value::Dict = self.safe_dict(Value::Map(result.clone()), Value::Str("networks".into()), &[Value::Map({
+            let mut networks: crate::value::Dict = self.safe_dict_k(&result, "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

@@ -725,7 +725,7 @@ impl Upbit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut authenticated: Option<String> = self.safe_string(Value::Map(wsOptions.clone()), Value::Str("token".into()), &[]).as_str().map(str::to_owned);
+        let mut authenticated: Option<String> = self.safe_string_k(&wsOptions, "token", &[]).as_str().map(str::to_owned);
         if (authenticated.is_none()) {
             let mut auth: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();

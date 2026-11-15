@@ -3885,7 +3885,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // if (table === undefined) {
         let mut event: Option<String> = self.safe_string2(message.clone(), Value::Str("event".into()), Value::Str("op".into()), &[]).as_str().map(str::to_owned);
         if (event.is_some()) {
-            let mut methods: crate::value::Dict = Value::Map({
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("login".to_string(), Value::Str("handle_authenticate".into()).clone());
                     m.insert("subscribe".to_string(), Value::Str("handle_subscription_status".into()).clone());
@@ -3898,7 +3898,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("batch-cancel-orders".to_string(), Value::Str("handle_cancel_orders".into()).clone());
                     m.insert("mass-cancel".to_string(), Value::Str("handle_cancel_all_orders".into()).clone());
                 m
-            }).into_dict();
+            });
             let mut method: Option<String> = self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
@@ -3909,7 +3909,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (channel.is_none()) {
                 return;
             }
-            let mut methods: crate::value::Dict = Value::Map({
+            let mut methods: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("bbo-tbt".to_string(), Value::Str("handle_order_book".into()).clone());
                     m.insert("books".to_string(), Value::Str("handle_order_book".into()).clone());
@@ -3932,7 +3932,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("liquidation-orders".to_string(), Value::Str("handle_liquidation".into()).clone());
                     m.insert("balance_and_position".to_string(), Value::Str("handle_balance_and_position".into()).clone());
                 m
-            }).into_dict();
+            });
             let mut method: Option<String> = self.safe_value(&methods, Value::from(channel.as_deref()), &[]).as_str().map(str::to_owned);
             if (method.is_none()) {
                 if (((if let (Some(__h), Some(__n)) = (channel.as_deref(), Some("candle")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {

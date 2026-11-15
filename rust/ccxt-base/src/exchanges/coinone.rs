@@ -1924,7 +1924,7 @@ impl Coinone {
             let mut currencyId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut secondPart: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-            let mut address: Option<String> = self.safe_string(self.safe_value(Value::Map(result.clone()), Value::from(code.as_deref()), &[]), Value::Str("address".into()), &[value.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut address: Option<String> = self.safe_string(self.safe_value(&result, Value::from(code.as_deref()), &[]), Value::Str("address".into()), &[value.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             self.check_address(&[Value::from(address.as_deref())]);
             let mut depositAddress: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1932,7 +1932,7 @@ impl Coinone {
                     m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("network".to_string(), Value::Null);
                     m.insert("address".to_string(), Value::from(address.as_deref()));
-                    m.insert("tag".to_string(), self.safe_string(self.safe_value(Value::Map(result.clone()), Value::from(code.as_deref()), &[]), Value::Str("tag".into()), &[]));
+                    m.insert("tag".to_string(), self.safe_string(self.safe_value(&result, Value::from(code.as_deref()), &[]), Value::Str("tag".into()), &[]));
                 m
             });
             if ((secondPart.as_deref() == Some("tag")) || (secondPart.as_deref() == Some("memo"))) {

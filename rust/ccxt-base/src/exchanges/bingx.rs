@@ -4967,7 +4967,7 @@ impl Bingx {
                 request.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), price.clone()))));
             }
             if (triggerPrice.is_some()) {
-                if isMarketOrder && (side.as_str() == Some("buy")) && (self.safe_string(Value::Map(request.clone()), Value::Str("quoteOrderQty".into()), &[]) == Value::Null) {
+                if isMarketOrder && (side.as_str() == Some("buy")) && (self.safe_string_k(&request, "quoteOrderQty", &[]) == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders")));
                 }
                 request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));

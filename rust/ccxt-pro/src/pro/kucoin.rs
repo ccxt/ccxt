@@ -481,7 +481,7 @@ impl Kucoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut future: Value = self.safe_value(Value::Map(urls.clone()), connectId.clone(), &[]);
+        let mut future: Value = self.safe_value(&urls, connectId.clone(), &[]);
         if (future != Value::Null) {
             return future;
         }
@@ -2697,7 +2697,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_459: bool = true;
             while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Value = symbols.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut storedLimit: Option<i64> = self.safe_integer(Value::Map(limits.clone()), symbol.clone(), &[]).as_i64();
+            let mut storedLimit: Option<i64> = self.safe_integer(&limits, symbol.clone(), &[]).as_i64();
             // reuse the existing book so user-held references keep updating; rebuild only if depth changed
             if !(self.orderbooks.has(&symbol)) || (storedLimit != limit) {
                 { let __cv = self.order_book(&[Value::Map({

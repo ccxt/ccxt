@@ -1291,9 +1291,9 @@ impl Coinbase {
         let mut cursor: Option<String> = self.safe_string_k(&pagination, "next_starting_after", &[]).as_str().map(str::to_owned);
         let mut accounts: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut length: i64 = accounts.len() as i64;
-        let mut lastIndex: Value = Value::Int((length - 1));
+        let mut lastIndex: i64 = (length - 1);
         if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-            let __ws_arg_1 = self.safe_dict(accounts.clone(), lastIndex.clone(), &[Value::Map({
+            let __ws_arg_1 = self.safe_dict(accounts.clone(), lastIndex, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1301,7 +1301,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
         m.insert("next_starting_after".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
-})]); add_element_to_object(&mut accounts, &lastIndex, __be_tmp); };
+})]); add_element_to_object(&mut accounts, &Value::from(lastIndex), __be_tmp); };
         }
         return self.parse_accounts(&data, &[Value::Dict(paramsPaginate)]);
 
@@ -1363,8 +1363,8 @@ impl Coinbase {
         let mut accountsLength: i64 = accounts.len() as i64;
         let mut cursor: Option<String> = self.safe_string_k(&response, "cursor", &[]).as_str().map(str::to_owned);
         if (accountsLength > 0) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-            let mut lastIndex: Value = Value::Int((accountsLength - 1));
-            let __ws_arg_3 = self.safe_dict(accounts.clone(), lastIndex.clone(), &[Value::Map({
+            let mut lastIndex: i64 = (accountsLength - 1);
+            let __ws_arg_3 = self.safe_dict(accounts.clone(), lastIndex, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1372,7 +1372,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
-})]); add_element_to_object(&mut accounts, &lastIndex, __be_tmp); };
+})]); add_element_to_object(&mut accounts, &Value::from(lastIndex), __be_tmp); };
         }
         return self.parse_accounts(accounts, &[Value::Dict(paramsPaginate)]);
 
@@ -3730,7 +3730,7 @@ if _try_result.is_err() {
                     let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                     let mut total: Option<String> = self.safe_string_k_opt(&value, "amount", &[]);
                     let mut free: Value = total.clone().map(Value::from).unwrap_or(Value::Null);
-                    let mut account: Value = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]);
+                    let mut account: Value = self.safe_dict(&result, Value::from(code.as_deref()), &[]);
                     if (account == Value::Null) {
                         let __ws_arg_19 = self.account();
                         account = self.extend(__ws_arg_19, &[Value::Map({
@@ -3762,7 +3762,7 @@ if _try_result.is_err() {
                     let mut used: Option<String> = self.safe_string_k_opt(&hold, "value", &[]);
                     let mut free: Option<String> = self.safe_string_k_opt(&available, "value", &[]);
                     let mut total: Value = crate::precise::Precise::stringAdd(&used.clone().map(Value::from).unwrap_or(Value::Null), &free.clone().map(Value::from).unwrap_or(Value::Null));
-                    let mut account: Value = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]);
+                    let mut account: Value = self.safe_dict(&result, Value::from(code.as_deref()), &[]);
                     if (account == Value::Null) {
                         let __ws_arg_22 = self.account();
                         account = self.extend(__ws_arg_22, &[Value::Map({
@@ -3931,8 +3931,8 @@ if _try_result.is_err() {
         let mut ledger: Value = self.parse_ledger(&data, currency.as_ref(), &[since, limit]);
         let mut length: i64 = ledger.len() as i64;
         if length > 0 {
-            let mut lastIndex: Value = Value::Int((length - 1));
-            let mut last: Value = self.safe_dict(ledger.clone(), lastIndex.clone(), &[]);
+            let mut lastIndex: i64 = (length - 1);
+            let mut last: Value = self.safe_dict(ledger.clone(), lastIndex, &[]);
             let mut pagination: crate::value::Dict = self.safe_dict_k(&response, "pagination", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3940,7 +3940,7 @@ if _try_result.is_err() {
             let mut cursor: Option<String> = self.safe_string_k_opt(&pagination, "next_starting_after", &[]);
             if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
                 add_element_to_object(get_value_mut(&mut last, &Value::Str("info".into())), &Value::Str("next_starting_after".into()), cursor.map(Value::from).unwrap_or(Value::Null));
-                add_element_to_object(&mut ledger, &lastIndex, last);
+                add_element_to_object(&mut ledger, &Value::from(lastIndex), last);
             }
         }
         return self.to_array(ledger);
@@ -5264,10 +5264,10 @@ if _try_result.is_err() {
         //         "cursor": ""
         //     }
         //
-        let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
+        let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         let mut cursor: Option<String> = self.safe_string_k(&response, "cursor", &[]).as_str().map(str::to_owned);
         if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-            let __ws_arg_42 = self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
+            let __ws_arg_42 = self.safe_dict(&orders, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5277,7 +5277,7 @@ if _try_result.is_err() {
     m
 })]); add_element_to_object(&mut orders, &Value::Int(0), __be_tmp); };
         }
-        return self.parse_orders(orders, market.as_ref(), &[since, limit]);
+        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -5360,10 +5360,10 @@ if _try_result.is_err() {
         //         "cursor": ""
         //     }
         //
-        let mut orders: Value = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
+        let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         let mut cursor: Option<String> = self.safe_string_k(&response, "cursor", &[]).as_str().map(str::to_owned);
         if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-            let __ws_arg_44 = self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
+            let __ws_arg_44 = self.safe_dict(&orders, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5373,7 +5373,7 @@ if _try_result.is_err() {
     m
 })]); add_element_to_object(&mut orders, &Value::Int(0), __be_tmp); };
         }
-        return self.parse_orders(orders, market.as_ref(), &[since, Value::from(limitResolved)]);
+        return self.parse_orders(&orders, market.as_ref(), &[since, Value::from(limitResolved)]);
 
     Value::Null
 }
@@ -5762,10 +5762,10 @@ if _try_result.is_err() {
         //         "cursor": ""
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "fills", &[Value::from(vec![])]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "fills", &[Value::from(vec![])]).into_list();
         let mut cursor: Option<String> = self.safe_string_k(&response, "cursor", &[]).as_str().map(str::to_owned);
         if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
-            let __ws_arg_50 = self.safe_dict(trades.clone(), Value::Int(0), &[Value::Map({
+            let __ws_arg_50 = self.safe_dict(&trades, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5775,7 +5775,7 @@ if _try_result.is_err() {
     m
 })]); add_element_to_object(&mut trades, &Value::Int(0), __be_tmp); };
         }
-        return self.parse_trades(trades, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

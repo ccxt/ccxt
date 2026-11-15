@@ -1304,7 +1304,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut subscriptions: Value = self.safe_dict(Value::Map(wsOptions.clone()), Value::Str("gen2Subscriptions".into()), &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict_k(&wsOptions, "gen2Subscriptions", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1339,7 +1339,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut authenticated: Option<String> = self.safe_string(Value::Map(wsOptions.clone()), Value::Str("token".into()), &[]).as_str().map(str::to_owned);
+        let mut authenticated: Option<String> = self.safe_string_k(&wsOptions, "token", &[]).as_str().map(str::to_owned);
         if (authenticated.is_none()) {
             let mut payload: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();

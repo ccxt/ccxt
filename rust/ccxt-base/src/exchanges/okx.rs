@@ -3771,7 +3771,7 @@ impl Okx {
         let mut defaultValue = get_arg(optional_args, 1, Value::Null);
         let mut instType: Option<String> = self.safe_string_k(params.clone(), "instType", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: indexmap::IndexMap<String, Value> = self.omit(params, Value::Str("instType".into()), &[]).as_map().cloned().unwrap_or_default();
-        let mut type_var: Option<String> = self.safe_string(Value::Map(paramsOmitted.clone()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string_k(&paramsOmitted, "type", &[]).as_str().map(str::to_owned);
         if (type_var.is_none()) && (instType.is_some()) {
             paramsOmitted.insert("type".into(), instType.map(Value::from).unwrap_or(Value::Null));
         }
@@ -6134,7 +6134,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut requestOrdType: Option<String> = self.safe_string(Value::Map(request.clone()), Value::Str("ordType".into()), &[]).as_str().map(str::to_owned);
+            let mut requestOrdType: Option<String> = self.safe_string_k(&request, "ordType", &[]).as_str().map(str::to_owned);
             if (requestOrdType.is_some()) && (matches!(requestOrdType.as_deref(), Some(__k) if algoOrderTypes.contains_key(__k))) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint")));
             }
@@ -12146,7 +12146,7 @@ impl Okx {
         //   }
         // ]
         //
-        let mut depositWithdrawFees: Value = Value::Map({
+        let mut depositWithdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -12159,15 +12159,15 @@ impl Okx {
             let mut currencyId: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
             if (code != Value::Null) && ((codesValue == Value::Null) || (self.in_array(code.clone(), codesValue.clone()))) {
-                let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(depositWithdrawFees.clone(), code.clone(), &[]).into_opt_dict();
+                let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(&depositWithdrawFees, code.clone(), &[]).into_opt_dict();
                 if (depositWithdrawFee.is_none()) {
-                    if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
+                    depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}))); }
+})));
                 }
                 if (currencyId.is_some()) {
-                    add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".into())), &currencyId.clone().map(Value::from).unwrap_or(Value::Null), feeInfo.clone());
+                    add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("info".into())), &currencyId.clone().map(Value::from).unwrap_or(Value::Null), feeInfo.clone());
                 }
                 let mut chain: Option<String> = self.safe_string_k(feeInfo.clone(), "chain", &[]).as_str().map(str::to_owned);
                 if (chain.is_none()) {
@@ -12190,7 +12190,7 @@ impl Okx {
                 });
                 let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
                 if (networkCode != Value::Null) {
-                    add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into())), &networkCode, Value::Map({
+                    add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawResult));
         m.insert("deposit".to_string(), Value::Map(depositResult));
@@ -12200,17 +12200,17 @@ impl Okx {
             }
         }
         }
-        let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1028: bool = true;
             while { if !__for_first_1028 { i += 1; } __for_first_1028 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: crate::types::Currency = self.currency(code.clone());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); depositWithdrawFees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
         }
         }
-        return depositWithdrawFees;
+        return Value::Map(depositWithdrawFees);
 
     Value::Null
 }

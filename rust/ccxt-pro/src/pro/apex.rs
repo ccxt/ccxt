@@ -872,7 +872,7 @@ impl Apex {
         let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(Value::from(&data), None).as_map().cloned().unwrap_or_default();
         if (updateType.as_deref() == Some("snapshot")) {
             parsed = self.parse_ticker(Value::from(&data), None).as_map().cloned().unwrap_or_default();
-            symbol = self.safe_string(Value::Map(parsed.clone()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+            symbol = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
         }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: crate::value::List = Value::Array(topic.split(".").map(Value::from).collect()).into_list();
             let mut topicLength: i64 = topicParts.len() as i64;
@@ -1609,7 +1609,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("ping".to_string(), Value::Str("handle_ping".into()).clone());
             m
         });
-        let mut exacMethod: Option<String> = self.safe_value(Value::Map(methods.clone()), Value::from(topic.as_str()), &[]).as_str().map(str::to_owned);
+        let mut exacMethod: Option<String> = self.safe_value(&methods, Value::from(topic.as_str()), &[]).as_str().map(str::to_owned);
         if (exacMethod.is_some()) {
             self.dispatch_ws_handler(&exacMethod, &[client.clone(), message.clone()]);
             return;

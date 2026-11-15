@@ -4610,7 +4610,7 @@ impl Poloniex {
             if (code != Value::Null) && ((codesValue == Value::Null) || (self.in_array(code.clone(), codesValue.clone()))) {
                 let mut currency: crate::types::Currency = self.currency(code.clone());
                 depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(&feeInfo, Some(&currency)));
-                let mut parsedFee: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Map(depositWithdrawFees.clone()), code.clone(), &[Value::Map({
+                let mut parsedFee: indexmap::IndexMap<String, Value> = self.safe_dict(&depositWithdrawFees, code.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -4648,7 +4648,7 @@ impl Poloniex {
     m
 }));
                         }
-                        let __ws_arg_41 = self.safe_dict(Value::Map(parsedFee.clone()), Value::Str("networks".into()), &[Value::Map({
+                        let __ws_arg_41 = self.safe_dict_k(&parsedFee, "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

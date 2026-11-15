@@ -5527,8 +5527,8 @@ if _try_result.is_err() {
             finalHeaders.insert("agent_wallet".into(), agentAddress.map(Value::from).unwrap_or(Value::Null));
         }
         finalHeaders.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
-        finalHeaders.insert("timestamp".into(), self.safe_integer(Value::Map(signatureHeader.clone()), Value::Str("timestamp".into()), &[]));
-        finalHeaders.insert("expiry_window".into(), self.safe_integer_k(Value::Map(signatureHeader), "expiry_window", &[]));
+        finalHeaders.insert("timestamp".into(), self.safe_integer_k(&signatureHeader, "timestamp", &[]));
+        finalHeaders.insert("expiry_window".into(), self.safe_integer_k(&signatureHeader, "expiry_window", &[]));
         let mut request: crate::value::Dict = self.extend(Value::Map(finalHeaders), &[Value::Map(sigPayload.clone())]).into_dict();
         return Value::Dict(request);
 

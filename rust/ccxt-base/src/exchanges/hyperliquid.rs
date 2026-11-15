@@ -1424,7 +1424,7 @@ impl Hyperliquid {
     m
 })]).into_dict();
             let mut index: Option<i64> = self.safe_integer_k(&market, "index", &[]).as_i64();
-            let mut extraData: crate::value::Dict = self.safe_dict(&second, Value::from(index), &[Value::Map({
+            let mut extraData: crate::value::Dict = self.safe_dict(&second, index, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1445,11 +1445,11 @@ impl Hyperliquid {
             let mut tokensPos: crate::value::List = self.safe_list_k(&market, "tokens", &[Value::from(vec![])]).into_list();
             let mut baseTokenIndex: Option<String> = self.safe_string(&tokensPos, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut quoteTokenIndex: Option<String> = self.safe_string(&tokensPos, Value::Int(1), &[]).as_str().map(str::to_owned);
-            let mut baseTokenInfo: crate::value::Dict = self.safe_dict(Value::Map(tokensByIndex.clone()), baseTokenIndex.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut baseTokenInfo: crate::value::Dict = self.safe_dict(&tokensByIndex, baseTokenIndex.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut quoteTokenInfo: crate::value::Dict = self.safe_dict(Value::Map(tokensByIndex.clone()), quoteTokenIndex.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut quoteTokenInfo: crate::value::Dict = self.safe_dict(&tokensByIndex, quoteTokenIndex.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -5377,7 +5377,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let mut fills: Vec<Value> = Vec::new();
         if (matches!(&response, Value::Arr(_))) {
-            let mut user: Option<String> = self.safe_string_lower_k_opt(Value::Map(request), "user", &[]);
+            let mut user: Option<String> = self.safe_string_lower_k_opt(&request, "user", &[]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_824: bool = true;

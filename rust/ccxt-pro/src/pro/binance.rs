@@ -1938,8 +1938,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
-        if (method != Value::Null) {
+        let mut method: Option<String> = self.safe_value_k(subscription.clone(), "method", &[]).as_str().map(str::to_owned);
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription.clone()]);
         }
         let mut isUnSubMessage: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -7962,8 +7962,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // user subscription wraps message in subscriptionId and event
         let mut id: Option<String> = self.safe_string_k(messageValue.clone(), "id", &[]).as_str().map(str::to_owned);
         let mut subscriptions: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), id.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
-        let mut method: Value = self.safe_value_k(&subscriptions, "method", &[]);
-        if (method != Value::Null) {
+        let mut method: Option<String> = self.safe_value_k(&subscriptions, "method", &[]).as_str().map(str::to_owned);
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client.clone(), messageValue.clone()]);
             return;
         }
@@ -8012,8 +8012,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut arrayMessage: crate::value::Dict = self.safe_dict(messageValue.clone(), Value::Int(0), &[]).into_dict();
             event = Some(format!("{}{}", self.safe_string_k(&arrayMessage, "e", &[]), Value::Str("@arr".into())));
         }
-        method = self.safe_value(&methods, event.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (method == Value::Null) {
+        method = self.safe_value(&methods, event.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        if (method.is_none()) {
             let mut requestId: Option<String> = self.safe_string_k(messageValue.clone(), "id", &[]).as_str().map(str::to_owned);
             if (requestId.is_some()) {
                 self.handle_subscription_status(client.clone(), messageValue.clone());

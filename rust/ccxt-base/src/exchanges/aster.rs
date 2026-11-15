@@ -2420,35 +2420,35 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::Map({
+        let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
-        });
+        }).into_dict();
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".into()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
+            std::sync::Arc::make_mut(&mut request).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         let mut response: Option<crate::value::List> = None;
         let mut sinceDefined: bool = since != Value::Null;
         let mut untilDefined: bool = matches!(&params, Value::Dict(__d) if __d.contains_key("until"));
         if sinceDefined {
-            add_element_to_object(&mut request, &Value::Str("startTime".into()), since.clone());
+            std::sync::Arc::make_mut(&mut request).insert("startTime".into(), since.clone());
         }
         if untilDefined {
-            request = self.handle_until_option(Value::Str("endTime".into()), request, params.clone(), &[]);
+            request = self.handle_until_option(Value::Str("endTime".into()), Value::Dict(request), params.clone(), &[]).into_dict();
         }
         // use historical endpoint for targeted requests
         if sinceDefined {
             if (market).swap {
-                let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_4 = self.extend(&request, &[params.clone()]);
                 response = self.fapi_public_get_v3_agg_trades(&[__ws_arg_4]).await.into_opt_list();
             }  else {
-                let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_5 = self.extend(&request, &[params.clone()]);
                 response = self.sapi_public_get_v3_agg_trades(&[__ws_arg_5]).await.into_opt_list();
             }
         }  else {
             if (market).swap {
-                let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_6 = self.extend(&request, &[params.clone()]);
                 response = self.fapi_public_get_v3_trades(&[__ws_arg_6]).await.into_opt_list();
             }  else {
                 let __ws_arg_7 = self.extend(request, &[params]);
@@ -4015,7 +4015,7 @@ impl Aster {
         let tifOptionparamsTifOptionVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tifOption: Option<String> = tifOptionparamsTifOptionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTifOption: crate::value::Dict = tifOptionparamsTifOptionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut tifIsMissing: bool = ((timeInForceIsRequired && (self.safe_string_k(params.clone(), "timeInForce", &[]) == Value::Null)) && (self.safe_string(Value::Map(request.clone()), Value::Str("timeInForce".into()), &[]) == Value::Null));
+        let mut tifIsMissing: bool = ((timeInForceIsRequired && (self.safe_string_k(params.clone(), "timeInForce", &[]) == Value::Null)) && (self.safe_string_k(&request, "timeInForce", &[]) == Value::Null));
         let __yd0: Vec<Value> = vec![
             Value::Str("newClientOrderId".into()),
             Value::Str("clientOrderId".into()),
@@ -5141,7 +5141,7 @@ impl Aster {
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
             if !filterClosed || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
-                let mut balance: Option<crate::value::Dict> = self.safe_dict(Value::Map(balances.clone()), code, &[]).into_opt_dict();
+                let mut balance: Option<crate::value::Dict> = self.safe_dict(&balances, code, &[]).into_opt_dict();
                 if (balance.is_some()) {
                     let __ws_arg_44 = self.extend(position, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
