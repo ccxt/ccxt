@@ -799,10 +799,10 @@ impl Bitstamp {
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(data), Some(&market)).into_dict();
-        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&fundingRate)); }
         client.resolve(Value::Dict(fundingRate), &(Value::Str(format!("{}{}", "fundingRate:", symbol).into())));
 }
 

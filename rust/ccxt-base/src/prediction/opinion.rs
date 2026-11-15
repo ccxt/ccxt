@@ -2191,11 +2191,11 @@ impl Opinion {
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
-        let mut marketHandle: Value = self.safe_string_k(market.clone(), "market", &[Value::Str("".into())]);
-        if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketHandle), market.clone()); }
+        let mut marketHandle: String = self.safe_string_k(market.clone(), "market", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.to_string(), market.clone()); }
         self.index_market_outcomes(market.clone());
         cached.insert(idStr, market.clone());
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(cacheKey.clone(), Value::Map(cached)); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(cacheKey.to_string(), Value::Map(cached)); }
         return market;
 
     Value::Null

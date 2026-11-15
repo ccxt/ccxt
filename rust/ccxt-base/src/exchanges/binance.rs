@@ -7026,8 +7026,8 @@ impl Binance {
 });
         }
         // sandbox/testnet does not support sapi endpoints
-        let mut apiBackup: Value = self.safe_value_k(self.urls.clone(), "apiBackup", &[]);
-        if (apiBackup != Value::Null) {
+        let apiBackup: bool = self.safe_value_k(self.urls.clone(), "apiBackup", &[]) != Value::Null;
+        if (apiBackup) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -14466,11 +14466,11 @@ impl Binance {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut internal: bool = self.safe_bool_k(params.clone(), "internal", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("internal".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("internal".into()), &[]).into_dict();
         let mut paginate: bool = false;
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsOmitted.clone(), Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if paginate && !internal {
-            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), paramsOmitted.clone()]).await;
+            return self.fetch_paginated_call_dynamic(Value::Str("fetchTransfers".into()), &[code.clone(), since.clone(), limit.clone(), Value::from(&paramsOmitted)]).await;
         }
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
@@ -14483,13 +14483,13 @@ impl Binance {
         let mut limitKey: String = "limit".to_string();
         if !internal {
             let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchTransfers".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
-            let mut fromAccount: Option<String> = self.safe_string_k(paramsOmitted.clone(), "fromAccount", &[Value::from(defaultType)]).as_str().map(str::to_owned);
+            let mut fromAccount: Option<String> = self.safe_string_k(&paramsOmitted, "fromAccount", &[Value::from(defaultType)]).as_str().map(str::to_owned);
             let mut defaultTo: String = "swap".to_string();
             if (fromAccount.as_deref() == Some("swap")) || (fromAccount.as_deref() == Some("linear")) {
                 defaultTo = "spot".to_string();
             }
-            let mut toAccount: Option<String> = self.safe_string_k(paramsOmitted.clone(), "toAccount", &[Value::from(defaultTo)]).as_str().map(str::to_owned);
-            let mut type_var: Option<String> = self.safe_string_k(paramsOmitted.clone(), "type", &[]).as_str().map(str::to_owned);
+            let mut toAccount: Option<String> = self.safe_string_k(&paramsOmitted, "toAccount", &[Value::from(defaultTo)]).as_str().map(str::to_owned);
+            let mut type_var: Option<String> = self.safe_string_k(&paramsOmitted, "type", &[]).as_str().map(str::to_owned);
             let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -14516,17 +14516,17 @@ impl Binance {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64();
         if (until.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(Value::Dict(paramsOmitted), Value::Str("until".into()), &[]).into_dict();
             request.insert("endTime".into(), Value::from(until));
         }
         let mut response: Option<crate::value::Dict> = None;
         if internal {
-            let __ws_arg_145 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_145 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.sapi_get_pay_transactions(&[__ws_arg_145]).await.into_opt_dict();
         }  else {
-            let __ws_arg_146 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_146 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.sapi_get_asset_transfer(&[__ws_arg_146]).await.into_opt_dict();
         }
         let mut rows: crate::value::List = self.safe_list2(&response, Value::Str("rows".into()), Value::Str("data".into()), &[Value::from(vec![])]).into_list();

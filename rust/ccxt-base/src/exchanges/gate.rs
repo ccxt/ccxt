@@ -7230,7 +7230,7 @@ if _try_result.is_err() {
         // this is because the other params will get extended into the request
         let mut clientOrderIdRaw: Option<String> = self.safe_string2(Value::from(&paramsPostOnly), Value::Str("text".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Option<String> = clientOrderIdRaw.clone();
-        let mut query: Value = self.omit(&paramsPostOnly, &["stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId"], &[]);
+        let mut query: crate::value::Dict = self.omit(&paramsPostOnly, &["stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId"], &[]).into_dict();
         let mut isLimitOrder: bool = type_var.as_str() == Some("limit");
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         if isLimitOrder && (price == Value::Null) {
@@ -7255,7 +7255,7 @@ if _try_result.is_err() {
         let mut signedAmount: Option<String> = None;
         let mut useGateFuturesDecimalSize: Value = Value::Bool(false);
         if (contract == true) {
-            let mut isClose: bool = self.safe_bool_k(query.clone(), "close", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isClose: bool = self.safe_bool_k(&query, "close", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if !isClose {
                 signedAmount = self.get_gate_futures_signed_amount(symbol.as_str(), side.as_str(), amount.clone());
                 useGateFuturesDecimalSize = self.is_gate_futures_contract_with_decimal_size(Some(&market));
@@ -7299,7 +7299,7 @@ if _try_result.is_err() {
                 }
             }  else {
                 let mut marginMode: Value = Value::Null;
-                { let __destr_tmp: Vec<Value> = self.get_margin_mode(Value::Bool(false), query.clone()).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+                { let __destr_tmp: Vec<Value> = self.get_margin_mode(Value::Bool(false), &query).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
                 // spot order
                 request = ({
                     let mut m = indexmap::IndexMap::new();
@@ -7311,14 +7311,13 @@ if _try_result.is_err() {
                 });
                 if isMarketOrder && (side.as_str() == Some("buy")) {
                     let mut quoteAmount: Option<String> = None;
-                    let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-                    { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
-                        query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-                    let mut cost: Option<f64> = self.safe_number_k(query.clone(), "cost", &[]).as_f64();
-                    query = self.omit(query, Value::Str("cost".into()), &[]);
+                    let mut createMarketBuyOrderRequiresPrice: bool = true;
+                    { let __destr_tmp = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).into_list(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+                    let mut cost: Option<f64> = self.safe_number_k(&query, "cost", &[]).as_f64();
+                    query = self.omit(Value::Dict(query), Value::Str("cost".into()), &[]).into_dict();
                     if (cost.is_some()) {
                         quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
-                    }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
+                    }  else if createMarketBuyOrderRequiresPrice {
                         if (priceResolved == Value::Null) {
                             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")));
                         }  else {
@@ -7341,7 +7340,7 @@ if _try_result.is_err() {
                     request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
                 }
             }
-            let mut textIsRequired: bool = self.safe_bool_k(query.clone(), "textIsRequired", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut textIsRequired: bool = self.safe_bool_k(&query, "textIsRequired", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if (clientOrderIdRaw.is_some()) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -7350,7 +7349,7 @@ if _try_result.is_err() {
                 if ((clientOrderIdRaw.as_deref().unwrap_or_default().chars().count() as i64)) > 28 {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder () clientOrderId or text param must be up to 28 characters")));
                 }
-                query = self.omit(query, Value::Str("textIsRequired".into()), &[]);
+                query = self.omit(Value::Dict(query), Value::Str("textIsRequired".into()), &[]).into_dict();
                 if !(clientOrderIdRaw.as_deref().unwrap_or_default().starts_with("t")) {
                     clientOrderId = Some(format!("{}{}", "t-", clientOrderIdRaw.as_deref().unwrap_or("null")));
                 }
@@ -7409,11 +7408,11 @@ if _try_result.is_err() {
                         rule = (if (side.as_str() == Some("buy")) { Some(2) } else { Some(1) });
                         triggerOrderPrice = self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice));
                     }
-                    let mut priceType: i64 = self.safe_integer_k(query.clone(), "price_type", &[Value::Int(0)]).as_i64().unwrap_or(0);
+                    let mut priceType: i64 = self.safe_integer_k(&query, "price_type", &[Value::Int(0)]).as_i64().unwrap_or(0);
                     if priceType < 0 || priceType > 2 {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")));
                     }
-                    query = self.omit(query, &["price_type"], &[]);
+                    query = self.omit(Value::Dict(query), &["price_type"], &[]).into_dict();
                     request.insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("price_type".to_string(), Value::from(priceType));
@@ -7429,7 +7428,7 @@ if _try_result.is_err() {
     m
 })]).into_dict();
                 let mut marginMode: Value = Value::Null;
-                { let __destr_tmp: Vec<Value> = self.get_margin_mode(Value::Bool(true), query.clone()).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+                { let __destr_tmp: Vec<Value> = self.get_margin_mode(Value::Bool(true), &query).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
                 if (timeInForce.is_none()) {
                     timeInForce = Some("gtc".to_string());
                 }
@@ -7450,7 +7449,7 @@ if _try_result.is_err() {
                 });
                 if (trigger.is_none()) {
                     let mut defaultExpiration: Option<i64> = self.safe_integer_k(&options, "expiration", &[]).as_i64();
-                    let mut expiration: Option<i64> = self.safe_integer_k(query.clone(), "expiration", &[Value::from(defaultExpiration)]).as_i64();
+                    let mut expiration: Option<i64> = self.safe_integer_k(&query, "expiration", &[Value::from(defaultExpiration)]).as_i64();
                     let mut rule: Option<String> = None;
                     let mut triggerOrderPrice: Option<String> = None;
                     if isStopLossOrder {
@@ -7476,7 +7475,7 @@ if _try_result.is_err() {
                 }
             }
         }
-        return self.extend(Value::Map(request), &[query]);
+        return self.extend(Value::Map(request), &[&query]);
 
     Value::Null
 }

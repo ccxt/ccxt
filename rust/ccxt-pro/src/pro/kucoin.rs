@@ -1165,15 +1165,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
             let mut rawTicker: crate::value::Dict = self.safe_dict_k(&data, "data", &[Value::from(&data)]).into_dict();
             let mut ticker: crate::value::Dict = self.parent.parse_spot_or_uta_ticker(&rawTicker, market.as_ref()).into_dict();
-            let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+            let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
             client.resolve(Value::from(&ticker), &(Value::Str(format!("{}{}", "ticker:", symbol).into())));
             // watchTickers
             let mut allTickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            allTickers.insert(crate::runtime::stringify_param(&symbol), Value::Dict(ticker));
+            allTickers.insert(symbol, Value::Dict(ticker));
             client.resolve(Value::Map(allTickers), "tickers");
         }  else {
             self.handle_contract_ticker(client, message);
@@ -1371,10 +1371,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut url: Value = self.negotiate(false, &[isFuturesChannel]).await;
         let mut marketIds: Value = self.market_ids(&[Value::Arr(symbolsNormalized)]);
         let mut joined: Value = Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("topic".to_string(), Value::Str(format!("{}{}", channelName, joined).into()));
                 m.insert("response".to_string(), Value::Bool(true));
@@ -1416,8 +1416,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // }
         //
         let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(message, None).into_dict();
-        let mut symbol: Value = self.safe_string_k(&parsedTicker, "symbol", &[Value::Str("".into())]);
-        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&parsedTicker)); }
+        let mut symbol: String = self.safe_string_k(&parsedTicker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&parsedTicker)); }
         let mut messageHash: String = format!("{}{}", "bidask@", symbol);
         client.resolve(Value::Dict(parsedTicker), messageHash.as_str());
 }
@@ -4633,10 +4633,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping
-        let mut id: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut id: String = format!("{}", self.request_id());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), Value::from(id));
         m.insert("type".to_string(), Value::Str("ping".into()));
     m
 });

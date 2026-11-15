@@ -2740,10 +2740,10 @@ impl Bitrue {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Null;
-        let mut data: Value = Value::Map({
+        let mut data: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2814,7 +2814,7 @@ impl Bitrue {
             data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }  else if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.clone(), amount)));
@@ -2834,11 +2834,11 @@ impl Bitrue {
             let mut paramsSpot: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(&paramsNoClientOrderId, &["triggerPrice", "stopPrice"], &[]).into_dict() } else { paramsNoClientOrderId });
             let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsSpot]);
             response = self.spot_v1_private_post_order(&[__ws_arg_17]).await;
-            data = response;
+            data = response.into_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder only support spot & swap markets")));
         }
-        return self.parse_order(data, Some(&market));
+        return self.parse_order(&data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2876,10 +2876,10 @@ impl Bitrue {
         let mut origClientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["origClientOrderId", "clientOrderId"], &[]).into_dict();
         let mut response: Value = Value::Null;
-        let mut data: Value = Value::Map({
+        let mut data: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2905,17 +2905,17 @@ impl Bitrue {
             data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }  else if (market).spot {
             request.insert("orderId".into(), id.clone()); // spot market id is mandatory
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_private_get_order(&[__ws_arg_20]).await;
-            data = response;
+            data = response.into_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchOrder only support spot & swap markets")));
         }
-        return self.parse_order(data, Some(&market));
+        return self.parse_order(&data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3067,10 +3067,10 @@ impl Bitrue {
         let mut origClientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["origClientOrderId", "clientOrderId"], &[]).into_dict();
         let mut response: Value = Value::Null;
-        let mut data: Value = Value::Map({
+        let mut data: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3096,16 +3096,16 @@ impl Bitrue {
             data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }  else if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_private_delete_order(&[__ws_arg_27]).await;
-            data = response;
+            data = response.into_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrder only support spot & swap markets")));
         }
-        return self.parse_order(data, Some(&market));
+        return self.parse_order(&data, Some(&market));
         Value::Null
         }).await?))
     }

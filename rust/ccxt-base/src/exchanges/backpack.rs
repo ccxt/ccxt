@@ -1818,7 +1818,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        if (crate::value::KeyRead::key_read(&&market, "stock").as_bool() != Some(true)) {
+        if ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " fetchStockIndicativeQuote() requires a stock market")));
         }
         if (side.as_str() != Some("buy")) && (side.as_str() != Some("sell")) {
@@ -2332,7 +2332,7 @@ impl Backpack {
                 let mut __for_first_250: bool = true;
                 while { if !__for_first_250 { i += 1; } __for_first_250 = false; i < (symbolsResolved.len() as i64) } {
                 let mut market: crate::types::Market = (match self.market((self.safe_string(symbolsResolved.clone(), Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                if (crate::value::KeyRead::key_read(&&market, "stock").as_bool() == Some(true)) {
+                if ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
                     hasStockSymbol = true;
                 }
                 if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
@@ -2380,12 +2380,12 @@ impl Backpack {
             while { if !__for_first_251 { i += 1; } __for_first_251 = false; i < (symbolsResolved.len() as i64) } {
             let mut marketSymbol: Option<String> = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if stockOnly && (crate::value::KeyRead::key_read(&&market, "stock").as_bool() != Some(true)) {
+            if stockOnly && ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
                 continue;
             }
             let mut marketIsRfq: bool = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ");
             let mut ticker: Value = self.safe_dict(tickers.clone(), Value::from(marketSymbol.as_deref()), &[]);
-            if (ticker != Value::Null) && ((source.as_deref() != Some("External")) || (crate::value::KeyRead::key_read(&&market, "stock").as_bool() == Some(true))) {
+            if (ticker != Value::Null) && ((source.as_deref() != Some("External")) || ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true))) {
                 result.insert(marketSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }  else if marketIsRfq {
                 let mut underlyingId: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).base_id.as_deref().unwrap_or("")), Value::Str("_".into())).into()), Value::from((market).quote_id.as_deref().unwrap_or("")));
@@ -3872,7 +3872,7 @@ impl Backpack {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() limit RFQs require a positive price")));
             }
         }
-        if (crate::value::KeyRead::key_read(&&market, "stock").as_bool() == Some(true)) {
+        if ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
             let mut indicative: crate::value::Dict = self.fetch_stock_indicative_quote(symbol.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(false));

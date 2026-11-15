@@ -868,18 +868,18 @@ impl Apex {
         let mut topic: String = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut updateType: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut symbol: Value = Value::Null;
+        let mut symbol: Option<String> = None;
         let mut parsed: indexmap::IndexMap<String, Value> = self.parse_ticker(Value::from(&data), None).as_map().cloned().unwrap_or_default();
         if (updateType.as_deref() == Some("snapshot")) {
             parsed = self.parse_ticker(Value::from(&data), None).as_map().cloned().unwrap_or_default();
-            symbol = self.safe_string(Value::Map(parsed.clone()), Value::Str("symbol".into()), &[]);
+            symbol = self.safe_string(Value::Map(parsed.clone()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         }  else if (updateType.as_deref() == Some("delta")) {
             let mut topicParts: crate::value::List = Value::Array(topic.split(".").map(Value::from).collect()).into_list();
             let mut topicLength: i64 = topicParts.len() as i64;
             let mut marketId: Option<String> = self.safe_string(&topicParts, Value::Int((topicLength - 1)), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null]);
-            symbol = self.safe_string_k(&market, "symbol", &[]);
-            let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
+            symbol = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+            let mut ticker: crate::value::Dict = self.safe_dict(self.tickers.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -893,9 +893,9 @@ impl Apex {
         let mut timestamp: Option<i64> = self.safe_integer_product_k(message, "ts", Value::Float(0.001), &[]).as_i64();
         parsed.insert("timestamp".into(), Value::from(timestamp));
         parsed.insert("datetime".into(), self.iso8601(timestamp));
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(parsed)); }
-        let mut messageHash: String = format!("{}{}", "ticker:", symbol);
-        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(parsed)); }
+        let mut messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
+        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
 /*
@@ -925,8 +925,8 @@ impl Apex {
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
-        let mut result: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await);
-        return get_value(&get_value(&result, &symbol), &timeframe);
+        let mut result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return get_value(&crate::value::KeyRead::read(&&result, &symbol), &timeframe);
         Value::Null
         }).await?))
     }

@@ -1697,29 +1697,29 @@ impl Bitbank {
             let mut isTimeWindow: bool = authMethod.as_deref() == Some("timeWindow");
             let mut requestTime: String = format!("{}", self.milliseconds());
             let mut timeWindow: String = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
-            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
-            let mut auth: Value = nonce.clone();
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
+            let mut auth: String = nonce.clone();
             if isTimeWindow {
-                auth = Value::Str(format!("{}{}", requestTime, timeWindow).into());
+                auth = format!("{}{}", requestTime, timeWindow);
             }
             url.push_str(&format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), "/").into()), self.implode_params(path.clone(), params)));
             if (method.as_str() == Some("POST")) {
                 let mut jsonBody: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
                 requestBody = jsonBody.clone();
-                auth = Value::Str(format!("{}{}", auth, jsonBody.as_deref().unwrap_or("null")).into());
+                auth.push_str(jsonBody.as_deref().unwrap_or("null"));
             }  else {
-                auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), path).into())).into());
+                auth.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), path));
                 if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                     let mut queryString: String = self.urlencode(&query, &[]);
                     url.push_str(&format!("{}{}", "?", queryString));
-                    auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", "?", queryString).into())).into());
+                    auth.push_str(&format!("{}{}", "?", queryString));
                 }
             }
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
+                    m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
                 m
             });
             if isTimeWindow {
@@ -1732,7 +1732,7 @@ impl Bitbank {
             }  else {
                 requestHeaders = self.extend(requestHeaders, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("ACCESS-NONCE".to_string(), nonce);
+                        m.insert("ACCESS-NONCE".to_string(), Value::from(nonce));
                     m
                 })]);
             }

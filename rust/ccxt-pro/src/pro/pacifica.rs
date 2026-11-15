@@ -2424,7 +2424,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn request_id(&self) -> i64 {
         // millisecond timestamp plus 3 random digits stays a safe integer
         let mut ts: String = format!("{}", self.milliseconds());
-        let mut randomPart: Value = Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(3)))).into());
+        let mut randomPart: String = format!("{}", self.rand_number(Value::Int(3)));
         return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into())).unwrap_or_default();
 }
 

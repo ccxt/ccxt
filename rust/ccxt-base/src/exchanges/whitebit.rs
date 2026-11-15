@@ -6050,7 +6050,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (accessibility.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
-            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
             let mut secret: crate::value::Bytes = self.encode(self.secret.clone());
             let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", "api").into()), "/").into()), version.as_deref().unwrap_or("null")).into()), pathWithParams);
             let nonceWindowrequestParamsVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("sign".into()), Value::Str("nonceWindow".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -6059,7 +6059,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let __ws_arg_43 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("request".to_string(), Value::from(request));
-        m.insert("nonce".to_string(), nonce);
+        m.insert("nonce".to_string(), Value::from(nonce));
         m.insert("nonceWindow".to_string(), nonceWindow);
     m
 }), &[&requestParams]);

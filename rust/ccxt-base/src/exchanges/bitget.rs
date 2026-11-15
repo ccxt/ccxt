@@ -7700,12 +7700,12 @@ if _try_result.is_err() {
         let mut productType: Option<String> = productTypeparamsProductTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
+        let mut isStock: Option<bool> = (market).stock;
         let mut paramsStock: crate::value::Dict = self.omit(&paramsProductType, Value::Str("stock".into()), &[]).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsStock, Some("fetchOrderBook"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
+        let mut isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
         let mut isStockOrUta: bool = isStockSpot || (uta);
         if isStockSpot {
             if (limit != Value::Null) {
@@ -7954,12 +7954,12 @@ if _try_result.is_err() {
         let mut productType: Option<String> = productTypeparamsProductTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
+        let mut isStock: Option<bool> = (market).stock;
         let mut paramsStock: crate::value::Dict = self.omit(&paramsProductType, Value::Str("stock".into()), &[]).into_dict();
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(&paramsStock, Some("fetchTicker"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUTAVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUTA: crate::value::Dict = utaparamsUTAVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isStockOrUta: bool = (isStock.as_bool() == Some(true) && ((market).spot)) || (uta);
+        let mut isStockOrUta: bool = ((isStock == Some(true)) && ((market).spot)) || (uta);
         if isStockOrUta {
             request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
@@ -8570,8 +8570,8 @@ if _try_result.is_err() {
         let mut paramsPaginate: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
-        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
+        let mut isStock: Option<bool> = (market).stock;
+        let mut isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
         paramsPaginate = self.omit(&paramsPaginate, Value::Str("stock".into()), &[]).into_dict();
         if paginate {
             if isStockSpot {
@@ -9126,8 +9126,8 @@ if _try_result.is_err() {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
-        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
+        let mut isStock: Option<bool> = (market).stock;
+        let mut isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
         let mut paramsStock: crate::value::Dict = self.omit(&paramsUTA, Value::Str("stock".into()), &[]).into_dict();
         let mut marketType: Option<String> = None;
         let mut timeframes: Option<crate::value::Dict> = None;
@@ -10074,8 +10074,8 @@ if _try_result.is_err() {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginParams: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params.clone()]);
         let mut marginMode: Value = marginParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
-        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
+        let mut isStock: Option<bool> = (market).stock;
+        let mut isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
         let mut paramsStock: crate::value::Dict = self.omit(params.clone(), Value::Str("stock".into()), &[]).into_dict();
         let mut triggerPrice: Option<f64> = self.safe_number2(&paramsStock, Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
         let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(&paramsStock, "stopLossPrice", &[]).as_f64();
@@ -10499,16 +10499,16 @@ if _try_result.is_err() {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), side.clone()); }
             let mut quantity: Option<String> = None;
             let mut planType: Option<String> = None;
-            let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
-                paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            let mut createMarketBuyOrderRequiresPrice: bool = true;
+            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+                createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if isMarketOrder && (side.as_str() == Some("buy")) {
                 planType = Some("total".to_string());
                 let mut cost: Option<f64> = self.safe_number_k(paramsMarketType.clone(), "cost", &[]).as_f64();
                 paramsMarketType = self.omit(paramsMarketType, Value::Str("cost".into()), &[]);
                 if (cost.is_some()) {
                     quantity = self.cost_to_precision(symbol.clone(), Value::from(cost));
-                }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
+                }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options[\"createOrder\"] or params to false and pass the cost to spend in the amount argument")));
                     }  else {
@@ -11071,8 +11071,8 @@ if _try_result.is_err() {
         });
         let mut paramsMarginMode: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[params]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
-        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
+        let mut isStock: Option<bool> = (market).stock;
+        let mut isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
         paramsMarginMode = self.omit(&paramsMarginMode, Value::Str("stock".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

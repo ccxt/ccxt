@@ -5317,8 +5317,8 @@ pub trait ExchangeBase:
                 }
             }
             // 5. marginRatio = maintenanceMargin / collateral
-            let mut marginRatio: Value = self.safe_value_k(position.clone(), "marginRatio", &[]);
-            if (marginRatio == Value::Null) && (maintenanceMarginString != Value::Null) && (collateralString.is_some()) {
+            let marginRatio: bool = self.safe_value_k(position.clone(), "marginRatio", &[]) != Value::Null;
+            if (!marginRatio) && (maintenanceMarginString != Value::Null) && (collateralString.is_some()) {
                 if crate::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&collateralString, &Value::Str("0".into())).as_bool() == Some(true) {
                     let mut derivedMarginRatio: Option<String> = crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &collateralString, &Value::Int(4)).as_str().map(str::to_owned);
                     if (derivedMarginRatio.is_some()) && crate::precise::Precise::stringGt(&derivedMarginRatio, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -5330,8 +5330,8 @@ pub trait ExchangeBase:
         //
         // PERCENTAGE
         //
-        let mut percentage: Value = self.safe_value_k(position.clone(), "percentage", &[]);
-        if (percentage == Value::Null) && (unrealizedPnlString.is_some()) && (initialMarginString.is_some()) {
+        let percentage: bool = self.safe_value_k(position.clone(), "percentage", &[]) != Value::Null;
+        if (!percentage) && (unrealizedPnlString.is_some()) && (initialMarginString.is_some()) {
             // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             let mut percentageString: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".into())).as_str().map(str::to_owned);
             if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("percentage".into(), self.parse_number(percentageString.map(Value::from).unwrap_or(Value::Null), &[])); }

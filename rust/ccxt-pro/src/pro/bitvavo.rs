@@ -565,8 +565,8 @@ impl Bitvavo {
             let mut marketId: Option<String> = self.safe_string_k(&data, "market", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
             let mut ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market)).into_dict();
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
             if (event.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), "@").into()), self.safe_string_k(&data, "market", &[Value::Str("".into())]));
@@ -620,8 +620,8 @@ impl Bitvavo {
             while { if !__for_first_145 { i += 1; } __for_first_145 = false; i < (tickers.len() as i64) } {
             let mut data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::Dict(data), None).into_dict();
-            let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
-            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+            let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
             std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event, ":").into()), symbol);
             client.resolve(Value::Dict(ticker), messageHash.as_str());

@@ -2838,7 +2838,7 @@ impl Bitso {
         if (api.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             // bitso rejects a nonce that is not higher than the previous one (error 104)
-            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
             endpoint = format!("{}{}", "/api", endpoint);
             let mut request: String = format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), endpoint);
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {

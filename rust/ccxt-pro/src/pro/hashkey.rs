@@ -542,10 +542,10 @@ impl Hashkey {
             let mut m = indexmap::IndexMap::new();
             m
         })]), None).into_dict();
-        let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "ticker:", symbol);
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Dict(ticker)); }
-        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::Dict(ticker)); }
+        client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
 /*

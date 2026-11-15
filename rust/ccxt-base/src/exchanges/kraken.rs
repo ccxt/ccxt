@@ -5092,21 +5092,21 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut isBatchOrder: bool = path.as_str().unwrap_or_default().to_string() == "AddOrderBatch";
             self.check_required_credentials(&[]);
             // kraken rejects a nonce that is not greater than the previous one for the key (EAPI:Invalid nonce)
-            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
             let mut isJsonBody: bool = ((isCancelOrderBatch || isTriggerPercent) || isBatchOrder);
             // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
             let mut bodySigned: Option<String> = None;
             if isJsonBody {
                 let __ws_arg_29 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("nonce".to_string(), nonce.clone());
+        m.insert("nonce".to_string(), Value::from(nonce.clone()));
     m
 }), &[params.clone()]);
                 bodySigned = self.json(__ws_arg_29).as_str().map(str::to_owned);
             }  else {
                 let __ws_arg_30 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("nonce".to_string(), nonce.clone());
+        m.insert("nonce".to_string(), Value::from(nonce.clone()));
     m
 }), &[params]);
                 bodySigned = Some(self.urlencode_nested(__ws_arg_30, &[]));

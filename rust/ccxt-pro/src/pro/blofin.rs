@@ -767,11 +767,11 @@ impl Blofin {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), None).into_dict();
-            let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
-            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Dict(ticker)); }
+            let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::Dict(ticker)); }
             if (channelName.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), symbol);
-                client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
+                client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
             }
         }
         }
@@ -865,9 +865,9 @@ impl Blofin {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]), None).into_dict();
-            let mut symbol: Value = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]);
+            let mut symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: String = format!("{}{}", "bidask:", symbol);
-            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
             client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
         }
@@ -1443,8 +1443,8 @@ impl Blofin {
             m
         })]).into_dict();
         let mut fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(first), None).into_dict();
-        let mut symbol: Value = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]);
-        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
+        let mut symbol: String = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&fundingRate)); }
         let mut messageHash: String = format!("{}{}", "fundingRate:", symbol);
         client.resolve(Value::Dict(fundingRate), messageHash.as_str());
 }

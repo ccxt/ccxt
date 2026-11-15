@@ -949,9 +949,9 @@ impl Okx {
             while { if !__for_first_530 { i += 1; } __for_first_530 = false; i < (data.len() as i64) } {
             let mut rawfr: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
             let mut fundingRate: crate::value::Dict = self.parse_funding_rate(rawfr.map_or(Value::Null, Value::Dict), None).into_dict();
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&fundingRate, "symbol");
-            if (symbol != Value::Null) {
-                if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&fundingRate, "symbol").as_str().map(str::to_owned);
+            if (symbol.is_some()) {
+                if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&fundingRate)); }
             }
             client.resolve(Value::from(&fundingRate), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", "funding-rate", ":").into()), self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())])).into())));
         }
@@ -3330,7 +3330,7 @@ impl Okx {
     pub fn request_id(&self) -> i64 {
         // millisecond timestamp plus 3 random digits stays a safe integer
         let mut ts: String = format!("{}", self.milliseconds());
-        let mut randomPart: Value = Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(3)))).into());
+        let mut randomPart: String = format!("{}", self.rand_number(Value::Int(3)));
         return self.parse_to_int(Value::Str(format!("{}{}", ts, randomPart).into())).unwrap_or_default();
 }
 
@@ -3368,7 +3368,7 @@ impl Okx {
         }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut messageHash: String = format!("{}", self.request_id());
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrderWs".into()), Value::Str("op".into()), &[Value::Str("batch-orders".into())]).as_array().cloned().unwrap_or_default();
         let mut op: Option<String> = opparamsOpVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOp: crate::value::Dict = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3388,12 +3388,12 @@ impl Okx {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), messageHash.clone());
+                m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("op".to_string(), op.map(Value::from).unwrap_or(Value::Null));
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
-        return self.watch(url.as_deref(), &messageHash, Value::Map(request), &messageHash, Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -3479,7 +3479,7 @@ impl Okx {
         }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut messageHash: String = format!("{}", self.request_id());
         let opparamsOpVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("editOrderWs".into()), Value::Str("op".into()), &[Value::Str("amend-order".into())]).as_array().cloned().unwrap_or_default();
         let mut op: Option<String> = opparamsOpVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOp: crate::value::Dict = opparamsOpVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3492,13 +3492,13 @@ impl Okx {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), messageHash.clone());
+                m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("op".to_string(), op.map(Value::from).unwrap_or(Value::Null));
                 m.insert("args".to_string(), Value::from(vec![args]));
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOp]);
-        return self.watch(url.as_deref(), &messageHash, __ws_arg_4, &messageHash, Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_4, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -3534,7 +3534,7 @@ impl Okx {
         }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut messageHash: String = format!("{}", self.request_id());
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "clOrdId"], &[]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3551,12 +3551,12 @@ impl Okx {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), messageHash.clone());
+                m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("op".to_string(), Value::Str("cancel-order".into()));
                 m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map(arg), &[&paramsOmitted])]));
             m
         });
-        return self.watch(url.as_deref(), &messageHash, Value::Map(request), &messageHash, Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -3595,7 +3595,7 @@ impl Okx {
         }
         self.authenticate(&[]).await;
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut messageHash: String = format!("{}", self.request_id());
         let mut args: Vec<Value> = Vec::new();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut instIdCode: Option<i64> = self.safe_integer_k(&market, "instIdCode", &[]).as_i64();
@@ -3619,13 +3619,13 @@ impl Okx {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), messageHash.clone());
+                m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("op".to_string(), Value::Str("batch-cancel-orders".into()));
                 m.insert("args".to_string(), Value::from(args));
             m
         });
         let __ws_arg_6 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash, __ws_arg_6, &messageHash, Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_6, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -3662,10 +3662,10 @@ impl Okx {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")));
         }
         let mut url: Option<String> = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut messageHash: String = format!("{}", self.request_id());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), messageHash.clone());
+                m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("op".to_string(), Value::Str("mass-cancel".into()));
                 m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3675,7 +3675,7 @@ impl Okx {
 }), &[params])]));
             m
         });
-        return self.watch(url.as_deref(), &messageHash, Value::Map(request), &messageHash, Value::Null).await;
+        return self.watch(url.as_deref(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }

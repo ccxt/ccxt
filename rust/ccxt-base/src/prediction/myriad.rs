@@ -4456,8 +4456,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub fn request_id(&self, url: Option<&str>) -> i64 {
         let mut url: Value = url.into();
-        let mut existing: Value = self.safe_value_k(self.options.clone(), "requestId", &[]);
-        if (existing == Value::Null) {
+        let existing: bool = self.safe_value_k(self.options.clone(), "requestId", &[]) != Value::Null;
+        if (!existing) {
             { let __be_tmp = self.create_safe_dictionary(&[]); if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("requestId".into(), __be_tmp); } }
         }
         let mut options: Value = self.options.as_map().and_then(|__m| __m.get("requestId")).cloned().unwrap_or(Value::Null);

@@ -2975,9 +2975,9 @@ impl Nado {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut error: Value = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
+        let error: bool = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null }) != Value::Null;
         let mut status: Option<String> = (match __pro_message.get("status").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        if (error == Value::Null) && (status.as_deref() != Some("failure")) {
+        if (!error) && (status.as_deref() != Some("failure")) {
             return Value::Bool(false);
         }
         let mut feedback = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));

@@ -986,9 +986,9 @@ impl Bitget {
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
+        let mut isStock: Option<bool> = (market).stock;
         let mut paramsStock: crate::value::Dict = self.omit(&paramsUta, Value::Str("stock".into()), &[]).into_dict();
-        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
+        let mut isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
         let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), Some(&market), &[Value::Bool(isStockOrUta.clone()), Value::Dict(paramsStock)]).as_array().cloned().unwrap_or_default();
         let mut instType: Option<String> = instTypeparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1061,9 +1061,9 @@ impl Bitget {
         let mut messageHash: Option<String> = None;
         let mut values: Value = self.handle_option_bool_and_params(params.clone(), Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]);
         let mut uta: Option<bool> = values.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_bool);
-        let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
+        let mut isStock: Option<bool> = (market).stock;
         let mut paramsStock: crate::value::Dict = self.omit(params, Value::Str("stock".into()), &[]).into_dict();
-        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && (market).spot;
+        let mut isStockSpot: bool = (isStock == Some(true)) && (market).spot;
         let mut isStockOrUta: bool = isStockSpot || (uta == Some(true));
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), Some(&market), &[Value::Bool(isStockOrUta), Value::Dict(paramsStock)]).as_array().cloned().unwrap_or_default();
         let mut instType: Option<String> = instTypeparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1306,12 +1306,12 @@ impl Bitget {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
+        let mut isStock: Option<bool> = (market).stock;
         let mut paramsStock: crate::value::Dict = self.omit(params, Value::Str("stock".into()), &[]).into_dict();
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsStock, Value::Str("unWatchOrderBook".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isStockSpot: bool = isStock.as_bool() == Some(true) && (market).spot;
+        let mut isStockSpot: bool = (isStock == Some(true)) && (market).spot;
         let mut isStockOrUta: bool = isStockSpot || uta;
         let mut paramsRequest: Value = Value::from(&paramsUta);
         if isStockOrUta {
@@ -1424,8 +1424,8 @@ impl Bitget {
         let mut isStockSpot: bool = false;
         if symbolsLength > 0 {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut isStock: Value = crate::value::KeyRead::key_read(&&market, "stock");
-            isStockSpot = isStock.as_bool() == Some(true) && ((market).spot);
+            let mut isStock: Option<bool> = (market).stock;
+            isStockSpot = (isStock == Some(true)) && ((market).spot);
         }
         let mut paramsStock: crate::value::Dict = self.omit(params, Value::Str("stock".into()), &[]).into_dict();
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsStock, Value::Str("watchOrderBookForSymbols".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();

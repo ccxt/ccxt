@@ -2160,8 +2160,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "orderId": 509835753860328
         //     }
         //
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(Value::Null, market, &[]));
-        let mut marketValue: Value = marketResolved.clone();
+        let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
+        let marketValue: &crate::types::Market = &marketResolved;
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut tradeId: Option<String> = self.safe_string_k(trade.clone(), "tradeId", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "tradePrice", &[]).as_str().map(str::to_owned);
@@ -2196,7 +2196,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketValue).as_ref());
+}), Some(marketValue));
 
     Value::Null
 }

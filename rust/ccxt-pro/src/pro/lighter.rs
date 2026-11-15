@@ -1950,7 +1950,7 @@ impl Lighter {
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut nextId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         // the venue takes a string request id
-        let mut requestId: Value = Value::Str(format!("{}", nextId).into());
+        let mut requestId: String = format!("{}", nextId);
         let mut messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
         let txTypetxInfoorderVariable: Vec<Value> = self.parent.sign_and_create_order("createOrderWs", symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).await.as_array().cloned().unwrap_or_default();
         let mut txType: Option<String> = txTypetxInfoorderVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1963,7 +1963,7 @@ impl Lighter {
                 m.insert("type".to_string(), Value::Str("jsonapi/sendtx".into()));
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), requestId.clone());
+        m.insert("id".to_string(), Value::from(requestId.as_str()));
         m.insert("tx_type".to_string(), txType.map(Value::from).unwrap_or(Value::Null));
         m.insert("tx_info".to_string(), parsedTx);
     m
@@ -1972,7 +1972,7 @@ impl Lighter {
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut rawMessage: Value = self.watch(url.as_deref(), &messageHash[..], Value::Map(message), &messageHash[..], Value::Map(subscription)).await;
@@ -2008,7 +2008,7 @@ impl Lighter {
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut nextId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         // the venue takes a string request id
-        let mut requestId: Value = Value::Str(format!("{}", nextId).into());
+        let mut requestId: String = format!("{}", nextId);
         let mut messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
         let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_order("cancelOrderWs", id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).await.as_array().cloned().unwrap_or_default();
         let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
@@ -2020,7 +2020,7 @@ impl Lighter {
                 m.insert("type".to_string(), Value::Str("jsonapi/sendtx".into()));
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), requestId.clone());
+        m.insert("id".to_string(), Value::from(requestId.as_str()));
         m.insert("tx_type".to_string(), Value::from(txType));
         m.insert("tx_info".to_string(), parsedTx);
     m
@@ -2029,7 +2029,7 @@ impl Lighter {
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut rawMessage: Value = self.watch(url.as_deref(), &messageHash[..], Value::Map(message), &messageHash[..], Value::Map(subscription)).await;
@@ -2063,7 +2063,7 @@ impl Lighter {
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut nextId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         // the venue takes a string request id
-        let mut requestId: Value = Value::Str(format!("{}", nextId).into());
+        let mut requestId: String = format!("{}", nextId);
         let mut messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
         let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_all_orders("cancelAllOrdersWs", symbol.as_str(), &[params]).await.as_array().cloned().unwrap_or_default();
         let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
@@ -2074,7 +2074,7 @@ impl Lighter {
                 m.insert("type".to_string(), Value::Str("jsonapi/sendtx".into()));
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), requestId.clone());
+        m.insert("id".to_string(), Value::from(requestId.as_str()));
         m.insert("tx_type".to_string(), Value::from(txType));
         m.insert("tx_info".to_string(), parsedTx);
     m
@@ -2083,7 +2083,7 @@ impl Lighter {
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestId);
+                m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut rawMessage: Value = self.watch(url.as_deref(), &messageHash[..], Value::Map(message), &messageHash[..], Value::Map(subscription)).await;

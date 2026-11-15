@@ -7122,10 +7122,9 @@ impl Bybit {
         }  else if (market).spot && isMarketOrder && (side.as_str() == Some("buy")) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
-            let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
-                query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-            if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
+            let mut createMarketBuyOrderRequiresPrice: bool = true;
+            { let __destr_tmp = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(false)]).into_list(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+            if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
                 }  else {

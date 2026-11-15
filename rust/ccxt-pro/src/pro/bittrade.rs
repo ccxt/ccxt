@@ -403,8 +403,8 @@ impl Bittrade {
         let mut timestamp: Option<i64> = (match __pro_message.get("ts") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         std::sync::Arc::make_mut(&mut ticker).insert("timestamp".into(), Value::from(timestamp));
         std::sync::Arc::make_mut(&mut ticker).insert("datetime".into(), self.iso8601(timestamp));
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&ticker, "symbol");
-        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&ticker)); }
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         client.resolve(Value::Dict(ticker), ch.as_deref());
         return message;
 

@@ -3017,12 +3017,12 @@ if _try_result.is_err() {
         }
         let mut marketSymbol: Option<String> = self.safe_string_k(outcomeObj.clone(), "market", &[]).as_str().map(str::to_owned);
         if isMarket && (side.as_str() == Some("buy")) {
-            let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
-                paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            let mut createMarketBuyOrderRequiresPrice: bool = true;
+            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+                createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             let mut cost: Option<f64> = self.safe_number_k(paramsValue.clone(), "cost", &[]).as_f64();
             paramsValue = self.omit(paramsValue, Value::Str("cost".into()), &[]);
-            if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
+            if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
                 }  else {

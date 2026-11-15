@@ -321,7 +321,7 @@ impl Bullish {
     pub fn ping(&mut self, mut client: Value) -> Value {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
-        let mut id: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut id: String = format!("{}", self.request_id());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
@@ -331,7 +331,7 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), Value::from(id));
     m
 });
 
@@ -366,14 +366,14 @@ impl Bullish {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut id: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut id: String = format!("{}", self.request_id());
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("type".to_string(), Value::Str("command".into()));
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), request);
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), Value::from(id));
             m
         });
         let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]).as_str().map(str::to_owned);
@@ -403,14 +403,14 @@ impl Bullish {
             m
         });
         if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("cookies".to_string(), Value::Map(cookies)); } }
-        let mut id: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut id: String = format!("{}", self.request_id());
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("jsonrpc".to_string(), Value::Str("2.0".into()));
                 m.insert("type".to_string(), Value::Str("command".into()));
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), request);
-                m.insert("id".to_string(), id);
+                m.insert("id".to_string(), Value::from(id));
             m
         });
         let __ws_arg_1 = self.deep_extend(Value::Map(message), &[params]);

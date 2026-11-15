@@ -5735,7 +5735,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut asset: Option<i64> = self.parse_to_int(Value::from((market).base_id.as_deref()));
         let mut isCross: bool = marginMode.as_str().unwrap_or_default().to_string() == "cross";
         let mut nonce: i64 = self.incrementing_nonce();
-        let mut params2: Value = self.omit(params, &["leverage"], &[]);
+        let mut params2: crate::value::Dict = self.omit(params, &["leverage"], &[]).into_dict();
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".into()));
@@ -5745,7 +5745,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let mut vaultAddress: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(params2.clone(), Value::Str("setMarginMode".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(&params2, Value::Str("setMarginMode".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (vaultAddress != Value::Null) {
             if (vaultAddress.as_str().unwrap_or("").starts_with("0x")) {
                 vaultAddress = vaultAddress.as_str().map(|__s| Value::Str(__s.replace("0x", "").into())).unwrap_or_else(|| vaultAddress.clone());
@@ -5801,7 +5801,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut isCross: bool = marginMode.as_deref() == Some("cross");
         let mut asset: Option<i64> = self.parse_to_int(Value::from((market).base_id.as_deref()));
         let mut nonce: i64 = self.incrementing_nonce();
-        let mut params2: Value = self.omit(params, Value::Str("marginMode".into()), &[]);
+        let mut params2: crate::value::Dict = self.omit(params, Value::Str("marginMode".into()), &[]).into_dict();
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateLeverage".into()));
@@ -5811,8 +5811,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let mut vaultAddress: Option<String> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(params2.clone(), Value::Str("setLeverage".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-            params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params2(&params2, Value::Str("setLeverage".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).into_list(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
         let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5823,7 +5822,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if (vaultAddress.is_some()) {
-            params2 = self.omit(params2, Value::Str("vaultAddress".into()), &[]);
+            params2 = self.omit(Value::Dict(params2), Value::Str("vaultAddress".into()), &[]).into_dict();
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;

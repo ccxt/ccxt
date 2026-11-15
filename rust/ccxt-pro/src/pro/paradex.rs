@@ -2253,9 +2253,9 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         let mut bidAsk: crate::value::Dict = self.parse_ws_bid_ask(&data, None).into_dict();
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&bidAsk, "symbol");
-        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&bidAsk)); }
-        client.resolve(Value::from(&bidAsk), &(Value::Str(format!("{}{}", "bidask:", symbol).into())));
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&bidAsk, "symbol").as_str().map(str::to_owned);
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&bidAsk)); }
+        client.resolve(Value::from(&bidAsk), &(Value::Str(format!("{}{}", "bidask:", symbol.as_deref().unwrap_or("null")).into())));
         // an SBE frame does not tell bbo.ALL from the per-market channel
         client.resolve(Value::Dict(bidAsk), "bidask");
 }

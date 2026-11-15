@@ -725,7 +725,7 @@ impl Deribit {
             m
         })]).into_dict();
         let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(&data, None).into_dict();
-        let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
+        let mut symbol: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
         let mut messageHash: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         client.resolve(Value::Dict(ticker), messageHash.as_deref());
@@ -1360,8 +1360,8 @@ impl Deribit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: Value = Value::from(self.symbol(symbol));
-        let mut ohlcvs: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await);
-        return get_value(&(if let (Some(__m), Some(__k)) = (ohlcvs.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &timeframe);
+        let mut ohlcvs: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return get_value(&crate::value::KeyRead::read(&&ohlcvs, &symbolValue), &timeframe);
         Value::Null
         }).await?))
     }

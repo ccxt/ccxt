@@ -4547,13 +4547,13 @@ impl Bitfinex {
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
-            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
             requestBody = json_stringify(&query).as_str().map(str::to_owned);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/api/", request).into()), nonce).into()), requestBody.as_deref().unwrap_or("null"));
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("bfx-nonce".to_string(), nonce);
+                    m.insert("bfx-nonce".to_string(), Value::from(nonce));
                     m.insert("bfx-apikey".to_string(), self.apiKey.clone());
                     m.insert("bfx-signature".to_string(), Value::from(signature));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));

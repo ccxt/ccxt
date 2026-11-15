@@ -2810,13 +2810,14 @@ impl Btse {
         let mut needsQuoteSize: bool = (matches!(&isMarketOrder, Value::Bool(true)) || (typeValue == "TRAILING")) && (upperSide == "BUY");
         if needsQuoteSize {
             let mut quoteAmount: Option<String> = None;
-            let mut createMarketBuyOrderRequiresPrice: Value = Value::Bool(true);
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            let mut createMarketBuyOrderRequiresPrice: bool = true;
+            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
+                query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             let mut cost: Option<String> = self.safe_string_k(query.clone(), "cost", &[]).as_str().map(str::to_owned);
             query = self.omit(query, Value::Str("cost".into()), &[]);
             if (cost.is_some()) {
                 quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null));
-            }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
+            }  else if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
                 }  else {

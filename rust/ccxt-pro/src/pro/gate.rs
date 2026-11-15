@@ -3474,15 +3474,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.check_required_credentials(&[]);
         // uid is required for some subscriptions only so it's not a part of required credentials
         let mut event: String = "api".to_string();
-        let mut requestIdResolved: Value = (if (requestId == Value::Null) { Value::Str(format!("{}", Value::Int(self.request_id())).into()) } else { requestId });
-        let mut messageHash: Value = requestIdResolved.clone();
+        let mut requestIdResolved: Option<String> = (if (requestId == Value::Null) { Some(format!("{}", self.request_id())) } else { requestId.as_str().map(str::to_owned) });
+        let mut messageHash: Option<String> = requestIdResolved.clone();
         let mut time: i64 = self.seconds();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
         let mut signatureString: Value = Value::Str((Value::from(vec![Value::from(event.clone()), channel.clone(), json_stringify(&reqParams), Value::Str(format!("{}", time).into())])).as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default().into()); // eslint-disable-line quotes
         let mut signature: String = self.hmac(self.encode(signatureString), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[Value::Str("hex".into())]);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("req_id".to_string(), requestIdResolved.clone());
+                m.insert("req_id".to_string(), requestIdResolved.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("timestamp".to_string(), Value::Str(format!("{}", time).into()));
                 m.insert("api_key".to_string(), self.apiKey.clone());
                 m.insert("signature".to_string(), Value::from(signature));
@@ -3498,14 +3498,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), requestIdResolved.clone());
+                m.insert("id".to_string(), requestIdResolved.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("time".to_string(), Value::from(time));
                 m.insert("channel".to_string(), channel);
                 m.insert("event".to_string(), Value::from(event));
                 m.insert("payload".to_string(), Value::Map(payload));
             m
         });
-        return self.watch(&url, &messageHash, Value::Map(request), &messageHash, requestIdResolved).await;
+        return self.watch(&url, (&messageHash).as_deref(), Value::Map(request), (&messageHash).as_deref(), requestIdResolved.map(Value::from).unwrap_or(Value::Null)).await;
 
     Value::Null
 }

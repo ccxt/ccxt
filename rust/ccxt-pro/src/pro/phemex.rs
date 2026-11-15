@@ -388,18 +388,18 @@ impl Phemex {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
-        let mut marketValue: Value = marketResolved.clone();
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let marketValue: &crate::types::Market = &marketResolved;
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(ticker.clone(), "timestamp", Value::Float(0.000001), &[]).as_i64();
-        let mut lastString: Value = self.from_ep(self.safe_string_k(ticker.clone(), "close", &[]), &[marketValue.clone()]);
+        let mut lastString: Value = self.from_ep(self.safe_string_k(ticker.clone(), "close", &[]), &[crate::Value::from(marketValue)]);
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
-        let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(ticker.clone(), "turnover", &[]), &[marketValue.clone()]), &[]);
-        let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(ticker.clone(), "volume", &[]), &[marketValue.clone()]), &[]);
+        let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(ticker.clone(), "turnover", &[]), &[crate::Value::from(marketValue)]), &[]);
+        let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string_k(ticker.clone(), "volume", &[]), &[crate::Value::from(marketValue)]), &[]);
         let mut change: Option<f64> = None;
         let mut percentage: Option<f64> = None;
         let mut average: Option<f64> = None;
-        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[marketValue.clone()]));
+        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(ticker.clone(), "open", &[]), &[crate::Value::from(marketValue)]));
         let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString != Value::Null) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
@@ -411,8 +411,8 @@ impl Phemex {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "high", &[]), &[marketValue.clone()]), &[]));
-        m.insert("low".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "low", &[]), &[marketValue.clone()]), &[]));
+        m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "high", &[]), &[crate::Value::from(marketValue)]), &[]));
+        m.insert("low".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "low", &[]), &[crate::Value::from(marketValue)]), &[]));
         m.insert("bid".to_string(), Value::Null);
         m.insert("bidVolume".to_string(), Value::Null);
         m.insert("ask".to_string(), Value::Null);
@@ -427,8 +427,8 @@ impl Phemex {
         m.insert("average".to_string(), Value::from(average));
         m.insert("baseVolume".to_string(), baseVolume);
         m.insert("quoteVolume".to_string(), quoteVolume);
-        m.insert("markPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "markPrice", &[]), &[marketValue.clone()]), &[]));
-        m.insert("indexPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "indexPrice", &[]), &[marketValue]), &[]));
+        m.insert("markPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "markPrice", &[]), &[crate::Value::from(marketValue)]), &[]));
+        m.insert("indexPrice".to_string(), self.parse_number(self.from_ep(self.safe_string_k(ticker.clone(), "indexPrice", &[]), &[crate::Value::from(marketValue)]), &[]));
         m.insert("info".to_string(), ticker);
     m
 }), None);
@@ -454,17 +454,17 @@ impl Phemex {
         //    ]
         //
         let mut marketId: Option<String> = self.safe_string(ticker.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
-        let mut marketValue: Value = marketResolved.clone();
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let marketValue: &crate::types::Market = &marketResolved;
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
-        let mut lastString: Value = self.from_ep(self.safe_string(ticker.clone(), Value::Int(4), &[]), &[marketValue.clone()]);
+        let mut lastString: Value = self.from_ep(self.safe_string(ticker.clone(), Value::Int(4), &[]), &[crate::Value::from(marketValue)]);
         let mut last: Value = self.parse_number(lastString.clone(), &[]);
-        let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(6), &[]), &[marketValue.clone()]), &[]);
-        let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(5), &[]), &[marketValue.clone()]), &[]);
+        let mut quoteVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(6), &[]), &[crate::Value::from(marketValue)]), &[]);
+        let mut baseVolume: Value = self.parse_number(self.from_ev(self.safe_string(ticker.clone(), Value::Int(5), &[]), &[crate::Value::from(marketValue)]), &[]);
         let mut change: Option<f64> = None;
         let mut percentage: Option<f64> = None;
         let mut average: Option<f64> = None;
-        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[marketValue.clone()]));
+        let mut openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(ticker.clone(), Value::Int(1), &[]), &[crate::Value::from(marketValue)]));
         let mut open: Option<f64> = self.parse_number(openString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         if (openString.is_some()) && (lastString != Value::Null) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
@@ -476,8 +476,8 @@ impl Phemex {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string(ticker.clone(), Value::Int(2), &[]), &[marketValue.clone()]), &[]));
-        m.insert("low".to_string(), self.parse_number(self.from_ep(self.safe_string(ticker.clone(), Value::Int(3), &[]), &[marketValue]), &[]));
+        m.insert("high".to_string(), self.parse_number(self.from_ep(self.safe_string(ticker.clone(), Value::Int(2), &[]), &[crate::Value::from(marketValue)]), &[]));
+        m.insert("low".to_string(), self.parse_number(self.from_ep(self.safe_string(ticker.clone(), Value::Int(3), &[]), &[crate::Value::from(marketValue)]), &[]));
         m.insert("bid".to_string(), Value::Null);
         m.insert("bidVolume".to_string(), Value::Null);
         m.insert("ask".to_string(), Value::Null);
@@ -2056,18 +2056,18 @@ impl Phemex {
             clientOrderId = None;
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
-        let mut marketValue: Value = marketResolved.clone();
+        let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
+        let marketValue: &crate::types::Market = &marketResolved;
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut status: Option<String> = self.parent.parse_order_status((self.safe_string_k(order.clone(), "ordStatus", &[])).as_str());
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.parent.parse_order_type((self.safe_string_k(order.clone(), "ordType", &[])).as_str());
-        let mut price: Value = self.safe_string_k(order.clone(), "priceRp", &[self.from_ep(self.safe_string(order.clone(), Value::Str("priceEp".into()), &[]), &[marketValue.clone()])]);
+        let mut price: Value = self.safe_string_k(order.clone(), "priceRp", &[self.from_ep(self.safe_string(order.clone(), Value::Str("priceEp".into()), &[]), &[crate::Value::from(marketValue)])]);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "orderQty", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "cumQty", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<String> = self.safe_string_k(order.clone(), "leavesQty", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(order.clone(), "actionTimeNs", Value::Float(0.000001), &[]).as_i64();
-        let mut cost: Value = self.safe_string_k(order.clone(), "cumValueRv", &[self.from_ev(self.safe_string(order.clone(), Value::Str("cumValueEv".into()), &[]), &[marketValue.clone()])]);
+        let mut cost: Value = self.safe_string_k(order.clone(), "cumValueRv", &[self.from_ev(self.safe_string(order.clone(), Value::Str("cumValueEv".into()), &[]), &[crate::Value::from(marketValue)])]);
         let mut lastTradeTimestamp: Option<i64> = self.safe_integer_product_k(order.clone(), "transactTimeNs", Value::Float(0.000001), &[]).as_i64();
         if (lastTradeTimestamp == Some(0)) {
             lastTradeTimestamp = None;
@@ -2100,7 +2100,7 @@ impl Phemex {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketValue).as_ref());
+}), Some(marketValue));
 
     Value::Null
 }

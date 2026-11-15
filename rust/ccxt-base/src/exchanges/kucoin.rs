@@ -6715,8 +6715,8 @@ impl Kucoin {
         if (postOnly == Some(true)) {
             request.insert("postOnly".into(), Value::Bool(true));
         }
-        let mut hidden: Value = self.safe_value_k(paramsOmitted.clone(), "hidden", &[]);
-        if (postOnly == Some(true)) && (hidden != Value::Null) {
+        let hidden: bool = self.safe_value_k(paramsOmitted.clone(), "hidden", &[]) != Value::Null;
+        if (postOnly == Some(true)) && (hidden) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() does not support the postOnly parameter together with a hidden parameter")));
         }
         let mut iceberg: Value = self.safe_value_k(paramsOmitted.clone(), "iceberg", &[]);

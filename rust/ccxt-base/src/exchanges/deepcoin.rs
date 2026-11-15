@@ -1215,9 +1215,9 @@ impl Deepcoin {
 })]);
             let mut isSwap: bool = self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if isSwap {
-                let mut additionalId: Value = Value::Str(format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market.clone(), "quoteId", &[Value::Str("".into())])).into());
+                let mut additionalId: String = format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market.clone(), "quoteId", &[Value::Str("".into())]));
                 if (self.markets_by_id.clone() != Value::Null) {
-                    if let Value::Dict(__d) = &mut self.markets_by_id { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&additionalId), Value::from(vec![market])); }; // some endpoints return swap market id as base+quote
+                    if let Value::Dict(__d) = &mut self.markets_by_id { std::sync::Arc::make_mut(__d).insert(additionalId.to_string(), Value::from(vec![market])); }; // some endpoints return swap market id as base+quote
                 }
             }
         }

@@ -662,8 +662,8 @@ impl Toobit {
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
-        let mut result: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await);
-        return get_value(&get_value(&result, &symbol), &timeframe);
+        let mut result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return get_value(&crate::value::KeyRead::read(&&result, &symbol), &timeframe);
         Value::Null
         }).await?))
     }

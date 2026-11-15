@@ -671,19 +671,19 @@ impl Zebpay {
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
         let mut response: Value = Value::Null;
-        let mut data: Value = Value::Map({
+        let mut data: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if isSpot {
             response = self.public_spot_get_v2_system_status(&[Value::from(&paramsMarketType)]).await;
-            data = response.clone();
+            data = response.clone().into_dict();
         }  else {
             response = self.public_swap_get_v1_system_status(&[Value::Dict(paramsMarketType)]).await;
             data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }
         //
         // {
@@ -696,7 +696,7 @@ impl Zebpay {
         //     "customMessage": ["OK"]
         // }
         //
-        let mut status: Option<String> = self.safe_string2(data, Value::Str("systemStatus".into()), Value::Str("status".into()), &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string2(&data, Value::Str("systemStatus".into()), Value::Str("status".into()), &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
@@ -734,19 +734,19 @@ impl Zebpay {
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
         let mut response: Value = Value::Null;
-        let mut data: Value = Value::Map({
+        let mut data: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if isSpot {
             response = self.public_spot_get_v2_system_time(&[Value::from(&paramsMarketType)]).await;
-            data = response.clone();
+            data = response.clone().into_dict();
         }  else {
             response = self.public_swap_get_v1_system_time(&[Value::Dict(paramsMarketType)]).await;
             data = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         }
         //
         // {
@@ -759,7 +759,7 @@ impl Zebpay {
         //     "customMessage": ["OK"]
         // }
         //
-        let mut time: Option<i64> = self.safe_integer_k(data, "timestamp", &[]).as_i64();
+        let mut time: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         return Value::from(time);
         Value::Null
         }).await?))

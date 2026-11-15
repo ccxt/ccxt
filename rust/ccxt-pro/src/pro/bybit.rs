@@ -672,11 +672,11 @@ impl Bybit {
         let mut orderRequest: crate::value::Dict = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params, Value::Bool(true)]).into_dict();
         let mut url: Option<String> = self.implode_hostname(self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), Value::Str("trade".into()), &[Value::Str("".into())])).as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("order.create".into()));
-                m.insert("reqId".to_string(), requestId.clone());
+                m.insert("reqId".to_string(), Value::from(requestId.as_str()));
                 m.insert("args".to_string(), Value::from(vec![Value::Dict(orderRequest)]));
                 m.insert("header".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -686,7 +686,7 @@ impl Bybit {
 }));
             m
         });
-        return self.watch(url.as_deref(), &requestId, Value::Map(request), &requestId, Value::Bool(true)).await;
+        return self.watch(url.as_deref(), &requestId[..], Value::Map(request), &requestId[..], Value::Bool(true)).await;
         Value::Null
         }).await?))
     }
@@ -738,11 +738,11 @@ impl Bybit {
         let mut orderRequest: crate::value::Dict = self.parent.edit_order_request(id.as_str(), symbol.as_str(), type_var.as_str(), side.as_str(), &[amount, price, params]).into_dict();
         let mut url: Option<String> = self.implode_hostname(self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), Value::Str("trade".into()), &[Value::Str("".into())])).as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("order.amend".into()));
-                m.insert("reqId".to_string(), requestId.clone());
+                m.insert("reqId".to_string(), Value::from(requestId.as_str()));
                 m.insert("args".to_string(), Value::from(vec![Value::Dict(orderRequest)]));
                 m.insert("header".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -752,7 +752,7 @@ impl Bybit {
 }));
             m
         });
-        return self.watch(url.as_deref(), &requestId, Value::Map(request), &requestId, Value::Bool(true)).await;
+        return self.watch(url.as_deref(), &requestId[..], Value::Map(request), &requestId[..], Value::Bool(true)).await;
         Value::Null
         }).await?))
     }
@@ -791,14 +791,14 @@ impl Bybit {
         let mut orderRequest: Value = self.parent.cancel_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]);
         let mut url: Option<String> = self.implode_hostname(self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), Value::Str("trade".into()), &[Value::Str("".into())])).as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let mut requestId: Value = Value::Str(format!("{}", Value::Int(self.request_id())).into());
+        let mut requestId: String = format!("{}", self.request_id());
         if (matches!(&orderRequest, Value::Dict(__d) if __d.contains_key("orderFilter"))) {
             remove(&mut orderRequest, &Value::Str("orderFilter".into()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("order.cancel".into()));
-                m.insert("reqId".to_string(), requestId.clone());
+                m.insert("reqId".to_string(), Value::from(requestId.as_str()));
                 m.insert("args".to_string(), Value::from(vec![orderRequest]));
                 m.insert("header".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -808,7 +808,7 @@ impl Bybit {
 }));
             m
         });
-        return self.watch(url.as_deref(), &requestId, Value::Map(request), &requestId, Value::Bool(true)).await;
+        return self.watch(url.as_deref(), &requestId[..], Value::Map(request), &requestId[..], Value::Bool(true)).await;
         Value::Null
         }).await?))
     }
@@ -1251,8 +1251,8 @@ impl Bybit {
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
-        let mut result: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await);
-        return get_value(&get_value(&result, &symbol), &timeframe);
+        let mut result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return get_value(&crate::value::KeyRead::read(&&result, &symbol), &timeframe);
         Value::Null
         }).await?))
     }

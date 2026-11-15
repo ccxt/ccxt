@@ -1038,12 +1038,12 @@ impl Paymium {
         }  else {
             self.check_required_credentials(&[]);
             // paymium requires an increasing nonce
-            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.incrementing_nonce())).into());
+            let mut nonce: String = format!("{}", self.incrementing_nonce());
             let mut auth: String = format!("{}{}", nonce, url);
             let mut signedHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Api-Key".to_string(), self.apiKey.clone());
-                    m.insert("Api-Nonce".to_string(), nonce.clone());
+                    m.insert("Api-Nonce".to_string(), Value::from(nonce.as_str()));
                 m
             });
             let mut signedBody: Option<String> = Some("".to_string());
@@ -1088,8 +1088,8 @@ impl Paymium {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut errors: Value = self.safe_value_k(response.clone(), "errors", &[]);
-        if (errors != Value::Null) {
+        let errors: bool = self.safe_value_k(response.clone(), "errors", &[]) != Value::Null;
+        if (errors) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response))));
         }
         return Value::Null;

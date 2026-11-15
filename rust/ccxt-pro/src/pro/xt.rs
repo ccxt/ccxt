@@ -1335,8 +1335,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut timestamp: Option<i64> = self.safe_integer_k(&data, "t", &[]).as_i64();
             std::sync::Arc::make_mut(&mut fundingRate).insert("timestamp".into(), Value::from(timestamp));
             std::sync::Arc::make_mut(&mut fundingRate).insert("datetime".into(), self.iso8601(timestamp));
-            let mut symbol: Value = crate::value::KeyRead::key_read(&&fundingRate, "symbol");
-            if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
+            let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&fundingRate, "symbol").as_str().map(str::to_owned);
+            if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&fundingRate)); }
             let mut event: Option<String> = (match __pro_message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             if (event.is_some()) {
                 let mut messageHash: String = format!("{}{}", event.as_deref().unwrap_or("null"), "::contract");

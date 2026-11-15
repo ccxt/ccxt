@@ -1027,8 +1027,8 @@ impl Extended {
         //
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         let mut fundingRate: crate::value::Dict = self.parse_ws_funding_rate(&data, None, &[message]).into_dict();
-        let mut symbol: Value = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]);
-        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::from(&fundingRate)); }
+        let mut symbol: String = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&fundingRate)); }
         let mut messageHash: String = format!("{}{}", "fundingRate:", symbol);
         client.resolve(Value::Dict(fundingRate), messageHash.as_str());
 }

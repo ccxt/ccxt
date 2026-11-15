@@ -470,7 +470,7 @@ impl Backpack {
             let mut __for_first_37: bool = true;
             while { if !__for_first_37 { i += 1; } __for_first_37 = false; i < (normalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((normalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if (symbols == Value::Null) && (stock || (explicitSource.as_deref() == Some("External")) || (channel.is_some())) && (crate::value::KeyRead::key_read(&&market, "stock").as_bool() != Some(true)) {
+            if (symbols == Value::Null) && (stock || (explicitSource.as_deref() == Some("External")) || (channel.is_some())) && ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
                 continue;
             }
             let mut marketSelection: crate::value::List = self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), &query, &[(market).raw.clone()]).into_list();
@@ -497,7 +497,7 @@ impl Backpack {
                 if (channel.as_deref() != Some("stockPrice")) && (channel.as_deref() != Some("stockIndicativeQuote")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() channel must be stockPrice or stockIndicativeQuote")));
                 }
-                if (crate::value::KeyRead::key_read(&&market, "stock").as_bool() != Some(true)) {
+                if ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
                     panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() stock quote channels require a stock market")));
                 }
                 let mut baseId: String = self.safe_string_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -505,7 +505,7 @@ impl Backpack {
                 topic = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ".").into()), ticker);
             }  else if bidAsk.as_bool() == Some(true) {
                 if (source.as_deref() == Some("External")) || (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) || isRfq {
-                    if (crate::value::KeyRead::key_read(&&market, "stock").as_bool() != Some(true)) {
+                    if ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
                         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() RFQ quote streams require a stock market")));
                     }
                     let mut baseId: String = self.safe_string_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -519,7 +519,7 @@ impl Backpack {
             }  else if (source.as_deref() == Some("External")) {
                 let mut externalBaseId: String = self.safe_string_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 topic = format!("{}{}", Value::Str(format!("{}{}", "externalTicker.", externalBaseId).into()), "_USDC");
-            }  else if (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) && (crate::value::KeyRead::key_read(&&market, "stock").as_bool() != Some(true)) {
+            }  else if (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) && ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() RFQ venue tickers are only mapped for stock data")));
             }
             let mut symbol: Value = Value::from((market).symbol.clone());
@@ -1219,8 +1219,8 @@ impl Backpack {
     m
 }));
         let mut query: Value = self.prepare_ws_stock_params("watchOHLCV", params).await;
-        let mut result: Value = crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), query).await);
-        return get_value(&get_value(&result, &symbol), &timeframe);
+        let mut result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), query).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return get_value(&crate::value::KeyRead::read(&&result, &symbol), &timeframe);
         Value::Null
         }).await?))
     }
@@ -1888,7 +1888,7 @@ impl Backpack {
             crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".into()), data.clone());
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut isStockMarket: bool = (crate::value::KeyRead::key_read(&&market, "stock").as_bool() == Some(true)) || ((marketId.is_some()) && ((marketId.as_deref().unwrap_or_default().contains(".US_")) || (marketId.as_deref().unwrap_or_default().contains(".HK_"))));
+            let mut isStockMarket: bool = ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) || ((marketId.is_some()) && ((marketId.as_deref().unwrap_or_default().contains(".US_")) || (marketId.as_deref().unwrap_or_default().contains(".HK_"))));
             let mut defaultSnapshotDelay: i64 = (if isStockMarket { 0 } else { 10 });
             let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::from(defaultSnapshotDelay)]);
             if is_equal(&cacheLength, &snapshotDelay) {
