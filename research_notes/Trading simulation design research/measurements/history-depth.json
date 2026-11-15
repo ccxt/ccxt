@@ -1,0 +1,1087 @@
+{
+  "probedAt": "2026-11-15T18:43:32.126Z",
+  "results": [
+    {
+      "exchange": "binance",
+      "has": {},
+      "symbols": {},
+      "history": {},
+      "orderBookLevels": {},
+      "errors": [
+        "loadMarkets: binance GET https://fapi.binance.com/fapi/v1/exchangeInfo 451 Unavailable For Legal Reasons {\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted locat"
+      ]
+    },
+    {
+      "exchange": "binanceusdm",
+      "has": {},
+      "symbols": {},
+      "history": {},
+      "orderBookLevels": {},
+      "errors": [
+        "loadMarkets: binanceusdm GET https://fapi.binance.com/fapi/v1/exchangeInfo 451 Unavailable For Legal Reasons {\n  \"code\": 0,\n  \"msg\": \"Service unavailable from a restricted l"
+      ]
+    },
+    {
+      "exchange": "okx",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": true,
+        "fetchMarkOHLCV": true,
+        "fetchIndexOHLCV": true,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT",
+        "perp": "BTC/USDT:USDT"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2018-01-06",
+            "yearsBack": 8.9
+          },
+          "ohlcv_1h": {
+            "earliest": "2018-01-11",
+            "yearsBack": 8.8
+          },
+          "ohlcv_1m": {
+            "earliest": "2018-01-11",
+            "yearsBack": 8.8
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2019-12-27",
+            "yearsBack": 6.9
+          },
+          "ohlcv_1h": {
+            "earliest": "2019-12-16",
+            "yearsBack": 6.9
+          },
+          "ohlcv_1m": {
+            "earliest": "2019-12-16",
+            "yearsBack": 6.9
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": "2026-08-08",
+            "yearsBack": 0.3
+          },
+          "openInterest_1h": {
+            "earliest": "2026-10-10",
+            "yearsBack": 0.1
+          },
+          "markOhlcv_1h": {
+            "earliest": "2020-01-02",
+            "yearsBack": 6.9
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 10000,
+        "perp": 10000
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "3m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "4h",
+        "6h",
+        "12h",
+        "1d",
+        "1w",
+        "1M",
+        "3M"
+      ]
+    },
+    {
+      "exchange": "bybit",
+      "has": {},
+      "symbols": {},
+      "history": {},
+      "orderBookLevels": {},
+      "errors": [
+        "loadMarkets: bybit GET https://api.bybit.com/v5/market/instruments-info?category=linear&limit=1000 403 Forbidden {\n    error:The Amazon CloudFront distribution is configured"
+      ]
+    },
+    {
+      "exchange": "coinbase",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": false,
+        "fetchOpenInterestHistory": false,
+        "fetchMarkOHLCV": false,
+        "fetchIndexOHLCV": false,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT",
+        "perp": "BTC/USDC:USDC"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2021-04-29",
+            "yearsBack": 5.5
+          },
+          "ohlcv_1h": {
+            "earliest": "2021-05-04",
+            "yearsBack": 5.5
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 1745
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "6h",
+        "1d"
+      ]
+    },
+    {
+      "exchange": "kraken",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": false,
+        "fetchOpenInterestHistory": false,
+        "fetchMarkOHLCV": false,
+        "fetchIndexOHLCV": false,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2024-11-14",
+            "yearsBack": 2
+          },
+          "ohlcv_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": "2019-12-18",
+            "yearsBack": 6.9
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 200
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "1d",
+        "1w",
+        "2w"
+      ]
+    },
+    {
+      "exchange": "krakenfutures",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": false,
+        "fetchMarkOHLCV": true,
+        "fetchIndexOHLCV": true,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "perp": "BTC/USD:USD"
+      },
+      "history": {
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2022-03-18",
+            "yearsBack": 4.7
+          },
+          "ohlcv_1h": {
+            "earliest": "2022-03-23",
+            "yearsBack": 4.7
+          },
+          "ohlcv_1m": {
+            "earliest": "2022-03-24",
+            "yearsBack": 4.6
+          },
+          "trades": {
+            "earliest": "2022-03-21",
+            "yearsBack": 4.7
+          },
+          "funding": {
+            "earliest": "2025-11-09",
+            "yearsBack": 1
+          },
+          "markOhlcv_1h": {
+            "earliest": "2022-03-22",
+            "yearsBack": 4.7
+          }
+        }
+      },
+      "orderBookLevels": {
+        "perp": 2834
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "12h",
+        "1d",
+        "1w"
+      ]
+    },
+    {
+      "exchange": "gate",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": true,
+        "fetchMarkOHLCV": true,
+        "fetchIndexOHLCV": true,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": true,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT",
+        "perp": "BTC/USDT:USDT"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2013-03-27",
+            "yearsBack": 13.6
+          },
+          "ohlcv_1h": {
+            "earliest": "2025-09-25",
+            "yearsBack": 1.1
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2019-11-14",
+            "yearsBack": 7
+          },
+          "ohlcv_1h": {
+            "earliest": "2025-09-25",
+            "yearsBack": 1.1
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "openInterest_1h": {
+            "earliest": "2026-05-19",
+            "yearsBack": 0.5
+          },
+          "markOhlcv_1h": {
+            "earliest": "2025-09-25",
+            "yearsBack": 1.1
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 2000,
+        "perp": 600
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "10s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "1d",
+        "7d",
+        "1w"
+      ]
+    },
+    {
+      "exchange": "bitget",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": false,
+        "fetchMarkOHLCV": true,
+        "fetchIndexOHLCV": true,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT",
+        "perp": "BTC/USDT:USDT"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2018-07-20",
+            "yearsBack": 8.3
+          },
+          "ohlcv_1h": {
+            "earliest": "2018-07-24",
+            "yearsBack": 8.3
+          },
+          "ohlcv_1m": {
+            "earliest": "2018-07-25",
+            "yearsBack": 8.3
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2019-07-06",
+            "yearsBack": 7.4
+          },
+          "ohlcv_1h": {
+            "earliest": "2019-07-10",
+            "yearsBack": 7.4
+          },
+          "ohlcv_1m": {
+            "earliest": "2019-07-10",
+            "yearsBack": 7.4
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "markOhlcv_1h": {
+            "earliest": "2019-07-09",
+            "yearsBack": 7.4
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 300,
+        "perp": 200
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "3m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "4h",
+        "6h",
+        "12h",
+        "1d",
+        "3d",
+        "1w",
+        "1M"
+      ]
+    },
+    {
+      "exchange": "kucoin",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": true,
+        "fetchMarkOHLCV": true,
+        "fetchIndexOHLCV": true,
+        "fetchPremiumIndexOHLCV": true,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT",
+        "perp": "BTC/USDT:USDT"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2017-10-14",
+            "yearsBack": 9.1
+          },
+          "ohlcv_1h": {
+            "earliest": "2017-10-14",
+            "yearsBack": 9.1
+          },
+          "ohlcv_1m": {
+            "earliest": "2017-10-18",
+            "yearsBack": 9.1
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2020-03-25",
+            "yearsBack": 6.6
+          },
+          "ohlcv_1h": {
+            "earliest": "2024-08-04",
+            "yearsBack": 2.3
+          },
+          "ohlcv_1m": {
+            "earliest": "2024-12-01",
+            "yearsBack": 2
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": "2026-10-11",
+            "yearsBack": 0.1
+          },
+          "openInterest_1h": {
+            "earliest": "2026-11-08",
+            "yearsBack": 0
+          },
+          "markOhlcv_1h": {
+            "earliest": "2024-08-04",
+            "yearsBack": 2.3
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 200,
+        "perp": 200
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "3m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "4h",
+        "6h",
+        "8h",
+        "12h",
+        "1d",
+        "1w",
+        "1M"
+      ]
+    },
+    {
+      "exchange": "kucoinfutures",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": true,
+        "fetchMarkOHLCV": true,
+        "fetchIndexOHLCV": true,
+        "fetchPremiumIndexOHLCV": true,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "perp": "BTC/USDT:USDT"
+      },
+      "history": {
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2020-03-25",
+            "yearsBack": 6.6
+          },
+          "ohlcv_1h": {
+            "earliest": "2024-08-04",
+            "yearsBack": 2.3
+          },
+          "ohlcv_1m": {
+            "earliest": "2024-12-01",
+            "yearsBack": 2
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": "2026-10-11",
+            "yearsBack": 0.1
+          },
+          "openInterest_1h": {
+            "earliest": "2026-11-08",
+            "yearsBack": 0
+          },
+          "markOhlcv_1h": {
+            "earliest": "2024-08-04",
+            "yearsBack": 2.3
+          }
+        }
+      },
+      "orderBookLevels": {
+        "perp": 200
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "3m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "4h",
+        "6h",
+        "8h",
+        "12h",
+        "1d",
+        "1w",
+        "1M"
+      ]
+    },
+    {
+      "exchange": "htx",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": true,
+        "fetchMarkOHLCV": true,
+        "fetchIndexOHLCV": true,
+        "fetchPremiumIndexOHLCV": true,
+        "fetchLiquidations": true,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT",
+        "perp": "BTC/USDT:USDT"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2017-10-21",
+            "yearsBack": 9.1
+          },
+          "ohlcv_1h": {
+            "earliest": "2017-10-26",
+            "yearsBack": 9.1
+          },
+          "ohlcv_1m": {
+            "earliest": "2017-10-26",
+            "yearsBack": 9.1
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2026-10-11",
+            "yearsBack": 0.1
+          },
+          "ohlcv_1h": {
+            "earliest": "2026-11-08",
+            "yearsBack": 0
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "openInterest_1h": {
+            "earliest": "2026-11-08",
+            "yearsBack": 0
+          },
+          "markOhlcv_1h": {
+            "earliest": "2026-11-08",
+            "yearsBack": 0
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 300,
+        "perp": 300
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "1d",
+        "1w",
+        "1M",
+        "1y"
+      ]
+    },
+    {
+      "exchange": "mexc",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": false,
+        "fetchMarkOHLCV": true,
+        "fetchIndexOHLCV": true,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT",
+        "perp": "BTC/USDT:USDT"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2017-10-21",
+            "yearsBack": 9.1
+          },
+          "ohlcv_1h": {
+            "earliest": "2018-06-01",
+            "yearsBack": 8.5
+          },
+          "ohlcv_1m": {
+            "earliest": "2026-10-17",
+            "yearsBack": 0.1
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2020-05-05",
+            "yearsBack": 6.5
+          },
+          "ohlcv_1h": {
+            "earliest": "2020-05-29",
+            "yearsBack": 6.5
+          },
+          "ohlcv_1m": {
+            "earliest": "2026-10-16",
+            "yearsBack": 0.1
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "markOhlcv_1h": {
+            "earliest": "2020-05-29",
+            "yearsBack": 6.5
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 4000,
+        "perp": 3000
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "8h",
+        "1d",
+        "1w",
+        "1M"
+      ]
+    },
+    {
+      "exchange": "bitfinex",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": true,
+        "fetchMarkOHLCV": false,
+        "fetchIndexOHLCV": false,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": true,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT",
+        "perp": "BTC/USDT:USDT"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2019-02-08",
+            "yearsBack": 7.8
+          },
+          "ohlcv_1h": {
+            "earliest": "2019-03-04",
+            "yearsBack": 7.7
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": "2019-03-10",
+            "yearsBack": 7.7
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "openInterest_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 200,
+        "perp": 200
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "3h",
+        "4h",
+        "6h",
+        "12h",
+        "1d",
+        "1w",
+        "2w",
+        "1M"
+      ]
+    },
+    {
+      "exchange": "deribit",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": false,
+        "fetchMarkOHLCV": false,
+        "fetchIndexOHLCV": false,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": true,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDT",
+        "perp": "BTC/USD:BTC"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2023-12-07",
+            "yearsBack": 2.9
+          },
+          "ohlcv_1h": {
+            "earliest": "2023-12-12",
+            "yearsBack": 2.9
+          },
+          "ohlcv_1m": {
+            "earliest": "2023-12-12",
+            "yearsBack": 2.9
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2018-08-09",
+            "yearsBack": 8.3
+          },
+          "ohlcv_1h": {
+            "earliest": "2018-08-14",
+            "yearsBack": 8.3
+          },
+          "ohlcv_1m": {
+            "earliest": "2018-08-14",
+            "yearsBack": 8.3
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": "2019-04-28",
+            "yearsBack": 7.6
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 86,
+        "perp": 1690
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "3m",
+        "5m",
+        "10m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "3h",
+        "6h",
+        "12h",
+        "1d"
+      ]
+    },
+    {
+      "exchange": "hyperliquid",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": false,
+        "fetchMarkOHLCV": false,
+        "fetchIndexOHLCV": false,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot": "BTC/USDC",
+        "perp": "BTC/USDC:USDC"
+      },
+      "history": {
+        "spot": {
+          "ohlcv_1d": {
+            "earliest": "2025-01-03",
+            "yearsBack": 1.9
+          },
+          "ohlcv_1h": {
+            "earliest": "2026-04-14",
+            "yearsBack": 0.6
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp": {
+          "ohlcv_1d": {
+            "earliest": "2020-07-19",
+            "yearsBack": 6.3
+          },
+          "ohlcv_1h": {
+            "earliest": "2026-04-14",
+            "yearsBack": 0.6
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "funding": {
+            "earliest": "2023-05-09",
+            "yearsBack": 3.5
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot": 40,
+        "perp": 40
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "3m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "12h",
+        "1d",
+        "3d",
+        "1w",
+        "1M"
+      ]
+    }
+  ]
+}
