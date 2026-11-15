@@ -3285,10 +3285,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             orderRequest.insert("builder_fee".into(), self.safe_string_k(self.options.clone(), "builderRate", &[]));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(paramsTrigger, &["builderFee"], &[]).into_dict();
-        let mut signedOrderRequest: Value = self.create_signed_request(&mut orderRequest, eipType.as_str(), &[]);
+        let mut signedOrderRequest: crate::value::Dict = self.create_signed_request(&mut orderRequest, eipType.as_str(), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order".to_string(), signedOrderRequest);
+                m.insert("order".to_string(), Value::Dict(signedOrderRequest));
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);

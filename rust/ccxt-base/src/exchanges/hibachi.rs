@@ -2326,8 +2326,8 @@ impl Hibachi {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = self.fetch_orders_by_status(Some("filled"), symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]).await;
-        let mut filtered: crate::value::List = self.filter_by(orders, Value::Str("status".into()), Value::Str("closed".into()), &[]).into_list();
+        let mut orders: crate::value::List = self.fetch_orders_by_status(Some("filled"), symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]).await.into_list();
+        let mut filtered: crate::value::List = self.filter_by(Value::Arr(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]).into_list();
         return self.filter_by_since_limit(&filtered, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
@@ -2359,8 +2359,8 @@ impl Hibachi {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = self.fetch_orders_by_status(None, symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]).await;
-        let mut filtered: crate::value::List = self.filter_by(orders, Value::Str("status".into()), Value::Str("canceled".into()), &[]).into_list();
+        let mut orders: crate::value::List = self.fetch_orders_by_status(None, symbol.as_str(), since.as_i64(), limit.as_i64(), &[params]).await.into_list();
+        let mut filtered: crate::value::List = self.filter_by(Value::Arr(orders), Value::Str("status".into()), Value::Str("canceled".into()), &[]).into_list();
         return self.filter_by_since_limit(&filtered, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))

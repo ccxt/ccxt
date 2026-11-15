@@ -2076,23 +2076,23 @@ if _try_result.is_err() {
         });
         let mut sinceValue: Value = since.clone();
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (self.safe_integer_k(requestUntil.clone(), "end_time", &[]) == Value::Null) {
+        if (self.safe_integer_k(&requestUntil, "end_time", &[]) == Value::Null) {
             if (sinceValue == Value::Null) {
                 sinceValue = Value::Int((nowMs - ((limitValue * duration))));
             }
             let mut windowEnd: Option<i64> = self.parse_to_int(self.sum(&[(match (&(sinceValue), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
                 _ => Value::Null }), Value::Int((limitValue * duration))]));
             let mut until: Option<i64> = (if (windowEnd > Some(nowMs)) { Some(nowMs) } else { windowEnd });
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_time".into(), Value::from(until)); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("end_time".into(), Value::from(until));
         }  else {
             if (sinceValue == Value::Null) {
-                sinceValue = (match (&(requestUntil.as_map().and_then(|__m| __m.get("end_time")).cloned().unwrap_or(Value::Null)), &(Value::Int((limitValue * duration)))) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x - __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
-                    Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x - __y), _ => Value::Null } });
+                sinceValue = (match (&(crate::value::KeyRead::key_read(&&requestUntil, "end_time")), &(Value::Int((limitValue * duration)))) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x - __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
+                    Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x - __y), _ => Value::Null } });
             }
         }
-        if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_time".into(), sinceValue); }
+        std::sync::Arc::make_mut(&mut requestUntil).insert("start_time".into(), sinceValue);
         let __ws_arg_5 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_kline(&[__ws_arg_5]).await.into_dict();
         //
@@ -2276,8 +2276,8 @@ if _try_result.is_err() {
         //   "has_more": true   // not included to info!
         // }
         //
-        let mut data: Value = self.add_pagination_cursor_to_result(response);
-        return self.parse_trades(data, market.as_ref(), &[since, limit]);
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(response).into_list();
+        return self.parse_trades(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2859,11 +2859,11 @@ if _try_result.is_err() {
             let mut __for_first_1048: bool = true;
             while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = self.safe_string(ids.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
-            let mut request: Value = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), symbol.as_str(), &[params.clone()]);
+            let mut request: crate::value::Dict = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), symbol.as_str(), &[params.clone()]).into_dict();
             let mut action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Cancel".into()));
-                    m.insert("data".to_string(), request);
+                    m.insert("data".to_string(), Value::Dict(request));
                 m
             });
             actions.push(Value::Map(action));
@@ -2882,11 +2882,11 @@ if _try_result.is_err() {
                 m
             });
             let __ws_arg_14 = self.extend(Value::Map(cloidParams), &[&paramsOmitted]);
-            let mut request: Value = self.cancel_order_request(cloid, symbol.as_str(), &[__ws_arg_14]);
+            let mut request: crate::value::Dict = self.cancel_order_request(cloid, symbol.as_str(), &[__ws_arg_14]).into_dict();
             let mut action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Cancel".into()));
-                    m.insert("data".to_string(), request);
+                    m.insert("data".to_string(), Value::Dict(request));
                 m
             });
             actions.push(Value::Map(action));
@@ -3626,8 +3626,8 @@ if _try_result.is_err() {
         //   "has_more": true
         // }
         //
-        let mut data: Value = self.add_pagination_cursor_to_result(response);
-        return self.parse_orders(data, market.as_ref(), &[since, limit]);
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(response).into_list();
+        return self.parse_orders(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4573,8 +4573,8 @@ if _try_result.is_err() {
         //   "next_cursor": "11114Lz77",
         //   "has_more": true
         // }
-        let mut data: Value = self.add_pagination_cursor_to_result(response);
-        return self.parse_ledger(data, None, &[since, limit]);
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(response).into_list();
+        return self.parse_ledger(&data, None, &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4861,8 +4861,8 @@ if _try_result.is_err() {
         //   "next_cursor": "11114Lz77",
         //   "has_more": true
         // }
-        let mut data: Value = self.add_pagination_cursor_to_result(response);
-        return self.parse_incomes(data, &[crate::Value::from(market.as_ref()), since, limit]);
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(response).into_list();
+        return self.parse_incomes(&data, &[crate::Value::from(market.as_ref()), since, limit]);
         Value::Null
         }).await?))
     }

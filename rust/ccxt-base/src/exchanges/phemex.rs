@@ -1648,8 +1648,8 @@ impl Phemex {
             return Value::Null;
         }
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut precisionAmount: Value = self.parse_safe_number((self.safe_string_k(market.clone(), "baseTickSize", &[])).as_str());
-        let mut precisionPrice: Value = self.parse_safe_number((self.safe_string_k(market.clone(), "quoteTickSize", &[])).as_str());
+        let mut precisionAmount: Option<f64> = self.parse_safe_number((self.safe_string_k(market.clone(), "baseTickSize", &[])).as_str()).as_f64();
+        let mut precisionPrice: Option<f64> = self.parse_safe_number((self.safe_string_k(market.clone(), "quoteTickSize", &[])).as_str()).as_f64();
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1682,8 +1682,8 @@ impl Phemex {
         m.insert("ratioScale".to_string(), self.safe_integer_k(market.clone(), "ratioScale", &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), precisionAmount.clone());
-        m.insert("price".to_string(), precisionPrice.clone());
+        m.insert("amount".to_string(), Value::from(precisionAmount));
+        m.insert("price".to_string(), Value::from(precisionPrice));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -1696,13 +1696,13 @@ impl Phemex {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), precisionAmount);
+        m.insert("min".to_string(), Value::from(precisionAmount));
         m.insert("max".to_string(), self.parse_safe_number((self.safe_string_k(market.clone(), "maxBaseOrderSize", &[])).as_str()));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), precisionPrice);
+        m.insert("min".to_string(), Value::from(precisionPrice));
         m.insert("max".to_string(), Value::Null);
     m
 }));

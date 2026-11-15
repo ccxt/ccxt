@@ -3031,8 +3031,8 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_1086: bool = true;
             while { if !__for_first_1086 { i += 1; } __for_first_1086 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut symbol: String = self.safe_string_k(rawOrder.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut rawOrder: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut symbol: String = self.safe_string_k(&rawOrder, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketInner: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str()));
             let mut marketInnerType: Option<String> = self.safe_string_k(marketInner.clone(), "type", &[]).as_str().map(str::to_owned);
             let mut marketType: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
@@ -3044,18 +3044,18 @@ impl Poloniex {
             }
             let mut type_var: Option<String> = crate::value::KeyRead::key_read(&&rawOrder, "type").as_str().map(str::to_owned);
             let mut side: Option<String> = crate::value::KeyRead::key_read(&&rawOrder, "side").as_str().map(str::to_owned);
-            let mut amount: Option<f64> = self.safe_number_k(rawOrder.clone(), "amount", &[]).as_f64();
-            let mut price: Option<f64> = self.safe_number_k(rawOrder.clone(), "price", &[]).as_f64();
-            let mut orderParams: crate::value::Dict = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
+            let mut price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             // the request body is a bare list, so there is no room for common params - extend each order with them instead
             let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), marketInner.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                    m.insert("side".to_string(), self.safe_string_upper_k(rawOrder, "side", &[]));
+                    m.insert("side".to_string(), self.safe_string_upper_k(&rawOrder, "side", &[]));
                 m
             });
             { let __destr_tmp: Vec<Value> = self.order_request(symbol.as_str(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), Value::from(amount), request.clone(), &[Value::from(price), extendedParams.clone()]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);

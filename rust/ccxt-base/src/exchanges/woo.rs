@@ -4357,12 +4357,12 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[params.clone()]).await;
+        let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[params.clone()]).await.into_list();
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code));
         }
-        return self.parse_ledger(rows, currency.as_ref(), &[since, limit, params]);
+        return self.parse_ledger(&rows, currency.as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -4555,12 +4555,12 @@ impl Woo {
             m
         });
         let __ws_arg_26 = self.extend(Value::Map(request), &[params.clone()]);
-        let mut rows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_26]).await;
+        let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_26]).await.into_list();
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code));
         }
-        return self.parse_transactions(rows, currency.as_ref(), &[since, limit, self.omit(params, Value::Str("tokenSide".into()), &[])]);
+        return self.parse_transactions(&rows, currency.as_ref(), &[since, limit, self.omit(params, Value::Str("tokenSide".into()), &[])]);
         Value::Null
         }).await?))
     }

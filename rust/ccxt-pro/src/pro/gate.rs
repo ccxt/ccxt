@@ -604,8 +604,8 @@ impl Gate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: crate::value::List = self.parent.create_orders_request(orders.clone(), &[params]).into_list();
-        let mut firstOrder: Value = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut market: crate::types::Market = (match self.market((firstOrder.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut firstOrder: crate::value::Dict = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+        let mut market: crate::types::Market = (match self.market((crate::value::KeyRead::key_read(&&firstOrder, "symbol")).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrdersWs is not supported for swap markets")));
         }
@@ -982,7 +982,7 @@ impl Gate {
             intervalDefault = "50".to_string();
         }
         let intervalqueryVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::from(intervalDefault)]).as_array().cloned().unwrap_or_default();
-        let mut interval: Value = intervalqueryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut interval: Option<String> = intervalqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = intervalqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbolValue);
@@ -997,23 +997,23 @@ impl Gate {
             let mut maxSpotLimit: Value = Value::from(self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)])));
             limitResolved = crate::runtime::Math::min(&limitResolved, &maxSpotLimit);
         }
-        let mut payload: Value = Value::from(vec![]);
+        let mut payload: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut channel: String = "".to_string();
         if isEuUrl {
             channel = "spot.order_book_update".to_string();
-            payload = Value::from(vec![Value::from(marketId.clone()), interval.clone()]);
+            payload = std::sync::Arc::new(vec![Value::from(marketId.clone()), interval.clone().map(Value::from).unwrap_or(Value::Null)]);
         }  else if (market).spot {
             channel = "spot.obu".to_string();
-            let mut finalInterval: Value = interval.clone();
+            let mut finalInterval: Option<String> = interval.clone();
             if (limitResolved.as_f64() == Some(400.0)) {
-                finalInterval = Value::Str("400".into());
+                finalInterval = Some("400".to_string());
             }
-            payload = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ob.", marketId).into()), ".").into()), finalInterval).into())]);
+            payload = std::sync::Arc::new(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ob.", marketId).into()), ".").into()), finalInterval.as_deref().unwrap_or("null")).into())]);
         }  else {
             channel = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_book_update");
-            payload = Value::from(vec![Value::from(marketId), interval]);
+            payload = std::sync::Arc::new(vec![Value::from(marketId), interval.map(Value::from).unwrap_or(Value::Null)]);
             let mut stringLimit: Value = Value::Str(format!("{}", limitResolved).into());
-            if let Value::Arr(__a) = &mut payload { std::sync::Arc::make_mut(__a).push(stringLimit); }
+            std::sync::Arc::make_mut(&mut payload).push(stringLimit);
         }
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1021,7 +1021,7 @@ impl Gate {
                 m.insert("limit".to_string(), limitResolved);
             m
         });
-        let mut orderbook: Value = self.subscribe_public(url.as_deref(), messageHash.as_str(), payload, Some(channel.as_str()), &[Value::Dict(query), Value::Map(subscription)]).await;
+        let mut orderbook: Value = self.subscribe_public(url.as_deref(), messageHash.as_str(), Value::Arr(payload), Some(channel.as_str()), &[Value::Dict(query), Value::Map(subscription)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1061,7 +1061,7 @@ impl Gate {
         }
         let mut interval: String = intervalDefault;
         let intervalOptionparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::from(interval)]).as_array().cloned().unwrap_or_default();
-        let mut intervalOption: Value = intervalOptionparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut intervalOption: Option<String> = intervalOptionparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: crate::value::Dict = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut limit: Value = self.safe_integer_k(&paramsInterval, "limit", &[]);
@@ -1071,27 +1071,27 @@ impl Gate {
                 limit = Value::Int(50); // max 50 for options
             }
         }
-        let mut payload: Value = Value::from(vec![]);
+        let mut payload: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut channel: String = "".to_string();
         if isEuUrl {
             channel = "spot.order_book_update".to_string();
-            payload = Value::from(vec![Value::from(marketId.clone()), intervalOption.clone()]);
+            payload = std::sync::Arc::new(vec![Value::from(marketId.clone()), intervalOption.clone().map(Value::from).unwrap_or(Value::Null)]);
         }  else if (market).spot {
             channel = "spot.obu".to_string();
-            let mut finalInterval: Value = intervalOption.clone();
+            let mut finalInterval: Option<String> = intervalOption.clone();
             if (limit.as_f64() == Some(400.0)) {
-                finalInterval = Value::Str("400".into());
+                finalInterval = Some("400".to_string());
             }
-            payload = Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ob.", marketId).into()), ".").into()), finalInterval).into())]);
+            payload = std::sync::Arc::new(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ob.", marketId).into()), ".").into()), finalInterval.as_deref().unwrap_or("null")).into())]);
         }  else {
             channel = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_book_update");
-            payload = Value::from(vec![Value::from(marketId), intervalOption]);
+            payload = std::sync::Arc::new(vec![Value::from(marketId), intervalOption.map(Value::from).unwrap_or(Value::Null)]);
             let mut stringLimit: Value = Value::Str(format!("{}", limit).into());
-            if let Value::Arr(__a) = &mut payload { std::sync::Arc::make_mut(__a).push(stringLimit); }
+            std::sync::Arc::make_mut(&mut payload).push(stringLimit);
         }
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:orderbook", ":").into()), symbolValue);
-        return self.un_subscribe_public_multiple(url.as_deref(), "orderbook", Value::from(vec![Value::from(symbolValue)]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash)]), payload, Some(channel.as_str()), &[Value::Dict(paramsInterval)]).await;
+        return self.un_subscribe_public_multiple(url.as_deref(), "orderbook", Value::from(vec![Value::from(symbolValue)]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash)]), &payload, Some(channel.as_str()), &[Value::Dict(paramsInterval)]).await;
         Value::Null
         }).await?))
     }

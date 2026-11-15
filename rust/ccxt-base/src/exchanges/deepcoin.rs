@@ -1982,8 +1982,8 @@ impl Deepcoin {
         if (length != 1) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchDepositAddresses requires a list with one currency code")));
         }
-        let mut code: Value = codes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut currency: crate::types::Currency = self.currency(code.clone());
+        let mut code: Option<String> = codes.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_id".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -2025,7 +2025,7 @@ impl Deepcoin {
         let mut list: crate::value::List = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_list();
         let mut additionalParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), code);
+                m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
             m
         });
         return self.parse_deposit_addresses(&list, &[codes, Value::Bool(false), Value::Map(additionalParams)]);

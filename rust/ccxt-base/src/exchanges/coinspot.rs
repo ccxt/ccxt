@@ -1568,21 +1568,21 @@ impl Coinspot {
         let mut requestBody: Option<String> = None;
         let mut apiLength: i64 = api.len() as i64;
         let mut isVersionedApi: bool = apiLength > 1;
-        let mut accessType: Value = api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null);
+        let mut accessType: Option<String> = api.as_array().into_iter().flatten().nth(0).and_then(Value::as_str).map(str::to_owned);
         if isVersionedApi {
-            accessType = api.as_array().into_iter().flatten().nth(1).cloned().unwrap_or(Value::Null);
+            accessType = api.as_array().into_iter().flatten().nth(1).and_then(Value::as_str).map(str::to_owned);
         }
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone()));
         let mut fullPath: String = endpoint.clone();
         if isVersionedApi {
             fullPath = format!("{}{}", Value::Str(format!("{}{}", "/", api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null)).into()), endpoint);
         }
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), accessType.clone(), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), accessType.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), fullPath);
-        if (accessType.as_str() == Some("private")) {
+        if (accessType.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             // coinspot requires an increasing nonce
             let mut nonce: i64 = self.incrementing_nonce();

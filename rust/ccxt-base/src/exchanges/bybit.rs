@@ -3849,8 +3849,7 @@ impl Bybit {
         let mut convertedExpireDate: Option<String> = self.convert_expire_date_to_market_id_date(expiry.as_str()).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, "-").into()), convertedExpireDate.map(Value::from).unwrap_or(Value::Null)).into()), "-").into()),
-            strike.clone().map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), optionType.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+        m.insert("id".to_string(), Value::Str(format!("{}{}{}{}{}{}{}", baseName, "-", convertedExpireDate.map(Value::from).unwrap_or(Value::Null), "-", strike.clone().map(Value::from).unwrap_or(Value::Null), "-", optionType.clone().map(Value::from).unwrap_or(Value::Null)).into()));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, "/").into()), quote).into()),
             ":").into()), quote).into()), "-").into()), expiry).into()), "-").into()), strike.clone().map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), optionType.clone().map(Value::from).unwrap_or(Value::Null)).into()));
         m.insert("base".to_string(), baseName.clone());
@@ -4857,8 +4856,7 @@ impl Bybit {
                 result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-            base.clone().map(Value::from).unwrap_or(Value::Null), "/").into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), ":").into()), settle.clone().map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), self.yymmdd(Value::from(expiry), &[])).into()), "-").into()), strike).into()), "-").into()), optionLetter).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/", quote.clone().map(Value::from).unwrap_or(Value::Null), ":", settle.clone().map(Value::from).unwrap_or(Value::Null), "-", self.yymmdd(Value::from(expiry), &[]), "-", strike, "-", optionLetter).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), settle.clone().map(Value::from).unwrap_or(Value::Null));
@@ -5185,14 +5183,14 @@ impl Bybit {
                                 let mut i: i64 = 0;
                 let mut __for_first_505: bool = true;
                 while { if !__for_first_505 { i += 1; } __for_first_505 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                 // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                let mut isExchangeSpecificSymbol: bool = !symbol.as_str().unwrap_or("").contains("/");
+                let mut isExchangeSpecificSymbol: bool = !symbol.as_deref().unwrap_or_default().contains("/");
                 if isExchangeSpecificSymbol {
-                    market = Some(self.safe_market(symbol.clone(), None, &[Value::Null, defaultType.clone()]));
+                    market = Some(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, defaultType.clone()]));
                 }  else {
-                    market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                    market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 }
                 if (currentType == Value::Null) {
                     currentType = self.safe_string_k(&market, "type", &[]);

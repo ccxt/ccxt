@@ -641,7 +641,7 @@ impl Bitflyer {
             let mut settle: Option<String> = None;
             let mut baseId: Value = Value::Null;
             let mut quoteId: Value = Value::Null;
-            let mut expiry: Value = Value::Null;
+            let mut expiry: Option<i64> = None;
             if spot {
                 baseId = self.safe_string(&currencies, Value::Int(0), &[]);
                 quoteId = self.safe_string(&currencies, Value::Int(1), &[]);
@@ -659,7 +659,7 @@ impl Bitflyer {
                     quoteId = id.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
                     // last 9 chars are expiry date
                     let mut expiryDate: Value = id.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 9).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                    expiry = self.parse_expiry_date(expiryDate.as_str().unwrap_or_default());
+                    expiry = self.parse_expiry_date(expiryDate.as_str().unwrap_or_default()).as_i64();
                 }  else {
                     let mut splitAlias: crate::value::List = Value::Array(if let Some(__s) = alias.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
                     let mut currencyIds: Option<String> = self.safe_string_opt(&splitAlias, Value::Int(0), &[]);
@@ -670,9 +670,9 @@ impl Bitflyer {
                     if (expiryDate.is_none()) {
                         continue;
                     }
-                    expiry = self.parse_expiry_date(expiryDate.as_deref().unwrap_or_default());
+                    expiry = self.parse_expiry_date(expiryDate.as_deref().unwrap_or_default()).as_i64();
                 }
-                if (expiry == Value::Null) {
+                if (expiry.is_none()) {
                     continue;
                 }
                 type_var = "future".to_string();
@@ -692,7 +692,7 @@ impl Bitflyer {
                 settle = Some("JPY".to_string());
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), settle.as_deref().unwrap_or("null"));
                 if future {
-                    symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(expiry.clone(), &[]));
+                    symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[]));
                 }
             }
             result.push(Value::Map({
@@ -718,7 +718,7 @@ impl Bitflyer {
                     m.insert("taker".to_string(), taker);
                     m.insert("maker".to_string(), maker);
                     m.insert("contractSize".to_string(), Value::Null);
-                    m.insert("expiry".to_string(), expiry.clone());
+                    m.insert("expiry".to_string(), Value::from(expiry));
                     m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
                     m.insert("strike".to_string(), Value::Null);
                     m.insert("optionType".to_string(), Value::Null);

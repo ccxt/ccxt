@@ -7728,8 +7728,7 @@ impl Binance {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")).into()), "-").into()), self.yymmdd(Value::from(expiry), &[]));
             }  else if option {
                 strike = Value::from(self.number_to_string(self.parse_to_numeric(self.safe_string_k(market.clone(), "strikePrice", &[]))));
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/").into()),
-                    quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), ":").into()), settle.clone().map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), self.yymmdd(Value::from(expiry), &[])).into()), "-").into()), strike).into()), "-").into()), self.safe_string(&optionParts, Value::Int(3), &[]));
+                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/", quote.clone().map(Value::from).unwrap_or(Value::Null), ":", settle.clone().map(Value::from).unwrap_or(Value::Null), "-", self.yymmdd(Value::from(expiry), &[]), "-", strike, "-", self.safe_string(&optionParts, Value::Int(3), &[]));
             }
             contractSize = self.safe_number2(market.clone(), Value::Str("contractSize".into()), Value::Str("unit".into()), &[self.parse_number(Value::Str("1".into()), &[])]).as_f64();
             linear = Some(settle == quote);
@@ -17832,15 +17831,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        if !(matches!(&apiName, Value::Str(__k) if apiUrls.contains_key(__k.as_ref()))) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not have a testnet/sandbox URL for ").into()), apiName).into()), " endpoints")));
+        if !(matches!(apiName.as_deref(), Some(__k) if apiUrls.contains_key(__k))) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not have a testnet/sandbox URL for ").into()), apiName.as_deref().unwrap_or("null")).into()), " endpoints")));
         }
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -17874,13 +17873,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " userDataStream endpoint requires `apiKey` credential")));
             }
-        }  else if (apiName.as_str() == Some("private")) || (apiName.as_str() == Some("eapiPrivate")) || ((apiName.as_str() == Some("sapi")) && (path.as_str() != Some("system/status"))) || (apiName.as_str() == Some("sapiV2")) || (apiName.as_str() == Some("sapiV3")) || (apiName.as_str() == Some("sapiV4")) || (apiName.as_str() == Some("dapiPrivate")) ||
-            (apiName.as_str() == Some("dapiPrivateV2")) || (apiName.as_str() == Some("fapiPrivate")) || (apiName.as_str() == Some("fapiPrivateV2")) || (apiName.as_str() == Some("fapiPrivateV3")) || ((apiName.as_str() == Some("papiV2")) || (apiName.as_str() == Some("papi")) && (path.as_str() != Some("ping"))) {
+        }  else if (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("eapiPrivate")) || ((apiName.as_deref() == Some("sapi")) && (path.as_str() != Some("system/status"))) || (apiName.as_deref() == Some("sapiV2")) || (apiName.as_deref() == Some("sapiV3")) || (apiName.as_deref() == Some("sapiV4")) || (apiName.as_deref() ==
+            Some("dapiPrivate")) || (apiName.as_deref() == Some("dapiPrivateV2")) || (apiName.as_deref() == Some("fapiPrivate")) || (apiName.as_deref() == Some("fapiPrivateV2")) || (apiName.as_deref() == Some("fapiPrivateV3")) || ((apiName.as_deref() == Some("papiV2")) || (apiName.as_deref() == Some("papi")) && (path.as_str() != Some("ping"))) {
             self.check_required_credentials(&[]);
             if (url.contains("testnet.binancefuture.com")) && self.isSandboxModeEnabled.as_bool() == Some(true) && (!matches!(self.safe_bool_k(self.options.clone(), "disableFuturesSandboxWarning", &[Value::Bool(false)]), Value::Bool(true))) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")));
             }
-            let mut requestParams: indexmap::IndexMap<String, Value> = self.handle_client_order_id(params.clone(), apiName.as_str().unwrap_or_default(), path.as_str().unwrap_or_default(), method.as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
+            let mut requestParams: indexmap::IndexMap<String, Value> = self.handle_client_order_id(params.clone(), apiName.as_deref().unwrap_or_default(), path.as_str().unwrap_or_default(), method.as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
             let mut query: Value = Value::Str("".into());
             // handle batchOrders
             if (path.as_str() == Some("batchOrders")) && ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT"))) {
@@ -17902,7 +17901,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (recvWindow.is_some()) {
                 if let Value::Dict(__d) = &mut extendedParams { std::sync::Arc::make_mut(__d).insert("recvWindow".into(), Value::from(recvWindow)); }
             }
-            if (apiName.as_str() == Some("sapi")) && (path.as_str() == Some("asset/dust")) {
+            if (apiName.as_deref() == Some("sapi")) && (path.as_str() == Some("asset/dust")) {
                 query = Value::from(self.urlencode_with_array_repeat(extendedParams.clone()));
             }  else if (path.as_str() == Some("batchOrders")) || (path.as_str().unwrap_or("").contains("sub-account")) || (path.as_str() == Some("capital/withdraw/apply")) || (path.as_str().unwrap_or("").contains("staking")) || (path.as_str().unwrap_or("").contains("simple-earn")) {
                 if (method.as_str() == Some("DELETE")) && (path.as_str() == Some("batchOrders")) {

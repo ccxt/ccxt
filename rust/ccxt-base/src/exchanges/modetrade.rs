@@ -4320,12 +4320,12 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut rows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[params.clone()]).await;
+        let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[params.clone()]).await.into_list();
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code));
         }
-        return self.parse_ledger(rows, currency.as_ref(), &[since, limit, params]);
+        return self.parse_ledger(&rows, currency.as_ref(), &[since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -4510,7 +4510,7 @@ impl Modetrade {
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[params.clone()]);
-        let mut rows: Value = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_32]).await;
+        let mut rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since.as_i64(), limit.as_i64(), &[__ws_arg_32]).await.into_list();
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code));
@@ -4527,7 +4527,7 @@ impl Modetrade {
         //     }
         //
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("side".into()), &[]).into_dict(); // request-side filter, not a unified transaction field
-        return self.parse_transactions(rows, currency.as_ref(), &[since, limit, Value::Dict(paramsOmitted)]);
+        return self.parse_transactions(&rows, currency.as_ref(), &[since, limit, Value::Dict(paramsOmitted)]);
         Value::Null
         }).await?))
     }
@@ -4617,7 +4617,7 @@ impl Modetrade {
         if (coinNetworkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " withdraw() require chainId parameter")));
         }
-        let mut withdrawNonce: Value = self.get_withdraw_nonce(&[params.clone()]).await;
+        let mut withdrawNonce: Option<f64> = self.get_withdraw_nonce(&[params.clone()]).await.as_f64();
         let mut nonce: i64 = self.nonce().as_i64().unwrap_or_default();
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4674,7 +4674,7 @@ impl Modetrade {
                 m.insert("receiver".to_string(), address.clone());
                 m.insert("token".to_string(), Value::from(codeUpper));
                 m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
-                m.insert("withdrawNonce".to_string(), withdrawNonce);
+                m.insert("withdrawNonce".to_string(), Value::from(withdrawNonce));
                 m.insert("timestamp".to_string(), Value::from(nonce));
             m
         });

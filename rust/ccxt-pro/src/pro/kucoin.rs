@@ -1148,8 +1148,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //    }
         //
-        let mut topic: Option<String> = match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-        if !topic.as_deref().unwrap_or("").contains("contractMarket") {
+        let mut topic: Option<String> = (match __pro_message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        if !topic.as_deref().unwrap_or_default().contains("contractMarket") {
             let mut market: Option<crate::types::Market> = None;
             if (topic.is_some()) {
                 let mut parts: crate::value::List = Value::Array(if let Some(__s) = topic.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
@@ -1423,8 +1423,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> Value {
-        let mut topic: Option<String> = self.safe_string_k_opt(ticker.clone(), "topic", &[]);
-        if !topic.as_deref().unwrap_or("").contains("contractMarket") {
+        let mut topic: Option<String> = self.safe_string_k(ticker.clone(), "topic", &[]).as_str().map(str::to_owned);
+        if !topic.as_deref().unwrap_or_default().contains("contractMarket") {
             let mut parts: Vec<Value> = Value::Array(if let Some(__s) = topic.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let mut marketId: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
             let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
@@ -1667,8 +1667,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
         let mut candles: crate::value::List = self.safe_list_k(&data, "candles", &[Value::from(vec![])]).into_list();
-        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut parts: crate::value::List = Value::Array(if let Some(__s) = topic.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut parts: crate::value::List = Value::Array(if let Some(__s) = topic.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut interval: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         // use a reverse lookup in a static map instead
         let mut timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1682,7 +1682,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, stored.clone());
         }
-        let mut isContractMarket: bool = topic.as_str().unwrap_or("").contains("contractMarket");
+        let mut isContractMarket: bool = topic.as_deref().unwrap_or_default().contains("contractMarket");
         let mut baseVolumeIndex: i64 = 5;
         if isContractMarket {
             baseVolumeIndex = 6; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
@@ -2464,15 +2464,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut topic: Value = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut topicParts: crate::value::List = Value::Array(if let Some(__s) = topic.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut topicParts: crate::value::List = Value::Array(if let Some(__s) = topic.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut topicSymbol: Option<String> = self.safe_string_opt(&topicParts, Value::Int(1), &[]);
         let mut topicChannel: Value = self.safe_string(&topicParts, Value::Int(0), &[]);
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[topicSymbol.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         // let orderbook = this.safeDict (this.orderbooks, symbol);
-        if topic.as_str().unwrap_or("").contains("Depth") {
+        if topic.as_deref().unwrap_or_default().contains("Depth") {
             if !(self.orderbooks.has(&symbol)) {
                 { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }  else {

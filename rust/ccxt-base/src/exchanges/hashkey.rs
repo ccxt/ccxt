@@ -3282,10 +3282,10 @@ impl Hashkey {
         let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "coin", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
-        let mut amountString: Option<String> = self.safe_string_k_opt(item.clone(), "change", &[]);
-        let mut amount: Value = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut amountString: Option<String> = self.safe_string_k(item.clone(), "change", &[]).as_str().map(str::to_owned);
+        let mut amount: Option<f64> = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut direction: String = "in".to_string();
-        if amountString.as_deref().unwrap_or("").contains("-") {
+        if amountString.as_deref().unwrap_or_default().contains("-") {
             direction = "out".to_string();
         }
         let mut afterString: Option<String> = self.safe_string_k(item.clone(), "total", &[]).as_str().map(str::to_owned);
@@ -3304,7 +3304,7 @@ impl Hashkey {
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::Null);
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::from(after));
         m.insert("status".to_string(), Value::from(status));

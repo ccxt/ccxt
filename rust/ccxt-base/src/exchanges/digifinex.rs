@@ -3230,12 +3230,12 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_648: bool = true;
             while { if !__for_first_648 { i += 1; } __for_first_648 = false; i < (orders.len() as i64) } {
-            let mut order: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "id", &[]);
+            let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
             if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrdersForSymbols() requires an id for each order")));
             }
-            let mut symbol: Option<String> = self.safe_string_k(order, "symbol", &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrdersForSymbols() requires a symbol for each order")));
             }

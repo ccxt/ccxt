@@ -1329,12 +1329,12 @@ impl Lbank {
         }
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
-        let mut tickerData: Value = self.safe_dict_k(ticker.clone(), "ticker", &[Value::Map({
+        let mut tickerData: crate::value::Dict = self.safe_dict_k(ticker.clone(), "ticker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut data: Value = (if (marketResolved).contract { ticker.clone() } else { tickerData });
+        let mut data: Value = (if (marketResolved).contract { ticker.clone() } else { Value::Dict(tickerData) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));

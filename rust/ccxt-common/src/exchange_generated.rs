@@ -3277,29 +3277,29 @@ pub trait ExchangeBase:
                                         let mut i: i64 = 0;
                     let mut __for_first_94: bool = true;
                     while { if !__for_first_94 { i += 1; } __for_first_94 = false; i < (trades.len() as i64) } {
-                    let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                    let mut tradeAmount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
+                    let mut trade: crate::value::Dict = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let mut tradeAmount: Option<String> = self.safe_string_k(&trade, "amount", &[]).as_str().map(str::to_owned);
                     if parseFilled && (tradeAmount.is_some()) {
                         filled = crate::precise::Precise::stringAdd(&filled, &tradeAmount).as_str().map(str::to_owned);
                     }
-                    let mut tradeCost: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
+                    let mut tradeCost: Option<String> = self.safe_string_k(&trade, "cost", &[]).as_str().map(str::to_owned);
                     if parseCost && (tradeCost.is_some()) {
                         cost = crate::precise::Precise::stringAdd(&cost, &tradeCost).as_str().map(str::to_owned);
                     }
                     if parseSymbol {
-                        symbol = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
+                        symbol = self.safe_string_k(&trade, "symbol", &[]).as_str().map(str::to_owned);
                     }
                     if parseSide {
-                        side = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
+                        side = self.safe_string_k(&trade, "side", &[]).as_str().map(str::to_owned);
                     }
-                    let mut tradeTimestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
+                    let mut tradeTimestamp: Value = self.safe_integer_k(&trade, "timestamp", &[]);
                     if parseLastTradeTimeTimestamp && (tradeTimestamp != Value::Null) {
                         if (lastTradeTimeTimestamp == Value::Null) || tradeTimestamp.as_f64().unwrap_or(f64::NAN) > lastTradeTimeTimestamp.as_f64().unwrap_or(f64::NAN) {
                             lastTradeTimeTimestamp = tradeTimestamp;
                         }
                     }
                     if shouldParseFees {
-                        let mut tradeFees: Option<crate::value::List> = self.safe_list_k(trade.clone(), "fees", &[]).into_opt_list();
+                        let mut tradeFees: Option<crate::value::List> = self.safe_list_k(&trade, "fees", &[]).into_opt_list();
                         if (tradeFees.is_some()) {
                             {
                                                                 let mut j: i64 = 0;
@@ -3313,7 +3313,7 @@ pub trait ExchangeBase:
                             }
                             }
                         }  else {
-                            let mut tradeFee: Value = self.safe_value_k(trade, "fee", &[]);
+                            let mut tradeFee: Value = self.safe_value_k(&trade, "fee", &[]);
                             if (tradeFee != Value::Null) {
                                 if let Value::Arr(__a) = &mut fees { std::sync::Arc::make_mut(__a).push(self.extend(Value::Map({
                                     let mut m = indexmap::IndexMap::new();
@@ -9258,8 +9258,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (Value::Null).clone(), (Value::from(maxEntriesPerRequestOption)).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
                     let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                     if self.verbose.as_bool() == Some(true) {
-                        let mut backwardMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), Value::from(self.number_to_string(Value::Int((i + 1))))).into()), " method ").into()), method).into()),
-                            " response length ").into()), Value::Str(format!("{}", responseLength).into()));
+                        let mut backwardMessage: String = format!("{}{}{}{}{}{}", Value::Str("Dynamic pagination call ".into()), Value::from(self.number_to_string(Value::Int((i + 1)))), " method ", method, " response length ", responseLength);
                         if (paginationTimestamp != Value::Null) {
                             backwardMessage.push_str(&format!("{}{}", Value::Str(" timestamp ".into()), Value::from(self.number_to_string(paginationTimestamp.clone()))));
                         }
@@ -9286,8 +9285,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (paginationTimestamp).clone(), (Value::from(maxEntriesPerRequestOption)).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
                     let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                     if self.verbose.as_bool() == Some(true) {
-                        let mut forwardMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".into()), Value::from(self.number_to_string(Value::Int((i + 1))))).into()), " method ").into()), method).into()),
-                            " response length ").into()), Value::Str(format!("{}", responseLength).into()));
+                        let mut forwardMessage: String = format!("{}{}{}{}{}{}", Value::Str("Dynamic pagination call ".into()), Value::from(self.number_to_string(Value::Int((i + 1)))), " method ", method, " response length ", responseLength);
                         if (paginationTimestamp != Value::Null) {
                             forwardMessage.push_str(&format!("{}{}", Value::Str(" timestamp ".into()), Value::from(self.number_to_string(paginationTimestamp.clone()))));
                         }
@@ -9520,8 +9518,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if (cursorValue != Value::Null) {
                         cursorString = Value::Str(format!("{}", cursorValue).into());
                     }
-                    let mut cursorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Cursor pagination call ".into()), Value::Str(format!("{}", (Value::Int((i + 1)))).into())).into()),
-                        " method ").into()), method).into()), " response length ").into()), Value::Str(format!("{}", responseLength).into())).into()), " cursor ").into()), cursorString);
+                    let mut cursorMessage: String = format!("{}{}{}{}{}{}{}{}", Value::Str("Cursor pagination call ".into()), (Value::Int((i + 1))), " method ", method, " response length ", responseLength, " cursor ", cursorString);
                     self.log(Value::from(cursorMessage));
                 }
                 if (responseLength == 0) {
@@ -9607,8 +9604,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                 if self.verbose.as_bool() == Some(true) {
                     let mut iteration: Value = (Value::Int((i + 1)));
-                    let mut incrementalMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Incremental pagination call ".into()), Value::Str(format!("{}", iteration).into())).into()), " method ").into()), method).into()), " response length ").into()),
-                        Value::Str(format!("{}", responseLength).into()));
+                    let mut incrementalMessage: String = format!("{}{}{}{}{}{}", Value::Str("Incremental pagination call ".into()), iteration, " method ", method, " response length ", responseLength);
                     self.log(Value::from(incrementalMessage));
                 }
                 if (responseLength == 0) {

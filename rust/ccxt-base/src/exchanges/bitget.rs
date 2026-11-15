@@ -7144,11 +7144,11 @@ if _try_result.is_err() {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut deposits: Vec<crate::types::Transaction> = (match self.fetch_deposits(code.as_str(), None, None, __ws_arg_8).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut deposit: Value = self.safe_dict(crate::types::IntoRaw::into_raw(deposits), Value::Int(0), &[Value::Map({
+        let mut deposit: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(deposits), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return deposit;
+})]).into_dict();
+        return Value::Dict(deposit);
 
     Value::Null
 }
@@ -7414,11 +7414,11 @@ if _try_result.is_err() {
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut withdrawals: Vec<crate::types::Transaction> = (match self.fetch_withdrawals(code.as_str(), None, None, __ws_arg_13).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut withdrawal: Value = self.safe_dict(crate::types::IntoRaw::into_raw(withdrawals), Value::Int(0), &[Value::Map({
+        let mut withdrawal: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(withdrawals), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return withdrawal;
+})]).into_dict();
+        return Value::Dict(withdrawal);
 
     Value::Null
 }
@@ -10101,13 +10101,13 @@ if _try_result.is_err() {
             }
         }
         if isStockOrUta {
-            let mut request: Value = self.create_uta_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), Value::from(&paramsUTA)]);
+            let mut request: crate::value::Dict = self.create_uta_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), Value::from(&paramsUTA)]).into_dict();
             if isStockSpot {
-                response = self.private_uta_post_v3_trade_place_reality_order(&[request.clone()]).await.into_opt_dict();
+                response = self.private_uta_post_v3_trade_place_reality_order(&[Value::from(&request)]).await.into_opt_dict();
             }  else if isStopLossOrTakeProfitTrigger {
-                response = self.private_uta_post_v3_trade_place_strategy_order(&[request.clone()]).await.into_opt_dict();
+                response = self.private_uta_post_v3_trade_place_strategy_order(&[Value::from(&request)]).await.into_opt_dict();
             }  else {
-                response = self.private_uta_post_v3_trade_place_order(&[request]).await.into_opt_dict();
+                response = self.private_uta_post_v3_trade_place_order(&[Value::Dict(request)]).await.into_opt_dict();
             }
         }  else {
             let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(paramsUTA)]).into_dict();
@@ -10599,8 +10599,8 @@ if _try_result.is_err() {
                     }
                 }
             }
-            let mut orderRequest: Value = self.create_uta_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(orderParams)]);
-            ordersRequests.push(orderRequest);
+            let mut orderRequest: crate::value::Dict = self.create_uta_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), Value::Dict(orderParams)]).into_dict();
+            ordersRequests.push(Value::Dict(orderRequest));
         }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

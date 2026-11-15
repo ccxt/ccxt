@@ -2192,11 +2192,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let mut paramsSinceAndUntil: Value = self.handle_since_and_until(since.as_i64(), &[params]);
+        let mut paramsSinceAndUntil: crate::value::Dict = self.handle_since_and_until(since.as_i64(), &[params]).into_dict();
         if (limit != Value::Null) {
             request.insert("_pageSize".into(), self.get_closest_limit(limit.as_i64()));
         }
-        let methodResolvedparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsSinceAndUntil, Value::Str("fetchOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetV2HistoryOrders".into())]).as_array().cloned().unwrap_or_default();
+        let methodResolvedparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsSinceAndUntil, Value::Str("fetchOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetV2HistoryOrders".into())]).as_array().cloned().unwrap_or_default();
         let mut methodResolved: Option<String> = methodResolvedparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodResolvedparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());

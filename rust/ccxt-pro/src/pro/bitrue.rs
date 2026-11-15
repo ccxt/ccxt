@@ -1323,14 +1323,14 @@ impl Bitrue {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("channel"))) {
-            let mut channel: Option<String> = match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
-            if channel.as_deref().unwrap_or("").contains("_depth_step") {
+            let mut channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+            if channel.as_deref().unwrap_or_default().contains("_depth_step") {
                 self.handle_order_book(client.clone(), message.clone());
-            }  else if channel.as_deref().unwrap_or("").contains("_trade_ticker") {
+            }  else if channel.as_deref().unwrap_or_default().contains("_trade_ticker") {
                 self.handle_trades(client.clone(), message.clone());
-            }  else if channel.as_deref().unwrap_or("").contains("_kline_") {
+            }  else if channel.as_deref().unwrap_or_default().contains("_kline_") {
                 self.handle_ohlcv(client.clone(), message.clone());
-            }  else if channel.as_deref().unwrap_or("").contains("_ticker") {
+            }  else if channel.as_deref().unwrap_or_default().contains("_ticker") {
                 self.handle_ticker(client.clone(), message.clone());
             }
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("ping"))) {

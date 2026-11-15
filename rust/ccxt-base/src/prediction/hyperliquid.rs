@@ -1073,9 +1073,9 @@ impl Hyperliquid {
                                 let mut i: i64 = 0;
                 let mut __for_first_1236: bool = true;
                 while { if !__for_first_1236 { i += 1; } __for_first_1236 = false; i < (outcomes.len() as i64) } {
-                let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), None).into_dict();
-                let mut requestedOutcome: Option<String> = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]).as_str().map(str::to_owned);
+                let mut requested: Option<String> = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(Value::from(requested.as_deref()), None).into_dict();
+                let mut requestedOutcome: Option<String> = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                 requestedOutcomeSymbols.insert(requestedOutcome.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
             }
@@ -1516,9 +1516,9 @@ impl Hyperliquid {
                                 let mut i: i64 = 0;
                 let mut __for_first_1241: bool = true;
                 while { if !__for_first_1241 { i += 1; } __for_first_1241 = false; i < (outcomes.len() as i64) } {
-                let mut requested: Value = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(requested.clone(), None).into_dict();
-                let mut requestedOutcome: Option<String> = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested]).as_str().map(str::to_owned);
+                let mut requested: Option<String> = outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut requestedOutcomeObj: crate::value::Dict = self.safe_outcome(Value::from(requested.as_deref()), None).into_dict();
+                let mut requestedOutcome: Option<String> = self.safe_string_k(&requestedOutcomeObj, "outcome", &[requested.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                 requestedOutcomeSymbols.insert(requestedOutcome.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
             }
@@ -1794,9 +1794,9 @@ impl Hyperliquid {
             if (sideHint.is_some()) {
                 sideHintOrDefault = sideHint;
             }
-            let mut found: Value = self.find_outcome_in_market(Some(&market), sideHintOrDefault.as_deref());
-            if ((object_keys(&found).len() as i64) as f64) > ((0i64) as f64) {
-                return found;
+            let mut found: crate::value::Dict = self.find_outcome_in_market(Some(&market), sideHintOrDefault.as_deref()).into_dict();
+            if ((Value::Array(found.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                return Value::Dict(found);
             }
         }
         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cannot resolve outcome from input: ").into()), outcomeInput).into()), ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")));
@@ -1930,12 +1930,12 @@ impl Hyperliquid {
     m
 }));
         }
-        let mut signature: Value = self.sign_l1_action(Value::Map(orderAction.clone()), Value::from(nonce), vaultAddress.as_deref());
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(orderAction.clone()), Value::from(nonce), vaultAddress.as_deref()).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(orderAction));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         if (vaultAddress.is_some()) {
@@ -2113,12 +2113,12 @@ impl Hyperliquid {
         cancelAction.insert("cancels".into(), Value::Arr(cancelReq));
         let mut vaultAddressOption: Value = self.handle_option_string_and_params(&paramsOmitted, Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
-        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref());
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref()).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(cancelAction));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         if (vaultAddress.is_some()) {
@@ -3169,7 +3169,7 @@ impl Hyperliquid {
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let mut sig: Value = self.build_approve_builder_fee_sig(Value::Map(payload.clone()));
+        let mut sig: crate::value::Dict = self.build_approve_builder_fee_sig(Value::Map(payload.clone())).into_dict();
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
@@ -3184,7 +3184,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), sig);
+                m.insert("signature".to_string(), Value::Dict(sig));
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
         });

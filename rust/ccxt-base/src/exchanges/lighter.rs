@@ -1115,10 +1115,10 @@ impl Lighter {
         let accountIndexparamsAccountIndexVariable: Vec<Value> = self.handle_account_index(&paramsApiKeyIndex, "createSubAccount", "accountIndex", "account_index", &[]).await.as_array().cloned().unwrap_or_default();
         let mut accountIndex: Option<i64> = accountIndexparamsAccountIndexVariable.get(0).and_then(Value::as_i64);
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
@@ -1336,7 +1336,7 @@ if _try_result.is_err() {
         m.insert("skipNonce".to_string(), Value::Bool(false));
     m
 })]);
-        let mut nonce: Value = self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[__ws_arg_5]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(accountIndex.clone(), apiKeyIndex.clone(), &[__ws_arg_5]).await.as_i64();
         let mut expiry: i64 = ((self.milliseconds()) + ((365 * 864000)));
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1344,20 +1344,20 @@ if _try_result.is_err() {
                 m.insert("integrator_taker_fee".to_string(), takerFeeRate);
                 m.insert("integrator_maker_fee".to_string(), makerFeeRate);
                 m.insert("approval_expiry".to_string(), Value::from(expiry));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), apiKeyIndex);
                 m.insert("account_index".to_string(), accountIndex);
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(signRaw), &[params]);
         let txTypetxInfomessageToSignVariable: Vec<Value> = self.lighter_sign_approve_integrator(signer, __ws_arg_6).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfomessageToSignVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfomessageToSignVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut messageToSign: Value = txTypetxInfomessageToSignVariable.get(2).cloned().unwrap_or(Value::Null);
-        let mut newTxInfo: Option<String> = self.sign_l1_and_prepare_tx_info(txInfo, messageToSign, (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut txType: Option<i64> = txTypetxInfomessageToSignVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfomessageToSignVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut messageToSign: Option<String> = txTypetxInfomessageToSignVariable.get(2).and_then(Value::as_str).map(str::to_owned);
+        let mut newTxInfo: Option<String> = self.sign_l1_and_prepare_tx_info(txInfo.map(Value::from).unwrap_or(Value::Null), messageToSign.map(Value::from).unwrap_or(Value::Null), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
+                m.insert("tx_type".to_string(), Value::from(txType));
                 m.insert("tx_info".to_string(), newTxInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -1392,17 +1392,17 @@ if _try_result.is_err() {
 })]), Value::Str("signer".into()), &[]);
         let privateKeypublicKeyVariable: Vec<Value> = self.lighter_generate_api_key(signerNotLoad.clone()).as_array().cloned().unwrap_or_default();
         let mut privateKey: Value = privateKeypublicKeyVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut publicKey: Value = privateKeypublicKeyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut publicKey: Option<String> = privateKeypublicKeyVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let __ws_arg_7 = self.extend(&paramsAccountIndex, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("skipNonce".to_string(), Value::Bool(false));
     m
 })]);
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[__ws_arg_7]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[__ws_arg_7]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pubkey".to_string(), Value::from(self.encode(publicKey)));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("pubkey".to_string(), Value::from(self.encode(publicKey.map(Value::from).unwrap_or(Value::Null))));
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
@@ -1411,13 +1411,13 @@ if _try_result.is_err() {
         let mut signer: Value = self.lighter_create_client(signerNotLoad, self.safe_integer_k(self.options.clone(), "chainId", &[]), privateKey.clone(), Value::from(apiKeyIndex), Value::from(accountIndex));
         let __ws_arg_8 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
         let txTypetxInfomessageToSignVariable: Vec<Value> = self.lighter_sign_change_pubkey(signer.clone(), __ws_arg_8).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfomessageToSignVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfomessageToSignVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut messageToSign: Value = txTypetxInfomessageToSignVariable.get(2).cloned().unwrap_or(Value::Null);
-        let mut newTxInfo: Option<String> = self.sign_l1_and_prepare_tx_info(txInfo, messageToSign, (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut txType: Option<i64> = txTypetxInfomessageToSignVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfomessageToSignVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut messageToSign: Option<String> = txTypetxInfomessageToSignVariable.get(2).and_then(Value::as_str).map(str::to_owned);
+        let mut newTxInfo: Option<String> = self.sign_l1_and_prepare_tx_info(txInfo.map(Value::from).unwrap_or(Value::Null), messageToSign.map(Value::from).unwrap_or(Value::Null), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
+                m.insert("tx_type".to_string(), Value::from(txType));
                 m.insert("tx_info".to_string(), newTxInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -1875,7 +1875,7 @@ if _try_result.is_err() {
         }  else {
             amountStr = self.amount_to_precision(symbol, amount);
         }
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
@@ -1883,7 +1883,7 @@ if _try_result.is_err() {
                 m.insert("base_amount".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &amountScale))));
                 m.insert("price".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&priceStr, &priceScale))));
                 m.insert("trigger_price".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&triggerPriceStr, &priceScale))));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
@@ -3695,7 +3695,7 @@ if _try_result.is_err() {
         let mut toRouteType: i64 = (if (toAccount.as_str() == Some("perp")) { 0 } else { 1 });
         let mut memo: String = self.safe_string_k(&paramsToAccountIndex, "memo", &[Value::Str("0x000000000000000000000000000000".into())]).as_str().unwrap_or("0x000000000000000000000000000000").to_string();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsToAccountIndex, &["memo"], &[]).into_dict();
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("to_account_index".to_string(), toAccountIndex);
@@ -3705,7 +3705,7 @@ if _try_result.is_err() {
                 m.insert("amount".to_string(), Value::from(amountScaled));
                 m.insert("usdc_fee".to_string(), Value::Int(0));
                 m.insert("memo".to_string(), Value::from(memo));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
@@ -4157,13 +4157,13 @@ if _try_result.is_err() {
         let mut amountScaled: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::from(amountDecimals)), &Value::from(self.currency_to_precision(code, amount, &[]))));
         let mut routeType: i64 = self.safe_integer_k(&paramsAccountIndex, "routeType", &[Value::Int(0)]).as_i64().unwrap_or(0); // 0: perp, 1: spot
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsAccountIndex, Value::Str("routeType".into()), &[]).into_dict();
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_index".to_string(), Value::from(self.parse_to_int(crate::value::KeyRead::key_read(&&currency, "id"))));
                 m.insert("route_type".to_string(), Value::from(routeType));
                 m.insert("amount".to_string(), Value::from(amountScaled));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
@@ -4545,13 +4545,13 @@ if _try_result.is_err() {
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
         let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
                 m.insert("initial_margin_fraction".to_string(), Value::from(self.parse_to_int((match ((Value::Int(10000)).as_f64(), (leverage).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                 m.insert("margin_mode".to_string(), (if (marginMode.as_str() == Some("cross")) { Value::Int(0) } else { Value::Int(1) }));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
@@ -4597,11 +4597,11 @@ if _try_result.is_err() {
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
         let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsOmitted)]).await;
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
@@ -4680,12 +4680,12 @@ if _try_result.is_err() {
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
         let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("time_in_force".to_string(), Value::Int(0));
                 m.insert("time".to_string(), Value::Int(0));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
@@ -4771,7 +4771,7 @@ if _try_result.is_err() {
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
         let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await.as_i64();
         let mut timeInForce: i64 = 2; // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
         let mut cancelTime: Value = Value::Int(0);
         if isScheduled {
@@ -4782,7 +4782,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("time_in_force".to_string(), Value::from(timeInForce));
                 m.insert("time".to_string(), cancelTime);
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
@@ -4913,13 +4913,13 @@ if _try_result.is_err() {
         let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
         let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut nonce: Value = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await;
+        let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsAccountIndex)]).await.as_i64();
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
                 m.insert("usdc_amount".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::Str("6".into())), &Value::from(self.currency_to_precision(Value::Str("USDC".into()), amount, &[]))))));
                 m.insert("direction".to_string(), Value::from(direction));
-                m.insert("nonce".to_string(), nonce);
+                m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m

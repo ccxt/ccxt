@@ -3780,10 +3780,10 @@ impl Backpack {
             m
         })]).into_dict();
         if (self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketType".into()), &[]).as_str() == Some("RFQ")) {
-            let mut rfqResponse: Value = self.create_rfq_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), price.as_f64(), &[Value::from(&orderParams)]).await;
+            let mut rfqResponse: crate::value::Dict = self.create_rfq_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), price.as_f64(), &[Value::from(&orderParams)]).await.into_dict();
             let mut rfqOrder: Option<crate::value::Dict> = self.safe_dict(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("order".to_string(), rfqResponse);
+        m.insert("order".to_string(), Value::Dict(rfqResponse));
     m
 }), Value::Str("order".into()), &[]).into_opt_dict();
             return rfqOrder.map_or(Value::Null, Value::Dict);

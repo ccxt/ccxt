@@ -1725,8 +1725,7 @@ impl Derive {
             strike = self.safe_number_k(&optionDetails, "strike", &[]).as_f64(); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = self.safe_string_k(&optionDetails, "option_type", &[]);
             if (settle != Value::Null) {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/").into()),
-                    quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), ":").into()), settle).into()), "-").into()), self.yymmdd(Value::from(expiry), &[])).into()), "-").into()), Value::from(self.number_to_string(Value::from(strike)))).into()), "-").into()), optionLetter);
+                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/", quote.clone().map(Value::from).unwrap_or(Value::Null), ":", settle, "-", self.yymmdd(Value::from(expiry), &[]), "-", Value::from(self.number_to_string(Value::from(strike))), "-", optionLetter);
             }
             if (optionLetter.as_str() == Some("P")) {
                 optionType = Some("put".to_string());

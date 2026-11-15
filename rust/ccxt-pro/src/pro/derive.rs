@@ -1703,8 +1703,8 @@ impl Derive {
             if name.contains("-") {
                 // position deltas carry instrument names and do not belong into the balance structure
                 if (self.positionsByType.has(&subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null))) {
-                    let mut position: Value = self.handle_position_delta(subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null), &entry);
-                    std::sync::Arc::make_mut(&mut positionUpdates).push(position);
+                    let mut position: crate::value::Dict = self.handle_position_delta(subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null), &entry).into_dict();
+                    std::sync::Arc::make_mut(&mut positionUpdates).push(Value::Dict(position));
                 }
                 continue;
             }

@@ -3385,14 +3385,14 @@ impl Toobit {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_23 = self.extend(requestUntil.clone(), &[&paramsUntil]);
+            let __ws_arg_23 = self.extend(&requestUntil, &[&paramsUntil]);
             response = self.private_get_api_v1_account_trades(&[__ws_arg_23]).await.into_list();
         }  else {
-            response = self.private_get_api_v1_futures_user_trades(&[requestUntil]).await.into_list();
+            response = self.private_get_api_v1_futures_user_trades(&[Value::Dict(requestUntil)]).await.into_list();
         }
         return self.parse_trades(&response, Some(&market), &[since, limit]);
         Value::Null

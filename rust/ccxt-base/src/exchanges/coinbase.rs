@@ -4947,11 +4947,11 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Value = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[Value::Map({
+        let mut order: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return order;
+})]).into_dict();
+        return Value::Dict(order);
         Value::Null
         }).await?))
     }

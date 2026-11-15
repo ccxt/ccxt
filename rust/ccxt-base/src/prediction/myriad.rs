@@ -1106,8 +1106,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcome: Option<String> = self.slug_to_outcome_symbol(Value::from(marketSlug.clone()), Value::from(marketSlug.clone()), Value::from(outcomeTitle.clone())).as_str().map(str::to_owned);
         let mut marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(marketSlug.clone()), Value::from(marketSlug)).as_str().map(str::to_owned);
         let mut outcomeId: Option<String> = self.safe_string_k(position.clone(), "outcomeId", &[]).as_str().map(str::to_owned);
-        let mut id: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(position.clone(), "networkId", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(position.clone(), "marketId", &[Value::Str("".into())])).into()), "/").into()),
-            self.safe_string_k(position.clone(), "outcomeId", &[Value::Str("".into())]));
+        let mut id: String = format!("{}{}{}{}{}", self.safe_string_k(position.clone(), "networkId", &[Value::Str("".into())]), Value::Str(":".into()), self.safe_string_k(position.clone(), "marketId", &[Value::Str("".into())]), "/", self.safe_string_k(position.clone(), "outcomeId", &[Value::Str("".into())]));
         let mut shares: Option<f64> = self.safe_number_k(position.clone(), "shares", &[]).as_f64();
         let mut value: Option<f64> = self.safe_number_k(position.clone(), "value", &[]).as_f64();
         let mut profit: Option<f64> = self.safe_number_k(position.clone(), "profit", &[]).as_f64();
@@ -4277,11 +4276,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             rawQuestions = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         }  else if (eventId.is_some()) {
             if eventId.as_deref().unwrap_or_default().contains(":") {
-                let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await;
-                rawMarkets = std::sync::Arc::new(vec![rawMarket]);
+                let mut rawMarket: crate::value::Dict = self.fetch_raw_market_by_id(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await.into_dict();
+                rawMarkets = std::sync::Arc::new(vec![Value::Dict(rawMarket)]);
             }  else {
-                let mut rawQuestion: Value = self.fetch_raw_question_by_id(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await;
-                rawQuestions = std::sync::Arc::new(vec![rawQuestion]);
+                let mut rawQuestion: crate::value::Dict = self.fetch_raw_question_by_id(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await.into_dict();
+                rawQuestions = std::sync::Arc::new(vec![Value::Dict(rawQuestion)]);
             }
         }  else {
             let mut requestedTags: crate::value::List = self.safe_list_k(params.clone(), "tags", &[Value::from(vec![])]).into_list();

@@ -2023,19 +2023,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_213: bool = true;
                 while { if !__for_first_213 { i += 1; } __for_first_213 = false; i < tradesLength } {
-                let mut trade: Value = crate::value::KeyRead::read(&&trades, &Value::Int(i));
-                let mut tradeAmount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
+                let mut trade: crate::value::Dict = crate::value::KeyRead::read(&&trades, &Value::Int(i)).into_dict();
+                let mut tradeAmount: Option<String> = self.safe_string_k(&trade, "amount", &[]).as_str().map(str::to_owned);
                 if (tradeAmount.is_some()) {
                     filled = crate::precise::Precise::stringAdd(&filled, &tradeAmount).as_str().map(str::to_owned);
                 }
-                let mut tradeCost: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
+                let mut tradeCost: Option<String> = self.safe_string_k(&trade, "cost", &[]).as_str().map(str::to_owned);
                 if (tradeCost.is_some()) {
                     cost = crate::precise::Precise::stringAdd(&cost, &tradeCost).as_str().map(str::to_owned);
                 }
                 if (side.is_none()) {
-                    side = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
+                    side = self.safe_string_k(&trade, "side", &[]).as_str().map(str::to_owned);
                 }
-                let mut tradeTimestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
+                let mut tradeTimestamp: Value = self.safe_integer_k(&trade, "timestamp", &[]);
                 if (tradeTimestamp != Value::Null) {
                     if (lastTradeTimestamp == Value::Null) {
                         lastTradeTimestamp = tradeTimestamp.clone();
@@ -2043,7 +2043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         lastTradeTimestamp = tradeTimestamp;
                     }
                 }
-                let mut tradeFee: Option<crate::value::Dict> = self.safe_dict_k(trade, "fee", &[]).into_opt_dict();
+                let mut tradeFee: Option<crate::value::Dict> = self.safe_dict_k(&trade, "fee", &[]).into_opt_dict();
                 if (tradeFee.is_some()) {
                     feeList.push(tradeFee.map_or(Value::Null, Value::Dict));
                 }

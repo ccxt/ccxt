@@ -10858,12 +10858,12 @@ impl Htx {
         }  else {
             // signing implementation for the new endpoints
             // const [ type, access ] = api;
-            let mut type_var: Value = api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null);
+            let mut type_var: Option<String> = api.as_array().into_iter().flatten().nth(0).and_then(Value::as_str).map(str::to_owned);
             let mut access: Option<String> = self.safe_string(api.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut levelOneNestedPath: Option<String> = self.safe_string(api.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
             let mut levelTwoNestedPath: Option<String> = self.safe_string(api, Value::Int(3), &[]).as_str().map(str::to_owned);
             let mut hostname: Value = Value::Null;
-            let mut hostnames: Value = self.safe_value(self.urls.as_map().and_then(|__m| __m.get("hostnames")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]);
+            let mut hostnames: Value = self.safe_value(self.urls.as_map().and_then(|__m| __m.get("hostnames")).cloned().unwrap_or(Value::Null), Value::from(type_var.as_deref()), &[]);
             if !matches!(&hostnames, Value::Str(_)) {
                 hostnames = self.safe_value(hostnames, levelOneNestedPath.map(Value::from).unwrap_or(Value::Null), &[]);
                 if (!matches!(&hostnames, Value::Str(_))) && (levelTwoNestedPath.is_some()) {
@@ -10951,7 +10951,7 @@ impl Htx {
                 }
             }
             let mut finalHostname: Value = hostname; // java req
-            let mut baseApiUrl2: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var, &[]).as_str().map(str::to_owned);
+            let mut baseApiUrl2: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (baseApiUrl2.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }

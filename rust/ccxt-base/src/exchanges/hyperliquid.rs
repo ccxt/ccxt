@@ -2830,12 +2830,12 @@ impl Hyperliquid {
             m
         });
         let mut nonce: i64 = self.incrementing_nonce();
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         let mut success: bool = false;
@@ -2864,7 +2864,7 @@ if _try_result.is_err() {
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let mut sig: Value = self.build_approve_builder_fee_sig(Value::Map(payload.clone()));
+        let mut sig: crate::value::Dict = self.build_approve_builder_fee_sig(Value::Map(payload.clone())).into_dict();
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
@@ -2879,7 +2879,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), sig);
+                m.insert("signature".to_string(), Value::Dict(sig));
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
         });
@@ -3034,7 +3034,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let mut sig: Value = self.build_user_abstraction_sig(Value::Map(payload.clone()));
+        let mut sig: crate::value::Dict = self.build_user_abstraction_sig(Value::Map(payload.clone())).into_dict();
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
@@ -3049,7 +3049,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), sig);
+                m.insert("signature".to_string(), Value::Dict(sig));
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
         });
@@ -3087,7 +3087,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let mut sig: Value = self.build_user_dex_abstraction_sig(Value::Map(payload.clone()));
+        let mut sig: crate::value::Dict = self.build_user_dex_abstraction_sig(Value::Map(payload.clone())).into_dict();
         let mut action: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), payload.get("hyperliquidChain").cloned().unwrap_or(Value::Null));
@@ -3102,7 +3102,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), sig);
+                m.insert("signature".to_string(), Value::Dict(sig));
                 m.insert("vaultAddress".to_string(), Value::Null);
             m
         });
@@ -3137,9 +3137,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("abstraction".to_string(), abstraction);
             m
         });
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None).into_dict();
         request.insert("action".into(), Value::Map(action));
-        request.insert("signature".into(), signature);
+        request.insert("signature".into(), Value::Dict(signature));
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_18]).await;
         return response;
@@ -3255,12 +3255,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("twap".to_string(), Value::Map(orderObj));
             m
         });
-        let mut signature: Value = self.sign_l1_action(Value::Map(orderAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(orderAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(orderAction));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         if (vaultAddress.is_some()) {
@@ -3634,12 +3634,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         }
-        let mut signature: Value = self.sign_l1_action(Value::Map(orderAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(orderAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(orderAction));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         if (vaultAddress.is_some()) {
@@ -3800,12 +3800,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut nonce: i64 = self.incrementing_nonce();
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), vaultAddress.as_deref(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(action));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         if (vaultAddress.is_some()) {
@@ -3926,9 +3926,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
             params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
-        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         request.insert("action".into(), Value::Map(cancelAction));
-        request.insert("signature".into(), signature);
+        request.insert("signature".into(), Value::Dict(signature));
         if (vaultAddress.is_some()) {
             params2 = self.omit(params2, Value::Str("vaultAddress".into()), &[]);
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
@@ -4019,9 +4019,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("cancelOrdersForSymbols".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
-        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         request.insert("action".into(), Value::Map(cancelAction));
-        request.insert("signature".into(), signature);
+        request.insert("signature".into(), Value::Dict(signature));
         if (vaultAddress.is_some()) {
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
@@ -4071,9 +4071,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(params2.clone(), Value::Str("cancelAllOrdersAfter".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(vaultAddress.as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut signature: Value = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(cancelAction.clone()), Value::from(nonce), vaultAddress.as_str(), None).into_dict();
         request.insert("action".into(), Value::Map(cancelAction));
-        request.insert("signature".into(), signature);
+        request.insert("signature".into(), Value::Dict(signature));
         if (vaultAddress != Value::Null) {
             params2 = self.omit(params2, Value::Str("vaultAddress".into()), &[]);
             request.insert("vaultAddress".into(), vaultAddress);
@@ -4237,12 +4237,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut vaultAddress: Option<String> = None;
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(params2.clone(), Value::Str("editOrder".into()), Value::Str("vaultAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
-        let mut signature: Value = self.sign_l1_action(Value::Map(modifyAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(modifyAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(modifyAction));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         if (vaultAddress.is_some()) {
@@ -4419,9 +4419,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("nonce".to_string(), Value::from(nonce));
             m
         });
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None).into_dict();
         request.insert("action".into(), Value::Map(action));
-        request.insert("signature".into(), signature);
+        request.insert("signature".into(), Value::Dict(signature));
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_21]).await;
         return response;
@@ -5751,12 +5751,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 vaultAddress = vaultAddress.as_str().map(|__s| Value::Str(__s.replace("0x", "").into())).unwrap_or_else(|| vaultAddress.clone());
             }
         }
-        let mut signature: Value = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_str(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_str(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(updateAction));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         if (vaultAddress != Value::Null) {
@@ -5814,12 +5814,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(params2.clone(), Value::Str("setLeverage".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
             params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(vaultAddress.as_deref());
-        let mut signature: Value = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(updateAction));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         if (vaultAddress.is_some()) {
@@ -5915,12 +5915,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut vaultAddressOption: Value = self.handle_option_string_and_params2(params, Value::Str("modifyMargin".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_str());
-        let mut signature: Value = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(updateAction));
                 m.insert("nonce".to_string(), Value::from(nonce));
-                m.insert("signature".to_string(), signature);
+                m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
         if (vaultAddress.is_some()) {
@@ -6019,7 +6019,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
             });
-            let mut transferSig: Value = self.build_usd_class_send_sig(Value::Map(transferPayload.clone()));
+            let mut transferSig: crate::value::Dict = self.build_usd_class_send_sig(Value::Map(transferPayload.clone())).into_dict();
             let mut transferRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Map({
@@ -6033,7 +6033,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
                     m.insert("nonce".to_string(), Value::from(nonce));
-                    m.insert("signature".to_string(), transferSig);
+                    m.insert("signature".to_string(), Value::Dict(transferSig));
                 m
             });
             let mut transferResponse: crate::value::Dict = self.private_post_exchange(&[Value::Map(transferRequest)]).await.into_dict();
@@ -6100,7 +6100,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
             });
-            let mut sendAssetSig: Value = self.build_send_asset_sig(Value::Map(sendAssetPayload.clone()));
+            let mut sendAssetSig: crate::value::Dict = self.build_send_asset_sig(Value::Map(sendAssetPayload.clone())).into_dict();
             let mut sendAssetRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Map({
@@ -6118,7 +6118,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
                     m.insert("nonce".to_string(), Value::from(nonce));
-                    m.insert("signature".to_string(), sendAssetSig);
+                    m.insert("signature".to_string(), Value::Dict(sendAssetSig));
                 m
             });
             let mut sendAssetResponse: crate::value::Dict = self.private_post_exchange(&[Value::Map(sendAssetRequest)]).await.into_dict();
@@ -6139,12 +6139,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("usd".to_string(), Value::from(usd));
                 m
             }).into_dict();
-            let mut sig: Value = self.sign_l1_action(&action, Value::from(nonce), None, None);
+            let mut sig: crate::value::Dict = self.sign_l1_action(&action, Value::from(nonce), None, None).into_dict();
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Dict(action));
                     m.insert("nonce".to_string(), Value::from(nonce));
-                    m.insert("signature".to_string(), sig);
+                    m.insert("signature".to_string(), Value::Dict(sig));
                 m
             });
             let mut response: crate::value::Dict = self.private_post_exchange(&[request]).await.into_dict();
@@ -6169,12 +6169,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
                 m
             }).into_dict();
-            let mut sig: Value = self.sign_l1_action(&action, Value::from(nonce), None, None);
+            let mut sig: crate::value::Dict = self.sign_l1_action(&action, Value::from(nonce), None, None).into_dict();
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("action".to_string(), Value::Dict(action));
                     m.insert("nonce".to_string(), Value::from(nonce));
-                    m.insert("signature".to_string(), sig);
+                    m.insert("signature".to_string(), Value::Dict(sig));
                 m
             });
             let mut response: crate::value::Dict = self.private_post_exchange(&[request]).await.into_dict();
@@ -7049,9 +7049,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("weight".to_string(), weight);
             m
         });
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None).into_dict();
         request.insert("action".into(), Value::Map(action));
-        request.insert("signature".into(), signature);
+        request.insert("signature".into(), Value::Dict(signature));
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_37]).await;
         return response;
@@ -7089,9 +7089,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (expiresAfter.is_some()) {
             request.insert("expiresAfter".into(), Value::from(expiresAfter));
         }
-        let mut signature: Value = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, expiresAfter);
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, expiresAfter).into_dict();
         request.insert("action".into(), Value::Map(action));
-        request.insert("signature".into(), signature);
+        request.insert("signature".into(), Value::Dict(signature));
         let __ws_arg_38 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("expiresAfter".into()), &[])]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_38]).await;
         return response;

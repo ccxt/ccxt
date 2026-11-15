@@ -2773,8 +2773,8 @@ impl Sxbet {
         // the book snapshot is public and carries the same top of book - the batched best-odds
         // route needs an apiKey, so it only pays off for the multi-market path
         let mut snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await.into_dict();
-        let mut raw: Value = self.parse_sxbet_snapshot_best_odds(&snapshot);
-        return self.parse_prediction_ticker(raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
+        let mut raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot).into_dict();
+        return self.parse_prediction_ticker(&raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -3660,8 +3660,8 @@ impl Sxbet {
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             let mut snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await.into_dict();
-            let mut raw: Value = self.parse_sxbet_snapshot_best_odds(&snapshot);
-            let mut ticker: Value = self.parse_prediction_ticker(raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
+            let mut raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot).into_dict();
+            let mut ticker: Value = self.parse_prediction_ticker(&raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
             self.set_ws_option("wsTickers", sym.as_str(), ticker);
             hydrated = true;
         }

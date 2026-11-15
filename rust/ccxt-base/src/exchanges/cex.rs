@@ -986,11 +986,11 @@ impl Cex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut response: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(response), symbol, &[Value::Map({
+        let mut ticker: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(response), symbol, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        return ticker;
+})]).into_dict();
+        return Value::Dict(ticker);
         Value::Null
         }).await?))
     }

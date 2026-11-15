@@ -3422,10 +3422,8 @@ if _try_result.is_err() {
         let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "_").into()), quote).into()), "-").into()), "20").into()), expiry).into()),
-            "-").into()), strike).into()), "-").into()), optionType).into()));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote).into()), ":").into()),
-            settle).into()), "-").into()), expiry).into()), "-").into()), strike).into()), "-").into()), optionType).into()));
+        m.insert("id".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}", base, "_", quote, "-", "20", expiry, "-", strike, "-", optionType).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}{}", base, "/", quote, ":", settle, "-", expiry, "-", strike, "-", optionType).into()));
         m.insert("base".to_string(), Value::from(base.clone()));
         m.insert("quote".to_string(), Value::from(quote.clone()));
         m.insert("settle".to_string(), Value::from(settle.clone()));
@@ -4047,8 +4045,7 @@ if _try_result.is_err() {
                 if isCall {
                     optionType = "call".to_string();
                 }
-                let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null),
-                    "/").into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), ":").into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), self.yymmdd(Value::from(expiry), &[])).into()), "-").into()), strike).into()), "-").into()), optionLetter);
+                let mut symbol: String = format!("{}{}{}{}{}{}{}{}{}{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/", quote.clone().map(Value::from).unwrap_or(Value::Null), ":", quote.clone().map(Value::from).unwrap_or(Value::Null), "-", self.yymmdd(Value::from(expiry), &[]), "-", strike, "-", optionLetter);
                 let mut priceDeviate: Option<String> = self.safe_string_k(&market, "order_price_deviate", &[]).as_str().map(str::to_owned);
                 let mut markPrice: Option<String> = self.safe_string_k(&market, "mark_price", &[]).as_str().map(str::to_owned);
                 let mut minMultiplier: Option<String> = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceDeviate).as_str().map(str::to_owned);
@@ -7157,8 +7154,8 @@ if _try_result.is_err() {
         }
         self.load_unified_status(&[]).await;
         let mut ordersRequests: crate::value::List = self.create_orders_request(orders.clone(), &[params]).into_list();
-        let mut firstOrder: Value = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut market: crate::types::Market = (match self.market((firstOrder.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut firstOrder: crate::value::Dict = orders.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+        let mut market: crate::types::Market = (match self.market((crate::value::KeyRead::key_read(&&firstOrder, "symbol")).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Option<crate::value::List> = None;
         if (market).spot {
             response = self.private_spot_post_batch_orders(&[Value::from(&ordersRequests)]).await.into_opt_list();

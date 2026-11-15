@@ -1227,12 +1227,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         })]).into_dict();
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "myAsset".to_string();
-        let mut request: Value = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({
+        let mut request: crate::value::List = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::from(messageHash.clone()));
             m
-        }));
-        let mut balance: Value = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        })).into_list();
+        let mut balance: Value = self.watch(url.as_str(), &messageHash[..], Value::Arr(request), &messageHash[..], Value::Null).await;
         return balance;
         Value::Null
         }).await?))
@@ -1420,19 +1420,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = "myOrder".to_string();
         let mut codes: crate::value::List = self.safe_list_k(params, "codes", &[Value::from(vec![])]).into_list();
-        let mut request: Value = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({
+        let mut request: crate::value::List = self.build_gen2_subscription_request(Value::from(messageHash.clone()), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::from(messageHash.clone()));
                 m.insert("codes".to_string(), Value::Arr(codes));
             m
-        }));
+        })).into_list();
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Value::from((market).symbol.clone()).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), Value::from((market).symbol.as_str()));
         }
-        let mut orders: Value = self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut orders: Value = self.watch(url.as_str(), &messageHash[..], Value::Arr(request), &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());

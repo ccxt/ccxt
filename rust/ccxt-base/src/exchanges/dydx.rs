@@ -2745,8 +2745,8 @@ impl Dydx {
         if (code != Value::Null) {
             currency = Some(self.currency(code.clone()));
         }
-        let mut response: Value = self.fetch_transactions_helper("fetchLedger", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await;
-        return self.parse_ledger(response, currency.as_ref(), &[since, limit]);
+        let mut response: crate::value::List = self.fetch_transactions_helper("fetchLedger", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
+        return self.parse_ledger(&response, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

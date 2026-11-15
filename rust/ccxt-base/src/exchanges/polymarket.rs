@@ -2113,17 +2113,17 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1106: bool = true;
             while { if !__for_first_1106 { i += 1; } __for_first_1106 = false; i < (orders.len() as i64) } {
-            let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut symbol: Option<String> = self.safe_string_k(rawOrder.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut rawOrder: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut symbol: Option<String> = self.safe_string_k(&rawOrder, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            let mut type_var: Option<String> = self.safe_string_lower_k(rawOrder.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut side: Option<String> = self.safe_string_lower_k(rawOrder.clone(), "side", &[]).as_str().map(str::to_owned);
-            let mut amount: Option<String> = self.safe_string_k(rawOrder.clone(), "amount", &[]).as_str().map(str::to_owned);
-            let mut price: Option<String> = self.safe_string_k(rawOrder.clone(), "price", &[]).as_str().map(str::to_owned);
-            let mut orderParams: crate::value::Dict = self.safe_dict_k(rawOrder, "params", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut type_var: Option<String> = self.safe_string_lower_k(&rawOrder, "type", &[]).as_str().map(str::to_owned);
+            let mut side: Option<String> = self.safe_string_lower_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
+            let mut amount: Option<String> = self.safe_string_k(&rawOrder, "amount", &[]).as_str().map(str::to_owned);
+            let mut price: Option<String> = self.safe_string_k(&rawOrder, "price", &[]).as_str().map(str::to_owned);
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(market.clone(), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount.map(Value::from).unwrap_or(Value::Null), &[price.map(Value::from).unwrap_or(Value::Null), Value::Dict(orderParams)]).as_map().cloned().unwrap_or_default();
             rows.push(request.get("signable").cloned().unwrap_or(Value::Null));
             entries.push(request.get("entry").cloned().unwrap_or(Value::Null));

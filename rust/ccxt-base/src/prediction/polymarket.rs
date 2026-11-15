@@ -4782,7 +4782,7 @@ if _try_result.is_err() {
             CacheStore::put(&mut self.orderbooks.clone(), &outcome, seededBook);
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcome);
-        let mut timestamp: Value = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str());
+        let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str()).as_i64();
         let mut rawBids: crate::value::List = __pro_message.get("bids").cloned().unwrap_or_default().into_list();
         let mut rawAsks: crate::value::List = __pro_message.get("asks").cloned().unwrap_or_default().into_list();
         let mut bids: Vec<Value> = Vec::new();
@@ -4808,7 +4808,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("bids".to_string(), Value::from(bids));
                 m.insert("asks".to_string(), Value::from(asks));
-                m.insert("timestamp".to_string(), timestamp.clone());
+                m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m.insert("outcome".to_string(), outcome.clone());
                 m.insert("outcomeId".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
@@ -4822,7 +4822,7 @@ if _try_result.is_err() {
     pub fn handle_order_book_delta(&self, mut client: Value, mut event: Value) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &event { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut timestamp: Value = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str());
+        let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str()).as_i64();
         let mut changes: crate::value::List = __pro_message.get("price_changes").cloned().unwrap_or_default().into_list();
         let mut updated: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4846,8 +4846,8 @@ if _try_result.is_err() {
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
             let mut sideRef: Value = side;
             sideRef.store_array(Value::from(vec![Value::from(price), Value::from(size)]));
-            orderbook.set_book_meta("timestamp", timestamp.clone());
-            orderbook.set_book_meta("datetime", self.iso8601(timestamp.clone()));
+            orderbook.set_book_meta("timestamp", Value::from(timestamp));
+            orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             if let Value::Dict(__d) = &mut updated { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), Value::Bool(true)); }
         }
         }
@@ -4872,7 +4872,7 @@ if _try_result.is_err() {
         if (outcome == Value::Null) {
             return;
         }
-        let mut timestamp: Value = self.parse_poly_timestamp((self.safe_string_k(event.clone(), "timestamp", &[])).as_str());
+        let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(event.clone(), "timestamp", &[])).as_str()).as_i64();
         let mut price: Option<f64> = (match __pro_message.get("price") { Some(Value::Float(__f)) => Some(*__f), Some(Value::Int(__n)) => Some(*__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => __s.parse::<f64>().ok(), _ => None });
         let mut amount: Option<f64> = (match __pro_message.get("size") { Some(Value::Float(__f)) => Some(*__f), Some(Value::Int(__n)) => Some(*__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => __s.parse::<f64>().ok(), _ => None });
         let mut market: Value = self.safe_outcome(tokenId.map(Value::from).unwrap_or(Value::Null), None);
@@ -4880,7 +4880,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), (match __pro_message.get("transaction_hash").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("info".to_string(), event.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("outcome".to_string(), outcome.clone());
         m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "outcomeId", &[]));

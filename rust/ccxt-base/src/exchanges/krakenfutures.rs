@@ -941,14 +941,14 @@ impl Krakenfutures {
             while { if !__for_first_866 { i += 1; } __for_first_866 = false; i < (instruments.len() as i64) } {
             let mut market: crate::value::Dict = instruments.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
-            let mut marketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
+            let mut marketType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
             let mut type_var: Option<String> = None;
-            let mut index: Value = (Value::Bool(marketType.as_deref().unwrap_or("").contains(" index")));
+            let mut index: bool = marketType.as_deref().unwrap_or_default().contains(" index");
             let mut linear: Option<bool> = None;
             let mut inverse: Option<bool> = None;
             let mut expiry: Option<i64> = None;
-            if !(matches!(&index, Value::Bool(true))) {
-                linear = Some(marketType.as_deref().unwrap_or("").contains("_vanilla"));
+            if !index {
+                linear = Some(marketType.as_deref().unwrap_or_default().contains("_vanilla"));
                 inverse = Some(!(linear == Some(true)));
                 let mut settleTime: Option<String> = self.safe_string_k(&market, "lastTradingTime", &[]).as_str().map(str::to_owned);
                 type_var = (if (settleTime.is_none()) { Some("swap".to_string()) } else { Some("future".to_string()) });
@@ -956,8 +956,8 @@ impl Krakenfutures {
             }  else {
                 type_var = Some("index".to_string());
             }
-            let mut swap: Value = (Value::Bool(type_var.as_deref() == Some("swap")));
-            let mut future: Value = (Value::Bool(type_var.as_deref() == Some("future")));
+            let mut swap: bool = type_var.as_deref() == Some("swap");
+            let mut future: bool = type_var.as_deref() == Some("future");
             let mut symbol: Value = id.clone().map(Value::from).unwrap_or(Value::Null);
             let mut split: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut splitMarket: String = self.safe_string(&split, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -974,8 +974,8 @@ impl Krakenfutures {
             let mut cvtp: Option<String> = self.safe_string_k(&market, "contractValueTradePrecision", &[]).as_str().map(str::to_owned);
             let mut amountPrecision: Option<f64> = self.parse_number(self.integer_precision_to_amount(cvtp.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             let mut pricePrecision: Option<f64> = self.safe_number_k(&market, "tickSize", &[]).as_f64();
-            let mut contract: Value = Value::Bool(matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true)) || matches!(&index, Value::Bool(true)));
-            let mut swapOrFutures: bool = matches!(&swap, Value::Bool(true)) || matches!(&future, Value::Bool(true));
+            let mut contract: Value = (Value::Bool(((swap || future) || index)));
+            let mut swapOrFutures: bool = (swap || future);
             if swapOrFutures {
                 let mut exchangeType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
                 if (exchangeType.as_deref() == Some("futures_inverse")) {
@@ -989,7 +989,7 @@ impl Krakenfutures {
                 }
                 linear = Some(!(inverse == Some(true)));
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle).into());
-                if matches!(&future, Value::Bool(true)) {
+                if future {
                     symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle).into()), "-").into()), self.yymmdd(Value::from(expiry), &[])).into());
                 }
             }
@@ -1006,10 +1006,10 @@ impl Krakenfutures {
                     m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
                     m.insert("spot".to_string(), Value::Bool(false));
                     m.insert("margin".to_string(), Value::Bool(false));
-                    m.insert("swap".to_string(), swap);
-                    m.insert("future".to_string(), future);
+                    m.insert("swap".to_string(), Value::Bool(swap));
+                    m.insert("future".to_string(), Value::Bool(future));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("index".to_string(), index);
+                    m.insert("index".to_string(), Value::Bool(index));
                     m.insert("active".to_string(), self.safe_bool_k(&market, "tradeable", &[]));
                     m.insert("contract".to_string(), contract);
                     m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));

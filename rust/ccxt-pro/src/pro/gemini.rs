@@ -898,8 +898,8 @@ impl Gemini {
         //     type: 'update'
         // }
         //
-        let mut firstBidAsk: Value = rawBidAskChanges.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut marketId: Value = (self.safe_string_k(firstBidAsk, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut firstBidAsk: crate::value::Dict = rawBidAskChanges.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+        let mut marketId: Value = (self.safe_string_k(&firstBidAsk, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut market: crate::types::Market = self.safe_market(marketId, None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         // read-modify-write: the cached entry is copied out, updated, and stored back whole
@@ -1020,8 +1020,8 @@ impl Gemini {
         //   },
         //   ...
         //
-        let mut firstChange: Value = rawOrderBookChanges.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut marketId: Value = (self.safe_string_k(firstChange, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let mut firstChange: crate::value::Dict = rawOrderBookChanges.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+        let mut marketId: Value = (self.safe_string_k(&firstChange, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut market: crate::types::Market = self.safe_market(marketId, None, &[]);
         let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);

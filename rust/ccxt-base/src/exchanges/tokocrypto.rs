@@ -3433,21 +3433,21 @@ impl Tokocrypto {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
+        let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let __ws_arg_20 = crate::value::get_value_k(&self.urls, "api");
         let mut restUrls: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }), &[crate::value::get_value_k(&__ws_arg_20, "rest")]).into_dict();
-        if !(matches!(&apiName, Value::Str(__k) if restUrls.contains_key(__k.as_ref()))) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not have a testnet/sandbox URL for ").into()), apiName).into()), " endpoints")));
+        if !(matches!(apiName.as_deref(), Some(__k) if restUrls.contains_key(__k))) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not have a testnet/sandbox URL for ").into()), apiName.as_deref().unwrap_or("null")).into()), " endpoints")));
         }
-        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), apiName.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseApiUrl.as_deref().unwrap_or("null"), "/").into()), path);
-        if (apiName.as_str() == Some("wapi")) {
+        if (apiName.as_deref() == Some("wapi")) {
             url.push_str(".html");
         }
         let mut userDataStream: bool = (path.as_str() == Some("userDataStream")) || (path.as_str() == Some("listenKey"));
@@ -3472,8 +3472,8 @@ impl Tokocrypto {
             }  else {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " userDataStream endpoint requires `apiKey` credential")));
             }
-        }  else if (apiName.as_str() == Some("private")) || ((apiName.as_str() == Some("sapi")) && (path.as_str() != Some("system/status"))) || (apiName.as_str() == Some("sapiV3")) || ((apiName.as_str() == Some("wapi")) && (path.as_str() != Some("systemStatus"))) || (apiName.as_str() == Some("dapiPrivate")) || (apiName.as_str() == Some("dapiPrivateV2")) ||
-            (apiName.as_str() == Some("fapiPrivate")) || (apiName.as_str() == Some("fapiPrivateV2")) {
+        }  else if (apiName.as_deref() == Some("private")) || ((apiName.as_deref() == Some("sapi")) && (path.as_str() != Some("system/status"))) || (apiName.as_deref() == Some("sapiV3")) || ((apiName.as_deref() == Some("wapi")) && (path.as_str() != Some("systemStatus"))) || (apiName.as_deref() == Some("dapiPrivate")) || (apiName.as_deref() ==
+            Some("dapiPrivateV2")) || (apiName.as_deref() == Some("fapiPrivate")) || (apiName.as_deref() == Some("fapiPrivateV2")) {
             self.check_required_credentials(&[]);
             let mut query: String = "".to_string();
             let mut defaultRecvWindow: Option<i64> = self.safe_integer_k(self.options.clone(), "recvWindow", &[]).as_i64();
@@ -3490,7 +3490,7 @@ impl Tokocrypto {
             if (recvWindow.is_some()) {
                 std::sync::Arc::make_mut(&mut extendedParams).insert("recvWindow".into(), Value::from(recvWindow));
             }
-            if (apiName.as_str() == Some("sapi")) && (path.as_str() == Some("asset/dust")) {
+            if (apiName.as_deref() == Some("sapi")) && (path.as_str() == Some("asset/dust")) {
                 query = self.urlencode_with_array_repeat(&extendedParams);
             }  else if (path.as_str() == Some("batchOrders")) || (path.as_str().unwrap_or("").contains("sub-account")) || (path.as_str() == Some("capital/withdraw/apply")) || (path.as_str().unwrap_or("").contains("staking")) {
                 query = self.rawencode(&extendedParams, &[]);
@@ -3504,7 +3504,7 @@ impl Tokocrypto {
                     m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                 m
             });
-            let mut queryInUrl: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || (apiName.as_str() == Some("wapi"));
+            let mut queryInUrl: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || (apiName.as_deref() == Some("wapi"));
             let mut bodySigned: Option<String> = None;
             if queryInUrl {
                 url.push_str(&format!("{}{}", "?", query));

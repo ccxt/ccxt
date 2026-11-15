@@ -2291,14 +2291,14 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut address: Option<String> = self.safe_string_k_opt(&payload, "account_identifier", &[]);
+        let mut address: Option<String> = self.safe_string_k(&payload, "account_identifier", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = None;
-        if address.as_deref().unwrap_or("").contains("?dt=") {
+        if address.as_deref().unwrap_or_default().contains("?dt=") {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = address.as_deref() { __s.split("?dt=").map(Value::from).collect() } else { Vec::new() }).into_list();
-            address = self.safe_string_opt(&parts, Value::Int(0), &[]);
+            address = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             tag = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
         }
-        self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);

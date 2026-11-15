@@ -1707,8 +1707,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else if (inst_type.as_deref() == Some("WARRANT")) {
                 type_var = Some("option".to_string());
                 let mut symbolOptionType: String = (if (optionType.as_deref() == Some("call")) { "C".to_string() } else { "P".to_string() });
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/").into()),
-                    quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), ":").into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), self.yymmdd(Value::from(expiry), &[])).into()), "-").into()), self.safe_string_k(&market, "strike", &[Value::Str("".into())])).into()), "-").into()), symbolOptionType);
+                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/", quote.clone().map(Value::from).unwrap_or(Value::Null), ":", quote.clone().map(Value::from).unwrap_or(Value::Null), "-", self.yymmdd(Value::from(expiry), &[]), "-", self.safe_string_k(&market, "strike", &[Value::Str("".into())]), "-", symbolOptionType);
                 contract = Some(true);
             }
             let mut isLinear: Option<bool> = (if (contract == Some(true)) { Some(true) } else { None });

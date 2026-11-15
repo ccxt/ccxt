@@ -707,10 +707,10 @@ impl Hollaex {
             while { if !__for_first_759 { i += 1; } __for_first_759 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut market: Option<crate::value::Dict> = self.safe_dict(&pairs, Value::from(key.as_deref()), &[]).into_opt_dict();
-            let mut baseId: Option<String> = self.safe_string_k_opt(&market, "pair_base", &[]);
-            let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "pair_2", &[]);
-            let mut baseCode: Option<String> = self.common_currency_code((if let Some(__s) = baseId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).as_str().map(str::to_owned);
-            let mut quoteCode: Option<String> = self.common_currency_code((if let Some(__s) = quoteId.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = self.safe_string_k(&market, "pair_base", &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_k(&market, "pair_2", &[]).as_str().map(str::to_owned);
+            let mut baseCode: Option<String> = self.common_currency_code(baseId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut quoteCode: Option<String> = self.common_currency_code(quoteId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(&market, "name", &[]));

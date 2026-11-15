@@ -2251,7 +2251,7 @@ impl Nado {
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Value = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into()));
+        let mut timestamp: Option<i64> = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into())).as_i64();
         let mut isTakerBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker_buyer", &[]).as_bool();
         let mut side: Option<String> = None;
         if (isTakerBuyer.is_some()) {
@@ -2261,7 +2261,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), Value::Null);
@@ -2300,7 +2300,7 @@ impl Nado {
         //
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Value = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into()));
+        let mut timestamp: Option<i64> = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into())).as_i64();
         let mut isBid: Option<bool> = self.safe_bool_k(trade.clone(), "is_bid", &[]).as_bool();
         let mut side: Option<String> = None;
         if (isBid.is_some()) {
@@ -2325,7 +2325,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id".into()), Value::Str("submission_idx".into()), &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_digest", &[]));
@@ -2428,7 +2428,7 @@ impl Nado {
         //
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Value = self.parse_ws_timestamp(order.clone(), Value::Str("timestamp".into()));
+        let mut timestamp: Option<i64> = self.parse_ws_timestamp(order.clone(), Value::Str("timestamp".into())).as_i64();
         let mut id: Option<String> = self.safe_string_k(order.clone(), "digest", &[]).as_str().map(str::to_owned);
         let mut amountString: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut remaining: Option<f64> = None;
@@ -2454,10 +2454,10 @@ impl Nado {
         m.insert("info".to_string(), order);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("lastTradeTimestamp".to_string(), (if (filled.is_none()) { Value::Null } else { timestamp.clone() }));
-        m.insert("lastUpdateTimestamp".to_string(), timestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("lastTradeTimestamp".to_string(), (if (filled.is_none()) { Value::Null } else { Value::from(timestamp) }));
+        m.insert("lastUpdateTimestamp".to_string(), Value::from(timestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Null);
@@ -2507,7 +2507,7 @@ impl Nado {
         //
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Value = self.parse_ws_timestamp(position.clone(), Value::Str("timestamp".into()));
+        let mut timestamp: Option<i64> = self.parse_ws_timestamp(position.clone(), Value::Str("timestamp".into())).as_i64();
         let mut amountString: Option<String> = self.safe_string_k(position.clone(), "amount", &[]).as_str().map(str::to_owned);
         let mut vQuoteAmount: Option<String> = self.safe_string_k(position.clone(), "v_quote_amount", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
@@ -2530,7 +2530,7 @@ impl Nado {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("isolated".to_string(), self.safe_bool_k(position, "isolated", &[]));
         m.insert("hedged".to_string(), Value::Bool(false));
@@ -2605,11 +2605,11 @@ impl Nado {
         //
         let mut marketId: Option<String> = self.safe_string_k(bidask.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut timestamp: Value = self.parse_ws_timestamp(bidask.clone(), Value::Str("timestamp".into()));
+        let mut timestamp: Option<i64> = self.parse_ws_timestamp(bidask.clone(), Value::Str("timestamp".into())).as_i64();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("ask".to_string(), self.parent.parse_x18(self.safe_string_k(bidask.clone(), "ask_price", &[])));
         m.insert("askVolume".to_string(), self.parent.parse_x18(self.safe_string_k(bidask.clone(), "ask_qty", &[])));
@@ -2771,9 +2771,9 @@ impl Nado {
         let mut bids: crate::value::List = __pro_message.get("bids").cloned().unwrap_or_default().into_list();
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null)), Value::Arr(asks));
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null)), Value::Arr(bids));
-        let mut timestamp: Value = self.parse_ws_timestamp(message, Value::Str("max_timestamp".into()));
+        let mut timestamp: Option<i64> = self.parse_ws_timestamp(message, Value::Str("max_timestamp".into())).as_i64();
         add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.map(Value::from).unwrap_or(Value::Null));
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), timestamp.clone());
+        add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::from(timestamp));
         add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         add_element_to_object(&mut orderbook, &Value::Str("maxTimestamp".into()), (match __pro_message.get("max_timestamp").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         client.resolve(orderbook, messageHash.as_str());

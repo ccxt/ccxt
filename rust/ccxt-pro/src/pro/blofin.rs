@@ -1049,13 +1049,13 @@ impl Blofin {
         //     }
         //
         let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
-        let mut channelName: Value = self.safe_string_k(&arg, "channel", &[]);
+        let mut channelName: Option<String> = self.safe_string_k(&arg, "channel", &[]).as_str().map(str::to_owned);
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).as_array().cloned().unwrap_or_default();
         let mut marketId: Option<String> = self.safe_string_k(&arg, "instId", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-        let mut interval: Value = channelName.as_str().map(|__s| Value::Str(__s.replace("candle", "").into())).unwrap_or_else(|| channelName.clone());
-        let mut unifiedTimeframe: Option<String> = self.find_timeframe(interval.clone(), &[]);
+        let mut interval: Option<String> = (if let Some(__s) = channelName.as_deref() { Some(__s.replace("candle", "")) } else { None });
+        let mut unifiedTimeframe: Option<String> = self.find_timeframe(interval.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&unifiedTimeframe);
         if (stored.is_none()) {
@@ -1073,7 +1073,7 @@ impl Blofin {
         }
         }
         let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candle", interval).into()), ":").into()), symbol);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candle", interval.as_deref().unwrap_or("null")).into()), ":").into()), symbol);
         client.resolve(resolveData, messageHash.as_str());
 }
 
@@ -1708,9 +1708,9 @@ impl Blofin {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " error: ").into()), json_stringify(&message))));
         }
         let mut arg: crate::value::Dict = __pro_message.get("arg").cloned().unwrap_or_default().into_dict();
-        let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
+        let mut channelName: Option<String> = self.safe_string_k(&arg, "channel", &[]).as_str().map(str::to_owned);
         method = self.safe_value(Value::Map(methods.clone()), channelName.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (method == Value::Null) && (channelName.as_deref().unwrap_or("").contains("candle")) {
+        if (method == Value::Null) && (channelName.as_deref().unwrap_or_default().contains("candle")) {
             method = methods.get("candle").cloned().unwrap_or(Value::Null);
         }
         if (method != Value::Null) {
