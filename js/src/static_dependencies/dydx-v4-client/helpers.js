@@ -130,7 +130,7 @@ export const setPaginationParams = (options, pagination) => {
 };
 ;
 export function toTimestamp(date) {
-    const seconds = numberToLong(date.getTime() / 1000);
+    const seconds = numberToLong(date.getTime() / 1_000);
     const nanos = date.getTime() % 1000 * 1000000;
     return {
         seconds,
@@ -144,12 +144,6 @@ export function fromTimestamp(t) {
     return new Date(millis);
 }
 ;
-const fromJSON = (object) => {
-    return {
-        seconds: isSet(object.seconds) ? Long.fromString(object.seconds) : Long.ZERO,
-        nanos: isSet(object.nanos) ? Number(object.nanos) : 0
-    };
-};
 const timestampFromJSON = (object) => {
     return {
         seconds: isSet(object.seconds) ? Long.fromValue(object.seconds) : Long.ZERO,

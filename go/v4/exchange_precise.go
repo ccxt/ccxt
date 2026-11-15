@@ -24,6 +24,8 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 		dec = math.MinInt32
 	}
 
+	// a maybe-undefined operand may arrive as a pointer; format the pointed-at value
+	number2 = derefScalar(number2)
 	number := fmt.Sprintf("%v", number2)
 	p := &PreciseStruct{
 		baseNumber: 10,
@@ -60,7 +62,7 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 
 func (p *PreciseStruct) Mul(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Mul(p.integer, other.integer)
-	decimals := p.Decimals.(int) + other.Decimals.(int)
+	decimals := derefScalar(p.Decimals).(int) + derefScalar(other.Decimals).(int)
 	return NewPrecise(integer.String(), decimals)
 }
 
@@ -76,57 +78,58 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 		numerator = p.integer
 	} else if distance < 0 {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(-distance)), nil)
-		numerator = new(big.Int).Div(p.integer, exponent)
+		// Quo truncates toward zero, matching JS BigInt division (big.Int.Div is Euclidean and rounds toward -inf for negatives)
+		numerator = new(big.Int).Quo(p.integer, exponent)
 	} else {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(distance)), nil)
 		numerator = new(big.Int).Mul(p.integer, exponent)
 	}
-	result := new(big.Int).Div(numerator, other.integer)
+	result := new(big.Int).Quo(numerator, other.integer)
 	return NewPrecise(result.String(), precision)
 }
 
 func (p *PreciseStruct) Add(other *PreciseStruct) *PreciseStruct {
 	if p.Decimals == other.Decimals {
 		integerResult := new(big.Int).Add(p.integer, other.integer)
-		return NewPrecise(integerResult.String(), p.Decimals.(int))
+		return NewPrecise(integerResult.String(), derefScalar(p.Decimals).(int))
 	} else {
 		var smaller, bigger *PreciseStruct
-		if p.Decimals.(int) < other.Decimals.(int) {
+		if derefScalar(p.Decimals).(int) < derefScalar(other.Decimals).(int) {
 			smaller = p
 			bigger = other
 		} else {
 			smaller = other
 			bigger = p
 		}
-		exponent := bigger.Decimals.(int) - smaller.Decimals.(int)
+		exponent := derefScalar(bigger.Decimals).(int) - derefScalar(smaller.Decimals).(int)
 		normalized := new(big.Int).Mul(smaller.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(exponent)), nil))
 		result := new(big.Int).Add(normalized, bigger.integer)
-		return NewPrecise(result.String(), bigger.Decimals.(int))
+		return NewPrecise(result.String(), derefScalar(bigger.Decimals).(int))
 	}
 }
 
 func (p *PreciseStruct) Mod(other *PreciseStruct) *PreciseStruct {
-	rationizerNumerator := int(math.Max(float64(-p.Decimals.(int)+other.Decimals.(int)), 0))
+	rationizerNumerator := int(math.Max(float64(-derefScalar(p.Decimals).(int)+derefScalar(other.Decimals).(int)), 0))
 	numerator := new(big.Int).Mul(p.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerNumerator)), nil))
-	rationizerDenominator := int(math.Max(float64(-other.Decimals.(int)+p.Decimals.(int)), 0))
+	rationizerDenominator := int(math.Max(float64(-derefScalar(other.Decimals).(int)+derefScalar(p.Decimals).(int)), 0))
 	denominator := new(big.Int).Mul(other.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerDenominator)), nil))
 	result := new(big.Int).Mod(numerator, denominator)
-	return NewPrecise(result.String(), rationizerDenominator+other.Decimals.(int))
+	return NewPrecise(result.String(), rationizerDenominator+derefScalar(other.Decimals).(int))
 }
 
 func (p *PreciseStruct) Sub(other *PreciseStruct) *PreciseStruct {
-	negative := NewPrecise(new(big.Int).Neg(other.integer).String(), other.Decimals.(int))
+	negative := NewPrecise(new(big.Int).Neg(other.integer).String(), derefScalar(other.Decimals).(int))
 	return p.Add(negative)
 }
 
 func (p *PreciseStruct) Or(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Or(p.integer, other.integer)
-	decimals := p.Decimals.(int) + other.Decimals.(int)
+	decimals := derefScalar(p.Decimals).(int) + derefScalar(other.Decimals).(int)
 	return NewPrecise(integer.String(), decimals)
 }
 
 func (p *PreciseStruct) Neg() *PreciseStruct {
-	return NewPrecise(new(big.Int).Neg(p.integer).String(), p.Decimals.(int))
+	return NewPrecise(new(big.Int).Neg(p.integer).String(), derefScalar(p.Decimals).(int))
 }
 
 func (p *PreciseStruct) Min(other *PreciseStruct) *PreciseStruct {
@@ -168,7 +171,7 @@ func (p *PreciseStruct) Abs() *PreciseStruct {
 	} else {
 		result = p.integer
 	}
-	return NewPrecise(result.String(), p.Decimals.(int))
+	return NewPrecise(result.String(), derefScalar(p.Decimals).(int))
 }
 
 func (p *PreciseStruct) Reduce() *PreciseStruct {
@@ -199,7 +202,7 @@ func (p *PreciseStruct) Reduce() *PreciseStruct {
 func (p *PreciseStruct) Equals(other *PreciseStruct) bool {
 	p.Reduce()
 	other.Reduce()
-	return p.integer.Cmp(other.integer) == 0 && p.Decimals.(int) == other.Decimals.(int)
+	return p.integer.Cmp(other.integer) == 0 && derefScalar(p.Decimals).(int) == derefScalar(other.Decimals).(int)
 }
 
 func (p *PreciseStruct) String() string {
@@ -244,131 +247,151 @@ func (p *PreciseStruct) String() string {
 	return sign + strings.Join(integerArray, "")
 }
 
-func StringMul(string1, string2 any) any {
+func StringMul(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Mul(NewPrecise(string2.(string))).String()
+	res := NewPrecise(derefScalar(string1).(string)).Mul(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
 }
 
-func StringDiv(string1, string2 any, precision ...any) any {
+func StringDiv(string1, string2 any, precision ...any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	string2Precise := NewPrecise(string2.(string))
+	string2Precise := NewPrecise(derefScalar(string2).(string))
 	if string2Precise.integer.Cmp(big.NewInt(0)) == 0 {
 		return nil
 	}
-	stringDiv := NewPrecise(string1.(string)).Div(string2Precise, precision...)
-	return stringDiv.String()
+	stringDiv := NewPrecise(derefScalar(string1).(string)).Div(string2Precise, precision...)
+	res := stringDiv.String()
+	return &res
 }
 
-func StringSub(string1, string2 any) any {
+func StringSub(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Sub(NewPrecise(string2.(string))).String()
+	res := NewPrecise(derefScalar(string1).(string)).Sub(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
 }
 
 // func (this *PreciseStruct) stringSub(string1, string2 any) string {
 // 	return StringSub(string1, string2)
 // }
 
-func StringAdd(string1, string2 any) any {
-	if string1 == nil && string2 == nil {
-		return nil
-	}
-	if string1 == nil {
-		return string2.(string)
-	}
-	if string2 == nil {
-		return string1.(string)
-	}
-	return NewPrecise(string1.(string)).Add(NewPrecise(string2.(string))).String()
-}
-
-func StringOr(string1, string2 any) any {
+func StringAdd(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Or(NewPrecise(string2.(string))).String()
+	res := NewPrecise(derefScalar(string1).(string)).Add(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
+}
+
+func StringOr(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
+	if string1 == nil || string2 == nil {
+		return nil
+	}
+	res := NewPrecise(derefScalar(string1).(string)).Or(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
 }
 
 func StringGt(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Gt(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Gt(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringEq(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Equals(NewPrecise(derefScalar(b).(string)))
 }
 
-func StringMax(a, b any) any {
+func StringMax(a, b any) *string {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Max(NewPrecise(b.(string))).String()
+	res := NewPrecise(derefScalar(a).(string)).Max(NewPrecise(derefScalar(b).(string))).String()
+	return &res
 }
 
 func StringEquals(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Equals(NewPrecise(derefScalar(b).(string)))
 }
 
-func StringMin(string1, string2 any) string {
+func StringMin(string1, string2 any) *string {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
-	return NewPrecise(string1.(string)).Min(NewPrecise(string2.(string))).String()
+	res := NewPrecise(derefScalar(string1).(string)).Min(NewPrecise(derefScalar(string2).(string))).String()
+	return &res
 }
 
 func StringLt(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Lt(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Lt(NewPrecise(derefScalar(b).(string)))
 }
 
-func StringAbs(a any) any {
+func StringAbs(a any) *string {
+	a = derefScalar(a)
 	if a == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Abs().String()
+	res := NewPrecise(derefScalar(a).(string)).Abs().String()
+	return &res
 }
 
-func StringNeg(a any) any {
+func StringNeg(a any) *string {
+	a = derefScalar(a)
 	if a == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Neg().String()
+	res := NewPrecise(derefScalar(a).(string)).Neg().String()
+	return &res
 }
 
 func StringLe(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Le(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Le(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringGe(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Ge(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Ge(NewPrecise(derefScalar(b).(string)))
 }
 
-func StringMod(a, b any) any {
+func StringMod(a, b any) *string {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Mod(NewPrecise(b.(string))).String()
+	res := NewPrecise(derefScalar(a).(string)).Mod(NewPrecise(derefScalar(b).(string))).String()
+	return &res
 }
 
 func (p *PreciseStruct) ToString() string {
@@ -425,66 +448,66 @@ func (p *PreciseStruct) ToString() string {
 
 // wrappers
 
-func (e *PreciseStruct) StringMul(string1, string2 any) any {
-	return StringMul(string1, string2)
+func (e *PreciseStruct) StringMul(string1, string2 any) *string {
+	return StringMul(derefScalar(string1), derefScalar(string2))
 }
 
-func (e *PreciseStruct) StringDiv(string1, string2 any, precision ...any) any {
-	return StringDiv(string1, string2, precision...)
+func (e *PreciseStruct) StringDiv(string1, string2 any, precision ...any) *string {
+	return StringDiv(derefScalar(string1), derefScalar(string2), precision...)
 }
 
-func (e *PreciseStruct) StringSub(string1, string2 any) any {
-	return StringSub(string1, string2)
+func (e *PreciseStruct) StringSub(string1, string2 any) *string {
+	return StringSub(derefScalar(string1), derefScalar(string2))
 }
 
-func (e *PreciseStruct) StringAdd(string1, string2 any) any {
-	return StringAdd(string1, string2)
+func (e *PreciseStruct) StringAdd(string1, string2 any) *string {
+	return StringAdd(derefScalar(string1), derefScalar(string2))
 }
 
-func (e *PreciseStruct) StringOr(string1, string2 any) any {
-	return StringOr(string1, string2)
+func (e *PreciseStruct) StringOr(string1, string2 any) *string {
+	return StringOr(derefScalar(string1), derefScalar(string2))
 }
 
 func (e *PreciseStruct) StringGt(a, b any) bool {
-	return StringGt(a, b)
+	return StringGt(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringEq(a, b any) bool {
-	return StringEq(a, b)
+	return StringEq(derefScalar(a), derefScalar(b))
 }
 
-func (e *PreciseStruct) StringMax(a, b any) any {
-	return StringMax(a, b)
+func (e *PreciseStruct) StringMax(a, b any) *string {
+	return StringMax(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringEquals(a, b any) bool {
-	return StringEquals(a, b)
+	return StringEquals(derefScalar(a), derefScalar(b))
 }
 
-func (e *PreciseStruct) StringMin(string1, string2 any) any {
-	return StringMin(string1, string2)
+func (e *PreciseStruct) StringMin(string1, string2 any) *string {
+	return StringMin(derefScalar(string1), derefScalar(string2))
 }
 
 func (e *PreciseStruct) StringLt(a, b any) bool {
-	return StringLt(a, b)
+	return StringLt(derefScalar(a), derefScalar(b))
 }
 
-func (e *PreciseStruct) StringAbs(a any) any {
-	return StringAbs(a)
+func (e *PreciseStruct) StringAbs(a any) *string {
+	return StringAbs(derefScalar(a))
 }
 
-func (e *PreciseStruct) StringNeg(a any) any {
-	return StringNeg(a)
+func (e *PreciseStruct) StringNeg(a any) *string {
+	return StringNeg(derefScalar(a))
 }
 
 func (e *PreciseStruct) StringLe(a, b any) bool {
-	return StringLe(a, b)
+	return StringLe(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringGe(a, b any) bool {
-	return StringGe(a, b)
+	return StringGe(derefScalar(a), derefScalar(b))
 }
 
-func (e *PreciseStruct) StringMod(a, b any) any {
-	return StringMod(a, b)
+func (e *PreciseStruct) StringMod(a, b any) *string {
+	return StringMod(derefScalar(a), derefScalar(b))
 }

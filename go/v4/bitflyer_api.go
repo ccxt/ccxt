@@ -7,142 +7,182 @@
 
 package ccxt
 
-func (this *BitflyerCore) PublicGetGetmarketsUsa(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetmarketsUsa", args...)
+// PublicGetGetmarketsUsa returns a channel that yields a JSON array.
+func (this *Bitflyer) PublicGetGetmarketsUsa(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getmarkets/usa", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PublicGetGetmarketsEu(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetmarketsEu", args...)
+// PublicGetGetmarketsEu returns a channel that yields a JSON array.
+func (this *Bitflyer) PublicGetGetmarketsEu(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getmarkets/eu", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PublicGetGetmarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetmarkets", args...)
+// PublicGetGetmarkets returns a channel that yields a JSON array.
+func (this *Bitflyer) PublicGetGetmarkets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getmarkets", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PublicGetGetboard(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetboard", args...)
+// PublicGetGetboard returns a channel that yields a JSON object.
+func (this *Bitflyer) PublicGetGetboard(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getboard", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PublicGetGetticker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetticker", args...)
+// PublicGetGetticker returns a channel that yields a JSON object.
+func (this *Bitflyer) PublicGetGetticker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PublicGetGetexecutions(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetexecutions", args...)
+// PublicGetGetexecutions returns a channel that yields a JSON array.
+func (this *Bitflyer) PublicGetGetexecutions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getexecutions", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PublicGetGethealth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGethealth", args...)
+// PublicGetGethealth returns a channel that yields a JSON object.
+func (this *Bitflyer) PublicGetGethealth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "gethealth", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PublicGetGetboardstate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetboardstate", args...)
+// PublicGetGetboardstate returns a channel that yields a JSON object.
+func (this *Bitflyer) PublicGetGetboardstate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getboardstate", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PublicGetGetchats(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetchats", args...)
+// PublicGetGetchats returns a channel that yields a JSON array.
+func (this *Bitflyer) PublicGetGetchats(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getchats", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PublicGetGetfundingrate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetfundingrate", args...)
+// PublicGetGetfundingrate returns a channel that yields a JSON object.
+func (this *Bitflyer) PublicGetGetfundingrate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getfundingrate", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetpermissions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetpermissions", args...)
+// PublicGetGetfundingratehistory returns a channel that yields a JSON array.
+func (this *Bitflyer) PublicGetGetfundingratehistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getfundingratehistory", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetbalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetbalance", args...)
+// PrivateGetGetpermissions returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetpermissions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getpermissions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetbalancehistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetbalancehistory", args...)
+// PrivateGetGetbalance returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetbalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getbalance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetcollateral(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetcollateral", args...)
+// PrivateGetGetbalancehistory returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetbalancehistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getbalancehistory", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetcollateralhistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetcollateralhistory", args...)
+// PrivateGetGetcollateral returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivateGetGetcollateral(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getcollateral", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetcollateralaccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetcollateralaccounts", args...)
+// PrivateGetGetcollateralhistory returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetcollateralhistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getcollateralhistory", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetaddresses(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetaddresses", args...)
+// PrivateGetGetcollateralaccounts returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetcollateralaccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getcollateralaccounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetcoinins(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetcoinins", args...)
+// PrivateGetGetaddresses returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetaddresses(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getaddresses", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetcoinouts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetcoinouts", args...)
+// PrivateGetGetcoinins returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetcoinins(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getcoinins", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetbankaccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetbankaccounts", args...)
+// PrivateGetGetcoinouts returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetcoinouts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getcoinouts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetdeposits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetdeposits", args...)
+// PrivateGetGetbankaccounts returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetbankaccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getbankaccounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetwithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetwithdrawals", args...)
+// PrivateGetGetdeposits returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetdeposits(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getdeposits", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetchildorders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetchildorders", args...)
+// PrivateGetGetwithdrawals returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetwithdrawals(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getwithdrawals", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetparentorders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetparentorders", args...)
+// PrivateGetGetchildorders returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetchildorders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getchildorders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetparentorder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetparentorder", args...)
+// PrivateGetGetparentorders returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetparentorders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getparentorders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetexecutions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetexecutions", args...)
+// PrivateGetGetparentorder returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivateGetGetparentorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getparentorder", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGetpositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetpositions", args...)
+// PrivateGetGetexecutions returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetexecutions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getexecutions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivateGetGettradingcommission(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGettradingcommission", args...)
+// PrivateGetGetpositions returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetpositions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getpositions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivatePostSendcoin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSendcoin", args...)
+// PrivateGetGettradingcommission returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivateGetGettradingcommission(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "gettradingcommission", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivatePostWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdraw", args...)
+// PrivatePostSendcoin returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivatePostSendcoin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sendcoin", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivatePostSendchildorder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSendchildorder", args...)
+// PrivatePostWithdraw returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivatePostWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdraw", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivatePostCancelchildorder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelchildorder", args...)
+// PrivatePostSendchildorder returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivatePostSendchildorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sendchildorder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivatePostSendparentorder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSendparentorder", args...)
+// PrivatePostCancelchildorder returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivatePostCancelchildorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelchildorder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivatePostCancelparentorder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelparentorder", args...)
+// PrivatePostSendparentorder returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivatePostSendparentorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sendparentorder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitflyerCore) PrivatePostCancelallchildorders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelallchildorders", args...)
+// PrivatePostCancelparentorder returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivatePostCancelparentorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelparentorder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostCancelallchildorders returns a channel that yields a JSON object.
+func (this *Bitflyer) PrivatePostCancelallchildorders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelallchildorders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }

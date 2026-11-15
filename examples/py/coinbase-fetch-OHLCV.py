@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+# fetchOHLCV is a one-shot REST call. For live updates, prefer watchOHLCV
+# (WebSocket) instead of polling this in a loop — see coinbase-watch-ohlcv.py.
+
 import os
 import sys
 from pprint import pprint

@@ -1,8 +1,5 @@
-- [Coinone Markets](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -18,5 +15,5 @@ exchange = ccxt.coinone({
 markets = exchange.load_markets()
 pprint(markets)
 print('\n', exchange.name, 'supports', len(markets), 'pairs')
- 
+
 ```

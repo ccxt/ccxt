@@ -701,6 +701,30 @@ exchange.verbose = true;
 System.out.println(exchange.has);
 ```
 
+## Prediction Markets
+
+CCXT supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) under the `io.github.ccxt.exchanges.prediction` package. They use the same unified API, but prices are quoted **0–1** (USDC per outcome share) and the tradeable unit is an **outcome** (e.g. a market's YES/NO token), not a regular market symbol.
+
+```java
+import io.github.ccxt.exchanges.prediction.Polymarket;
+import io.github.ccxt.types.PredictionOrder;
+
+Polymarket exchange = new Polymarket();
+exchange.loadMarkets();
+// discover events -> markets -> outcomes (each outcome has: outcome (handle),
+// outcomeId, market, label); fetchEvents / fetchEvent are available too
+// an outcome handle looks like 'TRUMP_OUT_PRESIDENT_2027:YES'
+String handle = "TRUMP_OUT_PRESIDENT_2027:YES";
+var ticker = exchange.fetchTicker(handle);
+var book = exchange.fetchOrderBook(handle);
+// limit buy 5 YES shares @ 0.40 USDC (price is 0..1 per share)
+PredictionOrder order = exchange.createOrder(handle, "limit", "buy", 5.0, 0.40);
+exchange.cancelOrder(order.id, handle);
+```
+
+- Price/trade methods (`fetchTicker`, `fetchOrderBook`, `fetchOHLCV`, `fetchTrades`, `createOrder`, `cancelOrder`, …) take an **outcome handle or outcomeId** (the `outcome` parameter), not a market symbol.
+- Discover markets via `fetchEvents` / `fetchEvent` (or `loadMarkets`).
+
 ## Learn More
 
 - [CCXT Manual](https://docs.ccxt.com/)

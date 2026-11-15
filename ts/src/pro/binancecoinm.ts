@@ -1,17 +1,19 @@
 
 //  ---------------------------------------------------------------------------
 
-import binance from './binance.js';
+import binance from '../abstract/pro/binancecoinm.js';
 import binancecoinmRest from '../binancecoinm.js';
+import type { Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class binancecoinm extends binance {
-    describe (): any {
+    override describe (): Dict {
         // eslint-disable-next-line new-cap
         const restInstance = new binancecoinmRest ();
         const restDescribe = restInstance.describe ();
-        const extended = this.deepExtend (super.describe (), restDescribe);
+        const parentWsDescribe = super.describeData ();
+        const extended = this.deepExtend (restDescribe, parentWsDescribe);
         return this.deepExtend (extended, {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',

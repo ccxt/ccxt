@@ -43,9 +43,33 @@ trait ClientTrait {
         return new CountedOrderBook($snapshot, $depth);
     }
 
+    // hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json
+    // object. A venue declares only the handlers for the shapes it receives (no typed stubs here: the
+    // prediction venues use their own Client class), a frame it declares no handler for is dropped
+    public function route_message($client, $message) {
+        if (is_string($message)) {
+            // a binary frame arrives as a string that is not printable text
+            if ($this->is_binary_message($message) && method_exists($this, 'handle_binary_message')) {
+                return $this->handle_binary_message($client, $message);
+            }
+            if (method_exists($this, 'handle_text_message')) {
+                return $this->handle_text_message($client, $message);
+            }
+            return null;
+        }
+        // an empty json object decodes to the empty array, which stays a dict frame
+        if (is_array($message) && $message !== array() && array_is_list($message)) {
+            if (method_exists($this, 'handle_list_message')) {
+                return $this->handle_list_message($client, $message);
+            }
+            return null;
+        }
+        return $this->handle_message($client, $message);
+    }
+
     public function client($url) : Client {
         if (!array_key_exists($url, $this->clients)) {
-            $on_message = array($this, 'handle_message');
+            $on_message = array($this, 'route_message');
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');
             $on_connected = array($this, 'on_connected');
@@ -221,7 +245,7 @@ trait ClientTrait {
         }
     }
 
-    public function close() {
+    public function close_ws_clients() {
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {
@@ -231,39 +255,48 @@ trait ClientTrait {
         array_splice($this->clients, 0);
     }
 
-    public function __destruct() {
-        parent::__destruct();
-        $this->close();
-    }
-
     public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {
         return Async\async(function () use ($client, $messageHash, $symbol, $limit, $params) {
             if (!array_key_exists($symbol, $this->orderbooks)) {
                 $client->reject(new ExchangeError($this->id . ' loadOrderBook() orderbook is not initiated'), $messageHash);
                 return;
             }
+            $error = null;
             try {
                 $stored = $this->orderbooks[$symbol];
                 $maxRetries = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                 $tries = 0;
                 while ($tries < $maxRetries) {
-                    $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                    $orderBook = Async\await($this->fetch_rest_order_book_safe($symbol, $limit, $params));
                     $index = $this->get_cache_index($orderBook, $stored->cache);
                     if ($index >= 0) {
                         $stored->reset($orderBook);
-                        $this->handle_deltas($stored, array_slice($stored->cache, $index));
+                        $this->handle_book_deltas($stored, array_slice($stored->cache, $index));
                         $stored->cache = array();
                         $client->resolve($stored, $messageHash);
                         return;
                     }
                     $tries++;
                 }
-                $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' ), $messageHash);
-                unset($this->clients[$client->url]);
-            } catch (BaseError $e) {
-                $client->reject($e, $messageHash);
-                Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
+                $error = new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' );
+            } catch (\Throwable $e) {
+                $error = $e;
             }
+            // a failed synchronization must not recurse into another attempt with the
+            // same broken state - previously the catch invoked load_order_book again,
+            // recursing endlessly when the snapshot request kept failing, see
+            // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
+            // instead, reject the watcher, close and drop the connection and the cached
+            // orderbook, so the next watch_order_book() call resubscribes cleanly
+            $client->reject($error, $messageHash);
+            if (!$client->error) {
+                $client->error = $error; // on_close must not treat this as a server disconnect
+            }
+            $client->close();
+            if (array_key_exists($client->url, $this->clients) && $this->clients[$client->url] === $client) {
+                unset($this->clients[$client->url]);
+            }
+            $this->orderbooks[$symbol] = $this->order_book(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
         }) ();
     }
 }

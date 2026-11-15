@@ -5,34 +5,113 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetExchangesPairTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetExchangesPairOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicGetExchangesPairTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetExchangesPairLasttrades (params?: {}): Promise<implicitReturnType>;
-    privatePostMerchantCreateCheckout (params?: {}): Promise<implicitReturnType>;
-    privatePostFundsAddCoinFundsRequest (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddFund (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderGetById (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddOrderMarketPriceBuy (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddOrderMarketPriceSell (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddCoinFundsRequest (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAddStopOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPaymentGetMyId (params?: {}): Promise<implicitReturnType>;
-    privatePostPaymentSend (params?: {}): Promise<implicitReturnType>;
-    privatePostPaymentPay (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBalanceV2 (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderMyOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderGetById (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderAccountHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderOrderHistory (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetExchangesPairTicker (params = {}): Promise<Dict> {
+        return this.request ('Exchanges/{pair}/Ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetExchangesPairOrderbook (params = {}): Promise<Dict> {
+        return this.request ('Exchanges/{pair}/orderbook', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetExchangesPairOrderbookTop (params = {}): Promise<Dict> {
+        return this.request ('Exchanges/{pair}/orderbook-top', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetExchangesPairTrades (params = {}): Promise<List> {
+        return this.request ('Exchanges/{pair}/trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetExchangesPairLasttrades (params = {}): Promise<List> {
+        return this.request ('Exchanges/{pair}/lasttrades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostMerchantCreateCheckout (params = {}): Promise<Dict> {
+        return this.request ('Merchant/CreateCheckout', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostFundsAddCoinFundsRequest (params = {}): Promise<Dict> {
+        return this.request ('Funds/AddCoinFundsRequest', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostFundsWithdrawCoin (params = {}): Promise<Dict> {
+        return this.request ('Funds/WithdrawCoin', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderAddFund (params = {}): Promise<Dict> {
+        return this.request ('Order/AddFund', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderAddOrder (params = {}): Promise<Dict> {
+        return this.request ('Order/AddOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderGetById (params = {}): Promise<Dict> {
+        return this.request ('Order/GetById', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderAddOrderMarketPriceBuy (params = {}): Promise<Dict> {
+        return this.request ('Order/AddOrderMarketPriceBuy', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderAddOrderMarketPriceSell (params = {}): Promise<Dict> {
+        return this.request ('Order/AddOrderMarketPriceSell', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('Order/CancelOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderAddCoinFundsRequest (params = {}): Promise<Dict> {
+        return this.request ('Order/AddCoinFundsRequest', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderAddStopOrder (params = {}): Promise<Dict> {
+        return this.request ('Order/AddStopOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPaymentGetMyId (params = {}): Promise<Dict> {
+        return this.request ('Payment/GetMyId', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPaymentSend (params = {}): Promise<Dict> {
+        return this.request ('Payment/Send', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPaymentPay (params = {}): Promise<string> {
+        return this.request ('Payment/Pay', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privateGetAccountBalance (params = {}): Promise<Dict> {
+        return this.request ('Account/Balance', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccountBalanceV2 (params = {}): Promise<Dict> {
+        return this.request ('Account/Balance/v2', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrderMyOrders (params = {}): Promise<Dict> {
+        return this.request ('Order/MyOrders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrderGetById (params = {}): Promise<Dict> {
+        return this.request ('Order/GetById', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrderAccountHistory (params = {}): Promise<List> {
+        return this.request ('Order/AccountHistory', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrderOrderHistory (params = {}): Promise<List> {
+        return this.request ('Order/OrderHistory', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrderHistoryByOrderId (params = {}): Promise<List> {
+        return this.request ('Order/HistoryByOrderId', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

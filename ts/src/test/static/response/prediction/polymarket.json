@@ -1,0 +1,1319 @@
+{
+	"exchange": "polymarket",
+	"asyncOnly": true,
+	"skipKeys": [],
+	"options": {
+		"l2ApiKey": "0xabc123",
+		"l2Secret": "0xdef456"
+	},
+	"methods": {
+		"fetchTicker": [
+			{
+				"description": "fetchTicker for a yes outcome",
+				"method": "fetchTicker",
+				"input": [
+					"JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES"
+				],
+				"httpResponse": {
+					"market": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+					"asset_id": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+					"timestamp": "1781289337944",
+					"hash": "3082b8da1567a4510e93544031cb9144524f2de7",
+					"bids": [
+						{
+							"price": "0.001",
+							"size": "2202468"
+						},
+						{
+							"price": "0.002",
+							"size": "1000005"
+						},
+						{
+							"price": "0.003",
+							"size": "135826.51"
+						},
+						{
+							"price": "0.004",
+							"size": "12364"
+						},
+						{
+							"price": "0.005",
+							"size": "1000"
+						}
+					],
+					"asks": [
+						{
+							"price": "0.999",
+							"size": "45521.44"
+						},
+						{
+							"price": "0.998",
+							"size": "5007500"
+						},
+						{
+							"price": "0.997",
+							"size": "7.06"
+						},
+						{
+							"price": "0.996",
+							"size": "5000"
+						},
+						{
+							"price": "0.995",
+							"size": "222222"
+						}
+					],
+					"min_order_size": "5",
+					"tick_size": "0.001",
+					"neg_risk": true,
+					"last_trade_price": "0.152",
+					"mid": "0.1515",
+					"price": "0.152",
+					"side": "BUY"
+				},
+				"parsedResponse": {
+					"timestamp": 1781289337944,
+					"datetime": "2026-06-12T18:35:37.944Z",
+					"high": null,
+					"low": null,
+					"bid": 0.005,
+					"bidVolume": 1000,
+					"ask": 0.995,
+					"askVolume": 222222,
+					"open": null,
+					"close": 0.152,
+					"last": 0.152,
+					"change": null,
+					"percentage": null,
+					"average": 0.1515,
+					"baseVolume": null,
+					"quoteVolume": 21920.557926999998,
+					"openInterest": null,
+					"outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+					"outcomeId": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+					"label": "Yes",
+					"market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
+					"event": null,
+					"info": {
+						"midpoint": {
+							"market": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+							"asset_id": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+							"timestamp": "1781289337944",
+							"hash": "3082b8da1567a4510e93544031cb9144524f2de7",
+							"bids": [
+								{
+									"price": "0.001",
+									"size": "2202468"
+								},
+								{
+									"price": "0.002",
+									"size": "1000005"
+								},
+								{
+									"price": "0.003",
+									"size": "135826.51"
+								},
+								{
+									"price": "0.004",
+									"size": "12364"
+								},
+								{
+									"price": "0.005",
+									"size": "1000"
+								}
+							],
+							"asks": [
+								{
+									"price": "0.999",
+									"size": "45521.44"
+								},
+								{
+									"price": "0.998",
+									"size": "5007500"
+								},
+								{
+									"price": "0.997",
+									"size": "7.06"
+								},
+								{
+									"price": "0.996",
+									"size": "5000"
+								},
+								{
+									"price": "0.995",
+									"size": "222222"
+								}
+							],
+							"min_order_size": "5",
+							"tick_size": "0.001",
+							"neg_risk": true,
+							"last_trade_price": "0.152",
+							"mid": "0.1515",
+							"price": "0.152",
+							"side": "BUY"
+						},
+						"book": {
+							"market": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+							"asset_id": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+							"timestamp": "1781289337944",
+							"hash": "3082b8da1567a4510e93544031cb9144524f2de7",
+							"bids": [
+								{
+									"price": "0.001",
+									"size": "2202468"
+								},
+								{
+									"price": "0.002",
+									"size": "1000005"
+								},
+								{
+									"price": "0.003",
+									"size": "135826.51"
+								},
+								{
+									"price": "0.004",
+									"size": "12364"
+								},
+								{
+									"price": "0.005",
+									"size": "1000"
+								}
+							],
+							"asks": [
+								{
+									"price": "0.999",
+									"size": "45521.44"
+								},
+								{
+									"price": "0.998",
+									"size": "5007500"
+								},
+								{
+									"price": "0.997",
+									"size": "7.06"
+								},
+								{
+									"price": "0.996",
+									"size": "5000"
+								},
+								{
+									"price": "0.995",
+									"size": "222222"
+								}
+							],
+							"min_order_size": "5",
+							"tick_size": "0.001",
+							"neg_risk": true,
+							"last_trade_price": "0.152",
+							"mid": "0.1515",
+							"price": "0.152",
+							"side": "BUY"
+						},
+						"lastTrade": {
+							"market": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+							"asset_id": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+							"timestamp": "1781289337944",
+							"hash": "3082b8da1567a4510e93544031cb9144524f2de7",
+							"bids": [
+								{
+									"price": "0.001",
+									"size": "2202468"
+								},
+								{
+									"price": "0.002",
+									"size": "1000005"
+								},
+								{
+									"price": "0.003",
+									"size": "135826.51"
+								},
+								{
+									"price": "0.004",
+									"size": "12364"
+								},
+								{
+									"price": "0.005",
+									"size": "1000"
+								}
+							],
+							"asks": [
+								{
+									"price": "0.999",
+									"size": "45521.44"
+								},
+								{
+									"price": "0.998",
+									"size": "5007500"
+								},
+								{
+									"price": "0.997",
+									"size": "7.06"
+								},
+								{
+									"price": "0.996",
+									"size": "5000"
+								},
+								{
+									"price": "0.995",
+									"size": "222222"
+								}
+							],
+							"min_order_size": "5",
+							"tick_size": "0.001",
+							"neg_risk": true,
+							"last_trade_price": "0.152",
+							"mid": "0.1515",
+							"price": "0.152",
+							"side": "BUY"
+						}
+					}
+				}
+			},
+			{
+				"description": "fetchTicker for a no outcome takes last from the per-token last-trade-price endpoint, not the YES-denominated market-level book value",
+				"method": "fetchTicker",
+				"input": [
+					"JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:NO"
+				],
+				"httpResponse": {
+					"market": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+					"asset_id": "94476829201604408463453426454480212459887267917122244941405244686637914508323",
+					"timestamp": "1781289337944",
+					"hash": "3082b8da1567a4510e93544031cb9144524f2de7",
+					"bids": [
+						{
+							"price": "0.797",
+							"size": "1000"
+						},
+						{
+							"price": "0.848",
+							"size": "5000"
+						}
+					],
+					"asks": [
+						{
+							"price": "0.9",
+							"size": "800"
+						},
+						{
+							"price": "0.849",
+							"size": "3000"
+						}
+					],
+					"min_order_size": "5",
+					"tick_size": "0.001",
+					"neg_risk": true,
+					"last_trade_price": "0.152",
+					"mid": "0.8485",
+					"price": "0.849",
+					"side": "SELL"
+				},
+				"parsedResponse": {
+					"timestamp": 1781289337944,
+					"datetime": "2026-06-12T18:35:37.944Z",
+					"high": null,
+					"low": null,
+					"bid": 0.848,
+					"bidVolume": 5000,
+					"ask": 0.849,
+					"askVolume": 3000,
+					"open": null,
+					"close": 0.849,
+					"last": 0.849,
+					"change": null,
+					"percentage": null,
+					"average": 0.8485,
+					"baseVolume": null,
+					"quoteVolume": 21920.557926999998,
+					"openInterest": null,
+					"outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:NO",
+					"outcomeId": "94476829201604408463453426454480212459887267917122244941405244686637914508323",
+					"label": "No",
+					"market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
+					"event": null,
+					"info": {
+						"midpoint": {
+							"market": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+							"asset_id": "94476829201604408463453426454480212459887267917122244941405244686637914508323",
+							"timestamp": "1781289337944",
+							"hash": "3082b8da1567a4510e93544031cb9144524f2de7",
+							"bids": [
+								{
+									"price": "0.797",
+									"size": "1000"
+								},
+								{
+									"price": "0.848",
+									"size": "5000"
+								}
+							],
+							"asks": [
+								{
+									"price": "0.9",
+									"size": "800"
+								},
+								{
+									"price": "0.849",
+									"size": "3000"
+								}
+							],
+							"min_order_size": "5",
+							"tick_size": "0.001",
+							"neg_risk": true,
+							"last_trade_price": "0.152",
+							"mid": "0.8485",
+							"price": "0.849",
+							"side": "SELL"
+						},
+						"book": {
+							"market": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+							"asset_id": "94476829201604408463453426454480212459887267917122244941405244686637914508323",
+							"timestamp": "1781289337944",
+							"hash": "3082b8da1567a4510e93544031cb9144524f2de7",
+							"bids": [
+								{
+									"price": "0.797",
+									"size": "1000"
+								},
+								{
+									"price": "0.848",
+									"size": "5000"
+								}
+							],
+							"asks": [
+								{
+									"price": "0.9",
+									"size": "800"
+								},
+								{
+									"price": "0.849",
+									"size": "3000"
+								}
+							],
+							"min_order_size": "5",
+							"tick_size": "0.001",
+							"neg_risk": true,
+							"last_trade_price": "0.152",
+							"mid": "0.8485",
+							"price": "0.849",
+							"side": "SELL"
+						},
+						"lastTrade": {
+							"market": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+							"asset_id": "94476829201604408463453426454480212459887267917122244941405244686637914508323",
+							"timestamp": "1781289337944",
+							"hash": "3082b8da1567a4510e93544031cb9144524f2de7",
+							"bids": [
+								{
+									"price": "0.797",
+									"size": "1000"
+								},
+								{
+									"price": "0.848",
+									"size": "5000"
+								}
+							],
+							"asks": [
+								{
+									"price": "0.9",
+									"size": "800"
+								},
+								{
+									"price": "0.849",
+									"size": "3000"
+								}
+							],
+							"min_order_size": "5",
+							"tick_size": "0.001",
+							"neg_risk": true,
+							"last_trade_price": "0.152",
+							"mid": "0.8485",
+							"price": "0.849",
+							"side": "SELL"
+						}
+					}
+				}
+			}
+		],
+		"fetchOrderBook": [
+			{
+				"description": "fetchOrderBook for a yes outcome",
+				"method": "fetchOrderBook",
+				"input": [
+					"JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES"
+				],
+				"httpResponse": {
+					"market": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+					"asset_id": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+					"timestamp": "1781289337944",
+					"hash": "3082b8da1567a4510e93544031cb9144524f2de7",
+					"bids": [
+						{
+							"price": "0.001",
+							"size": "2202468"
+						},
+						{
+							"price": "0.002",
+							"size": "1000005"
+						},
+						{
+							"price": "0.003",
+							"size": "135826.51"
+						},
+						{
+							"price": "0.004",
+							"size": "12364"
+						},
+						{
+							"price": "0.005",
+							"size": "1000"
+						}
+					],
+					"asks": [
+						{
+							"price": "0.999",
+							"size": "45521.44"
+						},
+						{
+							"price": "0.998",
+							"size": "5007500"
+						},
+						{
+							"price": "0.997",
+							"size": "7.06"
+						},
+						{
+							"price": "0.996",
+							"size": "5000"
+						},
+						{
+							"price": "0.995",
+							"size": "222222"
+						}
+					],
+					"min_order_size": "5",
+					"tick_size": "0.001",
+					"neg_risk": true,
+					"last_trade_price": "0.152"
+				},
+				"parsedResponse": {
+					"bids": [
+						[
+							0.005,
+							1000
+						],
+						[
+							0.004,
+							12364
+						],
+						[
+							0.003,
+							135826.51
+						],
+						[
+							0.002,
+							1000005
+						],
+						[
+							0.001,
+							2202468
+						]
+					],
+					"asks": [
+						[
+							0.995,
+							222222
+						],
+						[
+							0.996,
+							5000
+						],
+						[
+							0.997,
+							7.06
+						],
+						[
+							0.998,
+							5007500
+						],
+						[
+							0.999,
+							45521.44
+						]
+					],
+					"timestamp": 1781289337944,
+					"datetime": "2026-06-12T18:35:37.944Z",
+					"nonce": null,
+					"outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+					"outcomeId": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+					"market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION"
+				}
+			}
+		],
+		"fetchTrades": [
+			{
+				"description": "fetchTrades with limit",
+				"method": "fetchTrades",
+				"input": [
+					"JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+					null,
+					3
+				],
+				"httpResponse": [
+					{
+						"proxyWallet": "0xa0f21e6d351baa9185716b5c00c2925ed9621848",
+						"side": "BUY",
+						"asset": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+						"conditionId": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+						"size": "256",
+						"price": "0.152",
+						"timestamp": "1781289172",
+						"title": "Will JD Vance win the 2028 US Presidential Election?",
+						"slug": "will-jd-vance-win-the-2028-us-presidential-election",
+						"icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-jd-vance-win-the-2028-us-presidential-election-P-zEgXjCWbdY.png",
+						"eventSlug": "presidential-election-winner-2028",
+						"outcome": "Yes",
+						"outcomeIndex": "0",
+						"name": "",
+						"pseudonym": "",
+						"bio": "",
+						"profileImage": "",
+						"profileImageOptimized": "",
+						"transactionHash": "0x3c49025c45025d25c7e4a88619ca9454135f6dcb53343096a7aa361003b471d0"
+					},
+					{
+						"proxyWallet": "0xbe55fa3947e0dd06887444f9b6cbf05dcfb8c2ee",
+						"side": "SELL",
+						"asset": "94476829201604408463453426454480212459887267917122244941405244686637914508323",
+						"conditionId": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+						"size": "11.77",
+						"price": "0.848",
+						"timestamp": "1781288635",
+						"title": "Will JD Vance win the 2028 US Presidential Election?",
+						"slug": "will-jd-vance-win-the-2028-us-presidential-election",
+						"icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-jd-vance-win-the-2028-us-presidential-election-P-zEgXjCWbdY.png",
+						"eventSlug": "presidential-election-winner-2028",
+						"outcome": "No",
+						"outcomeIndex": "1",
+						"name": "",
+						"pseudonym": "",
+						"bio": "",
+						"profileImage": "",
+						"profileImageOptimized": "",
+						"transactionHash": "0xd3c0aa3da570bb98dcf7ed9f41a4d72ba6db652cd790f9f0fdbee688bd207e19"
+					},
+					{
+						"proxyWallet": "0xa0f21e6d351baa9185716b5c00c2925ed9621848",
+						"side": "BUY",
+						"asset": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+						"conditionId": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+						"size": "368",
+						"price": "0.152",
+						"timestamp": "1781288632",
+						"title": "Will JD Vance win the 2028 US Presidential Election?",
+						"slug": "will-jd-vance-win-the-2028-us-presidential-election",
+						"icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-jd-vance-win-the-2028-us-presidential-election-P-zEgXjCWbdY.png",
+						"eventSlug": "presidential-election-winner-2028",
+						"outcome": "Yes",
+						"outcomeIndex": "0",
+						"name": "",
+						"pseudonym": "",
+						"bio": "",
+						"profileImage": "",
+						"profileImageOptimized": "",
+						"transactionHash": "0xc371cfbf045bb2a76073e33dd8538c3aa24fbee3b53e66c1e408871cdc27f3ad"
+					}
+				],
+				"parsedResponse": [
+					{
+						"id": "0xc371cfbf045bb2a76073e33dd8538c3aa24fbee3b53e66c1e408871cdc27f3ad",
+						"info": {
+							"proxyWallet": "0xa0f21e6d351baa9185716b5c00c2925ed9621848",
+							"side": "BUY",
+							"asset": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+							"conditionId": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+							"size": "368",
+							"price": "0.152",
+							"timestamp": "1781288632",
+							"title": "Will JD Vance win the 2028 US Presidential Election?",
+							"slug": "will-jd-vance-win-the-2028-us-presidential-election",
+							"icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-jd-vance-win-the-2028-us-presidential-election-P-zEgXjCWbdY.png",
+							"eventSlug": "presidential-election-winner-2028",
+							"outcome": "Yes",
+							"outcomeIndex": "0",
+							"name": "",
+							"pseudonym": "",
+							"bio": "",
+							"profileImage": "",
+							"profileImageOptimized": "",
+							"transactionHash": "0xc371cfbf045bb2a76073e33dd8538c3aa24fbee3b53e66c1e408871cdc27f3ad"
+						},
+						"timestamp": 1781288632000,
+						"datetime": "2026-06-12T18:23:52.000Z",
+						"outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+						"outcomeId": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+						"label": "Yes",
+						"market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": null,
+						"price": 0.152,
+						"amount": 368,
+						"cost": 55.936,
+						"fee": null,
+						"realizedPnl": null
+					},
+					{
+						"id": "0x3c49025c45025d25c7e4a88619ca9454135f6dcb53343096a7aa361003b471d0",
+						"info": {
+							"proxyWallet": "0xa0f21e6d351baa9185716b5c00c2925ed9621848",
+							"side": "BUY",
+							"asset": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+							"conditionId": "0x7ad403c3508f8e3912940fd1a913f227591145ca0614074208e0b962d5fcc422",
+							"size": "256",
+							"price": "0.152",
+							"timestamp": "1781289172",
+							"title": "Will JD Vance win the 2028 US Presidential Election?",
+							"slug": "will-jd-vance-win-the-2028-us-presidential-election",
+							"icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/will-jd-vance-win-the-2028-us-presidential-election-P-zEgXjCWbdY.png",
+							"eventSlug": "presidential-election-winner-2028",
+							"outcome": "Yes",
+							"outcomeIndex": "0",
+							"name": "",
+							"pseudonym": "",
+							"bio": "",
+							"profileImage": "",
+							"profileImageOptimized": "",
+							"transactionHash": "0x3c49025c45025d25c7e4a88619ca9454135f6dcb53343096a7aa361003b471d0"
+						},
+						"timestamp": 1781289172000,
+						"datetime": "2026-06-12T18:32:52.000Z",
+						"outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+						"outcomeId": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+						"label": "Yes",
+						"market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": null,
+						"price": 0.152,
+						"amount": 256,
+						"cost": 38.912,
+						"fee": null,
+						"realizedPnl": null
+					}
+				]
+			}
+		],
+		"fetchOHLCV": [
+			{
+				"description": "fetchOHLCV with since and limit",
+				"method": "fetchOHLCV",
+				"input": [
+					"JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+					"1m",
+					1781282000000,
+					60
+				],
+				"httpResponse": {
+					"history": [
+						{
+							"t": "1781282044",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282118",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282163",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282224",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282284",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282344",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282403",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282463",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282524",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282584",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282658",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282704",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282763",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282825",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282884",
+							"p": "0.151"
+						},
+						{
+							"t": "1781282944",
+							"p": "0.151"
+						},
+						{
+							"t": "1781283004",
+							"p": "0.151"
+						},
+						{
+							"t": "1781283064",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283124",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283184",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283244",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283305",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283365",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283428",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283486",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283544",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283606",
+							"p": "0.1505"
+						},
+						{
+							"t": "1781283666",
+							"p": "0.1515"
+						},
+						{
+							"t": "1781283725",
+							"p": "0.1515"
+						},
+						{
+							"t": "1781283784",
+							"p": "0.1515"
+						}
+					]
+				},
+				"parsedResponse": [
+					[
+						1781282040000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282100000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282160000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282220000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282280000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282340000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282400000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282460000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282520000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282580000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282640000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282700000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282760000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282820000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282880000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781282940000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781283000000,
+						0.151,
+						0.151,
+						0.151,
+						0.151,
+						null
+					],
+					[
+						1781283060000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283120000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283180000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283240000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283300000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283360000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283420000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283480000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283540000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283600000,
+						0.1505,
+						0.1505,
+						0.1505,
+						0.1505,
+						null
+					],
+					[
+						1781283660000,
+						0.1515,
+						0.1515,
+						0.1515,
+						0.1515,
+						null
+					],
+					[
+						1781283720000,
+						0.1515,
+						0.1515,
+						0.1515,
+						0.1515,
+						null
+					],
+					[
+						1781283780000,
+						0.1515,
+						0.1515,
+						0.1515,
+						0.1515,
+						null
+					]
+				]
+			}
+		],
+		"createOrder": [
+			{
+				"description": "createOrder limit buy from a POLY_1271 deposit wallet (live order-creation response)",
+				"method": "createOrder",
+				"input": [
+					"JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+					"limit",
+					"buy",
+					5,
+					0.5,
+					{
+						"signatureType": 3,
+						"funder": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
+						"tickSize": "0.01",
+						"negRisk": false,
+						"salt": "1700000000000",
+						"timestamp": "1700000000000"
+					}
+				],
+				"httpResponse": {
+					"errorMsg": "",
+					"orderID": "0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16",
+					"takingAmount": "",
+					"makingAmount": "",
+					"status": "live",
+					"success": true
+				},
+				"parsedResponse": {
+					"id": "0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16",
+					"clientOrderId": null,
+					"info": {
+						"errorMsg": "",
+						"orderID": "0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16",
+						"takingAmount": "",
+						"makingAmount": "",
+						"status": "live",
+						"success": true
+					},
+					"timestamp": null,
+					"datetime": null,
+					"lastTradeTimestamp": null,
+					"status": "open",
+					"outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+					"outcomeId": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+					"label": "Yes",
+					"market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
+					"type": "limit",
+					"timeInForce": "GTC",
+					"postOnly": false,
+					"side": "buy",
+					"price": 0.5,
+					"average": null,
+					"amount": 5,
+					"cost": 0,
+					"filled": 0,
+					"remaining": 5,
+					"fee": null,
+					"trades": [],
+					"lastUpdateTimestamp": null,
+					"reduceOnly": null,
+					"event": null
+				}
+			}
+		],
+		"cancelOrder": [
+			{
+				"description": "cancelOrder by id (live cancel response)",
+				"method": "cancelOrder",
+				"input": [
+					"0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16"
+				],
+				"httpResponse": {
+					"not_canceled": {},
+					"canceled": [
+						"0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16"
+					]
+				},
+				"parsedResponse": {
+					"id": "0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16",
+					"status": "canceled",
+					"info": {
+						"not_canceled": {},
+						"canceled": [
+							"0x94f351bb28cfe3d4507a24ffafa528409d6de50235f33e81e8fad12929c1cd16"
+						]
+					},
+					"clientOrderId": null,
+					"timestamp": null,
+					"datetime": null,
+					"type": null,
+					"side": null,
+					"lastTradeTimestamp": null,
+					"lastUpdateTimestamp": null,
+					"price": null,
+					"amount": null,
+					"cost": null,
+					"average": null,
+					"filled": null,
+					"remaining": null,
+					"timeInForce": null,
+					"postOnly": null,
+					"trades": [],
+					"reduceOnly": null,
+					"fee": null,
+					"outcome": null,
+					"outcomeId": null,
+					"label": null,
+					"market": null,
+					"event": null
+				}
+			}
+		],
+		"fetchPositions": [
+			{
+				"description": "fetchPositions parses data-api positions (known and unknown asset)",
+				"method": "fetchPositions",
+				"input": [],
+				"httpResponse": {
+					"data": [
+						{
+							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+							"asset": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+							"conditionId": "0x178a769e2b4b4a3b3f5c1c9d9e2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e",
+							"size": 25.5,
+							"avgPrice": 0.12,
+							"initialValue": 3.06,
+							"currentValue": 3.8632,
+							"cashPnl": 0.8032,
+							"percentPnl": 26.24,
+							"totalBought": 25.5,
+							"realizedPnl": 0,
+							"curPrice": 0.1515,
+							"currentPrice": 0.1515,
+							"title": "Will JD Vance win the 2028 US Presidential Election?",
+							"outcome": "Yes"
+						},
+						{
+							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+							"asset": "99999999999999999999999999999999999999999999999999",
+							"conditionId": "0x2222222222222222222222222222222222222222222222222222222222222222",
+							"size": 10,
+							"avgPrice": 0.5,
+							"currentPrice": 0.55,
+							"realizedPnl": 1.25,
+							"title": "Unknown market not in the outcome cache",
+							"outcome": "No"
+						}
+					]
+				},
+				"parsedResponse": [
+					{
+						"id": null,
+						"outcome": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION:YES",
+						"outcomeId": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+						"market": "JD_VANCE_WIN_2028_US_PRESIDENTIAL_ELECTION",
+						"label": "Yes",
+						"event": null,
+						"timestamp": null,
+						"datetime": null,
+						"contracts": 25.5,
+						"contractSize": 1,
+						"side": "long",
+						"notional": 3.86325,
+						"unrealizedPnl": null,
+						"realizedPnl": 0,
+						"collateral": null,
+						"entryPrice": 0.12,
+						"markPrice": 0.1515,
+						"percentage": null,
+						"info": {
+							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+							"asset": "16040015440196279900485035793550429453516625694844857319147506590755961451627",
+							"conditionId": "0x178a769e2b4b4a3b3f5c1c9d9e2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e",
+							"size": 25.5,
+							"avgPrice": 0.12,
+							"initialValue": 3.06,
+							"currentValue": 3.8632,
+							"cashPnl": 0.8032,
+							"percentPnl": 26.24,
+							"totalBought": 25.5,
+							"realizedPnl": 0,
+							"curPrice": 0.1515,
+							"currentPrice": 0.1515,
+							"title": "Will JD Vance win the 2028 US Presidential Election?",
+							"outcome": "Yes"
+						},
+						"lastPrice": null,
+						"resolved": null,
+						"won": null,
+						"settleFraction": null,
+						"payout": null
+					},
+					{
+						"id": null,
+						"outcome": "99999999999999999999999999999999999999999999999999",
+						"outcomeId": "99999999999999999999999999999999999999999999999999",
+						"market": null,
+						"label": null,
+						"event": null,
+						"timestamp": null,
+						"datetime": null,
+						"contracts": 10,
+						"contractSize": 1,
+						"side": "long",
+						"notional": 5.5,
+						"unrealizedPnl": null,
+						"realizedPnl": 1.25,
+						"collateral": null,
+						"entryPrice": 0.5,
+						"markPrice": 0.55,
+						"percentage": null,
+						"info": {
+							"proxyWallet": "0xAb2B9833FC8B8f55F4De7C4A0FAb8577EF0F7b36",
+							"asset": "99999999999999999999999999999999999999999999999999",
+							"conditionId": "0x2222222222222222222222222222222222222222222222222222222222222222",
+							"size": 10,
+							"avgPrice": 0.5,
+							"currentPrice": 0.55,
+							"realizedPnl": 1.25,
+							"title": "Unknown market not in the outcome cache",
+							"outcome": "No"
+						},
+						"lastPrice": null,
+						"resolved": null,
+						"won": null,
+						"settleFraction": null,
+						"payout": null
+					}
+				]
+			}
+		]
+	}
+}

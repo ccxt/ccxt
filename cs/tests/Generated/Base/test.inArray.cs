@@ -12,10 +12,10 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "regirock" },
             });
-            object array = new List<object>() {1, 2, 3};
-            Assert(isEqual(exchange.inArray(1, array), true));
-            Assert(isEqual(exchange.inArray(2, array), true));
-            Assert(isEqual(exchange.inArray(3, array), true));
-            Assert(isEqual(exchange.inArray(4, array), false));
+            List<object> array = new List<object>() {1, 2, 3};
+            Assert(exchange.inArray(1, array));
+            Assert(exchange.inArray(2, array));
+            Assert(exchange.inArray(3, array));
+            Assert(!isTrue(exchange.inArray(4, array)));
         }
 }

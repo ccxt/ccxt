@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 // @ts-nocheck
+import { Int, IndexType } from '../types.js';
 // ----------------------------------------------------------------------------
 //
 // Upto 10x faster after initializing memory for the floating point array
@@ -12,7 +13,7 @@
  * @param array
  * @param x
  */
-function bisectLeft (array, x) {
+function bisectLeft (array: Float64Array, x: number): number {
     let low = 0
     let high = array.length - 1
     while (low <= high) {
@@ -23,18 +24,57 @@ function bisectLeft (array, x) {
     return low;
 }
 
+/**
+ * Shift rows one slot up from `index` to make room, then the caller writes the
+ * new row at `index`. Deliberately a plain loop rather than copyWithin: these
+ * classes extend Array, and copyWithin on a subclass runs the generic spec
+ * algorithm instead of V8's fast element path, which costs ~4.6x here. push()
+ * grows the array without leaving the hole that `this.length++` would.
+ *
+ * @param self the order book side
+ * @param index slot to free up
+ */
+function shiftRowsUp (self: Array<any>, index: Int): void {
+    const length = self.length;
+    self.push (self[length - 1]);
+    for (let i = length - 1; i > index; i--) {
+        self[i] = self[i - 1];
+    }
+}
+
+/**
+ * Shift rows one slot down over `index`, dropping it. Counterpart of
+ * shiftRowsUp, same reasoning.
+ *
+ * @param self the order book side
+ * @param index slot to remove
+ */
+function shiftRowsDown (self: Array<any>, index: Int): void {
+    const length = self.length;
+    for (let i = index; i < length - 1; i++) {
+        self[i] = self[i + 1];
+    }
+    self.pop ();
+}
+
 const SIZE = 1024
 const SEED = new Float64Array (new Array (SIZE).fill (Number.MAX_VALUE))
 
-
 interface IOrderBookSide<T> extends Array<T> {
-    store(price: any, size: any);
-    storeArray(array: any[]);
-    limit();
+    store(price: IndexType | undefined, size: IndexType | undefined): void;
+    storeArray(array: (IndexType | undefined)[]): void;
+    limit(): void;
 }
 
 class OrderBookSide extends Array implements IOrderBookSide<any> {
-    constructor (deltas = [], depth = undefined) {
+
+    declare index: Float64Array
+
+    declare depth: number
+
+    declare side: boolean
+
+    constructor (deltas: Array<(IndexType | undefined)[]> = [], depth: Int = undefined) {
         super ()
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
@@ -54,7 +94,7 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
         }
     }
 
-    storeArray (delta) {
+    storeArray (delta: (IndexType | undefined)[]): void {
         const price = delta[0]
         const size = delta[1]
         const index_price = this.side ? -price : price
@@ -63,10 +103,9 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
             if (this.index[index] === index_price) {
                 this[index][1] = size
             } else {
-                this.length++
                 this.index.copyWithin (index + 1, index, this.index.length)
                 this.index[index] = index_price
-                this.copyWithin (index + 1, index, this.length)
+                shiftRowsUp (this, index)
                 this[index] = delta
                 // in the rare case of very large orderbooks being sent
                 if (this.length > this.index.length - 1) {
@@ -79,24 +118,31 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
         } else if (this.index[index] === index_price) {
             this.index.copyWithin (index, index + 1, this.index.length)
             this.index[this.length - 1] = Number.MAX_VALUE
-            this.copyWithin (index, index + 1, this.length)
-            this.length--
+            shiftRowsDown (this, index)
         }
     }
 
     // index an incoming delta in the string-price-keyed dictionary
-    store (price, size) {
+    store (price: IndexType | undefined, size: IndexType | undefined): void {
         this.storeArray ([ price, size ])
     }
 
     // replace stored orders with new values
-    limit () {
+    limit (): void {
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
                 this.index[i] = Number.MAX_VALUE
             }
             this.length = this.depth
         }
+    }
+
+    copy (): OrderBookSide {
+        const copy = new (this.constructor as any)([], this.depth)
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray (this[i].slice ())
+        }
+        return copy
     }
 }
 
@@ -107,11 +153,11 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
 
 class CountedOrderBookSide extends OrderBookSide {
 
-    store (price, size) {
+    store (price: IndexType | undefined, size: IndexType | undefined): void {
         throw new Error ('CountedOrderBookSide.store() is not supported, use storeArray([price, size, count]) instead')
     }
 
-    storeArray (delta) {
+    storeArray (delta: (IndexType | undefined)[]): void {
         const price = delta[0]
         const size = delta[1]
         const count = delta[2]
@@ -123,10 +169,9 @@ class CountedOrderBookSide extends OrderBookSide {
                 entry[1] = size
                 entry[2] = count
             } else {
-                this.length++
                 this.index.copyWithin (index + 1, index, this.index.length)
                 this.index[index] = index_price
-                this.copyWithin (index + 1, index, this.length)
+                shiftRowsUp (this, index)
                 this[index] = delta
                 // in the rare case of very large orderbooks being sent
                 if (this.length > this.index.length - 1) {
@@ -139,8 +184,7 @@ class CountedOrderBookSide extends OrderBookSide {
         } else if (this.index[index] === index_price) {
             this.index.copyWithin (index, index + 1, this.index.length)
             this.index[this.length - 1] = Number.MAX_VALUE
-            this.copyWithin (index, index + 1, this.length)
-            this.length--
+            shiftRowsDown (this, index)
         }
     }
 }
@@ -149,8 +193,17 @@ class CountedOrderBookSide extends OrderBookSide {
 // stores vector arrays indexed by id (3rd value in a bidask delta array)
 
 class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
-    constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super (deltas.length)
+
+    declare index: Float64Array
+
+    declare depth: number
+
+    declare hashmap: Map<any, any>
+
+    declare side: boolean
+
+    constructor (deltas: Array<(IndexType | undefined)[]> = [], depth: Int = Number.MAX_SAFE_INTEGER) {
+        super ()
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
@@ -167,18 +220,21 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         })
-        // sort upon initiation
+        // sort upon initiation. storeArray maintains length itself; assigning
+        // the loop counter to it instead let a no-op delta (a zero size for an
+        // id that is not in the book) advance the length past the number of
+        // rows actually stored, leaving a hole that limit() then dereferenced
+        this.length = 0
         for (let i = 0; i < deltas.length; i++) {
-            this.length = i
             this.storeArray (deltas[i].slice ())  // slice is muy importante
         }
     }
 
-    store (price, size) {
+    store (price: IndexType | undefined, size: IndexType | undefined): void {
         throw new Error ('IndexedOrderBook.store() is not supported, use storeArray([price, size, id]) instead')
     }
 
-    storeArray (delta) {
+    storeArray (delta: (IndexType | undefined)[]): void {
         const price = delta[0]
         const size = delta[1]
         const id = delta[2]
@@ -195,25 +251,31 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
                 // in case price is not sent
                 delta[0] = Math.abs (index_price)
                 if (index_price === old_price) {
-                    // find index by price and advance till the id is found
+                    // find index by price and advance till the id is found,
+                    // bounded so a stale hashmap entry degrades to a clean
+                    // reinsert below instead of walking off the live region
                     let index = bisectLeft (this.index, index_price)
-                    while (this[index][2] !== id) {
+                    while (index < this.length && this[index][2] !== id) {
                         index++
                     }
-                    this.index[index] = index_price
-                    this[index] = delta
-                    return
+                    if (index < this.length) {
+                        this.index[index] = index_price
+                        this[index] = delta
+                        return
+                    }
                 } else {
                     // remove old price from index
-                    // find index by price and advance till the id is found
+                    // find index by price and advance till the id is found,
+                    // bounded, a stale hashmap entry has nothing to remove
                     let old_index = bisectLeft (this.index, old_price)
-                    while (this[old_index][2] !== id) {
+                    while (old_index < this.length && this[old_index][2] !== id) {
                         old_index++
                     }
-                    this.index.copyWithin (old_index, old_index + 1, this.index.length)
-                    this.index[this.length - 1] = Number.MAX_VALUE
-                    this.copyWithin (old_index, old_index + 1, this.length)
-                    this.length--
+                    if (old_index < this.length) {
+                        this.index.copyWithin (old_index, old_index + 1, this.index.length)
+                        this.index[this.length - 1] = Number.MAX_VALUE
+                        shiftRowsDown (this, old_index)
+                    }
                 }
             }
             // insert new price level
@@ -225,10 +287,9 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
                 index++
             }
             // insert new price level into index
-            this.length++
             this.index.copyWithin (index + 1, index, this.index.length)
             this.index[index] = index_price
-            this.copyWithin (index + 1, index, this.length)
+            shiftRowsUp (this, index)
             this[index] = delta
             // in the rare case of very large orderbooks being sent
             if (this.length > this.index.length - 1) {
@@ -240,39 +301,51 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
         } else if (this.hashmap.has (id)) {
             const old_price = this.hashmap.get (id)
             let index = bisectLeft (this.index, old_price)
-            while (this[index][2] !== id) {
+            while (index < this.length && this[index][2] !== id) {
                 index++
             }
-            this.index.copyWithin (index, index + 1, this.index.length)
-            this.index[this.length - 1] = Number.MAX_VALUE
-            this.copyWithin (index, index + 1, this.length)
-            this.length--
+            if (index < this.length) {
+                this.index.copyWithin (index, index + 1, this.index.length)
+                this.index[this.length - 1] = Number.MAX_VALUE
+                shiftRowsDown (this, index)
+            }
             this.hashmap.delete (id)
         }
     }
 
     // replace stored orders with new values
-    limit () {
+    limit (): void {
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
-                // diff
-                this.hashmap.delete (this.index[i])
+                // the hashmap is keyed by id, deleting by this.index[i], a
+                // price, never matched anything: trimmed ids leaked and the
+                // next delta for one of them walked off the live region and
+                // threw, delete by the trimmed row's id instead
+                this.hashmap.delete (this[i][2])
                 this.index[i] = Number.MAX_VALUE
             }
             this.length = this.depth
         }
+    }
+
+    copy (): OrderBookSide {
+        const copy = new (this.constructor as any)([], this.depth)
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray (this[i].slice ())
+        }
+        return copy
     }
 }
 
 // ----------------------------------------------------------------------------
 // a more elegant syntax is possible here, but native inheritance is portable
 
-class Asks extends OrderBookSide { get side () { return false }}
-class Bids extends OrderBookSide { get side () { return true }}
-class CountedAsks extends CountedOrderBookSide { get side () { return false }}
-class CountedBids extends CountedOrderBookSide { get side () { return true }}
-class IndexedAsks extends IndexedOrderBookSide { get side () { return false }}
-class IndexedBids extends IndexedOrderBookSide { get side () { return true }}
+class Asks extends OrderBookSide { get side (): boolean { return false }}
+class Bids extends OrderBookSide { get side (): boolean { return true }}
+class CountedAsks extends CountedOrderBookSide { get side (): boolean { return false }}
+class CountedBids extends CountedOrderBookSide { get side (): boolean { return true }}
+class IndexedAsks extends IndexedOrderBookSide { get side (): boolean { return false }}
+class IndexedBids extends IndexedOrderBookSide { get side (): boolean { return true }}
 
 // ----------------------------------------------------------------------------
 

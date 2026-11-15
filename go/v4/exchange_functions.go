@@ -6,11 +6,10 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
-	"sync"
 )
 
 // keysort sorts the keys of a map and returns a new map with the sorted keys.
-// func (this *Exchange) Keysort(parameters2 any) map[string]any {
+// func (this *BaseExchange) Keysort(parameters2 any) map[string]any {
 // 	parameters := parameters2.(map[string]any)
 // 	keys := make([]string, 0, len(parameters))
 // 	for k := range parameters {
@@ -25,22 +24,12 @@ import (
 // 	return outDict
 // }
 
-func (this *Exchange) Keysort(parameters2 any) map[string]any {
+func (this *BaseExchange) Keysort(parameters2 any) map[string]any {
 	var tempMap map[string]any
 
 	switch v := parameters2.(type) {
 	case map[string]any:
 		tempMap = v
-
-	case *sync.Map:
-		tempMap = make(map[string]any)
-		v.Range(func(k, val any) bool {
-			keyStr, ok := k.(string)
-			if ok {
-				tempMap[keyStr] = val
-			}
-			return true
-		})
 
 	default:
 		// Unsupported type; return empty map
@@ -60,8 +49,8 @@ func (this *Exchange) Keysort(parameters2 any) map[string]any {
 	return outDict
 }
 
-func (this *Exchange) Sort(input any) []any {
-	var list []any
+func (this *BaseExchange) Sort(input any) []any {
+	list := []any{}
 
 	switch v := input.(type) {
 	case []string:
@@ -69,7 +58,10 @@ func (this *Exchange) Sort(input any) []any {
 			list = append(list, item)
 		}
 	case []any:
-		list = append([]any{}, v...)
+		// typed-pointer elements (*string from SafeStringPtr) sort and return by value, as in JS
+		for _, item := range v {
+			list = append(list, derefScalar(item))
+		}
 	default:
 		return []any{}
 	}
@@ -102,7 +94,7 @@ func toFloat64(v any) (float64, bool) {
 }
 
 // omit removes specified keys from a map.
-// func (this *Exchange) Omit(a any, parameters ...any) any {
+// func (this *BaseExchange) Omit(a any, parameters ...any) any {
 // 	if len(parameters) == 1 {
 // 		// maybe we got []any as the only variadic argument, handle it
 // 		if reflect.TypeOf(parameters[0]).Kind() == reflect.Slice {
@@ -116,7 +108,7 @@ func toFloat64(v any) (float64, bool) {
 // 	return this.OmitMap(a, keys)
 // }
 
-func (this *Exchange) Omit(a any, parameters ...any) any {
+func (this *BaseExchange) Omit(a any, parameters ...any) any {
 	if len(parameters) == 1 {
 		// Handle single argument which could be a slice of various types
 		switch keys := parameters[0].(type) {
@@ -138,8 +130,14 @@ func (this *Exchange) Omit(a any, parameters ...any) any {
 	return this.OmitMap(a, keys)
 }
 
+// OmitDict is Omit for a map argument: the result is always a fresh map (a nil map yields an empty one).
+func (this *BaseExchange) OmitDict(a map[string]any, parameters ...any) map[string]any {
+	return this.Omit(a, parameters...).(map[string]any)
+}
+
 // omitMap removes specified keys from a map.
-func (this *Exchange) OmitMap(aa any, k any) any {
+func (this *BaseExchange) OmitMap(aa any, k any) any {
+	aa = derefScalar(aa) // a typed-nil container is absent, like untyped nil
 	// if reflect.TypeOf(aa).Kind() == reflect.Slice {
 	// 	return aa
 	// 	//  if ok {
@@ -171,7 +169,7 @@ func (this *Exchange) OmitMap(aa any, k any) any {
 		// keys = []string{k.(string)}
 	case []any:
 		for _, v := range k.([]any) {
-			keys = append(keys, v.(string))
+			keys = append(keys, derefScalar(v).(string))
 		}
 	}
 
@@ -185,7 +183,8 @@ func (this *Exchange) OmitMap(aa any, k any) any {
 }
 
 // omitN removes specified keys from a map.
-func (this *Exchange) OmitN(aa any, keys []any) any {
+func (this *BaseExchange) OmitN(aa any, keys []any) any {
+	aa = derefScalar(aa)
 	outDict := make(map[string]any)
 	a, ok := aa.(map[string]any)
 	if ok {
@@ -200,38 +199,18 @@ func (this *Exchange) OmitN(aa any, keys []any) any {
 }
 
 // contains checks if a slice contains a specific element.
-func (this *Exchange) Contains(slice []any, elem string) bool {
+func (this *BaseExchange) Contains(slice []any, elem string) bool {
 	for _, s := range slice {
-		if s.(string) == elem {
+		if derefScalar(s).(string) == elem {
 			return true
 		}
 	}
 	return false
 }
 
-// toArray converts a map to a slice of its values.
-// func (this *Exchange) ToArray(a any) []any {
-// 	if a == nil {
-// 		return nil
-// 	}
-
-// 	if reflect.TypeOf(a).Kind() == reflect.Slice {
-// 		return a.([]any)
-// 	}
-
-// 	if reflect.TypeOf(a).Kind() == reflect.Map {
-// 		b := a.(map[string]any)
-// 		outList := make([]any, 0, len(b))
-// 		for _, value := range b {
-// 			outList = append(outList, value)
-// 		}
-// 		return outList
-// 	}
-
-// 	return nil
-// }
-
-func (this *Exchange) ToArray(a any) []any {
+func (this *BaseExchange) ToArray(a any) []any {
+	// SafeList and friends can hand over a typed pointer
+	a = derefScalar(a)
 	if a == nil {
 		return nil
 	}
@@ -253,48 +232,40 @@ func (this *Exchange) ToArray(a any) []any {
 			outList = append(outList, value)
 		}
 		return outList
-	} else if m, ok := a.(*sync.Map); ok {
-		outList := make([]any, 0)
-		m.Range(func(key, value any) bool {
-			outList = append(outList, value)
-			return true
-		})
-		return outList
 	}
 
 	// Unsupported type
 	return nil
 }
 
-// arrayConcat concatenates two slices.
-func (this *Exchange) ArrayConcat(aa, bb any) any {
-	if reflect.TypeOf(aa).Kind() == reflect.Slice && reflect.TypeOf(bb).Kind() == reflect.Slice {
-		a := aa.([]any)
-		b := bb.([]any)
-		outList := make([]any, len(a)+len(b))
-		copy(outList, a)
-		copy(outList[len(a):], b)
-		return outList
-	}
-
-	if reflect.TypeOf(aa).Kind() == reflect.Slice && reflect.TypeOf(bb).Kind() == reflect.Slice {
-		a := aa.([]any)
-		b := bb.([]any)
-		outList := make([]any, len(a)+len(b))
-		copy(outList, a)
-		copy(outList[len(a):], b)
+// arrayConcat concatenates two slices. Elements are copied through reflection so any slice type
+// works (e.g. ObjectKeys returns []string in Go, which a direct .([]any) assertion would panic on).
+// TS `arrayConcat (a: any[], b: any[])` is always an array, so the Go twin reports `[]any`
+// instead of boxing it back into `any` (nil when an operand is not a slice, as before).
+func (this *BaseExchange) ArrayConcat(aa, bb any) []any {
+	aa, bb = derefScalar(aa), derefScalar(bb)
+	if aa != nil && bb != nil && reflect.TypeOf(aa).Kind() == reflect.Slice && reflect.TypeOf(bb).Kind() == reflect.Slice {
+		va := reflect.ValueOf(aa)
+		vb := reflect.ValueOf(bb)
+		outList := make([]any, 0, va.Len()+vb.Len())
+		for i := 0; i < va.Len(); i++ {
+			outList = append(outList, va.Index(i).Interface())
+		}
+		for i := 0; i < vb.Len(); i++ {
+			outList = append(outList, vb.Index(i).Interface())
+		}
 		return outList
 	}
 	return nil
 }
 
 // aggregate is a stub function that returns an empty slice.
-// func (this *Exchange) Aggregate(bidasks any) []any {
+// func (this *BaseExchange) Aggregate(bidasks any) []any {
 // 	var outList []any
 // 	return outList
 // }
 
-func (this *Exchange) Aggregate(bidasks any) []any {
+func (this *BaseExchange) Aggregate(bidasks any) []any {
 	result := make(map[float64]float64)
 
 	for _, pair := range bidasks.([][]any) {
@@ -314,8 +285,8 @@ func (this *Exchange) Aggregate(bidasks any) []any {
 	return res
 }
 
-func (this *Exchange) ExtractParams(str2 any) []any {
-	str := str2.(string)
+func (this *BaseExchange) ExtractParams(str2 any) []any {
+	str := derefScalar(str2).(string)
 	// Compile the regular expression
 	regex := regexp.MustCompile(`\{([^\}]+)\}`)
 

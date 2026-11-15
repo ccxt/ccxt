@@ -2,10 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var weex$1 = require('../weex.js');
 var errors = require('../base/errors.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Cache = require('../base/ws/Cache.js');
+var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -18,8 +19,8 @@ class weex extends weex$1["default"] {
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
-                'watchOrderBook': false,
-                'watchOrderBookForSymbols': false,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchPositions': true,
                 'watchTicker': true,
@@ -30,8 +31,8 @@ class weex extends weex$1["default"] {
                 'unWatchMyTrades': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
-                'unWatchOrderBook': false,
-                'unWatchOrderBookForSymbols': false,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
                 'unWatchOrders': true,
                 'unWatchPositions': true,
                 'unWatchTicker': true,
@@ -98,14 +99,20 @@ class weex extends weex$1["default"] {
             'method': method,
             'params': channels,
         };
-        subscription = this.extend(subscription, { 'id': id });
-        const type = isContract ? 'contract' : 'spot';
-        const url = this.urls['api']['ws'][type] + '/public';
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(message, params), messageHashes, subscription);
+        const subscriptionExtended = this.extend(subscription, { 'id': id });
+        let type = 'spot';
+        if (isContract) {
+            type = 'contract';
+        }
+        const url = this.safeString(this.urls['api']['ws'], type, '') + '/public';
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(message, params), messageHashes, subscriptionExtended);
     }
     async subscribePrivate(messageHash, subscribeHash, channel, isContract = false, params = {}, subscription = {}) {
-        const type = isContract ? 'contract' : 'spot';
-        const url = this.urls['api']['ws'][type] + '/private';
+        let type = 'spot';
+        if (isContract) {
+            type = 'contract';
+        }
+        const url = this.safeString(this.urls['api']['ws'], type, '') + '/private';
         this.authenticate(url);
         let method = 'SUBSCRIBE';
         const unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
@@ -118,18 +125,18 @@ class weex extends weex$1["default"] {
             'method': method,
             'params': [channel],
         };
-        subscription = this.extend(subscription, { 'id': id });
-        return await this.watch(url, messageHash, this.deepExtend(message, params), subscribeHash, subscription);
+        const subscriptionExtended = this.extend(subscription, { 'id': id });
+        return await this.watch(url, messageHash, this.deepExtend(message, params), subscribeHash, subscriptionExtended);
     }
     authenticate(url) {
         this.checkRequiredCredentials();
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }
-        const timestamp = this.nonce();
-        const payload = timestamp.toString() + '/v3/ws/private';
-        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
-        const originalHeaders = this.options['ws']['options']['headers'];
+        const timestamp = this.nonce().toString();
+        const payload = timestamp + '/v3/ws/private';
+        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
+        const originalHeaders = this.safeDict(this.options['ws']['options'], 'headers');
         const userAgent = this.safeString(originalHeaders, 'User-Agent', 'ccxt');
         const extendedOptions = {
             'ws': {
@@ -139,7 +146,7 @@ class weex extends weex$1["default"] {
                         'ACCESS-KEY': this.apiKey,
                         'ACCESS-SIGN': signature,
                         'ACCESS-PASSPHRASE': this.password,
-                        'ACCESS-TIMESTAMP': this.numberToString(timestamp),
+                        'ACCESS-TIMESTAMP': timestamp,
                     },
                 },
             },
@@ -171,10 +178,12 @@ class weex extends weex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
-        const tickers = await this.watchTickers([symbol], params);
-        return tickers[symbol];
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolValue = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbolValue], params);
+        return tickers[symbolValue];
     }
     /**
      * @method
@@ -187,17 +196,20 @@ class weex extends weex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
         const messageHashes = [];
         const channels = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             messageHashes.push(messageHash);
             channels.push(channelName);
@@ -205,10 +217,13 @@ class weex extends weex$1["default"] {
         const newTicker = await this.subscribePublic(messageHashes, channels, isContract, params);
         if (this.newUpdates) {
             const result = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString(newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -220,8 +235,8 @@ class weex extends weex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker(symbol, params = {}) {
-        return await this.unWatchTickers([symbol], params);
+    unWatchTicker(symbol, params = {}) {
+        return this.unWatchTickers([symbol], params);
     }
     /**
      * @method
@@ -234,18 +249,21 @@ class weex extends weex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const isContract = firstMarket['contract'];
         const topic = 'ticker';
         const subHashes = [];
         const channels = [];
         const unSubHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push(messageHash);
@@ -254,7 +272,7 @@ class weex extends weex$1["default"] {
         }
         const subscription = {
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': topic,
@@ -288,10 +306,13 @@ class weex extends weex$1["default"] {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
+        if (market === undefined) {
+            return;
+        }
         const tickers = this.safeList(message, 'd', []);
         const data = this.safeDict(tickers, 0, {});
         const ticker = this.parseWsTicker(data, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'ticker::' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve(this.tickers[symbol], messageHash);
@@ -317,8 +338,15 @@ class weex extends weex$1["default"] {
         //
         const timestamp = this.safeInteger(ticker, 'C');
         const close = this.safeString(ticker, 'c');
+        let symbol = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        }
+        else {
+            symbol = market['symbol'];
+        }
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'h'),
@@ -333,7 +361,8 @@ class weex extends weex$1["default"] {
             'last': close,
             'previousClose': this.safeString(ticker, 'x'),
             'change': this.safeString(ticker, 'p'),
-            'percentage': this.safeString(ticker, 'P'),
+            // The live spot and contract streams report P as a relative change.
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'P'), '100'),
             'average': this.safeString(ticker, 'w'),
             'baseVolume': this.safeString(ticker, 'v'),
             'quoteVolume': this.safeString(ticker, 'q'),
@@ -354,8 +383,8 @@ class weex extends weex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -370,28 +399,32 @@ class weex extends weex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const isContract = firstMarket['contract'];
         const topic = 'trade';
         const messageHashes = [];
         const channels = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             messageHashes.push(messageHash);
             channels.push(channelName);
         }
         const trades = await this.subscribePublic(messageHashes, channels, isContract, params);
+        const first = this.safeDict(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeValue(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -403,9 +436,8 @@ class weex extends weex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
-        return await this.unWatchTradesForSymbols([symbol], params);
+    unWatchTrades(symbol, params = {}) {
+        return this.unWatchTradesForSymbols([symbol], params);
     }
     /**
      * @method
@@ -418,18 +450,21 @@ class weex extends weex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const isContract = firstMarket['contract'];
         const topic = 'trade';
         const subHashes = [];
         const channels = [];
         const unSubHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + topic;
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + topic;
             const messageHash = topic + '::' + symbol;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push(messageHash);
@@ -438,7 +473,7 @@ class weex extends weex$1["default"] {
         }
         const subscription = {
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': 'trades',
@@ -464,7 +499,10 @@ class weex extends weex$1["default"] {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
-        const symbol = market['symbol'];
+        if (market === undefined) {
+            return;
+        }
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'trade::' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -498,16 +536,30 @@ class weex extends weex$1["default"] {
         //     }
         //
         const timestamp = this.safeInteger(trade, 'T');
+        let symbol = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        }
+        else {
+            symbol = market['symbol'];
+        }
+        const isBuyerMaker = this.safeBool(trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        let side = undefined;
+        let takerOrMaker = undefined;
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
+            takerOrMaker = 'taker'; // a public trade is reported from the aggressor's side, same as parseTrade
+        }
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 't'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString(trade, 'p'),
             'amount': this.safeString(trade, 'q'),
             'cost': this.safeString(trade, 'v'),
@@ -547,9 +599,11 @@ class weex extends weex$1["default"] {
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const callerMethodName = this.safeString(params, 'callerMethodName', 'watchOHLCVForSymbols');
-        params = this.omit(params, 'callerMethodName');
+        const paramsOmitted = this.omit(params, 'callerMethodName');
         const channels = [];
         const messageHashes = [];
         const firstEntry = this.safeList(symbolsAndTimeframes, 0, []);
@@ -557,29 +611,32 @@ class weex extends weex$1["default"] {
         const firstMarket = this.market(firstSymbol);
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
-        if (isContract) {
-            [priceType, params] = this.handleOptionAndParams2(params, callerMethodName, 'price', 'priceType', priceType);
+        let paramsPriceType = paramsOmitted;
+        if (isContract === true) {
+            [priceType, paramsPriceType] = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList(symbolsAndTimeframes, i);
-            let symbolString = this.safeString(data, 0);
+            let symbolString = this.safeString(data, 0, '');
             const market = this.market(symbolString);
             if (market['type'] !== firstMarket['type']) {
                 throw new errors.BadRequest(this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
-            symbolString = market['symbol'];
+            symbolString = this.safeString(market, 'symbol', '');
             const unifiedTimeframe = this.safeString(data, 1, '1');
             const interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            const channel = market['id'] + '@kline_' + interval + '_' + priceType;
+            const marketId = this.safeString(market, 'id', '');
+            const channel = marketId + '@kline_' + interval + '_' + priceType;
             const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
             channels.push(channel);
             messageHashes.push(messageHash);
         }
-        const [symbol, timeframe, stored] = await this.subscribePublic(messageHashes, channels, isContract, params);
+        const [symbol, timeframe, stored] = await this.subscribePublic(messageHashes, channels, isContract, paramsPriceType);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = stored.getLimit(symbol, limit);
+            limitResolved = stored.getLimit(symbol, limit);
         }
-        const filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit(stored, since, limitResolved, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
     /**
@@ -608,9 +665,11 @@ class weex extends weex$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const callerMethodName = this.safeString(params, 'callerMethodName', 'unWatchOHLCVForSymbols');
-        params = this.omit(params, 'callerMethodName');
+        const paramsOmitted = this.omit(params, 'callerMethodName');
         const channels = [];
         const subHashes = [];
         const unSubHashes = [];
@@ -619,20 +678,22 @@ class weex extends weex$1["default"] {
         const firstMarket = this.market(firstSymbol);
         const isContract = firstMarket['contract'];
         let priceType = 'LAST_PRICE';
-        if (isContract) {
-            [priceType, params] = this.handleOptionAndParams2(params, callerMethodName, 'price', 'priceType', priceType);
+        let paramsPriceType = paramsOmitted;
+        if (isContract === true) {
+            [priceType, paramsPriceType] = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, 'price', 'priceType', priceType);
         }
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = this.safeList(symbolsAndTimeframes, i);
-            let symbolString = this.safeString(data, 0);
+            let symbolString = this.safeString(data, 0, '');
             const market = this.market(symbolString);
             if (market['type'] !== firstMarket['type']) {
                 throw new errors.BadRequest(this.id + ' ' + callerMethodName + ' market symbols must be of the same type');
             }
-            symbolString = market['symbol'];
+            symbolString = this.safeString(market, 'symbol', '');
             const unifiedTimeframe = this.safeString(data, 1, '1');
             const interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-            const channel = market['id'] + '@kline_' + interval + '_' + priceType;
+            const marketId = this.safeString(market, 'id', '');
+            const channel = marketId + '@kline_' + interval + '_' + priceType;
             const messageHash = 'ohlcv::' + symbolString + '::' + unifiedTimeframe;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             channels.push(channel);
@@ -646,7 +707,7 @@ class weex extends weex$1["default"] {
             'subMessageHashes': subHashes,
             'topic': 'ohlcv',
         };
-        return await this.subscribePublic(unSubHashes, channels, isContract, params, subscription);
+        return await this.subscribePublic(unSubHashes, channels, isContract, paramsPriceType, subscription);
     }
     handleOHLCV(client, message) {
         //
@@ -675,7 +736,10 @@ class weex extends weex$1["default"] {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
-        const symbol = market['symbol'];
+        if (market === undefined) {
+            return;
+        }
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -683,11 +747,14 @@ class weex extends weex$1["default"] {
         const firstEntry = this.safeDict(data, 0, {});
         const interval = this.safeString(firstEntry, 'i');
         const timeframe = this.findTimeframe(interval);
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+        if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new Cache.ArrayCacheByTimestamp(limit);
+            stored = new Cache.ArrayCacheByTimestamp(limit);
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const stored = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict(data, i, {});
             const parsed = this.parseWsOHLCV(entry);
@@ -733,13 +800,13 @@ class weex extends weex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        params = this.extend(params, {
+        const paramsExtended = this.extend(params, {
             'callerMethodName': 'watchOrderBook',
         });
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+        return await this.watchOrderBookForSymbols([symbol], limit, paramsExtended);
     }
     /**
      * @method
@@ -750,31 +817,34 @@ class weex extends weex$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const isContract = firstMarket['contract'];
         const callerMethodName = this.safeString(params, 'callerMethodName', 'watchOrderBookForSymbols');
-        params = this.omit(params, 'callerMethodName');
-        let depth = '200';
-        [depth, params] = this.handleOptionAndParams(params, callerMethodName, 'depth', depth);
+        const paramsOmitted = this.omit(params, 'callerMethodName');
+        const depth = '200';
+        const [depthOption, paramsDepth] = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, 'depth', depth);
         const messageHashes = [];
         const channels = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const messageHash = 'orderbook::' + symbol;
-            const channel = market['id'] + '@depth' + depth;
+            const marketId = this.safeString(market, 'id', '');
+            const channel = marketId + '@depth' + depthOption;
             messageHashes.push(messageHash);
             channels.push(channel);
         }
         const subscription = {
             'limit': limit,
         };
-        const orderbook = await this.subscribePublic(messageHashes, channels, isContract, params, subscription);
+        const orderbook = await this.subscribePublic(messageHashes, channels, isContract, paramsDepth, subscription);
         return orderbook.limit();
     }
     /**
@@ -785,13 +855,13 @@ class weex extends weex$1["default"] {
      * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        params = this.extend(params, {
+        const paramsExtended = this.extend(params, {
             'callerMethodName': 'unWatchOrderBook',
         });
-        return await this.unWatchOrderBookForSymbols([symbol], params);
+        return await this.unWatchOrderBookForSymbols([symbol], paramsExtended);
     }
     /**
      * @method
@@ -801,25 +871,28 @@ class weex extends weex$1["default"] {
      * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
         const isContract = firstMarket['contract'];
         const callerMethodName = this.safeString(params, 'callerMethodName', 'unWatchOrderBookForSymbols');
-        params = this.omit(params, 'callerMethodName');
-        let depth = '200';
-        [depth, params] = this.handleOptionAndParams(params, callerMethodName, 'depth', depth);
+        const paramsOmitted = this.omit(params, 'callerMethodName');
+        const depth = '200';
+        const [depthOption, paramsDepth] = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, 'depth', depth);
         const subHashes = [];
         const channels = [];
         const unSubHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
             const messageHash = 'orderbook::' + symbol;
-            const channel = market['id'] + '@depth' + depth;
+            const marketId = this.safeString(market, 'id', '');
+            const channel = marketId + '@depth' + depthOption;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push(messageHash);
             channels.push(channel);
@@ -827,12 +900,12 @@ class weex extends weex$1["default"] {
         }
         const subscription = {
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': 'orderbook',
         };
-        return await this.subscribePublic(unSubHashes, channels, isContract, params, subscription);
+        return await this.subscribePublic(unSubHashes, channels, isContract, paramsDepth, subscription);
     }
     handleOrderBook(client, message) {
         //
@@ -849,7 +922,10 @@ class weex extends weex$1["default"] {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
-        const symbol = market['symbol'];
+        if (market === undefined) {
+            return;
+        }
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
             const subscription = this.safeDict(client.subscriptions, messageHash, {});
@@ -895,18 +971,21 @@ class weex extends weex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols(symbols);
-        if (firstMarket['contract']) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
+        if (this.safeBool(firstMarket, 'contract', false)) {
             throw new errors.NotSupported(this.id + ' watchBidsAsks is supported for spot markets only');
         }
         const messageHashes = [];
         const channels = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + 'bookTicker';
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + 'bookTicker';
             const messageHash = 'bidask::' + symbol;
             messageHashes.push(messageHash);
             channels.push(channelName);
@@ -914,10 +993,13 @@ class weex extends weex$1["default"] {
         const newTicker = await this.subscribePublic(messageHashes, channels, false, params);
         if (this.newUpdates) {
             const result = {};
-            result[newTicker['symbol']] = newTicker;
+            const newTickerSymbol = this.safeString(newTicker, 'symbol');
+            if (newTickerSymbol !== undefined) {
+                result[newTickerSymbol] = newTicker;
+            }
             return result;
         }
-        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -929,19 +1011,22 @@ class weex extends weex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false, true);
-        const firstMarket = this.getMarketFromSymbols(symbols);
-        if (firstMarket['contract']) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols(symbolsNormalized);
+        if (this.safeBool(firstMarket, 'contract', false)) {
             throw new errors.NotSupported(this.id + ' unWatchBidsAsks is supported for spot markets only');
         }
         const subHashes = [];
         const channels = [];
         const unSubHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const channelName = market['id'] + '@' + 'bookTicker';
+            const marketId = this.safeString(market, 'id', '');
+            const channelName = marketId + '@' + 'bookTicker';
             const messageHash = 'bidask::' + symbol;
             const unSubMessageHash = 'unsubscribe::' + messageHash;
             subHashes.push(messageHash);
@@ -950,7 +1035,7 @@ class weex extends weex$1["default"] {
         }
         const subscription = {
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'messageHashes': unSubHashes,
             'subMessageHashes': subHashes,
             'topic': 'bidsasks',
@@ -971,16 +1056,28 @@ class weex extends weex$1["default"] {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
+        if (market === undefined) {
+            return;
+        }
         const ticker = this.parseWsBidAsk(message, market);
-        const symbol = ticker['symbol'];
-        this.bidsasks[symbol] = ticker;
+        const symbol = market['symbol'];
+        if (symbol !== undefined) {
+            this.bidsasks[symbol] = ticker;
+        }
         const messageHash = 'bidask::' + symbol;
         client.resolve(ticker, messageHash);
     }
     parseWsBidAsk(message, market = undefined) {
         const timestamp = this.safeInteger(message, 'E');
+        let symbol = undefined;
+        if (market === undefined) {
+            symbol = undefined;
+        }
+        else {
+            symbol = market['symbol'];
+        }
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'ask': this.safeString(message, 'a'),
@@ -1004,26 +1101,31 @@ class weex extends weex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let marketType = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
         }
-        [marketType, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
+        const symbolResolved = this.safeString(market, 'symbol');
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         const isContract = (marketType !== 'spot');
-        let messageHash = isContract ? 'myContractTrades' : 'myTrades';
+        let messageHash = 'myTrades';
+        if (isContract) {
+            messageHash = 'myContractTrades';
+        }
         const subscriptionHash = messageHash;
-        if (symbol !== undefined) {
-            messageHash += '::' + symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += '::' + symbolResolved;
         }
         const channel = 'fill';
-        const trades = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, params);
+        const trades = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -1040,10 +1142,12 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.');
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('unWatchMyTrades', undefined, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('unWatchMyTrades', undefined, params);
         const isContract = (marketType !== 'spot');
-        const subHash = isContract ? 'myContractTrades' : 'myTrades';
+        let subHash = 'myTrades';
+        if (isContract) {
+            subHash = 'myContractTrades';
+        }
         const unSubHash = 'unsubscribe::' + subHash;
         const channel = 'fill';
         const subscription = {
@@ -1053,7 +1157,7 @@ class weex extends weex$1["default"] {
             'topic': 'myTrades',
             'subHashIsPrefix': true,
         };
-        return await this.subscribePrivate(unSubHash, unSubHash, channel, isContract, params, subscription);
+        return await this.subscribePrivate(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription);
     }
     handleMyTrades(client, message) {
         //
@@ -1112,14 +1216,16 @@ class weex extends weex$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict(data, i, {});
             const parsed = this.parseWsMyTrade(trade);
-            const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            const symbol = this.safeString(parsed, 'symbol');
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
             trades.append(parsed);
         }
         let messageHash = 'myTrades';
         const symbolKeys = Object.keys(symbols);
         const market = this.getMarketFromSymbols(symbolKeys);
-        if (market['contract']) {
+        if (this.safeBool(market, 'contract', false)) {
             messageHash = 'myContractTrades';
         }
         for (let j = 0; j < symbolKeys.length; j++) {
@@ -1154,7 +1260,7 @@ class weex extends weex$1["default"] {
         if (positionSide !== undefined) {
             marketType = 'swap';
         }
-        market = this.safeMarket(marketId, undefined, undefined, marketType);
+        const marketResolved = this.safeMarket(marketId, undefined, undefined, marketType);
         const side = this.safeStringLower(trade, 'orderSide');
         let fee = undefined;
         const commission = this.safeString(trade, 'fillFee');
@@ -1163,10 +1269,10 @@ class weex extends weex$1["default"] {
             let feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (marketType === 'spot') {
                 if (side === 'buy') {
-                    feeCurrency = market['base'];
+                    feeCurrency = this.safeString(marketResolved, 'base');
                 }
                 else {
-                    feeCurrency = market['quote'];
+                    feeCurrency = this.safeString(marketResolved, 'quote');
                 }
             }
             fee = {
@@ -1179,7 +1285,7 @@ class weex extends weex$1["default"] {
             'id': this.safeString(trade, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': this.safeString(trade, 'orderId'),
             'type': this.safeString(trade, 'type'),
             'side': side,
@@ -1204,26 +1310,31 @@ class weex extends weex$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
+        const symbolResolved = this.safeString(market, 'symbol');
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchOrders', market, params);
         const isContract = (marketType !== 'spot');
-        let messageHash = isContract ? 'contractOrders' : 'orders';
+        let messageHash = 'orders';
+        if (isContract) {
+            messageHash = 'contractOrders';
+        }
         const subscriptionHash = messageHash;
-        if (symbol !== undefined) {
-            messageHash += '::' + symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += '::' + symbolResolved;
         }
         const channel = 'orders';
-        const orders = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, params);
+        const orders = await this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -1239,10 +1350,12 @@ class weex extends weex$1["default"] {
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.');
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('unWatchOrders', undefined, params);
+        const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('unWatchOrders', undefined, params);
         const isContract = (marketType !== 'spot');
-        const subHash = isContract ? 'contractOrders' : 'orders';
+        let subHash = 'orders';
+        if (isContract) {
+            subHash = 'contractOrders';
+        }
         const unSubHash = 'unsubscribe::' + subHash;
         const channel = 'orders';
         const subscription = {
@@ -1252,7 +1365,7 @@ class weex extends weex$1["default"] {
             'topic': 'orders',
             'subHashIsPrefix': true,
         };
-        return await this.subscribePrivate(unSubHash, unSubHash, channel, isContract, params, subscription);
+        return await this.subscribePrivate(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription);
     }
     handleOrders(client, message) {
         //
@@ -1313,13 +1426,15 @@ class weex extends weex$1["default"] {
             const rawOrder = this.safeDict(data, i, {});
             const parsed = this.parseWsOrder(rawOrder);
             orders.append(parsed);
-            const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            const symbol = this.safeString(parsed, 'symbol');
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
         }
         let messageHash = 'orders';
         const symbolKeys = Object.keys(symbols);
         const market = this.getMarketFromSymbols(symbolKeys);
-        if (market['contract']) {
+        if (this.safeBool(market, 'contract', false)) {
             messageHash = 'contractOrders';
         }
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -1422,7 +1537,8 @@ class weex extends weex$1["default"] {
         if (positionSide !== undefined) {
             marketType = 'swap';
         }
-        market = this.safeMarket(marketId, undefined, undefined, marketType);
+        const marketResolved = this.safeMarket(marketId, undefined, undefined, marketType);
+        const marketValue = marketResolved;
         const side = this.safeStringLower(order, 'orderSide');
         let fee = undefined;
         const commission = this.safeString(order, 'cumFillFee');
@@ -1431,10 +1547,10 @@ class weex extends weex$1["default"] {
             let feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (marketType === 'spot') {
                 if (side === 'buy') {
-                    feeCurrency = market['base'];
+                    feeCurrency = this.safeString(marketResolved, 'base');
                 }
                 else {
-                    feeCurrency = market['quote'];
+                    feeCurrency = this.safeString(marketResolved, 'quote');
                 }
             }
             fee = {
@@ -1456,7 +1572,7 @@ class weex extends weex$1["default"] {
         return this.safeOrder({
             'id': this.safeString(order, 'id'),
             'clientOrderId': this.safeString(order, 'clientOrderId'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType(rawType),
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': undefined,
@@ -1479,7 +1595,7 @@ class weex extends weex$1["default"] {
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'info': order,
-        }, market);
+        }, marketValue);
     }
     /**
      * @method
@@ -1492,23 +1608,29 @@ class weex extends weex$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchBalance() requires a market type');
+        }
         const isContract = (type !== 'spot');
-        const urlType = isContract ? 'contract' : 'spot';
-        const url = this.urls['api']['ws'][urlType] + '/private';
+        let urlType = 'spot';
+        if (isContract) {
+            urlType = 'contract';
+        }
+        const url = this.safeString(this.urls['api']['ws'], urlType, '') + '/private';
         this.authenticate(url);
         const client = this.client(url);
         this.setBalanceCache(client, type);
         const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
             await client.future(type + ':fetchBalanceSnapshot');
         }
-        const messageHash = type + ':' + 'balance';
-        return await this.subscribePrivate(messageHash, type, 'account', isContract, params);
+        return await this.subscribePrivate(type + ':balance', type, 'account', isContract, paramsMarketType);
     }
     setBalanceCache(client, type) {
         if ((type in client.subscriptions) && (type in this.balance)) {
@@ -1532,7 +1654,7 @@ class weex extends weex$1["default"] {
             'type': type,
         };
         const response = await this.fetchBalance(params);
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -1558,7 +1680,7 @@ class weex extends weex$1["default"] {
         //         ]
         //     }
         //
-        // coontract
+        // contract
         //     {
         //         "e": "account",
         //         "E": 1776189629849,
@@ -1604,7 +1726,7 @@ class weex extends weex$1["default"] {
             accountType = 'swap';
         }
         const messageHash = accountType + ':balance';
-        if (this.balance[accountType] === undefined) {
+        if (!(accountType in this.balance)) {
             this.balance[accountType] = {};
         }
         this.balance[accountType]['info'] = message;
@@ -1617,7 +1739,9 @@ class weex extends weex$1["default"] {
             account['free'] = this.safeString2(entry, 'available', 'amount');
             account['used'] = this.safeString(entry, 'frozen');
             account['total'] = this.safeString2(entry, 'equity', 'legacyAmount');
-            this.balance[accountType][code] = account;
+            if (code !== undefined) {
+                this.balance[accountType][code] = account;
+            }
         }
         const timestamp = this.safeInteger(message, 'E');
         this.balance[accountType]['timestamp'] = timestamp;
@@ -1638,33 +1762,35 @@ class weex extends weex$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const url = this.urls['api']['ws']['contract'] + '/private';
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const url = this.safeString(this.urls['api']['ws'], 'contract', '') + '/private';
         this.authenticate(url);
         const client = this.client(url);
-        symbols = this.marketSymbols(symbols, 'swap', true);
+        const symbolsNormalized = this.marketSymbols(symbols, 'swap', true);
         let messageHash = 'positions';
         const subscriptionHash = messageHash;
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join(',');
+        if (symbolsNormalized !== undefined) {
+            messageHash += '::' + symbolsNormalized.join(',');
         }
         const channel = 'positions';
         this.setPositionsCache(client, params);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
         }
         const newPositions = await this.subscribePrivate(messageHash, subscriptionHash, channel, true, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
     setPositionsCache(client, params = {}) {
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future(messageHash);

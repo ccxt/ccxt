@@ -1,11 +1,7 @@
-- [Kraken Query Ledgers](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
-// include 'Console/Table.php';
 
 date_default_timezone_set('UTC');
 
@@ -30,5 +26,5 @@ $ledger_entries = $exchange->privatePostQueryLedgers(array(
 
 var_dump ($ledger_entries);
 
-?> 
+?>
 ```

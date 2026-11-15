@@ -19,7 +19,7 @@ export async function initFileSystem () {
     if (isNode) {
         if (fsSyncModule === null) {
             try {
-                // Dynamic import with webpackIgnore to prevent bundling
+                // Dynamic import with rspackIgnore to prevent bundling
                 fsSyncModule = await import (/* webpackIgnore: true */ 'node:fs');
             } catch (e) { } // Silent fail in browser or if fs is unavailable
         }
@@ -65,7 +65,6 @@ export function getTempDir(): string | undefined {
     }
 }
 
-
 /**
  * Check if file path is ccxt-cache file, so users are ensured there is no access possible to other files
  * @param path File path to check
@@ -89,20 +88,22 @@ function ensureWhitelistedFile(filePath: string) {
  * @param encoding File encoding (default: 'utf8')
  * @returns File contents as string, or undefined in browser
  */
-export function readFile (path: string, encoding: BufferEncoding = 'utf8'): string | undefined | Buffer  {
+export function readFile (path: string, encoding: BufferEncoding | null = 'utf8'): string | undefined | Buffer  {
+    // encoding null → Node returns Buffer (binary); default 'utf8' returns string
     if (!isNode || fsSyncModule === null) {
         // Sync module not initialized yet
         return undefined;
     }
     ensureWhitelistedFile (path);
     try {
+        if (encoding === null) {
+            return fsSyncModule.readFileSync (path);
+        }
         return fsSyncModule.readFileSync (path, encoding);
     } catch (e) {
         return undefined;
     }
 }
-
-
 
 /*  ------------------------------------------------------------------------ */
 
@@ -146,7 +147,6 @@ export function existsFile (path: string): boolean {
         return false;
     }
 }
-
 
 /*  ------------------------------------------------------------------------ */
 

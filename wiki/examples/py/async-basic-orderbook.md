@@ -1,10 +1,10 @@
-- [Async Basic Orderbook](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
+from importlib import import_module
+from importlib.util import find_spec
 
- ```python
- # -*- coding: utf-8 -*-
-
-import asyncio
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 
@@ -14,7 +14,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 async def test():
 
-    exchange = ccxt.okex({
+    exchange = ccxt.okx({
         # 'proxy': 'https://cors-anywhere.herokuapp.com/',
         # 'origin': 'foobar',  # when using CORS proxies, set this to some random string
     })
@@ -28,6 +28,6 @@ async def test():
         raise e
 
 
-asyncio.run(test())
- 
+run(test())
+
 ```

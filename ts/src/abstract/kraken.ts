@@ -5,72 +5,261 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    zendeskGet360000292886 (params?: {}): Promise<implicitReturnType>;
-    zendeskGet201893608 (params?: {}): Promise<implicitReturnType>;
-    publicGetTime (params?: {}): Promise<implicitReturnType>;
-    publicGetSystemStatus (params?: {}): Promise<implicitReturnType>;
-    publicGetAssets (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetPairs (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetOHLC (params?: {}): Promise<implicitReturnType>;
-    publicGetDepth (params?: {}): Promise<implicitReturnType>;
-    publicGetLevel3 (params?: {}): Promise<implicitReturnType>;
-    publicGetGroupedBook (params?: {}): Promise<implicitReturnType>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetSpread (params?: {}): Promise<implicitReturnType>;
-    publicGetPreTrade (params?: {}): Promise<implicitReturnType>;
-    publicGetPostTrade (params?: {}): Promise<implicitReturnType>;
-    privatePostBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostBalanceEx (params?: {}): Promise<implicitReturnType>;
-    privatePostCreditLines (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostClosedOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostQueryOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderAmends (params?: {}): Promise<implicitReturnType>;
-    privatePostTradesHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostQueryTrades (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenPositions (params?: {}): Promise<implicitReturnType>;
-    privatePostLedgers (params?: {}): Promise<implicitReturnType>;
-    privatePostQueryLedgers (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeVolume (params?: {}): Promise<implicitReturnType>;
-    privatePostAddExport (params?: {}): Promise<implicitReturnType>;
-    privatePostExportStatus (params?: {}): Promise<implicitReturnType>;
-    privatePostRetrieveExport (params?: {}): Promise<implicitReturnType>;
-    privatePostRemoveExport (params?: {}): Promise<implicitReturnType>;
-    privatePostGetApiKeyInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostAddOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostAmendOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelAll (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelAllOrdersAfter (params?: {}): Promise<implicitReturnType>;
-    privatePostGetWebSocketsToken (params?: {}): Promise<implicitReturnType>;
-    privatePostAddOrderBatch (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrderBatch (params?: {}): Promise<implicitReturnType>;
-    privatePostEditOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostDepositMethods (params?: {}): Promise<implicitReturnType>;
-    privatePostDepositAddresses (params?: {}): Promise<implicitReturnType>;
-    privatePostDepositStatus (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawMethods (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawAddresses (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdraw (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawStatus (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostWalletTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostCreateSubaccount (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostEarnAllocate (params?: {}): Promise<implicitReturnType>;
-    privatePostEarnDeallocate (params?: {}): Promise<implicitReturnType>;
-    privatePostEarnAllocateStatus (params?: {}): Promise<implicitReturnType>;
-    privatePostEarnDeallocateStatus (params?: {}): Promise<implicitReturnType>;
-    privatePostEarnStrategies (params?: {}): Promise<implicitReturnType>;
-    privatePostEarnAllocations (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    zendeskGet201893608 (params = {}): Promise<Dict> {
+        return this.request ('201893608', [ 'zendesk' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    zendeskGet360000292886 (params = {}): Promise<Dict> {
+        return this.request ('360000292886', [ 'zendesk' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTime (params = {}): Promise<Dict> {
+        return this.request ('Time', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetSystemStatus (params = {}): Promise<Dict> {
+        return this.request ('SystemStatus', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMaintenanceSchedule (params = {}): Promise<Dict> {
+        return this.request ('MaintenanceSchedule', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetAssets (params = {}): Promise<Dict> {
+        return this.request ('Assets', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetAssetPairs (params = {}): Promise<Dict> {
+        return this.request ('AssetPairs', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTicker (params = {}): Promise<Dict> {
+        return this.request ('Ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOHLC (params = {}): Promise<Dict> {
+        return this.request ('OHLC', [ 'public' ], 'GET', params, { 'cost': 1.2 });
+    }
+
+    publicGetDepth (params = {}): Promise<Dict> {
+        return this.request ('Depth', [ 'public' ], 'GET', params, { 'cost': 1.2 });
+    }
+
+    publicGetGroupedBook (params = {}): Promise<Dict> {
+        return this.request ('GroupedBook', [ 'public' ], 'GET', params, { 'cost': 1.2 });
+    }
+
+    publicGetTrades (params = {}): Promise<Dict> {
+        return this.request ('Trades', [ 'public' ], 'GET', params, { 'cost': 1.2 });
+    }
+
+    publicGetSpread (params = {}): Promise<Dict> {
+        return this.request ('Spread', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetPreTrade (params = {}): Promise<Dict> {
+        return this.request ('PreTrade', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetPostTrade (params = {}): Promise<Dict> {
+        return this.request ('PostTrade', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostLevel3 (params = {}): Promise<Dict> {
+        return this.request ('Level3', [ 'private' ], 'POST', params, { 'cost': 1.2 });
+    }
+
+    privatePostBalance (params = {}): Promise<Dict> {
+        return this.request ('Balance', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostBalanceEx (params = {}): Promise<Dict> {
+        return this.request ('BalanceEx', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostCreditLines (params = {}): Promise<Dict> {
+        return this.request ('CreditLines', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostTradeBalance (params = {}): Promise<Dict> {
+        return this.request ('TradeBalance', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('OpenOrders', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostClosedOrders (params = {}): Promise<Dict> {
+        return this.request ('ClosedOrders', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostQueryOrders (params = {}): Promise<Dict> {
+        return this.request ('QueryOrders', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostOrderAmends (params = {}): Promise<Dict> {
+        return this.request ('OrderAmends', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostTradesHistory (params = {}): Promise<Dict> {
+        return this.request ('TradesHistory', [ 'private' ], 'POST', params, { 'cost': 6 });
+    }
+
+    privatePostQueryTrades (params = {}): Promise<Dict> {
+        return this.request ('QueryTrades', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostOpenPositions (params = {}): Promise<Dict> {
+        return this.request ('OpenPositions', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostLedgers (params = {}): Promise<Dict> {
+        return this.request ('Ledgers', [ 'private' ], 'POST', params, { 'cost': 6 });
+    }
+
+    privatePostQueryLedgers (params = {}): Promise<Dict> {
+        return this.request ('QueryLedgers', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostTradeVolume (params = {}): Promise<Dict> {
+        return this.request ('TradeVolume', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostAddExport (params = {}): Promise<Dict> {
+        return this.request ('AddExport', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostExportStatus (params = {}): Promise<Dict> {
+        return this.request ('ExportStatus', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostRetrieveExport (params = {}): Promise<Dict> {
+        return this.request ('RetrieveExport', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostRemoveExport (params = {}): Promise<Dict> {
+        return this.request ('RemoveExport', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostGetApiKeyInfo (params = {}): Promise<Dict> {
+        return this.request ('GetApiKeyInfo', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostListWalletAccounts (params = {}): Promise<Dict> {
+        return this.request ('ListWalletAccounts', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostAddOrder (params = {}): Promise<Dict> {
+        return this.request ('AddOrder', [ 'private' ], 'POST', params, { 'cost': 0 });
+    }
+
+    privatePostAmendOrder (params = {}): Promise<Dict> {
+        return this.request ('AmendOrder', [ 'private' ], 'POST', params, { 'cost': 0 });
+    }
+
+    privatePostCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('CancelOrder', [ 'private' ], 'POST', params, { 'cost': 0 });
+    }
+
+    privatePostCancelAll (params = {}): Promise<Dict> {
+        return this.request ('CancelAll', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostCancelAllOrdersAfter (params = {}): Promise<Dict> {
+        return this.request ('CancelAllOrdersAfter', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostGetWebSocketsToken (params = {}): Promise<Dict> {
+        return this.request ('GetWebSocketsToken', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostAddOrderBatch (params = {}): Promise<Dict> {
+        return this.request ('AddOrderBatch', [ 'private' ], 'POST', params, { 'cost': 0 });
+    }
+
+    privatePostCancelOrderBatch (params = {}): Promise<Dict> {
+        return this.request ('CancelOrderBatch', [ 'private' ], 'POST', params, { 'cost': 0 });
+    }
+
+    privatePostEditOrder (params = {}): Promise<Dict> {
+        return this.request ('EditOrder', [ 'private' ], 'POST', params, { 'cost': 0 });
+    }
+
+    privatePostDepositMethods (params = {}): Promise<Dict> {
+        return this.request ('DepositMethods', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostDepositAddresses (params = {}): Promise<Dict> {
+        return this.request ('DepositAddresses', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostDepositStatus (params = {}): Promise<Dict> {
+        return this.request ('DepositStatus', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostWithdrawMethods (params = {}): Promise<Dict> {
+        return this.request ('WithdrawMethods', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostWithdrawAddresses (params = {}): Promise<Dict> {
+        return this.request ('WithdrawAddresses', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostWithdrawInfo (params = {}): Promise<Dict> {
+        return this.request ('WithdrawInfo', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostWithdraw (params = {}): Promise<Dict> {
+        return this.request ('Withdraw', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostWithdrawStatus (params = {}): Promise<Dict> {
+        return this.request ('WithdrawStatus', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostWithdrawCancel (params = {}): Promise<Dict> {
+        return this.request ('WithdrawCancel', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostWalletTransfer (params = {}): Promise<Dict> {
+        return this.request ('WalletTransfer', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostCreateSubaccount (params = {}): Promise<Dict> {
+        return this.request ('CreateSubaccount', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostAccountTransfer (params = {}): Promise<Dict> {
+        return this.request ('AccountTransfer', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostEarnAllocate (params = {}): Promise<Dict> {
+        return this.request ('Earn/Allocate', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostEarnDeallocate (params = {}): Promise<Dict> {
+        return this.request ('Earn/Deallocate', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostEarnAllocateStatus (params = {}): Promise<Dict> {
+        return this.request ('Earn/AllocateStatus', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostEarnDeallocateStatus (params = {}): Promise<Dict> {
+        return this.request ('Earn/DeallocateStatus', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostEarnStrategies (params = {}): Promise<Dict> {
+        return this.request ('Earn/Strategies', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+
+    privatePostEarnAllocations (params = {}): Promise<Dict> {
+        return this.request ('Earn/Allocations', [ 'private' ], 'POST', params, { 'cost': 3 });
+    }
+}
+
+export default Exchange;

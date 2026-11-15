@@ -2,7 +2,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Network {
+public final class Network extends TypedMap {
     public String id;
     public String network;
     public String name;
@@ -16,6 +16,7 @@ public final class Network {
 
     @SuppressWarnings("unchecked")
     public Network(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.network = TypeHelper.safeString(data, "network");

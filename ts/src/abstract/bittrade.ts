@@ -5,121 +5,461 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    v2PublicGetReferenceCurrencies (params?: {}): Promise<implicitReturnType>;
-    v2PublicGetMarketStatus (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAccountLedger (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAccountWithdrawQuota (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAccountWithdrawAddress (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAccountDepositAddress (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAccountRepayment (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetReferenceTransactFeeRate (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAccountAssetValuation (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetPointAccount (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetSubUserUserList (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetSubUserUserState (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetSubUserAccountList (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetSubUserDepositAddress (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetSubUserQueryDeposit (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetUserApiKey (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetUserUid (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAlgoOrdersOpening (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAlgoOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetAlgoOrdersSpecific (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetC2cOffers (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetC2cOffer (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetC2cTransactions (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetC2cRepayment (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetC2cAccount (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetEtpReference (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetEtpTransactions (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetEtpTransaction (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetEtpRebalance (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetEtpLimit (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostAccountTransfer (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostAccountRepayment (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostPointTransfer (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostSubUserManagement (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostSubUserCreation (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostSubUserTradableMarket (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostSubUserTransferability (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostSubUserApiKeyGeneration (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostSubUserApiKeyModification (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostSubUserApiKeyDeletion (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostSubUserDeductMode (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostAlgoOrders (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostAlgoOrdersCancelAllAfter (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostAlgoOrdersCancellation (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostC2cOffer (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostC2cCancellation (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostC2cCancelAll (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostC2cRepayment (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostC2cTransfer (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostEtpCreation (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostEtpRedemption (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostEtpTransactIdCancel (params?: {}): Promise<implicitReturnType>;
-    v2PrivatePostEtpBatchCancel (params?: {}): Promise<implicitReturnType>;
-    marketGetHistoryKline (params?: {}): Promise<implicitReturnType>;
-    marketGetDetailMerged (params?: {}): Promise<implicitReturnType>;
-    marketGetDepth (params?: {}): Promise<implicitReturnType>;
-    marketGetTrade (params?: {}): Promise<implicitReturnType>;
-    marketGetHistoryTrade (params?: {}): Promise<implicitReturnType>;
-    marketGetDetail (params?: {}): Promise<implicitReturnType>;
-    marketGetTickers (params?: {}): Promise<implicitReturnType>;
-    marketGetEtp (params?: {}): Promise<implicitReturnType>;
-    publicGetCommonSymbols (params?: {}): Promise<implicitReturnType>;
-    publicGetCommonCurrencys (params?: {}): Promise<implicitReturnType>;
-    publicGetCommonTimestamp (params?: {}): Promise<implicitReturnType>;
-    publicGetCommonExchange (params?: {}): Promise<implicitReturnType>;
-    publicGetSettingsCurrencys (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountAccountsIdBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountAccountsSubUid (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetCrossMarginLoanInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetMarginLoanInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetFeeFeeRateGet (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderOrdersId (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderOrdersIdMatchresults (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderOrdersGetClientOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOrderMatchresults (params?: {}): Promise<implicitReturnType>;
-    privateGetQueryDepositWithdraw (params?: {}): Promise<implicitReturnType>;
-    privateGetMarginLoanOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetMarginAccountsBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetCrossMarginLoanOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetCrossMarginAccountsBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetPointsActions (params?: {}): Promise<implicitReturnType>;
-    privateGetPointsOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetSubuserAggregateBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetStableCoinExchangeRate (params?: {}): Promise<implicitReturnType>;
-    privateGetStableCoinQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostFuturesTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderBatchOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderOrdersPlace (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderOrdersSubmitCancelClientOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderOrdersBatchCancelOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderOrdersIdSubmitcancel (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderOrdersBatchcancel (params?: {}): Promise<implicitReturnType>;
-    privatePostDwWithdrawApiCreate (params?: {}): Promise<implicitReturnType>;
-    privatePostDwWithdrawVirtualIdCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostDwTransferInMargin (params?: {}): Promise<implicitReturnType>;
-    privatePostDwTransferOutMargin (params?: {}): Promise<implicitReturnType>;
-    privatePostMarginOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostMarginOrdersIdRepay (params?: {}): Promise<implicitReturnType>;
-    privatePostCrossMarginTransferIn (params?: {}): Promise<implicitReturnType>;
-    privatePostCrossMarginTransferOut (params?: {}): Promise<implicitReturnType>;
-    privatePostCrossMarginOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostCrossMarginOrdersIdRepay (params?: {}): Promise<implicitReturnType>;
-    privatePostStableCoinExchange (params?: {}): Promise<implicitReturnType>;
-    privatePostSubuserTransfer (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    v2PublicGetReferenceCurrencies (params = {}): Promise<Dict> {
+        return this.request ('reference/currencies', [ 'v2Public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    v2PublicGetMarketStatus (params = {}): Promise<Dict> {
+        return this.request ('market-status', [ 'v2Public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetAccountLedger (params = {}): Promise<Dict> {
+        return this.request ('account/ledger', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetAccountWithdrawQuota (params = {}): Promise<Dict> {
+        return this.request ('account/withdraw/quota', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetAccountWithdrawAddress (params = {}): Promise<Dict> {
+        return this.request ('account/withdraw/address', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetAccountDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('account/deposit/address', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetAccountRepayment (params = {}): Promise<Dict> {
+        return this.request ('account/repayment', [ 'v2Private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    v2PrivateGetReferenceTransactFeeRate (params = {}): Promise<Dict> {
+        return this.request ('reference/transact-fee-rate', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetAccountAssetValuation (params = {}): Promise<Dict> {
+        return this.request ('account/asset-valuation', [ 'v2Private' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    v2PrivateGetPointAccount (params = {}): Promise<Dict> {
+        return this.request ('point/account', [ 'v2Private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    v2PrivateGetSubUserUserList (params = {}): Promise<Dict> {
+        return this.request ('sub-user/user-list', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetSubUserUserState (params = {}): Promise<Dict> {
+        return this.request ('sub-user/user-state', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetSubUserAccountList (params = {}): Promise<Dict> {
+        return this.request ('sub-user/account-list', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetSubUserDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('sub-user/deposit-address', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetSubUserQueryDeposit (params = {}): Promise<Dict> {
+        return this.request ('sub-user/query-deposit', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetUserApiKey (params = {}): Promise<Dict> {
+        return this.request ('user/api-key', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetUserUid (params = {}): Promise<Dict> {
+        return this.request ('user/uid', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetAlgoOrdersOpening (params = {}): Promise<Dict> {
+        return this.request ('algo-orders/opening', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetAlgoOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ('algo-orders/history', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetAlgoOrdersSpecific (params = {}): Promise<Dict> {
+        return this.request ('algo-orders/specific', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetC2cOffers (params = {}): Promise<Dict> {
+        return this.request ('c2c/offers', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetC2cOffer (params = {}): Promise<Dict> {
+        return this.request ('c2c/offer', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetC2cTransactions (params = {}): Promise<Dict> {
+        return this.request ('c2c/transactions', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetC2cRepayment (params = {}): Promise<Dict> {
+        return this.request ('c2c/repayment', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetC2cAccount (params = {}): Promise<Dict> {
+        return this.request ('c2c/account', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetEtpReference (params = {}): Promise<Dict> {
+        return this.request ('etp/reference', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetEtpTransactions (params = {}): Promise<Dict> {
+        return this.request ('etp/transactions', [ 'v2Private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    v2PrivateGetEtpTransaction (params = {}): Promise<Dict> {
+        return this.request ('etp/transaction', [ 'v2Private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    v2PrivateGetEtpRebalance (params = {}): Promise<Dict> {
+        return this.request ('etp/rebalance', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivateGetEtpLimit (params = {}): Promise<Dict> {
+        return this.request ('etp/limit', [ 'v2Private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostAccountTransfer (params = {}): Promise<Dict> {
+        return this.request ('account/transfer', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostAccountRepayment (params = {}): Promise<Dict> {
+        return this.request ('account/repayment', [ 'v2Private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    v2PrivatePostPointTransfer (params = {}): Promise<Dict> {
+        return this.request ('point/transfer', [ 'v2Private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    v2PrivatePostSubUserManagement (params = {}): Promise<Dict> {
+        return this.request ('sub-user/management', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostSubUserCreation (params = {}): Promise<Dict> {
+        return this.request ('sub-user/creation', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostSubUserTradableMarket (params = {}): Promise<Dict> {
+        return this.request ('sub-user/tradable-market', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostSubUserTransferability (params = {}): Promise<Dict> {
+        return this.request ('sub-user/transferability', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostSubUserApiKeyGeneration (params = {}): Promise<Dict> {
+        return this.request ('sub-user/api-key-generation', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostSubUserApiKeyModification (params = {}): Promise<Dict> {
+        return this.request ('sub-user/api-key-modification', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostSubUserApiKeyDeletion (params = {}): Promise<Dict> {
+        return this.request ('sub-user/api-key-deletion', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostSubUserDeductMode (params = {}): Promise<Dict> {
+        return this.request ('sub-user/deduct-mode', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostAlgoOrders (params = {}): Promise<Dict> {
+        return this.request ('algo-orders', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostAlgoOrdersCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ('algo-orders/cancel-all-after', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostAlgoOrdersCancellation (params = {}): Promise<Dict> {
+        return this.request ('algo-orders/cancellation', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostC2cOffer (params = {}): Promise<Dict> {
+        return this.request ('c2c/offer', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostC2cCancellation (params = {}): Promise<Dict> {
+        return this.request ('c2c/cancellation', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostC2cCancelAll (params = {}): Promise<Dict> {
+        return this.request ('c2c/cancel-all', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostC2cRepayment (params = {}): Promise<Dict> {
+        return this.request ('c2c/repayment', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostC2cTransfer (params = {}): Promise<Dict> {
+        return this.request ('c2c/transfer', [ 'v2Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PrivatePostEtpCreation (params = {}): Promise<Dict> {
+        return this.request ('etp/creation', [ 'v2Private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    v2PrivatePostEtpRedemption (params = {}): Promise<Dict> {
+        return this.request ('etp/redemption', [ 'v2Private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    v2PrivatePostEtpTransactIdCancel (params = {}): Promise<Dict> {
+        return this.request ('etp/{transactId}/cancel', [ 'v2Private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    v2PrivatePostEtpBatchCancel (params = {}): Promise<Dict> {
+        return this.request ('etp/batch-cancel', [ 'v2Private' ], 'POST', params, { 'cost': 50 });
+    }
+
+    marketGetHistoryKline (params = {}): Promise<Dict> {
+        return this.request ('history/kline', [ 'market' ], 'GET', params, { 'cost': 1 });
+    }
+
+    marketGetDetailMerged (params = {}): Promise<Dict> {
+        return this.request ('detail/merged', [ 'market' ], 'GET', params, { 'cost': 1 });
+    }
+
+    marketGetDepth (params = {}): Promise<Dict> {
+        return this.request ('depth', [ 'market' ], 'GET', params, { 'cost': 1 });
+    }
+
+    marketGetTrade (params = {}): Promise<Dict> {
+        return this.request ('trade', [ 'market' ], 'GET', params, { 'cost': 1 });
+    }
+
+    marketGetHistoryTrade (params = {}): Promise<Dict> {
+        return this.request ('history/trade', [ 'market' ], 'GET', params, { 'cost': 1 });
+    }
+
+    marketGetDetail (params = {}): Promise<Dict> {
+        return this.request ('detail', [ 'market' ], 'GET', params, { 'cost': 1 });
+    }
+
+    marketGetTickers (params = {}): Promise<Dict> {
+        return this.request ('tickers', [ 'market' ], 'GET', params, { 'cost': 1 });
+    }
+
+    marketGetEtp (params = {}): Promise<Dict> {
+        return this.request ('etp', [ 'market' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCommonSymbols (params = {}): Promise<Dict> {
+        return this.request ('common/symbols', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCommonCurrencys (params = {}): Promise<Dict> {
+        return this.request ('common/currencys', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCommonTimestamp (params = {}): Promise<Dict> {
+        return this.request ('common/timestamp', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCommonExchange (params = {}): Promise<Dict> {
+        return this.request ('common/exchange', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetSettingsCurrencys (params = {}): Promise<Dict> {
+        return this.request ('settings/currencys', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetRetailMaintainTime (params = {}): Promise<Dict> {
+        return this.request ('retail/maintain/time', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccountAccounts (params = {}): Promise<Dict> {
+        return this.request ('account/accounts', [ 'private' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    privateGetAccountAccountsIdBalance (params = {}): Promise<Dict> {
+        return this.request ('account/accounts/{id}/balance', [ 'private' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    privateGetAccountAccountsSubUid (params = {}): Promise<Dict> {
+        return this.request ('account/accounts/{sub-uid}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccountHistory (params = {}): Promise<Dict> {
+        return this.request ('account/history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetCrossMarginLoanInfo (params = {}): Promise<Dict> {
+        return this.request ('cross-margin/loan-info', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetMarginLoanInfo (params = {}): Promise<Dict> {
+        return this.request ('margin/loan-info', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFeeFeeRateGet (params = {}): Promise<Dict> {
+        return this.request ('fee/fee-rate/get', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrderOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('order/openOrders', [ 'private' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    privateGetOrderOrders (params = {}): Promise<Dict> {
+        return this.request ('order/orders', [ 'private' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    privateGetOrderOrdersId (params = {}): Promise<Dict> {
+        return this.request ('order/orders/{id}', [ 'private' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    privateGetOrderOrdersIdMatchresults (params = {}): Promise<Dict> {
+        return this.request ('order/orders/{id}/matchresults', [ 'private' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    privateGetOrderOrdersGetClientOrder (params = {}): Promise<Dict> {
+        return this.request ('order/orders/getClientOrder', [ 'private' ], 'GET', params, { 'cost': 0.4 });
+    }
+
+    privateGetOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('order/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrderMatchresults (params = {}): Promise<Dict> {
+        return this.request ('order/matchresults', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetQueryDepositWithdraw (params = {}): Promise<Dict> {
+        return this.request ('query/deposit-withdraw', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetMarginLoanOrders (params = {}): Promise<Dict> {
+        return this.request ('margin/loan-orders', [ 'private' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    privateGetMarginAccountsBalance (params = {}): Promise<Dict> {
+        return this.request ('margin/accounts/balance', [ 'private' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    privateGetCrossMarginLoanOrders (params = {}): Promise<Dict> {
+        return this.request ('cross-margin/loan-orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetCrossMarginAccountsBalance (params = {}): Promise<Dict> {
+        return this.request ('cross-margin/accounts/balance', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPointsActions (params = {}): Promise<Dict> {
+        return this.request ('points/actions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPointsOrders (params = {}): Promise<Dict> {
+        return this.request ('points/orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetSubuserAggregateBalance (params = {}): Promise<Dict> {
+        return this.request ('subuser/aggregate-balance', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetStableCoinExchangeRate (params = {}): Promise<Dict> {
+        return this.request ('stable-coin/exchange_rate', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetStableCoinQuote (params = {}): Promise<Dict> {
+        return this.request ('stable-coin/quote', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetRetailOrderList (params = {}): Promise<Dict> {
+        return this.request ('retail/order/list', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostAccountTransfer (params = {}): Promise<Dict> {
+        return this.request ('account/transfer', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostFuturesTransfer (params = {}): Promise<Dict> {
+        return this.request ('futures/transfer', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderBatchOrders (params = {}): Promise<Dict> {
+        return this.request ('order/batch-orders', [ 'private' ], 'POST', params, { 'cost': 0.4 });
+    }
+
+    privatePostOrderOrdersPlace (params = {}): Promise<Dict> {
+        return this.request ('order/orders/place', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderOrdersSubmitCancelClientOrder (params = {}): Promise<Dict> {
+        return this.request ('order/orders/submitCancelClientOrder', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderOrdersBatchCancelOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('order/orders/batchCancelOpenOrders', [ 'private' ], 'POST', params, { 'cost': 0.4 });
+    }
+
+    privatePostOrderOrdersIdSubmitcancel (params = {}): Promise<Dict> {
+        return this.request ('order/orders/{id}/submitcancel', [ 'private' ], 'POST', params, { 'cost': 0.2 });
+    }
+
+    privatePostOrderOrdersBatchcancel (params = {}): Promise<Dict> {
+        return this.request ('order/orders/batchcancel', [ 'private' ], 'POST', params, { 'cost': 0.4 });
+    }
+
+    privatePostDwWithdrawApiCreate (params = {}): Promise<Dict> {
+        return this.request ('dw/withdraw/api/create', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostDwWithdrawVirtualIdCancel (params = {}): Promise<Dict> {
+        return this.request ('dw/withdraw-virtual/{id}/cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostDwTransferInMargin (params = {}): Promise<Dict> {
+        return this.request ('dw/transfer-in/margin', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    privatePostDwTransferOutMargin (params = {}): Promise<Dict> {
+        return this.request ('dw/transfer-out/margin', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    privatePostMarginOrders (params = {}): Promise<Dict> {
+        return this.request ('margin/orders', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    privatePostMarginOrdersIdRepay (params = {}): Promise<Dict> {
+        return this.request ('margin/orders/{id}/repay', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    privatePostCrossMarginTransferIn (params = {}): Promise<Dict> {
+        return this.request ('cross-margin/transfer-in', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCrossMarginTransferOut (params = {}): Promise<Dict> {
+        return this.request ('cross-margin/transfer-out', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCrossMarginOrders (params = {}): Promise<Dict> {
+        return this.request ('cross-margin/orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCrossMarginOrdersIdRepay (params = {}): Promise<Dict> {
+        return this.request ('cross-margin/orders/{id}/repay', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostStableCoinExchange (params = {}): Promise<Dict> {
+        return this.request ('stable-coin/exchange', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSubuserTransfer (params = {}): Promise<Dict> {
+        return this.request ('subuser/transfer', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    privatePostRetailOrderPlace (params = {}): Promise<Dict> {
+        return this.request ('retail/order/place', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

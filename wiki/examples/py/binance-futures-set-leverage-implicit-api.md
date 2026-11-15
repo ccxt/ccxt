@@ -1,8 +1,5 @@
-- [Binance Futures Set Leverage Implicit Api](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -15,7 +12,7 @@ exchange = ccxt.binance({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
     'options': {
-        'defaultType': 'future',
+        'defaultType': 'swap',
     }
 })
 
@@ -31,5 +28,5 @@ response = exchange.fapiprivate_post_leverage({
 })
 
 print(response)
- 
+
 ```

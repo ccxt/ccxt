@@ -59,7 +59,6 @@ the latest known information on the availability of the exchange API
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -67,7 +66,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-toobit.fetchStatus ([params])
+toobit.fetchStatus (params?)
 ```
 
 
@@ -79,7 +78,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time  
+**See**: https://api-docs.toobit.com/api/spot-market-data.html#check-server-time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -87,7 +86,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-toobit.fetchTime ([params])
+toobit.fetchTime (params?)
 ```
 
 
@@ -99,6 +98,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
+**See**: https://api-docs.toobit.com/api/spot-market-data.html#exchange-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -106,7 +106,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-toobit.fetchCurrencies ([params])
+toobit.fetchCurrencies (params?)
 ```
 
 
@@ -120,8 +120,8 @@ retrieves data on all markets for toobit
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
+- https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information
 
 
 | Param | Type | Required | Description |
@@ -130,7 +130,7 @@ retrieves data on all markets for toobit
 
 
 ```javascript
-toobit.fetchMarkets ([params])
+toobit.fetchMarkets (params?)
 ```
 
 
@@ -140,12 +140,12 @@ toobit.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
+- https://api-docs.toobit.com/api/spot-market-data.html#order-book
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book
 
 
 | Param | Type | Required | Description |
@@ -156,7 +156,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-toobit.fetchOrderBook (symbol[, limit, params])
+toobit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -170,8 +170,8 @@ get a list of the most recent trades for a particular symbol
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
+- https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list
 
 
 | Param | Type | Required | Description |
@@ -183,7 +183,7 @@ get a list of the most recent trades for a particular symbol
 
 
 ```javascript
-toobit.fetchTrades (symbol[, since, limit, params])
+toobit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -197,8 +197,10 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
+- https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data
 
 
 | Param | Type | Required | Description |
@@ -208,10 +210,12 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.price | <code>string</code> | No | "mark" or "index" for mark price and index price candles |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 
 
 ```javascript
-toobit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+toobit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -225,8 +229,8 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+- https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics
 
 
 | Param | Type | Required | Description |
@@ -236,7 +240,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-toobit.fetchTickers (symbols[, params])
+toobit.fetchTickers (symbols, params?)
 ```
 
 
@@ -250,8 +254,8 @@ fetches the last price for multiple markets
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+- https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
 
 
 | Param | Type | Required | Description |
@@ -261,7 +265,7 @@ fetches the last price for multiple markets
 
 
 ```javascript
-toobit.fetchLastPrices (symbols[, params])
+toobit.fetchLastPrices (symbols, params?)
 ```
 
 
@@ -275,8 +279,8 @@ fetches the bid and ask price and volume for multiple markets
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+- https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
+- https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
 
 
 | Param | Type | Required | Description |
@@ -286,7 +290,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-toobit.fetchBidsAsks ([symbols, params])
+toobit.fetchBidsAsks (symbols?, params?)
 ```
 
 
@@ -296,9 +300,9 @@ toobit.fetchBidsAsks ([symbols, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
-**See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate  
+**See**: https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -307,7 +311,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-toobit.fetchFundingRates (symbols[, params])
+toobit.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -319,7 +323,7 @@ fetches historical funding rate prices
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history  
+**See**: https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -332,7 +336,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-toobit.fetchFundingRateHistory (symbol[, since, limit, params])
+toobit.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -346,17 +350,17 @@ query for balance and get the amount of funds available for trading or funds loc
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpointinvalid |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-toobit.fetchBalance ([params])
+toobit.fetchBalance (params?)
 ```
 
 
@@ -370,8 +374,8 @@ create a trade order
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
 
 
 | Param | Type | Required | Description |
@@ -382,10 +386,11 @@ create a trade order
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.cost | <code>float</code> | No | *spot market buy only* the quote quantity that can be used as an alternative for the amount |
 
 
 ```javascript
-toobit.createOrder (symbol, type, side, amount[, price, params])
+toobit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -399,8 +404,8 @@ cancels an open order
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
 
 
 | Param | Type | Required | Description |
@@ -411,7 +416,7 @@ cancels an open order
 
 
 ```javascript
-toobit.cancelOrder (id, symbol[, params])
+toobit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -425,8 +430,8 @@ cancel all open orders in a market
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
 
 
 | Param | Type | Required | Description |
@@ -436,7 +441,7 @@ cancel all open orders in a market
 
 
 ```javascript
-toobit.cancelAllOrders (symbol[, params])
+toobit.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -450,8 +455,8 @@ cancel multiple orders
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
 
 
 | Param | Type | Required | Description |
@@ -462,7 +467,7 @@ cancel multiple orders
 
 
 ```javascript
-toobit.cancelOrders (ids[, symbol, params])
+toobit.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -476,8 +481,8 @@ fetches information on an order made by the user
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
 
 
 | Param | Type | Required | Description |
@@ -488,7 +493,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-toobit.fetchOrder (id, symbol[, params])
+toobit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -502,8 +507,8 @@ fetches information on multiple orders made by the user
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
 
 
 | Param | Type | Required | Description |
@@ -515,7 +520,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-toobit.fetchOpenOrders (symbol[, since, limit, params])
+toobit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -527,7 +532,7 @@ fetches information on multiple orders made by the user
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data  
+**See**: https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -538,7 +543,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-toobit.fetchOrders (symbol[, since, limit, params])
+toobit.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -550,7 +555,7 @@ fetches information on multiple closed orders made by the user
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data  
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -561,7 +566,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-toobit.fetchClosedOrders (symbol[, since, limit, params])
+toobit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -575,8 +580,8 @@ fetch all trades made by the user
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
 
 
 | Param | Type | Required | Description |
@@ -589,7 +594,7 @@ fetch all trades made by the user
 
 
 ```javascript
-toobit.fetchMyTrades ([symbol, since, limit, params])
+toobit.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -601,7 +606,7 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://open.big.one/docs/spot_transfer.html#transfer-of-user  
+**See**: https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -613,7 +618,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-toobit.transfer (code, amount, fromAccount, toAccount[, params])
+toobit.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -627,8 +632,8 @@ fetch the history of changes, actions done by the user or operations that altere
 
 **See**
 
-- https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
-- https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
+- https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+- https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
 
 
 | Param | Type | Required | Description |
@@ -641,7 +646,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-toobit.fetchLedger ([code, since, limit, params])
+toobit.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -653,7 +658,7 @@ fetch the trading fees for multiple markets
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
-**See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data  
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -661,7 +666,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-toobit.fetchTradingFees ([params])
+toobit.fetchTradingFees (params?)
 ```
 
 
@@ -673,7 +678,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data  
+**See**: https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -684,7 +689,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-toobit.fetchDeposits ([code, since, limit, params])
+toobit.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -696,7 +701,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data  
+**See**: https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -707,7 +712,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-toobit.fetchWithdrawals ([code, since, limit, params])
+toobit.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -719,7 +724,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data  
+**See**: https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -728,7 +733,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-toobit.fetchDepositAddress (code[, params])
+toobit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -740,19 +745,20 @@ make a withdrawal
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data  
+**See**: https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes | a memo for the transaction |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
+| params.addressType | <code>string</code> | No | recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID |
 
 
 ```javascript
-toobit.withdraw (code, amount, address, tag[, params])
+toobit.withdraw (code, amount, address, params?)
 ```
 
 
@@ -764,7 +770,7 @@ set margin mode to 'cross' or 'isolated'
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade  
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -774,7 +780,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-toobit.setMarginMode (marginMode, symbol[, params])
+toobit.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -786,7 +792,7 @@ set the level of leverage for a market
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-leverage-trade  
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -796,7 +802,7 @@ set the level of leverage for a market
 
 
 ```javascript
-toobit.setLeverage (leverage, symbol[, params])
+toobit.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -808,7 +814,7 @@ fetch the set leverage for a market
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data  
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -817,7 +823,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-toobit.fetchLeverage (symbol[, params])
+toobit.fetchLeverage (symbol, params?)
 ```
 
 
@@ -829,7 +835,7 @@ fetch all open positions
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data  
+**See**: https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -838,7 +844,7 @@ fetch all open positions
 
 
 ```javascript
-toobit.fetchPositions (symbols[, params])
+toobit.fetchPositions (symbols, params?)
 ```
 
 
@@ -850,7 +856,7 @@ watches information on multiple trades made in a market
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams  
+**See**: https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -861,7 +867,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-toobit.watchTrades (symbol[, since, limit, params])
+toobit.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -873,7 +879,7 @@ get the list of most recent trades for a list of symbols
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams  
+**See**: https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -885,7 +891,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-toobit.watchTradesForSymbols (symbols[, since, limit, params])
+toobit.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -897,7 +903,11 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -909,7 +919,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-toobit.watchOHLCV (symbol, timeframe[, since, limit, params])
+toobit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -921,7 +931,11 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -932,7 +946,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-toobit.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+toobit.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -944,7 +958,11 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -953,7 +971,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-toobit.watchTicker (symbol[, params])
+toobit.watchTicker (symbol, params?)
 ```
 
 
@@ -965,7 +983,11 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -974,7 +996,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-toobit.watchTickers (symbols[, params])
+toobit.watchTickers (symbols, params?)
 ```
 
 
@@ -984,9 +1006,15 @@ toobit.watchTickers (symbols[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -996,7 +1024,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-toobit.watchOrderBook (symbol[, limit, params])
+toobit.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1006,9 +1034,15 @@ toobit.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+- https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+- https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1018,7 +1052,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-toobit.watchOrderBookForSymbols (symbols[, limit, params])
+toobit.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1030,7 +1064,11 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+- https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1038,7 +1076,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-toobit.watchBalance ([params])
+toobit.watchBalance (params?)
 ```
 
 
@@ -1050,7 +1088,11 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update
+- https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1061,7 +1103,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-toobit.watchOrders (symbol[, since, limit, params])
+toobit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1073,7 +1115,11 @@ watches information on multiple trades made by the user
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push  
+**See**
+
+- https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+- https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1085,7 +1131,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-toobit.watchMyTrades (symbol[, since, limit, params])
+toobit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1097,7 +1143,7 @@ watch all open positions
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
-**See**: https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update  
+**See**: https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1108,6 +1154,6 @@ watch all open positions
 
 
 ```javascript
-toobit.watchPositions ([symbols, since, limit, params])
+toobit.watchPositions (symbols?, since?, limit?, params)
 ```
 

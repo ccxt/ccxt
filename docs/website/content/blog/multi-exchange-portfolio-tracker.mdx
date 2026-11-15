@@ -1,0 +1,302 @@
+---
+title: "Every exchange, one number: build a cross-exchange portfolio tracker"
+description: Your funds live on three exchanges and none of their dashboards agree. Pull balances from all of them with one API, price everything in USDT, and print the number that matters.
+author: CCXT Team
+date: 2026-07-08T10:00:00Z
+tags: [tutorials, portfolio]
+---
+
+If you trade on more than one exchange, you know the ritual: log in here, log in there, add
+numbers in your head, forget the dust on that third account. The whole point of a unified
+API is that "how much do I actually have?" should be one script — read-only keys, no order
+permissions, nothing to break.
+
+The plan: fetch balances from every exchange, merge per currency, price everything in USDT
+off one venue's tickers, print a table and a total.
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const ids = ['binance', 'kraken', 'bybit'];
+const totals = {};
+
+for (const id of ids) {
+    const exchange = new ccxt[id]({
+        apiKey: process.env[`${id.toUpperCase()}_APIKEY`],
+        secret: process.env[`${id.toUpperCase()}_SECRET`],
+    });
+    const balance = await exchange.fetchBalance();
+    for (const [currency, amount] of Object.entries(balance.total)) {
+        if (amount > 0) {
+            totals[currency] = (totals[currency] ?? 0) + amount;
+        }
+    }
+    await exchange.close();
+}
+
+// price everything in USDT off one venue's tickers
+const pricing = new ccxt.binance();
+const tickers = await pricing.fetchTickers();
+let portfolio = 0;
+for (const [currency, amount] of Object.entries(totals)) {
+    const price = (currency === 'USDT') ? 1 : tickers[`${currency}/USDT`]?.last;
+    if (!price) continue;                    // no USDT market — see notes below
+    const value = amount * price;
+    portfolio += value;
+    console.log(`${currency.padEnd(8)} ${amount.toFixed(6).padStart(14)} ≈ ${value.toFixed(2).padStart(12)} USDT`);
+}
+console.log(`${'TOTAL'.padEnd(8)} ${' '.repeat(14)} ≈ ${portfolio.toFixed(2).padStart(12)} USDT`);
+await pricing.close();
+```
+
+```python tab="Python"
+import os
+import ccxt
+
+IDS = ['binance', 'kraken', 'bybit']
+totals = {}
+
+for exchange_id in IDS:
+    exchange = getattr(ccxt, exchange_id)({
+        'apiKey': os.environ[f'{exchange_id.upper()}_APIKEY'],
+        'secret': os.environ[f'{exchange_id.upper()}_SECRET'],
+    })
+    balance = exchange.fetch_balance()
+    for currency, amount in balance['total'].items():
+        if amount and amount > 0:
+            totals[currency] = totals.get(currency, 0) + amount
+
+# price everything in USDT off one venue's tickers
+pricing = ccxt.binance()
+tickers = pricing.fetch_tickers()
+portfolio = 0.0
+for currency, amount in sorted(totals.items()):
+    if currency == 'USDT':
+        price = 1.0
+    else:
+        ticker = tickers.get(f'{currency}/USDT')
+        price = ticker['last'] if ticker else None
+    if not price:
+        continue                              # no USDT market — see notes below
+    value = amount * price
+    portfolio += value
+    print(f'{currency:8} {amount:14.6f} ≈ {value:12.2f} USDT')
+
+print(f'{"TOTAL":8} {"":14} ≈ {portfolio:12.2f} USDT')
+```
+
+```php tab="PHP"
+<?php
+$ids = ['binance', 'kraken', 'bybit'];
+$totals = [];
+
+foreach ($ids as $id) {
+    $class = "\\ccxt\\{$id}";
+    $exchange = new $class([
+        'apiKey' => getenv(strtoupper($id) . '_APIKEY'),
+        'secret' => getenv(strtoupper($id) . '_SECRET'),
+    ]);
+    $balance = $exchange->fetch_balance();
+    foreach ($balance['total'] as $currency => $amount) {
+        if ($amount > 0) {
+            $totals[$currency] = ($totals[$currency] ?? 0) + $amount;
+        }
+    }
+}
+
+// price everything in USDT off one venue's tickers
+$pricing = new \ccxt\binance();
+$tickers = $pricing->fetch_tickers();
+$portfolio = 0.0;
+ksort($totals);
+foreach ($totals as $currency => $amount) {
+    $price = ($currency === 'USDT') ? 1.0 : ($tickers["{$currency}/USDT"]['last'] ?? null);
+    if (!$price) {
+        continue;                             // no USDT market — see notes below
+    }
+    $value = $amount * $price;
+    $portfolio += $value;
+    printf("%-8s %14.6f ≈ %12.2f USDT\n", $currency, $amount, $value);
+}
+printf("%-8s %14s ≈ %12.2f USDT\n", 'TOTAL', '', $portfolio);
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var ids = new[] { "binance", "kraken", "bybit" };
+var totals = new Dictionary<string, double>();
+
+foreach (var id in ids)
+{
+    var exchange = Exchange.DynamicallyCreateInstance(id);
+    exchange.apiKey = Environment.GetEnvironmentVariable($"{id.ToUpper()}_APIKEY");
+    exchange.secret = Environment.GetEnvironmentVariable($"{id.ToUpper()}_SECRET");
+    var balance = await exchange.FetchBalance();
+    foreach (var (currency, amount) in balance.total)
+    {
+        if (amount > 0)
+        {
+            totals[currency] = totals.GetValueOrDefault(currency) + amount;
+        }
+    }
+}
+
+// price everything in USDT off one venue's tickers
+var pricing = new Binance();
+var tickers = await pricing.FetchTickers();
+var portfolio = 0.0;
+foreach (var (currency, amount) in totals.OrderBy(kv => kv.Key))
+{
+    double? price = currency == "USDT" ? 1.0
+        : tickers.tickers.TryGetValue($"{currency}/USDT", out var t) ? t.last : null;
+    if (price is not double p) continue;      // no USDT market — see notes below
+    var value = amount * p;
+    portfolio += value;
+    Console.WriteLine($"{currency,-8} {amount,14:F6} ≈ {value,12:F2} USDT");
+}
+Console.WriteLine($"{"TOTAL",-8} {"",14} ≈ {portfolio,12:F2} USDT");
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "os"
+    "sort"
+    "strings"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    ids := []string{"binance", "kraken", "bybit"}
+    totals := map[string]float64{}
+
+    for _, id := range ids {
+        exchange := ccxt.CreateExchange(id, map[string]any{
+            "apiKey": os.Getenv(strings.ToUpper(id) + "_APIKEY"),
+            "secret": os.Getenv(strings.ToUpper(id) + "_SECRET"),
+        })
+        balance, err := exchange.FetchBalance()
+        if err != nil {
+            panic(err)
+        }
+        for currency, amount := range balance.Total {
+            if amount != nil && *amount > 0 {
+                totals[currency] += *amount
+            }
+        }
+    }
+
+    // price everything in USDT off one venue's tickers
+    pricing := ccxt.NewBinance(nil)
+    tickers, err := pricing.FetchTickers()
+    if err != nil {
+        panic(err)
+    }
+    currencies := make([]string, 0, len(totals))
+    for currency := range totals {
+        currencies = append(currencies, currency)
+    }
+    sort.Strings(currencies)
+    portfolio := 0.0
+    for _, currency := range currencies {
+        price := 0.0
+        if currency == "USDT" {
+            price = 1.0
+        } else if ticker, ok := tickers.Tickers[currency+"/USDT"]; ok && ticker.Last != nil {
+            price = *ticker.Last
+        }
+        if price == 0 {
+            continue // no USDT market — see notes below
+        }
+        value := totals[currency] * price
+        portfolio += value
+        fmt.Printf("%-8s %14.6f ≈ %12.2f USDT\n", currency, totals[currency], value)
+    }
+    fmt.Printf("%-8s %14s ≈ %12.2f USDT\n", "TOTAL", "", portfolio)
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.Exchange;
+
+import java.util.*;
+
+public class PortfolioTracker {
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        var ids = List.of("binance", "kraken", "bybit");
+        var totals = new TreeMap<String, Double>();
+
+        // dynamic instances return untyped maps (see the typed per-class API otherwise)
+        for (var id : ids) {
+            var config = new HashMap<String, Object>();
+            config.put("apiKey", System.getenv(id.toUpperCase() + "_APIKEY"));
+            config.put("secret", System.getenv(id.toUpperCase() + "_SECRET"));
+            var exchange = Exchange.dynamicallyCreateInstance(id, config);
+            var balance = (Map<String, Object>) exchange.fetchBalance().join();
+            var total = (Map<String, Object>) balance.get("total");
+            for (var entry : total.entrySet()) {
+                var amount = (Number) entry.getValue();
+                if (amount != null && amount.doubleValue() > 0) {
+                    totals.merge(entry.getKey(), amount.doubleValue(), Double::sum);
+                }
+            }
+        }
+
+        // price everything in USDT off one venue's tickers
+        var pricing = new io.github.ccxt.exchanges.Binance();
+        var tickers = pricing.fetchTickers();
+        var portfolio = 0.0;
+        for (var entry : totals.entrySet()) {
+            Double price = null;
+            if (entry.getKey().equals("USDT")) {
+                price = 1.0;
+            } else {
+                var ticker = tickers.tickers.get(entry.getKey() + "/USDT");
+                if (ticker != null) price = ticker.last;
+            }
+            if (price == null) continue;      // no USDT market — see notes below
+            var value = entry.getValue() * price;
+            portfolio += value;
+            System.out.printf("%-8s %14.6f ≈ %12.2f USDT%n", entry.getKey(), entry.getValue(), value);
+        }
+        System.out.printf("%-8s %14s ≈ %12.2f USDT%n", "TOTAL", "", portfolio);
+    }
+}
+```
+
+Run it with **read-only keys** (see [the API-key checklist](/blog/api-key-security) — a
+tracker never needs trade permission) and you get something like:
+
+```
+BTC          0.084310 ≈      9021.17 USDT
+ETH          1.250000 ≈      4187.50 USDT
+SOL         12.400000 ≈      2145.20 USDT
+USDT      1830.550000 ≈      1830.55 USDT
+TOTAL                 ≈     17184.42 USDT
+```
+
+## Honest edges of a 40-line tracker
+
+- **`balance.total` is spot-wallet truth, not net worth.** Derivatives margin, staked/earn
+  balances, and funds in open orders are reported differently per venue (`fetchBalance`
+  takes params for other account types — e.g. a `type` of `'swap'` or `'funding'` on
+  exchanges that split wallets). Loop account types if you use them.
+- **The "no USDT market" skip.** Small assets may only trade against BTC or not at all on
+  your pricing venue. The robust version falls back to `X/BTC` × `BTC/USDT`, or prices each
+  balance on the exchange it lives on.
+- **Stablecoins at 1.0 is a simplification** we made only for USDT itself. During a depeg,
+  your tracker will happily lie to you — price USDC and friends through their real markets.
+- **Cache the tickers.** One `fetchTickers()` per run is fine; per-currency `fetchTicker`
+  calls are how a tracker becomes a rate-limit problem.
+
+From here it's a small step to a cron job that appends a CSV row per hour — and suddenly you
+have the portfolio history chart no exchange will ever give you across venues. If you want
+it live instead, `watchBalance` from the
+[WebSocket post](/blog/realtime-market-data-with-websockets) pushes every change as it
+happens.

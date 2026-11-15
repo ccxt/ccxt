@@ -12,7 +12,6 @@ sys.path.append(root + '/python')
 # ----------------------------------------------------------------------------
 
 
-# AUTO-TRANSPILE #
 async def example():
     # eslint-disable-next-line import/no-named-as-default-member
     myex = ccxt.okx({})

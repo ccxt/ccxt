@@ -266,7 +266,28 @@
                         }
                     ]
                 },
-                "parsedResponse": []
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "funding_rate": "-0.000103",
+                            "timestamp": "1771257600"
+                        },
+                        "symbol": "ETH/USD:USD",
+                        "fundingRate": -0.000103,
+                        "timestamp": 1771257600000,
+                        "datetime": "2026-02-16T16:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "funding_rate": "-0.000045",
+                            "timestamp": "1771286400"
+                        },
+                        "symbol": "ETH/USD:USD",
+                        "fundingRate": -0.000045,
+                        "timestamp": 1771286400000,
+                        "datetime": "2026-02-17T00:00:00.000Z"
+                    }
+                ]
             },
             {
                 "description": "+limit +since",
@@ -289,7 +310,28 @@
                         }
                     ]
                 },
-                "parsedResponse": []
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "funding_rate": "-0.00011",
+                            "timestamp": "1771228800"
+                        },
+                        "symbol": "ETH/USD:USD",
+                        "fundingRate": -0.00011,
+                        "timestamp": 1771228800000,
+                        "datetime": "2026-02-16T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "funding_rate": "-0.000103",
+                            "timestamp": "1771257600"
+                        },
+                        "symbol": "ETH/USD:USD",
+                        "fundingRate": -0.000103,
+                        "timestamp": 1771257600000,
+                        "datetime": "2026-02-16T16:00:00.000Z"
+                    }
+                ]
             }
         ],
         "fetchFundingRate": [

@@ -1,4 +1,4 @@
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testTicker from './base/test.ticker.js';
 
 async function testFetchTicker (exchange: Exchange, skippedProperties: object, symbol: string) {

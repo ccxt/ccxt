@@ -1,396 +1,106 @@
 using System.Collections;
 
-// taken from here: https://github.com/azborgonovo/SlimConcurrentCollections/tree/master
-// with slight modifications
+// Single-owner list. Every mutator runs on the client's receive loop (the thread that
+// feeds this structure); no member here takes a lock. Readers that are not on that loop
+// use ToArray(), which returns the immutable snapshot the owner last published, so a
+// reader keeps enumerating a stable array while the owner appends.
 
 namespace ccxt.pro;
 /// <summary>
-/// Represents a thread-safe strongly typed list of objects that can be accessed by index.
+/// Strongly typed list with exactly one writer: the ws receive loop of the client that
+/// owns it. Owner-side use is the inherited List&lt;T&gt; surface; readers off the loop go
+/// through <see cref="ToArray"/>, which returns the last <see cref="Publish"/>ed snapshot
+/// instead of the live contents.
 /// </summary>
-/// <remarks>To guarantee thread safety during enumeration, the collection is locked during the entire enumeration.</remarks>
 /// <typeparam name="T">The type of elements in the list.</typeparam>
-public class SlimConcurrentList<T> : IList<T>, ICollection<T>, IReadOnlyList<T>, IReadOnlyCollection<T>, IEnumerable<T>, IEnumerable, IDisposable
+public class SlimConcurrentList<T> : List<T>, IReadOnlyList<T>, IReadOnlyCollection<T>, IDisposable
 {
-    private readonly List<T> _list = new List<T>();
-    private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
-
-    #region ICollection<T> implementation
+    private T[] _published = Array.Empty<T>();
 
     /// <summary>
-    /// Returns an enumerator that iterates through the <see cref="ConcurrentList{T}"/>.
+    /// Owner-side publication point: freezes the current contents into the array that
+    /// readers off the loop observe. That array is never mutated afterwards.
     /// </summary>
-    /// <returns>
-    /// An <see cref="IEnumerator{T}"/> for the <see cref="ConcurrentList{T}"/>.
-    /// </returns>
-    /// <exception cref="LockRecursionException">The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/> and the current thread has already entered read mode. -or-The current thread may not acquire the read lock when it already holds the write lock. -or-The recursion number would exceed the capacity of the counter. This limit is so large that applications should never encounter it.</exception>
-    public IEnumerator<T> GetEnumerator()
+    public virtual void Publish()
     {
-        var listSnapshot = new List<T>();
-        try
+        this.Published = base.ToArray();
+    }
+
+    /// <summary>
+    /// The immutable view for readers that are not on the owner loop. Replaced wholesale
+    /// by <see cref="Publish"/>, never edited in place.
+    /// </summary>
+    public T[] Published
+    {
+        get { return _published; }
+        set { _published = value ?? Array.Empty<T>(); }
+    }
+
+    /// <summary>
+    /// Snapshot of the list for callers outside the owner loop. Owner-side code that needs
+    /// the live contents keeps using the inherited List&lt;T&gt; members.
+    /// </summary>
+    public new T[] ToArray()
+    {
+        return _published;
+    }
+
+    /// <summary>
+    /// Live copy of the array, for owner-side code that is freezing the whole list anyway
+    /// (building a book snapshot) and therefore must not read a stale publication.
+    /// </summary>
+    internal T[] LiveArray()
+    {
+        return base.ToArray();
+    }
+
+    /// <summary>
+    /// Bisect-left over the live list (owner side), fused with the "is the found slot an
+    /// exact hit?" test that every caller runs straight afterwards.
+    /// </summary>
+    public int BisectLeft(T value, IComparer<T> comparer = null)
+    {
+        bool found;
+        return this.BisectLeft(value, out found, comparer);
+    }
+
+    /// <summary>Bisect-left plus the exact-hit test, in one pass over the live list.</summary>
+    public int BisectLeft(T value, out bool found, IComparer<T> comparer = null)
+    {
+        int count = this.Count;
+        int low = 0;
+        int high = count - 1;
+        if (comparer == null)
         {
-            _lock.EnterReadLock();
-            foreach (T item in _list)
+            while (low <= high)
             {
-                listSnapshot.Add(item);
+                int mid = (low + high) / 2;
+                if (Comparer<T>.Default.Compare(this[mid], value) < 0) low = mid + 1;
+                else high = mid - 1;
             }
+            found = low < count && Comparer<T>.Default.Compare(this[low], value) == 0;
         }
-        finally
+        else
         {
-            _lock.ExitReadLock();
-        }
-        return listSnapshot.GetEnumerator();
-    }
-
-    /// <summary>
-    /// Returns an enumerator that iterates through a collection.
-    /// </summary>
-    /// <returns>
-    /// An System.Collections.IEnumerator object that can be used to iterate through
-    /// the collection.
-    /// </returns>
-    /// <exception cref="LockRecursionException">The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/> and the current thread has already entered read mode. -or-The current thread may not acquire the read lock when it already holds the write lock. -or-The recursion number would exceed the capacity of the counter. This limit is so large that applications should never encounter it.</exception>
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-
-    /// <summary>
-    /// Adds an object to the end of the <see cref="ConcurrentList{T}"/>.
-    /// </summary>
-    /// <param name="item">
-    /// The object to be added to the end of the <see cref="ConcurrentList{T}"/>.
-    /// The value can be null for reference types.
-    /// </param>
-    /// <exception cref="LockRecursionException">
-    /// The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/>
-    /// and the current thread has already entered the lock in any mode. -or-The current
-    /// thread has entered read mode, so trying to enter the lock in write mode would
-    /// create the possibility of a deadlock. -or-The recursion number would exceed the
-    /// capacity of the counter. The limit is so large that applications should never
-    /// encounter it.
-    /// </exception>
-    public void Add(T item)
-    {
-        try
-        {
-            _lock.EnterWriteLock();
-            _list.Add(item);
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-    }
-
-    /// <summary>
-    /// Removes all elements from the <see cref="ConcurrentList{T}"/>.
-    /// </summary>
-    /// <exception cref="LockRecursionException">
-    /// The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/>
-    /// and the current thread has already entered the lock in any mode. -or-The current
-    /// thread has entered read mode, so trying to enter the lock in write mode would
-    /// create the possibility of a deadlock. -or-The recursion number would exceed the
-    /// capacity of the counter. The limit is so large that applications should never
-    /// encounter it.
-    /// </exception>
-    public void Clear()
-    {
-        try
-        {
-            _lock.EnterWriteLock();
-            _list.Clear();
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-    }
-
-    /// <summary>
-    /// Determines whether an element is in the <see cref="ConcurrentList{T}"/>.
-    /// </summary>
-    /// <param name="item">
-    /// The object to locate in the <see cref="ConcurrentList{T}"/>. The
-    /// value can be null for reference types.
-    /// </param>
-    /// <returns>
-    /// true if item is found in the <see cref="ConcurrentList{T}"/>; otherwise,
-    /// false.
-    /// </returns>
-    /// <exception cref="LockRecursionException">The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/> and the current thread has already entered read mode. -or-The current thread may not acquire the read lock when it already holds the write lock. -or-The recursion number would exceed the capacity of the counter. This limit is so large that applications should never encounter it.</exception>
-    public bool Contains(T item)
-    {
-        try
-        {
-            _lock.EnterReadLock();
-            return _list.Contains(item);
-        }
-        finally
-        {
-            _lock.ExitReadLock();
-        }
-    }
-
-    /// <summary>
-    /// Copies the entire <see cref="ConcurrentList{T}"/> to a compatible
-    /// one-dimensional <see cref="Array"/>, starting at the specified index of the target array.
-    /// </summary>
-    /// <param name="array">
-    /// The one-dimensional <see cref="Array"/> that is the destination of the elements copied
-    /// from <see cref="ConcurrentList{T}"/>. The <see cref="Array"/> must have
-    /// zero-based indexing.
-    /// </param>
-    /// <param name="arrayIndex"></param>
-    /// <exception cref="ArgumentNullException">array is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">index is less than zero.</exception>
-    /// <exception cref="ArgumentException">The number of elements in the source <see cref="ConcurrentList{T}"/> is greater than the available space from index to the end of the destination array.</exception>
-    /// <exception cref="LockRecursionException">The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/> and the current thread has already entered read mode. -or-The current thread may not acquire the read lock when it already holds the write lock. -or-The recursion number would exceed the capacity of the counter. This limit is so large that applications should never encounter it.</exception>
-    public void CopyTo(T[] array, int arrayIndex)
-    {
-        try
-        {
-            _lock.EnterReadLock();
-            _list.CopyTo(array, arrayIndex);
-        }
-        finally
-        {
-            _lock.ExitReadLock();
-        }
-    }
-
-    public T[] ToArray()
-    {
-        try
-        {
-            _lock.EnterReadLock();
-            T[] array = new T[_list.Count];
-            _list.CopyTo(array, 0);
-            return array;
-        }
-        finally
-        {
-            _lock.ExitReadLock();
-        }
-    }
-
-    /// <summary>
-    /// Removes the first occurrence of a specific object from the <see cref="ConcurrentList{T}"/>.
-    /// </summary>
-    /// <param name="item">
-    /// The object to remove from the <see cref="ConcurrentList{T}"/>. The value can be null for reference types.
-    /// </param>
-    /// <returns>
-    /// true if item is successfully removed; otherwise, false.
-    /// This method also returns false if item was not found in the original <see cref="ConcurrentList{T}"/>.
-    /// </returns>
-    /// <exception cref="LockRecursionException">
-    /// The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/>
-    /// and the current thread has already entered the lock in any mode. -or-The current
-    /// thread has entered read mode, so trying to enter the lock in write mode would
-    /// create the possibility of a deadlock. -or-The recursion number would exceed the
-    /// capacity of the counter. The limit is so large that applications should never
-    /// encounter it.
-    /// </exception>
-    public bool Remove(T item)
-    {
-        try
-        {
-            _lock.EnterWriteLock();
-            return _list.Remove(item);
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-    }
-
-    /// <summary>
-    /// Gets the number of elements actually contained in the <see cref="ConcurrentList{T}"/>.
-    /// </summary>
-    /// <returns>
-    /// The number of elements actually contained in the <see cref="ConcurrentList{T}"/>.
-    /// </returns>
-    /// <exception cref="LockRecursionException">The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/> and the current thread has already entered read mode. -or-The current thread may not acquire the read lock when it already holds the write lock. -or-The recursion number would exceed the capacity of the counter. This limit is so large that applications should never encounter it.</exception>
-    public int Count
-    {
-        get
-        {
-            try
+            while (low <= high)
             {
-                _lock.EnterReadLock();
-                return _list.Count;
+                int mid = (low + high) / 2;
+                if (comparer.Compare(this[mid], value) < 0) low = mid + 1;
+                else high = mid - 1;
             }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+            found = low < count && comparer.Compare(this[low], value) == 0;
         }
+        return low;
     }
 
-    /// <summary>
-    /// Gets a value indicating whether the <see cref="ICollection{T}"/>
-    /// is read-only.
-    /// </summary>
-    /// <returns>
-    /// true if the <see cref="ICollection{T}"/> is read-only; otherwise,
-    /// false.
-    /// </returns>
-    public bool IsReadOnly => false;
-
-    #endregion
-
-    #region IList<T> implementation
-
-    /// <summary>
-    /// Gets or sets the element at the specified index.
-    /// </summary>
-    /// <param name="index">The zero-based index of the element to get or set.</param>
-    /// <returns>The element at the specified index.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">index is less than zero.-or-index is equal to or greater than <see cref="ConcurrentList{T}.Count"/>.</exception>
-    /// <exception cref="LockRecursionException">When using the getter, the <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/> and the current thread has already entered read mode. -or-The current thread may not acquire the read lock when it already holds the write lock. -or-The recursion number would exceed the capacity of the counter. This limit is so large that applications should never encounter it. When using the setter, the <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/> and the current thread has already entered the lock in any mode. -or-The current thread has entered read mode, so trying to enter the lock in write mode would create the possibility of a deadlock. -or-The recursion number would exceed the capacity of the counter. The limit is so large that applications should never encounter it.</exception>
-    public T this[int index]
+    /// <summary>Searches for the first element that matches the predicate, on the loop.</summary>
+    public new T Find(Predicate<T> match)
     {
-        get
-        {
-            try
-            {
-                _lock.EnterReadLock();
-                return _list[index];
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
-        }
-        set
-        {
-            try
-            {
-                _lock.EnterWriteLock();
-                _list[index] = value;
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
-        }
+        return base.Find(match);
     }
 
-    /// <summary>
-    /// Searches for the specified object and returns the zero-based index of the first
-    /// occurrence within the entire <see cref="ConcurrentList{T}"/>.
-    /// </summary>
-    /// <param name="item">
-    /// The object to locate in the <see cref="ConcurrentList{T}"/>.
-    /// The value can be null for reference types.
-    /// </param>
-    /// <returns>
-    /// The zero-based index of the first occurrence of item within the entire <see cref="ConcurrentList{T}"/>,
-    /// if found; otherwise, -1.
-    /// </returns>
-    /// <exception cref="LockRecursionException">The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/> and the current thread has already entered read mode. -or-The current thread may not acquire the read lock when it already holds the write lock. -or-The recursion number would exceed the capacity of the counter. This limit is so large that applications should never encounter it.</exception>
-    public int IndexOf(T item)
-    {
-        try
-        {
-            _lock.EnterReadLock();
-            return _list.IndexOf(item);
-        }
-        finally
-        {
-            _lock.ExitReadLock();
-        }
-    }
-
-    /// <summary>
-    /// Inserts an element into the <see cref="ConcurrentList{T}"/> at the
-    /// specified index.
-    /// </summary>
-    /// <param name="index">The zero-based index at which item should be inserted.</param>
-    /// <param name="item">The object to insert. The value can be null for reference types.</param>
-    /// <exception cref="ArgumentOutOfRangeException">
-    /// index is less than zero.-or-index is greater than <see cref="ConcurrentList{T}.Count"/>.
-    /// </exception>
-    /// <exception cref="LockRecursionException">
-    /// The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/>
-    /// and the current thread has already entered the lock in any mode. -or-The current
-    /// thread has entered read mode, so trying to enter the lock in write mode would
-    /// create the possibility of a deadlock. -or-The recursion number would exceed the
-    /// capacity of the counter. The limit is so large that applications should never
-    /// encounter it.
-    /// </exception>
-    public void Insert(int index, T item)
-    {
-        try
-        {
-            _lock.EnterWriteLock();
-            _list.Insert(index, item);
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-    }
-
-    /// <summary>
-    /// Removes the element at the specified index of the <see cref="ConcurrentList{T}"/>.
-    /// </summary>
-    /// <param name="index">The zero-based index of the element to remove.</param>
-    /// <exception cref="ArgumentOutOfRangeException">
-    /// index is less than zero.-or-index is equal to or greater than <see cref="ConcurrentList{T}.Count"/>.
-    /// </exception>
-    /// <exception cref="LockRecursionException">
-    /// The <see cref="ReaderWriterLockSlim.RecursionPolicy"/> property is <see cref="LockRecursionPolicy.NoRecursion"/>
-    /// and the current thread has already entered the lock in any mode. -or-The current
-    /// thread has entered read mode, so trying to enter the lock in write mode would
-    /// create the possibility of a deadlock. -or-The recursion number would exceed the
-    /// capacity of the counter. The limit is so large that applications should never
-    /// encounter it.
-    /// </exception>
-    public void RemoveAt(int index)
-    {
-        try
-        {
-            _lock.EnterWriteLock();
-            _list.RemoveAt(index);
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-    }
-
-    public object Find(Predicate<T> match)
-    {
-        try
-        {
-            _lock.EnterReadLock();
-            return _list.Find(match);
-        }
-        finally
-        {
-            _lock.ExitReadLock();
-        }
-    }
-
-
-    #endregion
-
-    #region IDisposable implementation
-
-    /// <summary>
-    /// Disposes the <see cref="ConcurrentList{T}"/> with the internal <see cref="ReaderWriterLockSlim"/> object.
-    /// </summary>
+    /// <summary>Compatibility shim: the list holds no disposable state any more.</summary>
     public void Dispose()
     {
-        try
-        {
-            _lock?.Dispose();
-        }
-        catch
-        {
-        }
     }
-
-    #endregion
 }

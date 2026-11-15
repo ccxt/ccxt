@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestOpenInterest(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"symbol":             "BTC/USDT",
 		"openInterestAmount": exchange.ParseNumber("3544581864.598"),
 		"openInterestValue":  exchange.ParseNumber("3544581864.598"),
@@ -14,7 +14,7 @@ func TestOpenInterest(exchange ccxt.ICoreExchange, skippedProperties any, method
 		"datetime":           "2022-04-07T23:20:00.000Z",
 		"info":               map[string]any{},
 	}
-	var emptyAllowedFor any = []any{"symbol", "timestamp", "openInterestAmount", "openInterestValue", "datetime"}
+	var emptyAllowedFor []any = []any{"symbol", "timestamp", "openInterestAmount", "openInterestValue", "datetime"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertSymbol(exchange, skippedProperties, method, entry, "symbol")
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry)

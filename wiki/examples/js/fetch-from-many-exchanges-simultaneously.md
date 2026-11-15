@@ -1,26 +1,16 @@
-- [Fetch From Many Exchanges Simultaneously](./examples/js/)
-
-
- ```javascript
- 
-
+```javascript
+// @NO_AUTO_TRANSPILE
 import ccxt from '../../js/ccxt.js';
 import log from 'ololog';
+const symbol = 'ETH/BTC';
+const exchanges = ['coinbaseexchange', 'hitbtc', 'poloniex'];
+(async () => {
+    const result = await Promise.all(exchanges.map(async (id) => {
+        const exchange = new ccxt[id]();
+        const ticker = await exchange.fetchTicker(symbol);
+        return exchange.extend({ 'exchange': id }, ticker);
+    }));
+    log(result);
+})();
 
-const symbol = 'ETH/BTC'
-const exchanges = [ 'coinbasepro', 'hitbtc2', 'poloniex' ]
-
-;(async () => {
-
-    const result = await Promise.all (exchanges.map (async id => {
-
-        const exchange = new ccxt[id] ()
-        const ticker = await exchange.fetchTicker (symbol)
-        return exchange.extend ({ 'exchange': id }, ticker)
-
-    }))
-
-    log (result);
-
-}) () 
 ```

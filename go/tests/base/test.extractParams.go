@@ -12,39 +12,39 @@ func TestExtractParams() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// Test 1: Single param
-	var result1 any = exchange.ExtractParams("/users/{id}")
+	var result1 []any = exchange.ExtractParams("/users/{id}")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result1, []any{"id"})
 	// Test 2: Multiple params
-	var result2 any = exchange.ExtractParams("/users/{user_id}/orders/{order_id}")
+	var result2 []any = exchange.ExtractParams("/users/{user_id}/orders/{order_id}")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result2, []any{"user_id", "order_id"})
 	// Test 3: No params
-	var result3 any = exchange.ExtractParams("/api/health")
+	var result3 []any = exchange.ExtractParams("/api/health")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result3, []any{})
 	// Test 4: Params with hyphens
-	var result4 any = exchange.ExtractParams("/api/{resource-name}/{resource-id}")
+	var result4 []any = exchange.ExtractParams("/api/{resource-name}/{resource-id}")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result4, []any{"resource-name", "resource-id"})
 	// Test 5: Mixed path and params
-	var result5 any = exchange.ExtractParams("/v1/{version}/users/{user_id}/profile")
+	var result5 []any = exchange.ExtractParams("/v1/{version}/users/{user_id}/profile")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result5, []any{"version", "user_id"})
 	// Test 6: Empty string
-	var result6 any = exchange.ExtractParams("")
+	var result6 []any = exchange.ExtractParams("")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result6, []any{})
 	// Test 7: Multiple params in longer URL
-	var result7 any = exchange.ExtractParams("/api/{org}/{repo}/pulls/{pull_number}/comments/{comment_id}")
+	var result7 []any = exchange.ExtractParams("/api/{org}/{repo}/pulls/{pull_number}/comments/{comment_id}")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result7, []any{"org", "repo", "pull_number", "comment_id"})
 	// Test 8: Param at start and end
-	var result8 any = exchange.ExtractParams("{start}/middle/{end}")
+	var result8 []any = exchange.ExtractParams("{start}/middle/{end}")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result8, []any{"start", "end"})
 	// Test 9: Adjacent params
-	var result9 any = exchange.ExtractParams("{a}{b}{c}")
+	var result9 []any = exchange.ExtractParams("{a}{b}{c}")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result9, []any{"a", "b", "c"})
 	// Test 10: Param with underscores
-	var result10 any = exchange.ExtractParams("/api/{my_param_name}")
+	var result10 []any = exchange.ExtractParams("/api/{my_param_name}")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result10, []any{"my_param_name"})
 	// Test 11: Single character param
-	var result11 any = exchange.ExtractParams("/api/{x}")
+	var result11 []any = exchange.ExtractParams("/api/{x}")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result11, []any{"x"})
 	// Test 12: Only static path
-	var result12 any = exchange.ExtractParams("/api/v1/users/orders/items")
+	var result12 []any = exchange.ExtractParams("/api/v1/users/orders/items")
 	AssertDeepEqual(exchange, nil, "testExtractParams", result12, []any{})
 }

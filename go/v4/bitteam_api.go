@@ -7,102 +7,132 @@
 
 package ccxt
 
-func (this *BitteamCore) HistoryGetApiTwHistoryPairNameResolution(args ...any) <-chan any {
-	return this.callEndpointAsync("historyGetApiTwHistoryPairNameResolution", args...)
+// HistoryGetApiTwHistoryPairNameResolution returns a channel that yields a JSON object.
+func (this *Bitteam) HistoryGetApiTwHistoryPairNameResolution(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/tw/history/{pairName}/{resolution}", []string{"history"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiAsset(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiAsset", args...)
+// PublicGetTradeApiAsset returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiAsset(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/asset", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiCurrencies", args...)
+// PublicGetTradeApiCurrencies returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiCurrencies(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/currencies", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiOrderbooksSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiOrderbooksSymbol", args...)
+// PublicGetTradeApiOrderbooksSymbol returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiOrderbooksSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/orderbooks/{symbol}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiOrders", args...)
+// PublicGetTradeApiOrders returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/orders", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiPairName(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiPairName", args...)
+// PublicGetTradeApiPairName returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiPairName(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/pair/{name}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiPairs", args...)
+// PublicGetTradeApiPairs returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiPairs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/pairs", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiPairsPrecisions(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiPairsPrecisions", args...)
+// PublicGetTradeApiPairsPrecisions returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiPairsPrecisions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/pairs/precisions", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiRates(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiRates", args...)
+// PublicGetTradeApiRates returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiRates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/rates", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiTradeId(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiTradeId", args...)
+// PublicGetTradeApiStats returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/stats", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiTrades", args...)
+// PublicGetTradeApiTradeId returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiTradeId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/trade/{id}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiCcxtPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiCcxtPairs", args...)
+// PublicGetTradeApiTrades returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/trades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiCmcAssets", args...)
+// PublicGetTradeApiCcxtPairs returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiCcxtPairs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/ccxt/pairs", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcOrderbookPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiCmcOrderbookPair", args...)
+// PublicGetTradeApiCmcAssets returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiCmcAssets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/cmc/assets", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiCmcSummary", args...)
+// PublicGetTradeApiCmcOrderbookPair returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiCmcOrderbookPair(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/cmc/orderbook/{pair}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiCmcTicker", args...)
+// PublicGetTradeApiCmcSummary returns a channel that yields a JSON array.
+func (this *Bitteam) PublicGetTradeApiCmcSummary(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trade/api/cmc/summary", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PublicGetTradeApiCmcTradesPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradeApiCmcTradesPair", args...)
+// PublicGetTradeApiCmcTicker returns a channel that yields a JSON object.
+func (this *Bitteam) PublicGetTradeApiCmcTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/cmc/ticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PrivateGetTradeApiCcxtBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeApiCcxtBalance", args...)
+// PublicGetTradeApiCmcTradesPair returns a channel that yields a JSON array.
+func (this *Bitteam) PublicGetTradeApiCmcTradesPair(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trade/api/cmc/trades/{pair}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PrivateGetTradeApiCcxtOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeApiCcxtOrderId", args...)
+// PrivateGetTradeApiCcxtBalance returns a channel that yields a JSON object.
+func (this *Bitteam) PrivateGetTradeApiCcxtBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/ccxt/balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PrivateGetTradeApiCcxtOrdersOfUser(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeApiCcxtOrdersOfUser", args...)
+// PrivateGetTradeApiCcxtOrderId returns a channel that yields a JSON object.
+func (this *Bitteam) PrivateGetTradeApiCcxtOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/ccxt/order/{id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PrivateGetTradeApiCcxtTradesOfUser(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeApiCcxtTradesOfUser", args...)
+// PrivateGetTradeApiCcxtOrdersOfUser returns a channel that yields a JSON object.
+func (this *Bitteam) PrivateGetTradeApiCcxtOrdersOfUser(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/ccxt/ordersOfUser", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PrivateGetTradeApiTransactionsOfUser(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeApiTransactionsOfUser", args...)
+// PrivateGetTradeApiCcxtTradesOfUser returns a channel that yields a JSON object.
+func (this *Bitteam) PrivateGetTradeApiCcxtTradesOfUser(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/ccxt/tradesOfUser", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PrivatePostTradeApiCcxtCancelAllOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeApiCcxtCancelAllOrder", args...)
+// PrivateGetTradeApiTransactionsOfUser returns a channel that yields a JSON object.
+func (this *Bitteam) PrivateGetTradeApiTransactionsOfUser(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/transactionsOfUser", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PrivatePostTradeApiCcxtCancelorder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeApiCcxtCancelorder", args...)
+// PrivatePostTradeApiCcxtCancelAllOrder returns a channel that yields a JSON object.
+func (this *Bitteam) PrivatePostTradeApiCcxtCancelAllOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/ccxt/cancel-all-order", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BitteamCore) PrivatePostTradeApiCcxtOrdercreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeApiCcxtOrdercreate", args...)
+// PrivatePostTradeApiCcxtCancelorder returns a channel that yields a JSON object.
+func (this *Bitteam) PrivatePostTradeApiCcxtCancelorder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/ccxt/cancelorder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostTradeApiCcxtOrdercreate returns a channel that yields a JSON object.
+func (this *Bitteam) PrivatePostTradeApiCcxtOrdercreate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/api/ccxt/ordercreate", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }

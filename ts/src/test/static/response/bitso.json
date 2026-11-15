@@ -2,6 +2,114 @@
     "exchange": "bitso",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "payload": {
+                        "currencies": {
+                            "metadata": [
+                                {
+                                    "code": "brl",
+                                    "full_name": "Brazilian Reais",
+                                    "color": "02A630",
+                                    "precision": 2,
+                                    "display_ticker": "BRL",
+                                    "type": "fiat"
+                                },
+                                {
+                                    "code": "usdt",
+                                    "full_name": "USDT (Digital Dollars)",
+                                    "color": "50AF95",
+                                    "precision": 2,
+                                    "display_ticker": "USDT",
+                                    "type": "crypto"
+                                }
+                            ]
+                        }
+                    },
+                    "success": true
+                },
+                "parsedResponse": {
+                    "BRL": {
+                        "info": {
+                            "code": "brl",
+                            "full_name": "Brazilian Reais",
+                            "color": "02A630",
+                            "precision": 2,
+                            "display_ticker": "BRL",
+                            "type": "fiat"
+                        },
+                        "id": "brl",
+                        "numericId": null,
+                        "code": "BRL",
+                        "precision": 0.01,
+                        "type": "fiat",
+                        "name": "Brazilian Reais",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "margin": null
+                    },
+                    "USDT": {
+                        "info": {
+                            "code": "usdt",
+                            "full_name": "USDT (Digital Dollars)",
+                            "color": "50AF95",
+                            "precision": 2,
+                            "display_ticker": "USDT",
+                            "type": "crypto"
+                        },
+                        "id": "usdt",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.01,
+                        "type": "crypto",
+                        "name": "USDT (Digital Dollars)",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "margin": null
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",

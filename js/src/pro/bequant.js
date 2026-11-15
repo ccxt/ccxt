@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import hitbtc from './hitbtc.js';
+import hitbtc from '../abstract/pro/bequant.js';
 import bequantRest from '../bequant.js';
 // ---------------------------------------------------------------------------
 export default class bequant extends hitbtc {
@@ -13,11 +13,12 @@ export default class bequant extends hitbtc {
         // eslint-disable-next-line new-cap
         const restInstance = new bequantRest();
         const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(super.describe(), restDescribe);
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'bequant',
             'name': 'Bequant',
-            'countries': ['MT'],
+            'countries': ['MT'], // Malta
             'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',

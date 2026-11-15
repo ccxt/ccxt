@@ -1,8 +1,5 @@
-- [Gateio Futures](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 from random import randint
@@ -51,5 +48,5 @@ try:
         print(open_orders)
 
 except Exception as e:
-    print(type(e).__name__, str(e)) 
+    print(type(e).__name__, str(e))
 ```

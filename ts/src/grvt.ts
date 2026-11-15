@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import type{ Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Fee, Endpoint } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -17,7 +17,7 @@ import { TICK_SIZE } from './base/functions/number.js';
  * @augments Exchange
  */
 export default class grvt extends Exchange {
-    describe (): any {
+    override describe (): Dict {
         const rlOthers = 40;
         const rlOrders = 20;
         return this.deepExtend (super.describe (), {
@@ -84,7 +84,7 @@ export default class grvt extends Exchange {
                 '4w': 'CI_4_W',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6',
+                'logo': 'https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18',
                 'api': {
                     'privateEdge': 'https://edge.grvt.io/',
                     'privateTrading': 'https://trades.grvt.io/',
@@ -105,65 +105,90 @@ export default class grvt extends Exchange {
             'api': {
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge': {
+                    'get': {
+                        'api/v1/deposit/addresses': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/bridge/withdrawal-info': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/bridge/withdrawal-status': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/referral/epochs': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/referral/points': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/referral/data': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'api/v1/referral/indirect_data': { 'cost': rlOthers } as Endpoint<Dict>,
+                    },
                     'post': {
-                        'auth/api_key/login': 100,
-                        'auth/wallet/login': 100,
+                        'auth/api_key/login': { 'cost': 100 } as Endpoint<Dict>,
+                        'auth/wallet/login': { 'cost': 100 } as Endpoint<Dict>,
+                        'auth/builder/authorize': { 'cost': 100 } as Endpoint<Dict>,
+                        'api/v1/deposit/generate-address': { 'cost': 100 } as Endpoint<Dict>,
+                        'api/v1/bridge/withdrawal-quote': { 'cost': 100 } as Endpoint<Dict>,
+                        'api/v1/bridge/withdraw': { 'cost': 100 } as Endpoint<Dict>,
                     },
                 },
                 'publicMarket': {
                     'post': {
-                        'full/v1/instrument': 4,
-                        'full/v1/all_instruments': 4,
-                        'full/v1/instruments': 4,
-                        'full/v1/currency': 12,
-                        'full/v1/margin_rules': 12,
-                        'full/v1/mini': 4,
-                        'full/v1/ticker': 4,
-                        'full/v1/book': 12,
-                        'full/v1/trade': 12,
-                        'full/v1/trade_history': 12,
-                        'full/v1/kline': 12,
-                        'full/v1/funding': 12,
+                        'full/v1/instrument': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/all_instruments': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/instruments': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/currency': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/margin_rules': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/mini': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/ticker': { 'cost': 4 } as Endpoint<Dict>,
+                        'full/v1/book': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/trade': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/trade_history': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/kline': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/funding': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/supported_assets': { 'cost': 12 } as Endpoint<Dict>,
+                        'full/v1/get_all_collateral_asset_info': { 'cost': 12 } as Endpoint<Dict>,
                     },
                 },
                 'privateTrading': {
                     'post': {
-                        'full/v1/create_order': 5,
-                        'full/v1/cancel_order': 5,
-                        'full/v1/cancel_on_disconnect': 100,
-                        'full/v1/cancel_all_orders': 50,
-                        'full/v1/order': rlOrders,
-                        'full/v1/order_history': rlOrders,
-                        'full/v1/open_orders': rlOrders,
-                        'full/v1/fill_history': rlOrders,
-                        'full/v1/positions': rlOrders,
-                        'full/v1/funding_payment_history': rlOthers,
-                        'full/v1/get_sub_accounts': rlOthers,
-                        'full/v1/account_summary': rlOthers,
-                        'full/v1/account_history': rlOthers,
-                        'full/v1/aggregated_account_summary': rlOthers,
-                        'full/v1/funding_account_summary': rlOthers,
-                        'full/v1/transfer': 100,
-                        'full/v1/deposit_history': 100,
-                        'full/v1/transfer_history': 100,
-                        'full/v1/withdrawal': 100,
-                        'full/v1/withdrawal_history': 100,
-                        'full/v1/add_position_margin': rlOthers, // addMargin
-                        'full/v1/get_position_margin_limits': rlOthers,
-                        'full/v1/set_position_config': rlOthers,  // setPositionMode/setMarginMode
-                        'full/v1/set_initial_leverage': rlOthers,
-                        'full/v1/get_all_initial_leverage': rlOthers,
-                        'full/v1/set_derisk_mm_ratio': rlOthers,
-                        'full/v1/vault_burn_tokens': rlOthers,
-                        'full/v1/vault_invest': rlOthers,
-                        'full/v1/vault_investor_summary': rlOthers,
-                        'full/v1/vault_redeem': rlOthers,
-                        'full/v1/vault_redeem_cancel': rlOthers,
-                        'full/v1/vault_view_redemption_queue': rlOthers,
-                        'full/v1/vault_manager_investor_history': rlOthers,
-                        'full/v1/authorize_builder': rlOthers, // https://pastebin(dot)com/0Mb8cFhN
-                        'full/v1/get_authorized_builders': rlOthers,
-                        'full/v1/builder_fill_history': rlOthers,
+                        'full/v1/create_order': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/cancel_order': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/cancel_on_disconnect': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/cancel_all_orders': { 'cost': 50 } as Endpoint<Dict>,
+                        'full/v1/order': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/order_history': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/open_orders': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/fill_history': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/positions': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/funding_payment_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/get_sub_accounts': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/account_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/aggregated_account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/funding_account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/transfer': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/deposit_history': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/transfer_history': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/withdrawal': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/withdrawal_history': { 'cost': 100 } as Endpoint<Dict>,
+                        'full/v1/add_position_margin': { 'cost': rlOthers } as Endpoint<Dict>, // addMargin
+                        'full/v1/get_position_margin_limits': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/set_position_config': { 'cost': rlOthers } as Endpoint<Dict>,  // setPositionMode/setMarginMode
+                        'full/v1/set_initial_leverage': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/get_all_initial_leverage': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/set_derisk_mm_ratio': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_burn_tokens': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_invest': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_investor_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_redeem': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_redeem_cancel': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_view_redemption_queue': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/vault_manager_investor_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/authorize_builder': { 'cost': rlOthers } as Endpoint<Dict>, // https://pastebin(dot)com/0Mb8cFhN
+                        'full/v1/get_authorized_builders': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/builder_fill_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/create_rfq': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/cancel_rfq': { 'cost': 5 } as Endpoint<Dict>,
+                        'full/v1/ecn_from_broker': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v2/bulk_orders': { 'cost': 50 } as Endpoint<Dict>,
+                        'full/v1/position_history': { 'cost': rlOrders } as Endpoint<Dict>,
+                        'full/v1/interest_payment_history': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/get_collateral_preference': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/spot_account_summary': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/set_indicative_prices': { 'cost': rlOthers } as Endpoint<Dict>,
+                        'full/v1/withdrawal_fee': { 'cost': 100 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -172,15 +197,14 @@ export default class grvt extends Exchange {
                 'accountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
-                    'ARBONE': '42161',
+                    'ARBITRUM': '42161',
                     'AVAXC': '43114',
                     'BASE': '8453',
-                    'BSC': '56',
-                    'ETH': '1',
+                    'BEP20': '56',
                     'ERC20': '1',
                     'OP': '10',
                     'SOL': '900',
-                    'TRX': '728126428',
+                    'TRC20': '728126428',
                     'ZKSYNCERA': '324',
                     'KAIA': '8217',
                 },
@@ -390,7 +414,7 @@ export default class grvt extends Exchange {
         });
     }
 
-    eipDefinitions () {
+    eipDefinitions (): Dict {
         return {
             'EIP712_ORDER_TYPE': {
                 'Order': [
@@ -472,7 +496,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    usesPrivateKey () {
+    usesPrivateKey (): boolean {
         const privateKeyDefined = this.privateKey !== undefined && this.privateKey !== '';
         const apiKeyDefined = this.apiKey !== undefined && this.apiKey !== '';
         if (privateKeyDefined && apiKeyDefined) {
@@ -489,7 +513,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    async signIn (params = {}) {
+    override async signIn (params: Dict = {}) {
         // if (this.usesPrivateKey ()) {
         //     await this.signInWithPrivateKey (params);
         //     await this.initializeClient (params);
@@ -505,7 +529,7 @@ export default class grvt extends Exchange {
         return true;
     }
 
-    async signInWithApiKey (params = {}) {
+    async signInWithApiKey (params: Dict = {}): Promise<Dict> {
         const now = this.milliseconds ();
         // expires in 24 hours as CS suggested
         const expires = this.safeInteger (this.options, 'signInExpiration', 0);
@@ -513,7 +537,7 @@ export default class grvt extends Exchange {
         if (expires !== undefined && expires > now + 10000) {
             return {};
         }
-        const request = {
+        const request: Dict = {
             'api_key': this.apiKey,
         };
         const response = await this.privateEdgePostAuthApiKeyLogin (this.extend (request, params));
@@ -527,7 +551,7 @@ export default class grvt extends Exchange {
         return response;
     }
 
-    async signInWithPrivateKey (params = {}) {
+    async signInWithPrivateKey (params: Dict = {}): Promise<Dict> {
         this.checkRequiredCredentials ();
         const now = this.milliseconds ();
         // expires in 24 hours as CS suggested
@@ -537,12 +561,11 @@ export default class grvt extends Exchange {
             return {};
         }
         const walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
-        let request: Dict = {
+        const request: Dict = {
             'address': walletAddress,
             'signature': this.defaultSignature (),
         };
-        request = this.createSignedRequest (request, 'EIP712_WALLETLOGIN_TYPE');
-        const response = await this.privateEdgePostAuthWalletLogin (this.extend (request, params));
+        const response = await this.privateEdgePostAuthWalletLogin (this.extend (this.createSignedRequest (request, 'EIP712_WALLETLOGIN_TYPE'), params));
         //
         //    {
         //        "location": "",
@@ -553,7 +576,7 @@ export default class grvt extends Exchange {
         return response;
     }
 
-    async initializeClient (params = {}) {
+    async initializeClient (params: Dict = {}): Promise<Bool> {
         const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true)); // we shouldn't omit here
         if (!builderFee) {
             return false; // skip if builder fee is not enabled
@@ -572,14 +595,15 @@ export default class grvt extends Exchange {
         //     }]
         // }
         //
-        const currentBuilders = results[0];
+        const currentBuilders = this.safeDict (results, 0);
         const approvedBuilder = this.safeList (currentBuilders, 'results', []);
         const length = approvedBuilder.length;
         let found = false;
+        const builderId = this.safeString (this.options, 'builder');
         for (let i = 0; i < length; i++) {
             const builderInfo = this.safeDict (approvedBuilder, i, {});
             const builderAccountId = this.safeString (builderInfo, 'builder_account_id');
-            if (builderAccountId === this.safeString (this.options, 'builder')) {
+            if (builderAccountId === builderId) {
                 found = true;
                 break;
             }
@@ -589,15 +613,14 @@ export default class grvt extends Exchange {
         } else {
             try {
                 const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId'); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
-                let request: Dict = {
+                const request: Dict = {
                     'main_account_id': defaultFromAccountId,
                     'builder_account_id': this.safeString (this.options, 'builder'),
                     'max_futures_fee_rate': this.safeString (this.options, 'builderRate'),
                     'max_spot_fee_rate': this.safeString (this.options, 'builderRate'),
                     'signature': this.defaultSignature (),
                 };
-                request = this.createSignedRequest (request, 'EIP712_BUILDER_APPROVAL_TYPE');
-                const authResponse = await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (request, params));
+                const authResponse = await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (this.createSignedRequest (request, 'EIP712_BUILDER_APPROVAL_TYPE'), params));
                 //
                 // {
                 //     "result": {
@@ -607,7 +630,7 @@ export default class grvt extends Exchange {
                 // }
                 //
                 const authResult = this.safeDict (authResponse, 'result');
-                const ack = this.safeBool (authResult, 'ack');
+                const ack = this.safeBool (authResult, 'ack', false);
                 if (!ack) {
                     throw new ExchangeError ('Builder authorization failed, ' + this.json (authResponse));
                 }
@@ -624,10 +647,10 @@ export default class grvt extends Exchange {
      * @name grvt#fetchMarkets
      * @description retrieves data on all markets
      * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const marketsPromise = this.publicMarketPostFullV1AllInstruments (params);
         //
         //    {
@@ -655,17 +678,17 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
-        const promises = [ marketsPromise ];
+        const promises: Promise<any>[] = [ marketsPromise ];
         if (!this.isEmptyString (this.apiKey) || !this.isEmptyString (this.privateKey)) {
             promises.push (this.signIn ());
         }
         const results = await Promise.all (promises);
-        const response = results[0];
-        const result = this.safeList (response, 'result', []);
+        const response = this.safeDict (results, 0);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseMarkets (result);
     }
 
-    parseMarket (market): Market {
+    override parseMarket (market: Dict): Market {
         //
         //    {
         //        "instrument": "BTC_USDT_Perp",
@@ -696,8 +719,11 @@ export default class grvt extends Exchange {
         const settleId = quoteId;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settle = this.safeCurrencyCode (settleId);
-        const symbol = base + '/' + quote + ':' + settle;
+        const symbol = base + '/' + quote + ':' + quote;
         let type: Str = undefined;
         const typeRaw = this.safeString (market, 'kind');
         if (typeRaw === 'PERPETUAL') {
@@ -768,8 +794,8 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
-        const request = { '': '' }; // workaround for php [] empty arr
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
+        const request: Dict = { '': '' }; // workaround for php [] empty arr
         const response = await this.publicMarketPostFullV1Currency (request);
         //
         //    {
@@ -786,7 +812,7 @@ export default class grvt extends Exchange {
         return this.parseCurrencies (responseResult);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         //
         //            {
         //                "id": "4",
@@ -836,10 +862,12 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument': this.marketId (symbol),
         };
         const response = await this.publicMarketPostFullV1Ticker (this.extend (request, params));
@@ -879,7 +907,7 @@ export default class grvt extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //  {
         //            "event_time": "1764774730025055205",
@@ -911,9 +939,12 @@ export default class grvt extends Exchange {
         //        }
         //
         const marketId = this.safeString (ticker, 'instrument');
+        const timestamp = this.safeIntegerProduct (ticker, 'event_time', 0.000001);
         return this.safeTicker ({
             'info': ticker,
             'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'open': this.safeString (ticker, 'open_price'),
             'high': this.safeString (ticker, 'high_price'),
             'low': this.safeString (ticker, 'low_price'),
@@ -943,18 +974,21 @@ export default class grvt extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
-        const request = {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {
             'instrument': this.marketId (symbol),
         };
-        if (limit === undefined) {
-            limit = 100;
+        let limitResolved: Int = 100;
+        if (limit !== undefined) {
+            limitResolved = limit;
         }
-        if (limit <= 500) {
-            request['depth'] = this.findNearestCeiling ([ 10, 50, 100, 500 ], limit);
+        if (limit === undefined || limit <= 500) {
+            request['depth'] = this.findNearestCeiling ([ 10, 50, 100, 500 ], limitResolved);
         }
         const response = await this.publicMarketPostFullV1Book (this.extend (request, params));
         //
@@ -991,20 +1025,22 @@ export default class grvt extends Exchange {
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let request = {
+        const request: Dict = {
             'instrument': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.publicMarketPostFullV1TradeHistory (this.extend (request, params));
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const response = await this.publicMarketPostFullV1TradeHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
@@ -1025,11 +1061,11 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -1075,24 +1111,26 @@ export default class grvt extends Exchange {
         //            }
         //
         const marketId = this.safeString (trade, 'instrument');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerProduct (trade, 'event_time', 0.000001);
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         const isTakerBuyer = this.safeBool (trade, 'is_taker_buyer');
         let side: Str = undefined;
         if (isTakerBuyer !== undefined) {
             side = isTakerBuyer ? 'buy' : 'sell';
             takerOrMaker = 'taker';
         } else {
-            takerOrMaker = this.safeBool (trade, 'is_taker') ? 'taker' : 'maker';
-            side = this.safeBool (trade, 'is_buyer') ? 'buy' : 'sell';
+            const isTaker = this.safeBool (trade, 'is_taker', false);
+            const isBuyer = this.safeBool (trade, 'is_buyer', false);
+            takerOrMaker = isTaker ? 'taker' : 'maker';
+            side = isBuyer ? 'buy' : 'sell';
         }
-        let fee = undefined;
+        let fee: Fee = undefined;
         const feeString = this.safeString (trade, 'fee');
         if (feeString !== undefined) {
             fee = {
                 'cost': this.parseNumber (feeString),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'rate': this.safeNumber (trade, 'fee_rate'),
             };
         }
@@ -1101,7 +1139,7 @@ export default class grvt extends Exchange {
             'id': this.safeString (trade, 'trade_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'price'),
@@ -1109,7 +1147,7 @@ export default class grvt extends Exchange {
             'cost': undefined,
             'fee': fee,
             'order': this.safeString (trade, 'order_id'),
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1126,16 +1164,17 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         const maxLimit = 1000;
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
-        let request = {
+        const request: Dict = {
             'instrument': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1145,16 +1184,16 @@ export default class grvt extends Exchange {
             'index': 'INDEX',
             // 'median': 'MEDIAN',
         };
-        const selectedPriceType = this.safeString (params, 'priceType', 'last');
+        const selectedPriceType = this.safeString (paramsPaginate, 'priceType', 'last');
         request['type'] = this.safeString (priceTypeMap, selectedPriceType);
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.publicMarketPostFullV1Kline (this.extend (request, params));
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
+        const response = await this.publicMarketPostFullV1Kline (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -1178,7 +1217,7 @@ export default class grvt extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //            {
         //                "open_time": "1767288240000000000",
@@ -1216,28 +1255,29 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        let request: Dict = {
+        const request: Dict = {
             'instrument': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.publicMarketPostFullV1Funding (this.extend (request, params));
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
+        const response = await this.publicMarketPostFullV1Funding (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -1254,11 +1294,11 @@ export default class grvt extends Exchange {
         //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseFundingRateHistories (result, market);
     }
 
-    parseFundingRateHistory (rawItem, market: Market = undefined) {
+    override parseFundingRateHistory (rawItem: any, market: Market = undefined): FundingRateHistory {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",
@@ -1271,18 +1311,20 @@ export default class grvt extends Exchange {
         //
         const marketId = this.safeString (rawItem, 'instrument');
         const ts = this.safeIntegerProduct (rawItem, 'funding_time', 0.000001);
+        // the api documents funding_rate in percentage points, and a unified
+        // fundingRate is a fraction, with the Manual's examples reading 0.000072
+        const rate = this.safeString (rawItem, 'funding_rate');
         return {
             'info': rawItem,
             'symbol': this.safeSymbol (marketId, market),
-            'fundingRate': this.safeNumber (rawItem, 'funding_rate'),
+            'fundingRate': this.parseNumber (Precise.stringDiv (rate, '100')),
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
         };
     }
 
-    getSubAccountId (params) {
-        let subAccountId = undefined;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
+    getSubAccountId (params: Dict): string {
+        const subAccountId = this.safeString (this.handleOptionAndParams (params, 'getSubAccountId', 'accountId'), 0);
         if (subAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
@@ -1297,9 +1339,9 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         const response = await this.privateTradingPostFullV1AccountSummary (this.extend (request, params));
@@ -1335,7 +1377,7 @@ export default class grvt extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         //        {
         //            "event_time": "1764863116142428457",
@@ -1368,16 +1410,18 @@ export default class grvt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
-        const spotBalances = this.safeList (response, 'spot_balances', []);
+        const spotBalances: Dict[] = this.safeList (response, 'spot_balances', []);
         const availableBalance = this.safeString (response, 'available_balance');
         for (let i = 0; i < spotBalances.length; i++) {
-            const balance = spotBalances[i];
+            const balance = this.safeDict (spotBalances, i);
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['total'] = this.safeString (balance, 'balance');
             account['free'] = availableBalance; // todo: revise after API team clarification
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1394,10 +1438,10 @@ export default class grvt extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         await this.loadMarketsAndSignIn ();
-        let request: Dict = {};
-        let currency = undefined;
+        const request: Dict = {};
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = [ currency['code'] ];
@@ -1405,18 +1449,17 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = this.numberToString (since * 1000000);
         }
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
-            const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
-            const filteredResults = this.filterTransfersByType (transfers, 'deposit', true);
-            const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
+            const transfers = await this.internalFetchTransfers (this.extend (requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
+            const transactions = this.getListFromObjectValues (this.safeList (this.filterTransfersByType (transfers, 'deposit', true), 0, []), 'info');
             return this.parseTransactions (transactions, currency, since, limit);
         } else {
-            const response = await this.privateTradingPostFullV1DepositHistory (this.extend (request, params));
+            const response = await this.privateTradingPostFullV1DepositHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
             //
             // {
             //     "result": [{
@@ -1432,16 +1475,16 @@ export default class grvt extends Exchange {
             //     "next": "Qw0918="
             // }
             //
-            const result = this.safeList (response, 'result', []);
+            const result = this.safeList (response, 'result', []) as List;
             return this.parseTransactions (result, currency, since, limit);
         }
     }
 
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -1449,10 +1492,10 @@ export default class grvt extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         await this.loadMarketsAndSignIn ();
-        let request: Dict = {};
-        let currency = undefined;
+        const request: Dict = {};
+        let currency: Currency = undefined;
         if (code === undefined) {
             request['currency'] = null;
         } else {
@@ -1462,18 +1505,17 @@ export default class grvt extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = this.numberToString (since * 1000000);
         }
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         const useTransfersEndpoint = this.safeBool (this.options, 'useTransfersEndpointForDepositsWithdrawals', true);
         if (useTransfersEndpoint) {
-            const transfers = await this.internalFetchTransfers (this.extend (request, params), currency, since, limit);
-            const filteredResults = this.filterTransfersByType (transfers, 'withdrawal', true);
-            const transactions = this.getListFromObjectValues (filteredResults[0], 'info');
+            const transfers = await this.internalFetchTransfers (this.extend (requestUntilOptionString, paramsUntilOptionString), currency, since, limit);
+            const transactions = this.getListFromObjectValues (this.safeList (this.filterTransfersByType (transfers, 'withdrawal', true), 0, []), 'info');
             return this.parseTransactions (transactions, currency, since, limit);
         } else {
-            const response = await this.privateTradingPostFullV1WithdrawalHistory (this.extend (request, params));
+            const response = await this.privateTradingPostFullV1WithdrawalHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
             //
             // {
             //     "result": [{
@@ -1498,12 +1540,12 @@ export default class grvt extends Exchange {
             //     "next": "Qw0918="
             // }
             //
-            const result = this.safeList (response, 'result', []);
+            const result = this.safeList (response, 'result', []) as List;
             return this.parseTransactions (result, currency, since, limit);
         }
     }
 
-    async internalFetchTransfers (req, currency: any = undefined, since: Int = undefined, limit: Int = undefined) {
+    async internalFetchTransfers (req: Dict, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined): Promise<TransferEntry[]> {
         const response = await this.privateTradingPostFullV1TransferHistory (req);
         //
         //    {
@@ -1534,12 +1576,12 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const rows = this.safeList (response, 'result', []);
+        const rows: Dict[] = this.safeList (response, 'result', []);
         const transfers = this.parseTransfers (rows, currency, since, limit);
         return transfers;
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1615,18 +1657,16 @@ export default class grvt extends Exchange {
         let addressTo = this.safeString (transaction, 'to_account_id');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        if ('transfer_metadata' in transaction) {
-            const metaData = this.omitZero (this.safeString (transaction, 'transfer_metadata'));
-            if (metaData !== undefined) {
-                const parsedMeta = this.parseJson (metaData);
-                direction = this.safeStringLower (parsedMeta, 'direction');
-                txId = this.safeString (parsedMeta, 'provider_tx_id');
-                networkCode = this.networkIdToCode (this.safeString (parsedMeta, 'chainid'), code);
-                if (direction === 'withdrawal') {
-                    addressTo = this.safeString (parsedMeta, 'endpoint');
-                } else if (direction === 'deposit') {
-                    addressFrom = this.safeString (parsedMeta, 'endpoint');
-                }
+        const metaData = this.omitZero (this.safeString (transaction, 'transfer_metadata'));
+        if (metaData !== undefined) {
+            const parsedMeta = this.parseJson (metaData);
+            direction = this.safeStringLower (parsedMeta, 'direction');
+            txId = this.safeString (parsedMeta, 'provider_tx_id');
+            networkCode = this.networkIdToCode (this.safeString (parsedMeta, 'chainid'), code);
+            if (direction === 'withdrawal') {
+                addressTo = this.safeString (parsedMeta, 'endpoint');
+            } else if (direction === 'deposit') {
+                addressFrom = this.safeString (parsedMeta, 'endpoint');
             }
         }
         const timestamp = this.safeIntegerProduct2 (transaction, 'event_time', 'initiated_time', 0.000001);
@@ -1665,27 +1705,26 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
         await this.loadMarketsAndSignIn ();
-        let request: Dict = {};
+        const request: Dict = {};
         const currency = this.currency (code);
         const maxLimit = 1000;
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate', false);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic ('fetchTransfers', undefined, since, limit, paramsPaginate, maxLimit);
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.privateTradingPostFullV1TransferHistory (this.extend (request, params));
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
+        const response = await this.privateTradingPostFullV1TransferHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -1715,19 +1754,18 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const rows = this.safeList (response, 'result', []);
+        const rows: Dict[] = this.safeList (response, 'result', []);
         const transfers = this.parseTransfers (rows, currency, since, limit);
-        const filteredResults = this.filterTransfersByType (transfers, 'internal', false);
-        return filteredResults[1];
+        return this.toArray (this.safeList (this.filterTransfersByType (transfers, 'internal', false), 1, []));
     }
 
-    filterTransfersByType (transfers: any, transferType: string, onlyMainAccount = true): any {
-        const matchedResults = [];
-        const nonMatchedResults = [];
+    filterTransfersByType (transfers: Dict[], transferType: string, onlyMainAccount = true): List[] {
+        const matchedResults: List = [];
+        const nonMatchedResults: List = [];
         for (let i = 0; i < transfers.length; i++) {
             const transfer = transfers[i];
-            if ((onlyMainAccount && transfer['fromAccount'] === '0' && transfer['toAccount'] === '0') || (!onlyMainAccount && (transfer['fromAccount'] !== '0' || transfer['toAccount'] !== '0'))) {
-                const metadata = this.safeString (transfer['info'], 'transfer_metadata');
+            if ((onlyMainAccount && this.safeString (transfer, 'fromAccount') === '0' && this.safeString (transfer, 'toAccount') === '0') || (!onlyMainAccount && (this.safeString (transfer, 'fromAccount') !== '0' || this.safeString (transfer, 'toAccount') !== '0'))) {
+                const metadata = this.safeString (this.safeDict (transfer, 'info', {}), 'transfer_metadata');
                 const parsedMetadata = this.parseJson (metadata);
                 const direction = this.safeString (parsedMetadata, 'direction');
                 if (direction === transferType) {
@@ -1752,40 +1790,42 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params: Dict = {}): Promise<TransferEntry> {
         await this.loadMarketsAndSignIn ();
         const currency = this.currency (code);
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
-        if (this.inArray (fromAccount, [ 'trading', 'funding' ]) && this.inArray (toAccount, [ 'trading', 'funding' ])) {
-            let tradingAccountId: Str = undefined;
-            [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'transfer', 'tradingAccountId');
-            let fundingAccountId: Str = undefined;
-            [ fundingAccountId, params ] = this.handleOptionAndParams (params, 'transfer', 'fundingAccountId');
+        const isInternal = this.inArray (fromAccount, [ 'trading', 'funding' ]) && this.inArray (toAccount, [ 'trading', 'funding' ]);
+        let fromSubAccount: string = fromAccount;
+        let toSubAccount: string = toAccount;
+        let paramsFundingAccountId: Dict = params;
+        if (isInternal) {
+            const [ tradingAccountId, paramsTradingAccountId ] = this.handleOptionStringAndParams (params, 'transfer', 'tradingAccountId');
+            const [ fundingAccountId, paramsFunding ] = this.handleOptionStringAndParams (paramsTradingAccountId, 'transfer', 'fundingAccountId');
             if (tradingAccountId === undefined || fundingAccountId === undefined) {
                 throw new ArgumentsRequired (this.id + ' transfer(): you should set (in the options or params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }
-            fromAccount = (fromAccount === 'trading') ? tradingAccountId : fundingAccountId;
-            toAccount = (toAccount === 'trading') ? tradingAccountId : fundingAccountId;
+            fromSubAccount = (fromAccount === 'trading') ? tradingAccountId : fundingAccountId;
+            toSubAccount = (toAccount === 'trading') ? tradingAccountId : fundingAccountId;
+            paramsFundingAccountId = paramsFunding;
         }
-        let request: Dict = {
-            'from_account_id': this.safeString (params, 'from_account_id', defaultFromAccountId),
-            'from_sub_account_id': this.safeString (params, 'from_sub_account_id', fromAccount),
-            'to_account_id': this.safeString (params, 'to_account_id', defaultFromAccountId),
-            'to_sub_account_id': this.safeString (params, 'to_sub_account_id', toAccount),
+        const request: Dict = {
+            'from_account_id': this.safeString (paramsFundingAccountId, 'from_account_id', defaultFromAccountId),
+            'from_sub_account_id': this.safeString (paramsFundingAccountId, 'from_sub_account_id', fromSubAccount),
+            'to_account_id': this.safeString (paramsFundingAccountId, 'to_account_id', defaultFromAccountId),
+            'to_sub_account_id': this.safeString (paramsFundingAccountId, 'to_sub_account_id', toSubAccount),
             'currency': currency['id'],
             'num_tokens': this.currencyToPrecision (code, amount),
             'signature': this.defaultSignature (),
             'transfer_type': 'STANDARD',
             'transfer_metadata': null,
         };
-        request = this.createSignedRequest (request, 'EIP712_TRANSFER_TYPE', currency);
-        let response: Dict = undefined;
+        let response = undefined;
         try {
-            response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
+            response = await this.privateTradingPostFullV1Transfer (this.extend (this.createSignedRequest (request, 'EIP712_TRANSFER_TYPE', currency), paramsFundingAccountId));
         } catch (error) {
             const msg = this.exceptionMessage (error);
-            const isFromFundingAccount = fromAccount === 'funding';
-            if (isFromFundingAccount && msg.indexOf ('You are not authorized')) {
+            const isFromFundingAccount = fromSubAccount === 'funding';
+            if (isFromFundingAccount && (msg.indexOf ('You are not authorized') >= 0)) {
                 throw new PermissionDenied (this.id + ' transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ' + msg);
             }
             throw error;
@@ -1802,7 +1842,7 @@ export default class grvt extends Exchange {
         return this.parseTransfer (result, currency);
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -1851,11 +1891,11 @@ export default class grvt extends Exchange {
         };
     }
 
-    async loadAccountInfos () {
+    async loadAccountInfos (): Promise<boolean> {
         if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
             return false;
         }
-        const promises = [];
+        const promises: List = [];
         promises.push (this.privateTradingPostFullV1AggregatedAccountSummary ());
         //
         //     {
@@ -1917,31 +1957,31 @@ export default class grvt extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         this.checkAddress (address);
         await this.loadMarketsAndSignIn ();
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         const currency = this.currency (code);
-        let request: Dict = {
-            'to_eth_address': address,
-            'from_account_id': defaultFromAccountId,
-            'currency': currency['id'],
-            'num_tokens': this.currencyToPrecision (code, amount),
-            'signature': this.defaultSignature (),
-        };
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         const networkId = this.networkCodeToId (networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
-        request['signature']['chain_id'] = networkId;
-        request = this.createSignedRequest (request, 'EIP712_WITHDRAWAL_TYPE', currency);
-        const response = await this.privateTradingPostFullV1Withdrawal (this.extend (request, query));
+        const withdrawSignature: Dict = this.defaultSignature ();
+        withdrawSignature['chain_id'] = networkId;
+        const request: Dict = {
+            'to_eth_address': address,
+            'from_account_id': defaultFromAccountId,
+            'currency': currency['id'],
+            'num_tokens': this.currencyToPrecision (code, amount),
+            'signature': withdrawSignature,
+        };
+        const response = await this.privateTradingPostFullV1Withdrawal (this.extend (this.createSignedRequest (request, 'EIP712_WITHDRAWAL_TYPE', currency), query));
         //
         // {
         //     "result": {
@@ -1973,10 +2013,10 @@ export default class grvt extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
-        const orderLeg = {
+        const orderLeg: Dict = {
             'instrument': market['id'],
             'size': this.amountToPrecision (symbol, amount),
         };
@@ -1996,11 +2036,11 @@ export default class grvt extends Exchange {
         if (clientOrderId === undefined) {
             clientOrderId = this.nonce ().toString () + '000' + this.requestId ().toString ();
         }
-        params = this.omit (params, [ 'clientOrderId' ]);
+        const paramsOmitted3: Dict = this.omit (params, [ 'clientOrderId' ]);
         const isMarketOrder = (type === 'market');
-        const subAccountId = this.getSubAccountId (params);
-        const isReduceOnly = this.safeBool (params, 'reduceOnly', false);
-        const orderRequest = {
+        const subAccountId = this.getSubAccountId (paramsOmitted3);
+        const isReduceOnly = this.safeBool (paramsOmitted3, 'reduceOnly', false);
+        const orderRequest: Dict = {
             'sub_account_id': subAccountId,
             'time_in_force': undefined,
             'legs': [ orderLeg ],
@@ -2014,8 +2054,8 @@ export default class grvt extends Exchange {
             // 'order_id': null,
             // 'state': null,
         };
-        let timeInForce = this.safeStringUpper (params, 'timeInForce', 'GOOD_TILL_TIME');
-        const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
+        let timeInForce = this.safeStringUpper (paramsOmitted3, 'timeInForce', 'GOOD_TILL_TIME');
+        const postOnly = this.isPostOnly (isMarketOrder, undefined, paramsOmitted3);
         if (postOnly) {
             orderRequest['post_only'] = true;
         }
@@ -2037,13 +2077,11 @@ export default class grvt extends Exchange {
                 timeInForce = 'IMMEDIATE_OR_CANCEL';
             }
         }
-        params = this.omit (params, [ 'reduceOnly', 'postOnly', 'timeInForce' ]);
+        const paramsOmitted2: Dict = this.omit (paramsOmitted3, [ 'reduceOnly', 'postOnly', 'timeInForce' ]);
         // Trigger & SL & TP
-        let triggerPrice: Str = undefined;
-        let stopLossPrice: Str = undefined;
-        let takeProfitPrice: Str = undefined;
-        [ triggerPrice, stopLossPrice, takeProfitPrice, params ] = this.handleTriggerPricesAndParams (symbol, params);
-        if (triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined) {
+        const [ triggerPrice, stopLossPrice, takeProfitPrice, paramsTriggerPrices ] = this.handleTriggerPricesAndParams (symbol, paramsOmitted2);
+        const isTriggerOrder = (triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined);
+        if (isTriggerOrder) {
             // trigger price
             let selectedPrice: Str = undefined;
             if (triggerPrice !== undefined) {
@@ -2061,7 +2099,7 @@ export default class grvt extends Exchange {
             } else if (takeProfitPrice !== undefined) {
                 selectedType = isBuy ? 'TAKE_PROFIT' : 'STOP_LOSS';
             } else {
-                const triggerDirection = this.safeString (params, 'triggerDirection');
+                const triggerDirection = this.safeString (paramsTriggerPrices, 'triggerDirection');
                 if (triggerDirection === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be "ascending" or "descending"');
                 }
@@ -2074,30 +2112,33 @@ export default class grvt extends Exchange {
                 }
             }
             // trigger by
-            const triggerPriceType = this.safeStringUpper (params, 'triggerPriceType', 'LAST');
+            const triggerPriceType = this.safeStringUpper (paramsTriggerPrices, 'triggerPriceType', 'LAST');
             orderRequest['metadata']['trigger'] = {
                 'trigger_type': selectedType,
                 'tpsl': {
                     'trigger_by': triggerPriceType,
                     'trigger_price': selectedPrice,
-                    'close_position': this.safeBool (params, 'closePosition', false),
+                    'close_position': this.safeBool (paramsTriggerPrices, 'closePosition', false),
                 },
             };
-            params = this.omit (params, [ 'triggerDirection', 'triggerPriceType', 'closePosition' ]);
+        }
+        let paramsTrigger: Dict = paramsTriggerPrices;
+        if (isTriggerOrder) {
+            paramsTrigger = this.omit (paramsTriggerPrices, [ 'triggerDirection', 'triggerPriceType', 'closePosition' ]);
         }
         let eipType = 'EIP712_ORDER_TYPE';
-        const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true));
+        const builderFee = this.safeBool (paramsTrigger, 'builderFee', this.safeBool (this.options, 'builderFee', true));
         if (builderFee) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
             orderRequest['builder'] = this.safeString (this.options, 'builder');
             orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
         }
-        params = this.omit (params, [ 'builderFee' ]);
+        const paramsOmitted: Dict = this.omit (paramsTrigger, [ 'builderFee' ]);
         const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
-        const request = {
+        const request: Dict = {
             'order': signedOrderRequest,
         };
-        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, params));
+        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, paramsOmitted));
         //
         //    {
         //        "result": {
@@ -2162,60 +2203,63 @@ export default class grvt extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    convertToBigIntCustom (x) {
-        return parseInt (x);
+    convertToBigIntCustom (x: any): int {
+        return parseInt (this.numberToString (x) as any);
     }
 
-    eipMessageForOrder (order, structureType) {
-        const priceMultiplier = '1000000000';
-        const orderLegs = this.safeList (order, 'legs', []);
-        const legs = [];
+    eipMessageForOrder (order: Dict, structureType: Str): Dict {
+        const priceMultiplier: int = 1000000000;
+        const orderLegs: Dict[] = this.safeList (order, 'legs', []);
+        const legs: List = [];
         for (let i = 0; i < orderLegs.length; i++) {
             const leg = orderLegs[i];
             const market = this.market (leg['instrument']);
-            const bigInt10 = this.convertToBigIntCustom ('10');
             const precisionValue = this.precisionFromString (this.safeString (market['precision'], 'base'));
-            const precisionValueStr = precisionValue.toString ();
-            const sizeMultiplier = Math.pow (bigInt10, this.convertToBigIntCustom (precisionValueStr));
-            const size = leg['size'];
+            const sizeMultiplier = Math.pow (10, precisionValue);
+            const size = this.safeString (leg, 'size');
+            if (size === undefined) {
+                throw new ArgumentsRequired (this.id + ' order leg requires a size');
+            }
             const sizeParts = size.split ('.');
             const sizeDec = this.safeString (sizeParts, 1, '');
             const sizeDecLength = sizeDec.length + 0; // php tr
-            const sizeDecLengthStr = sizeDecLength.toString ();
-            const sizeInteger = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
-            const legOrder = {
-                'assetID': market['info']['instrument_hash'],
+            const sizeDigits = parseInt (size.replace ('.', ''));
+            let denominator = Math.pow (10, sizeDecLength);
+            const sizeInteger = sizeDigits * sizeMultiplier / denominator;
+            const legOrder: Dict = {
+                'assetID': this.safeString (market['info'], 'instrument_hash'),
                 'contractSize': this.parseToInt (sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
             };
             const limitPrice = this.safeString (leg, 'limit_price');
-            if (this.omitZero (limitPrice) !== undefined) {
-                const price = leg['limit_price'];
+            if ((limitPrice !== undefined) && (this.omitZero (limitPrice) !== undefined)) {
+                const price = limitPrice;
                 const limitParts = price.split ('.');
                 const limitDec = this.safeString (limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr
-                const limitDecLengthStr = limitDecLength.toString ();
-                const powerNum = limitDecLengthStr === '0' ? 0 : this.convertToBigIntCustom (limitDecLengthStr);
-                const priceInteger = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, powerNum)));
+                const priceDigits = parseInt (price.replace ('.', ''));
+                denominator = Math.pow (10, limitDecLength);
+                const priceInteger = priceDigits * priceMultiplier / denominator;
                 legOrder['limitPrice'] = this.parseToInt (priceInteger);
             } else {
                 legOrder['limitPrice'] = 0; // should be zero to validate type-check
             }
             legs.push (legOrder);
         }
-        const returnValue = {
+        const orderSignature: Dict = this.safeDict (order, 'signature', {});
+        const returnValue: Dict = {
             'subAccountID': order['sub_account_id'],
             'isMarket': order['is_market'],
             'timeInForce': this.timeInForceToInt (order['time_in_force']),
             'postOnly': order['post_only'],
             'reduceOnly': order['reduce_only'],
             'legs': legs,
-            'nonce': order['signature']['nonce'],
-            'expiration': order['signature']['expiration'],
+            'nonce': orderSignature['nonce'],
+            'expiration': orderSignature['expiration'],
         };
         if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool (this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
-            returnValue['builderFee'] = this.parseToInt (this.convertToBigIntCustom (this.feeAmountMultiplier ()) * parseFloat (order['builder_fee'])); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue['builderFee'] = this.parseToInt (this.convertToBigIntCustom (this.feeAmountMultiplier ()) * parseFloat (this.safeString (order, 'builder_fee') as any)); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
         return returnValue;
     }
@@ -2233,32 +2277,29 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarketsAndSignIn ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, paramsPaginate) as Trade[];
         }
-        let request = {
-            'sub_account_id': this.getSubAccountId (params),
+        const request: Dict = {
+            'sub_account_id': this.getSubAccountId (paramsPaginate),
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['base'] = [];
-            request['base'].push (market['baseId']);
-            request['quote'] = [];
-            request['quote'].push (market['quoteId']);
+            request['base'] = [ market['baseId'] ];
+            request['quote'] = [ market['quoteId'] ];
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.privateTradingPostFullV1FillHistory (this.extend (request, params));
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
+        const response = await this.privateTradingPostFullV1FillHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -2290,7 +2331,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseTrades (result, undefined, since, limit);
     }
 
@@ -2303,24 +2344,26 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
-        if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
-            request['base'] = [];
-            request['quote'] = [];
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (symbolsNormalized !== undefined) {
+            const baseIds: Str[] = [];
+            const quoteIds: Str[] = [];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
-                if (market['contract'] !== true) {
+                if (!this.safeBool (market, 'contract', false)) {
                     throw new BadRequest (this.id + ' fetchPositions() supports contract markets only');
                 }
-                request['base'].push (market['baseId']);
-                request['quote'].push (market['quoteId']);
+                baseIds.push (market['baseId']);
+                quoteIds.push (market['quoteId']);
             }
+            request['base'] = baseIds;
+            request['quote'] = quoteIds;
         }
         const response = await this.privateTradingPostFullV1Positions (this.extend (request, params));
         //
@@ -2348,11 +2391,11 @@ export default class grvt extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
-        return this.parsePositions (result, symbols);
+        const result = this.safeList (response, 'result', []) as List;
+        return this.parsePositions (result, symbolsNormalized);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         //            {
         //                "event_time": "1765258069092857642",
@@ -2378,13 +2421,22 @@ export default class grvt extends Exchange {
         const timestamp = this.safeIntegerProduct (position, 'event_time', 0.000001);
         const sizeRaw = this.safeString (position, 'size');
         const isLong = (Precise.stringGe (sizeRaw, '0'));
-        const side = isLong ? 'long' : 'short';
+        let side: Str = 'short';
+        if (isLong) {
+            side = 'long';
+        }
+        // isolated_balance is the wallet balance reserved for the isolated position
+        const marginMode = this.safeStringLower (position, 'margin_type');
+        let positionMargin: Num = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = this.safeNumber (position, 'isolated_balance');
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeSymbol (marketId, market),
             'notional': this.parseNumber (Precise.stringAbs (this.safeString (position, 'notional'))),
-            'marginMode': undefined,
+            'marginMode': marginMode,
             'liquidationPrice': this.safeNumber (position, 'est_liquidation_price'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
@@ -2398,10 +2450,11 @@ export default class grvt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': this.safeInteger (position, 'lastUpdateTime'),
-            'maintenanceMargin': this.safeNumber (position, 'maintenanceMargin'),
+            'maintenanceMargin': this.safeNumber2 (position, 'isolated_mm', 'maintenanceMargin'),
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'initialMargin': this.safeNumber (position, 'initialMargin'),
+            'initialMargin': this.safeNumber2 (position, 'isolated_im', 'initialMargin'),
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,
@@ -2419,7 +2472,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+    override async fetchLeverages (symbols: Strings = undefined, params: Dict = {}): Promise<Leverages> {
         await this.loadMarketsAndSignIn ();
         const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
@@ -2436,7 +2489,7 @@ export default class grvt extends Exchange {
         //                "margin_type": "CROSS"
         //            },
         //
-        const results = this.safeList (response, 'results', []);
+        const results: Dict[] = this.safeList (response, 'results', []);
         return this.parseLeverages (results, symbols);
     }
 
@@ -2450,7 +2503,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params: Dict = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2470,7 +2523,7 @@ export default class grvt extends Exchange {
         return this.parseLeverage (response, market);
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         //
         // setLeverage
         //
@@ -2509,7 +2562,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    async fetchMarginModes (symbols: Str[] = undefined, params = {}): Promise<MarginModes> {
+    override async fetchMarginModes (symbols: Strings = undefined, params: Dict = {}): Promise<MarginModes> {
         await this.loadMarketsAndSignIn ();
         const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
@@ -2526,11 +2579,11 @@ export default class grvt extends Exchange {
         //                "margin_type": "CROSS"
         //            },
         //
-        const results = this.safeList (response, 'results', []);
+        const results: Dict[] = this.safeList (response, 'results', []);
         return this.parseLeverages (results, symbols);
     }
 
-    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+    override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         //
         // fetchMarginModes
         //
@@ -2563,32 +2616,29 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingHistory[]> {
         await this.loadMarketsAndSignIn ();
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, params, 1000) as FundingHistory[];
+            return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, paramsPaginate, 1000) as FundingHistory[];
         }
-        let request = {
-            'sub_account_id': this.getSubAccountId (params),
+        const request: Dict = {
+            'sub_account_id': this.getSubAccountId (paramsPaginate),
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['base'] = [];
-            request['base'].push (market['baseId']);
-            request['quote'] = [];
-            request['quote'].push (market['quoteId']);
+            request['base'] = [ market['baseId'] ];
+            request['quote'] = [ market['quoteId'] ];
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.privateTradingPostFullV1FundingPaymentHistory (this.extend (request, params));
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, paramsPaginate, 1000000);
+        const response = await this.privateTradingPostFullV1FundingPaymentHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -2605,11 +2655,11 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseIncomes (result, market, since, limit);
     }
 
-    parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: Dict, market: Market = undefined) {
         //
         //            {
         //                "event_time": "1765267200004987902",
@@ -2646,28 +2696,26 @@ export default class grvt extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const subAccountId = this.getSubAccountId (params);
-        let request = {
+        const request: Dict = {
             'sub_account_id': subAccountId,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['base'] = [];
-            request['base'].push (market['baseId']);
-            request['quote'] = [];
-            request['quote'].push (market['quoteId']);
+            request['base'] = [ market['baseId'] ];
+            request['quote'] = [ market['quoteId'] ];
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        [ request, params ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
         if (since !== undefined) {
             request['start_time'] = this.numberToString (since * 1000000);
         }
-        const response = await this.privateTradingPostFullV1OrderHistory (this.extend (request, params));
+        const [ requestUntilOptionString, paramsUntilOptionString ] = this.handleUntilOptionString ('end_time', request, params, 1000000);
+        const response = await this.privateTradingPostFullV1OrderHistory (this.extend (requestUntilOptionString, paramsUntilOptionString));
         //
         //    {
         //        "result": [
@@ -2730,7 +2778,7 @@ export default class grvt extends Exchange {
         //        "next": ""
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -2745,9 +2793,9 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         const response = await this.privateTradingPostFullV1OpenOrders (this.extend (request, params));
@@ -2811,7 +2859,7 @@ export default class grvt extends Exchange {
         //        ]
         //    }
         //
-        const result = this.safeList (response, 'result', []);
+        const result = this.safeList (response, 'result', []) as List;
         return this.parseOrders (result, undefined, since, limit);
     }
 
@@ -2826,20 +2874,20 @@ export default class grvt extends Exchange {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarketsAndSignIn ();
         const subAccountId = this.getSubAccountId (params);
-        const request = {
+        const request: Dict = {
             'sub_account_id': subAccountId,
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId', 'client_order_id');
             request['client_order_id'] = clientOrderId;
         } else {
             request['order_id'] = id;
         }
-        const response = await this.privateTradingPostFullV1Order (this.extend (request, params));
+        const paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (params, 'clientOrderId', 'client_order_id') : params;
+        const response = await this.privateTradingPostFullV1Order (this.extend (request, paramsOmitted));
         //
         //    {
         //        "result": {
@@ -2902,7 +2950,7 @@ export default class grvt extends Exchange {
         return this.parseOrder (result);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
         //
@@ -2975,46 +3023,48 @@ export default class grvt extends Exchange {
                 'id': undefined,
             });
         }
-        const isMarket = this.safeBool (order, 'is_market');
-        const orderType = isMarket ? 'market' : 'limit';
+        const isMarket = this.safeBool (order, 'is_market', false);
+        let orderType: Str = 'limit';
+        if (isMarket) {
+            orderType = 'market';
+        }
         const isPostOnly = this.safeBool (order, 'post_only');
         const isReduceOnly = this.safeBool (order, 'reduce_only');
         const timeInForceRaw = this.safeString (order, 'time_in_force');
-        const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (timeInForceRaw);
-        let size = undefined;
-        let side = undefined;
-        let price = undefined;
-        let filled = undefined;
-        let avgPrice = undefined;
-        const legs = this.safeList (order, 'legs');
+        const timeInForce = (isPostOnly === true) ? 'PO' : this.parseTimeInForce (timeInForceRaw);
+        let size: Str = undefined;
+        let side: Str = undefined;
+        let price: Str = undefined;
+        let filled: Str = undefined;
+        let avgPrice: Str = undefined;
+        const legs = this.safeList (order, 'legs', []);
         const metadata = this.safeDict (order, 'metadata', {});
         const stateObj = this.safeDict (order, 'state', {});
         const filledAmounts = this.safeList (stateObj, 'traded_size', []);
         const avgPrices = this.safeList (stateObj, 'avg_fill_price', []);
         const primaryOrderIndex = 0;
         const firstLeg = this.safeDict (legs, primaryOrderIndex);
+        const legMarketId = this.safeString (firstLeg, 'instrument');
+        const marketResolved: Market = (firstLeg !== undefined) ? this.safeMarket (legMarketId, market) : market;
         if (firstLeg !== undefined) {
-            const marketId = this.safeString (firstLeg, 'instrument');
-            market = this.safeMarket (marketId, market);
             size = this.safeString (firstLeg, 'size');
-            side = this.safeBool (firstLeg, 'is_buying_asset') ? 'buy' : 'sell';
+            const isBuyingAsset = this.safeBool (firstLeg, 'is_buying_asset', false);
+            side = isBuyingAsset ? 'buy' : 'sell';
             price = this.safeString (firstLeg, 'limit_price');
             filled = this.safeString (filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString (avgPrices, primaryOrderIndex);
         }
         const timestamp = this.safeIntegerProduct (metadata, 'create_time', 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        const legsLength = legs.length;
         return this.safeOrder ({
-            'isMultiLeg': (legsLength > 1),
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (metadata, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimeStamp': undefined,
+            'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeIntegerProduct (stateObj, 'update_time', 0.000001),
             'status': this.parseOrderStatus (this.safeString (stateObj, 'status')),
-            'symbol': market['symbol'],
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,
@@ -3030,7 +3080,7 @@ export default class grvt extends Exchange {
             'fees': undefined,
             'reduceOnly': isReduceOnly,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
 
     parseTimeInForce (type: Str): Str {
@@ -3056,7 +3106,7 @@ export default class grvt extends Exchange {
         return this.safeInteger (timeInForces, timeInForce, 0);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING': 'pending',
             'OPEN': 'open',
@@ -3072,21 +3122,19 @@ export default class grvt extends Exchange {
      * @name grvt#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
-     * @param {string} symbol cancel alls open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            request['base'] = [];
-            request['base'].push (market['baseId']);
-            request['quote'] = [];
-            request['quote'].push (market['quoteId']);
+            request['base'] = [ market['baseId'] ];
+            request['quote'] = [ market['quoteId'] ];
         }
         const response = await this.privateTradingPostFullV1CancelAllOrders (this.extend (request, params));
         //
@@ -3111,20 +3159,20 @@ export default class grvt extends Exchange {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarketsAndSignIn ();
         const subAccoubntId = this.getSubAccountId (params);
-        const request = {
+        const request: Dict = {
             'sub_account_id': subAccoubntId,
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
         } else {
             request['order_id'] = id;
         }
-        const response = await this.privateTradingPostFullV1CancelOrder (this.extend (request, params));
+        const paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (params, 'clientOrderId') : params;
+        const response = await this.privateTradingPostFullV1CancelOrder (this.extend (request, paramsOmitted));
         //
         //    {
         //        "result": {
@@ -3136,7 +3184,7 @@ export default class grvt extends Exchange {
         return this.parseOrder (result);
     }
 
-    eipDomainData () {
+    eipDomainData (): Dict {
         //     GrvtEnv.DEV.value: 327,
         //     GrvtEnv.STAGING.value: 327,
         //     GrvtEnv.TESTNET.value: 326,
@@ -3148,15 +3196,19 @@ export default class grvt extends Exchange {
         };
     }
 
-    feeAmountMultiplier () {
+    feeAmountMultiplier (): int {
         return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
-        let messageData = undefined;
+    createSignedRequest (request: Dict, structureType: string, currencyObj: Dict | undefined = undefined, signerAddress: Str = undefined): Dict {
+        let messageData: NullableDict = undefined;
+        const requestSignature: Dict = this.safeDict (request, 'signature', {});
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;
+            if (currencyObj === undefined) {
+                throw new ExchangeError (this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'fromSubAccount': request['from_sub_account_id'],
@@ -3164,18 +3216,21 @@ export default class grvt extends Exchange {
                 'toSubAccount': request['to_sub_account_id'],
                 'tokenCurrency': currencyObj['numericId'],
                 'numTokens': this.parseToInt (amountInt),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         } else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom ('1000000');
+            if (currencyObj === undefined) {
+                throw new ExchangeError (this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],
                 'tokenCurrency': currencyObj['numericId'],
                 'numTokens': this.parseToInt (request['num_tokens'] * amountMultiplier),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         } else if (structureType === 'EIP712_ORDER_TYPE' || structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
             messageData = this.eipMessageForOrder (request, structureType);
@@ -3184,34 +3239,38 @@ export default class grvt extends Exchange {
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
-                'maxFutureFeeRate': this.parseToInt (parseFloat (request['max_futures_fee_rate']) * amountMultiplier),
-                'maxSpotFeeRate': this.parseToInt (parseFloat (request['max_spot_fee_rate']) * amountMultiplier),
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'maxFutureFeeRate': this.parseToInt (parseFloat (this.safeString (request, 'max_futures_fee_rate') as any) * amountMultiplier),
+                'maxSpotFeeRate': this.parseToInt (parseFloat (this.safeString (request, 'max_spot_fee_rate') as any) * amountMultiplier),
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         } else if (structureType === 'EIP712_WALLETLOGIN_TYPE') {
             messageData = {
                 'signer': request['address'],
-                'nonce': request['signature']['nonce'],
-                'expiration': request['signature']['expiration'],
+                'nonce': requestSignature['nonce'],
+                'expiration': requestSignature['expiration'],
             };
         }
         const domainData = this.eipDomainData ();
-        const definitions = this.eipDefinitions ();
+        const definitions: Dict = this.eipDefinitions ();
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
-        const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const usesPrivKey = this.usesPrivateKey (); // py transpiler needs this line separated
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix (secretOrPrivkey);
-        const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, undefined);
-        request['signature']['r'] = this.formatSignatureRS (signature['r']);
-        request['signature']['s'] = this.formatSignatureRS (signature['s']);
-        request['signature']['v'] = this.sum (27, signature['v']);
-        request['signature']['signer'] = (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero) : signerAddress;
+        const signature = ecdsa (this.hash (ethEncodedMessage, keccak, 'hex'), privateKeyWithoutZero, secp256k1, undefined);
+        request['signature'] = {
+            'signer': (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero) : signerAddress,
+            'r': this.formatSignatureRS (signature['r']),
+            's': this.formatSignatureRS (signature['s']),
+            'v': this.sum (27, signature['v']),
+            'expiration': requestSignature['expiration'],
+            'nonce': requestSignature['nonce'],
+            'chain_id': requestSignature['chain_id'],
+        };
         return request;
     }
 
-    formatSignatureRS (value: string) {
+    formatSignatureRS (value: string): string {
         const padded = value.padStart (64, '0');
         if (padded.startsWith ('0x')) {
             return padded;
@@ -3220,8 +3279,9 @@ export default class grvt extends Exchange {
         }
     }
 
-    defaultSignature () {
-        const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
+    defaultSignature (): Dict {
+        const expirationSeconds = this.safeInteger (this.options, 'expirationSeconds', 30);
+        const expiration = this.milliseconds () * 1000000 + 1000000 * expirationSeconds * 1000;
         return {
             'signer': '',
             'r': '',
@@ -3233,67 +3293,88 @@ export default class grvt extends Exchange {
         };
     }
 
-    handleUntilOptionString (key: string, request, params, multiplier = 1) {
+    handleUntilOptionString (key: string, request: Dict, params: Dict = {}, multiplier: int = 1): [Dict, Dict] {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.numberToString (this.parseToInt (until * multiplier));
-            params = this.omit (params, [ 'until', 'till' ]);
+            return [ request, this.omit (params, [ 'until', 'till' ]) ];
         }
         return [ request, params ];
     }
 
-    requestId () {
+    requestId (): number {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'][api] + path;
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
+        let requestPath: string = path;
+        const query = this.omit (params, this.extractParams (requestPath));
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + requestPath;
         let queryString = '';
         if (method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 queryString = this.urlencode (query);
                 url += '?' + queryString;
             }
         } else if (method === 'POST') {
-            body = this.json (params);
+            // the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
+            // the private branch below sets its own headers, this covers the public market-data endpoints
+            requestHeaders = {
+                'Content-Type': 'application/json',
+            };
+            // an empty params dict must serialize as an empty json object, not an empty json array,
+            // php json_encode would produce [] here which the venue rejects with the same 1003 error
+            if (Object.keys (params).length === 0) {
+                requestBody = '{}';
+            } else {
+                requestBody = this.json (params);
+            }
         }
-        const isPrivate = api.startsWith ('private');
+        const isPrivate = apiName.startsWith ('private');
         if (isPrivate) {
             this.checkRequiredCredentials ();
             if (queryString !== '') {
-                path = path + '?' + queryString;
+                requestPath = path + '?' + queryString;
             }
-            headers = {
-                'Content-Type': 'application/json',
-            };
-            if (path.endsWith ('auth/api_key/login') || path.endsWith ('auth/wallet/login')) {
-                headers['Cookie'] = 'rm=true;';
+            if (requestPath.endsWith ('auth/api_key/login') || requestPath.endsWith ('auth/wallet/login')) {
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': 'rm=true;',
+                };
             } else {
                 const accountId = this.safeString (this.options, 'AuthAccountId');
                 const cookieValue = this.safeString (this.options, 'AuthCookieValue');
                 if (cookieValue === undefined || accountId === undefined) {
                     throw new AuthenticationError (this.id + ' : at first, you need to authenticate with exchange using signIn() method.');
                 }
-                headers['Cookie'] = cookieValue;
-                headers['X-Grvt-Account-Id'] = accountId;
+                requestHeaders = {
+                    'Content-Type': 'application/json',
+                    'Cookie': cookieValue,
+                    'X-Grvt-Account-Id': accountId,
+                };
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (url.endsWith ('auth/api_key/login') || url.endsWith ('auth/wallet/login')) {
             const accountId = this.safeString2 (headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             this.options['AuthAccountId'] = accountId;
             const cookie = this.safeString2 (headers, 'Set-Cookie', 'set-cookie');
             if (cookie !== undefined) {
-                const cookieValue = cookie.split (';')[0];
-                this.options['AuthCookieValue'] = cookieValue;
+                this.options['AuthCookieValue'] = this.safeString (cookie.split (';'), 0, '');
             }
-            if (this.options['AuthCookieValue'] === undefined || this.options['AuthAccountId'] === undefined) {
+            if (this.safeString (this.options, 'AuthCookieValue') === undefined || this.safeString (this.options, 'AuthAccountId') === undefined) {
                 throw new AuthenticationError (this.id + ' signIn() failed to receive auth-cookie or account-id');
             }
         } else {

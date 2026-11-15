@@ -1,6 +1,6 @@
 package examples;
 
-import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 
 import java.util.Map;
 
@@ -20,14 +20,14 @@ public class ListExchanges {
 
         System.out.println("--- " + exchangeId + " details ---\n");
 
-        Exchange exchange = Exchange.dynamicallyCreateInstance(exchangeId, null);
+        BaseExchange exchange = BaseExchange.dynamicallyCreateInstance(exchangeId, null);
 
         System.out.println("ID:          " + exchange.id);
         System.out.println("Version:     " + exchange.version);
         System.out.println("Rate limit:  " + (int) exchange.rateLimit + " ms");
 
         // Load and summarize markets (untyped: returns CompletableFuture<Object>)
-        Map<String, Object> markets = (Map<String, Object>) exchange.loadMarkets(false).join();
+        Map<String, Object> markets = (Map<String, Object>) exchange.loadMarkets(false, new java.util.HashMap<String, Object>()).join();
         long spotCount = markets.values().stream()
                 .filter(m -> Boolean.TRUE.equals(((Map<String, Object>) m).get("spot"))).count();
         long futuresCount = markets.values().stream()

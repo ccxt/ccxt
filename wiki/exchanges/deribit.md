@@ -66,7 +66,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://docs.deribit.com/#public-get_time  
+**See**: https://docs.deribit.com/api-reference/supporting/public-get_time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -74,7 +74,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-deribit.fetchTime ([params])
+deribit.fetchTime (params?)
 ```
 
 
@@ -86,7 +86,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://docs.deribit.com/#public-get_currencies  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_currencies  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -94,7 +94,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-deribit.fetchCurrencies ([params])
+deribit.fetchCurrencies (params?)
 ```
 
 
@@ -106,7 +106,7 @@ the latest known information on the availability of the exchange API
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
-**See**: https://docs.deribit.com/#public-status  
+**See**: https://docs.deribit.com/api-reference/supporting/public-status  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -114,7 +114,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-deribit.fetchStatus ([params])
+deribit.fetchStatus (params?)
 ```
 
 
@@ -126,7 +126,7 @@ fetch all the accounts associated with a profile
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
-**See**: https://docs.deribit.com/#private-get_subaccounts  
+**See**: https://docs.deribit.com/api-reference/account-management/private-get_subaccounts  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -134,7 +134,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-deribit.fetchAccounts ([params])
+deribit.fetchAccounts (params?)
 ```
 
 
@@ -148,8 +148,8 @@ retrieves data on all markets for deribit
 
 **See**
 
-- https://docs.deribit.com/#public-get_currencies
-- https://docs.deribit.com/#public-get_instruments
+- https://docs.deribit.com/api-reference/market-data/public-get_currencies
+- https://docs.deribit.com/api-reference/market-data/public-get_instruments
 
 
 | Param | Type | Required | Description |
@@ -158,7 +158,7 @@ retrieves data on all markets for deribit
 
 
 ```javascript
-deribit.fetchMarkets ([params])
+deribit.fetchMarkets (params?)
 ```
 
 
@@ -172,8 +172,8 @@ query for balance and get the amount of funds available for trading or funds loc
 
 **See**
 
-- https://docs.deribit.com/#private-get_account_summary
-- https://docs.deribit.com/#private-get_account_summaries
+- https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+- https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
 
 
 | Param | Type | Required | Description |
@@ -183,7 +183,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-deribit.fetchBalance ([params])
+deribit.fetchBalance (params?)
 ```
 
 
@@ -195,7 +195,7 @@ create a currency deposit address
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://docs.deribit.com/#private-create_deposit_address  
+**See**: https://docs.deribit.com/api-reference/wallet/private-create_deposit_address  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -204,7 +204,7 @@ create a currency deposit address
 
 
 ```javascript
-deribit.createDepositAddress (code[, params])
+deribit.createDepositAddress (code, params?)
 ```
 
 
@@ -216,7 +216,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://docs.deribit.com/#private-get_current_deposit_address  
+**See**: https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -225,7 +225,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-deribit.fetchDepositAddress (code[, params])
+deribit.fetchDepositAddress (code, params?)
 ```
 
 
@@ -237,7 +237,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.deribit.com/#public-ticker  
+**See**: https://docs.deribit.com/api-reference/market-data/public-ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -246,7 +246,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-deribit.fetchTicker (symbol[, params])
+deribit.fetchTicker (symbol, params?)
 ```
 
 
@@ -258,7 +258,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.deribit.com/#public-get_book_summary_by_currency  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -268,7 +268,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-deribit.fetchTickers ([symbols, params])
+deribit.fetchTickers (symbols?, params?)
 ```
 
 
@@ -280,7 +280,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.deribit.com/#public-get_tradingview_chart_data  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -294,7 +294,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-deribit.fetchOHLCV (symbol, timeframe[, since, limit, params])
+deribit.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -308,8 +308,8 @@ get the list of most recent trades for a particular symbol.
 
 **See**
 
-- https://docs.deribit.com/#public-get_last_trades_by_instrument
-- https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+- https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+- https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
 
 
 | Param | Type | Required | Description |
@@ -322,7 +322,7 @@ get the list of most recent trades for a particular symbol.
 
 
 ```javascript
-deribit.fetchTrades (symbol[, since, limit, params])
+deribit.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -334,7 +334,7 @@ fetch the trading fees for multiple markets
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
-**See**: https://docs.deribit.com/#private-get_account_summary  
+**See**: https://docs.deribit.com/api-reference/account-management/private-get_account_summary  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -342,7 +342,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-deribit.fetchTradingFees ([params])
+deribit.fetchTradingFees (params?)
 ```
 
 
@@ -352,9 +352,9 @@ deribit.fetchTradingFees ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://docs.deribit.com/#public-get_order_book  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_order_book  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -364,7 +364,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-deribit.fetchOrderBook (symbol[, limit, params])
+deribit.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -376,7 +376,7 @@ fetches information on an order made by the user
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.deribit.com/#private-get_order_state  
+**See**: https://docs.deribit.com/api-reference/trading/private-get_order_state  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -386,7 +386,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-deribit.fetchOrder (id, symbol[, params])
+deribit.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -400,8 +400,8 @@ create a trade order
 
 **See**
 
-- https://docs.deribit.com/#private-buy
-- https://docs.deribit.com/#private-sell
+- https://docs.deribit.com/api-reference/trading/private-buy
+- https://docs.deribit.com/api-reference/trading/private-sell
 
 
 | Param | Type | Required | Description |
@@ -417,7 +417,7 @@ create a trade order
 
 
 ```javascript
-deribit.createOrder (symbol, type, side, amount[, price, params])
+deribit.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -429,7 +429,7 @@ edit a trade order
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.deribit.com/#private-edit  
+**See**: https://docs.deribit.com/api-reference/trading/private-edit  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -444,7 +444,7 @@ edit a trade order
 
 
 ```javascript
-deribit.editOrder (id[, symbol, type, side, amount, price, params])
+deribit.editOrder (id, symbol?, type?, side?, amount, price?, params?)
 ```
 
 
@@ -456,17 +456,17 @@ cancels an open order
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.deribit.com/#private-cancel  
+**See**: https://docs.deribit.com/api-reference/trading/private-cancel  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by deribit cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-deribit.cancelOrder (id, symbol[, params])
+deribit.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -480,18 +480,18 @@ cancel all open orders
 
 **See**
 
-- https://docs.deribit.com/#private-cancel_all
-- https://docs.deribit.com/#private-cancel_all_by_instrument
+- https://docs.deribit.com/api-reference/trading/private-cancel_all
+- https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-deribit.cancelAllOrders (symbol[, params])
+deribit.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -505,8 +505,8 @@ fetch all unfilled currently open orders
 
 **See**
 
-- https://docs.deribit.com/#private-get_open_orders_by_currency
-- https://docs.deribit.com/#private-get_open_orders_by_instrument
+- https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+- https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
 
 
 | Param | Type | Required | Description |
@@ -518,7 +518,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-deribit.fetchOpenOrders (symbol[, since, limit, params])
+deribit.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -532,8 +532,8 @@ fetches information on multiple closed orders made by the user
 
 **See**
 
-- https://docs.deribit.com/#private-get_order_history_by_currency
-- https://docs.deribit.com/#private-get_order_history_by_instrument
+- https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+- https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
 
 
 | Param | Type | Required | Description |
@@ -545,7 +545,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-deribit.fetchClosedOrders (symbol[, since, limit, params])
+deribit.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -557,7 +557,7 @@ fetch all the trades made from a single order
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://docs.deribit.com/#private-get_user_trades_by_order  
+**See**: https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -569,7 +569,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-deribit.fetchOrderTrades (id, symbol[, since, limit, params])
+deribit.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -583,10 +583,10 @@ fetch all trades made by the user
 
 **See**
 
-- https://docs.deribit.com/#private-get_user_trades_by_currency
-- https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
-- https://docs.deribit.com/#private-get_user_trades_by_instrument
-- https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+- https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+- https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+- https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+- https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
 
 
 | Param | Type | Required | Description |
@@ -598,7 +598,7 @@ fetch all trades made by the user
 
 
 ```javascript
-deribit.fetchMyTrades (symbol[, since, limit, params])
+deribit.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -610,7 +610,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.deribit.com/#private-get_deposits  
+**See**: https://docs.deribit.com/api-reference/wallet/private-get_deposits  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -621,7 +621,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-deribit.fetchDeposits (code[, since, limit, params])
+deribit.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -633,7 +633,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.deribit.com/#private-get_withdrawals  
+**See**: https://docs.deribit.com/api-reference/wallet/private-get_withdrawals  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -644,7 +644,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-deribit.fetchWithdrawals (code[, since, limit, params])
+deribit.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -656,7 +656,7 @@ fetch data on a single open contract trade position
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://docs.deribit.com/#private-get_position  
+**See**: https://docs.deribit.com/api-reference/account-management/private-get_position  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -665,7 +665,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-deribit.fetchPosition (symbol[, params])
+deribit.fetchPosition (symbol, params?)
 ```
 
 
@@ -677,7 +677,7 @@ fetch all open positions
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://docs.deribit.com/#private-get_positions  
+**See**: https://docs.deribit.com/api-reference/account-management/private-get_positions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -689,7 +689,7 @@ fetch all open positions
 
 
 ```javascript
-deribit.fetchPositions (symbols[, params])
+deribit.fetchPositions (symbols, params?)
 ```
 
 
@@ -701,7 +701,7 @@ fetch the historical volatility of an option market based on an underlying asset
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [volatility history objects](https://docs.ccxt.com/?id=volatility-structure)
 
-**See**: https://docs.deribit.com/#public-get_historical_volatility  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -710,7 +710,7 @@ fetch the historical volatility of an option market based on an underlying asset
 
 
 ```javascript
-deribit.fetchVolatilityHistory (code[, params])
+deribit.fetchVolatilityHistory (code, params?)
 ```
 
 
@@ -722,7 +722,7 @@ fetch a history of internal transfers made on an account
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://docs.deribit.com/#private-get_transfers  
+**See**: https://docs.deribit.com/api-reference/wallet/private-get_transfers  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -733,7 +733,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-deribit.fetchTransfers (code[, since, limit, params])
+deribit.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -747,8 +747,8 @@ transfer currency internally between wallets on the same account
 
 **See**
 
-- https://docs.deribit.com/#private-submit_transfer_to_user
-- https://docs.deribit.com/#private-submit_transfer_to_subaccount
+- https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+- https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
 
 
 | Param | Type | Required | Description |
@@ -761,7 +761,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-deribit.transfer (code, amount, fromAccount, toAccount[, params])
+deribit.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -773,19 +773,19 @@ make a withdrawal
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.deribit.com/#private-withdraw  
+**See**: https://docs.deribit.com/api-reference/wallet/private-withdraw  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-deribit.withdraw (code, amount, address, tag[, params])
+deribit.withdraw (code, amount, address, params?)
 ```
 
 
@@ -797,7 +797,7 @@ fetch deposit and withdraw fees
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://docs.deribit.com/#public-get_currencies  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_currencies  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -806,7 +806,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-deribit.fetchDepositWithdrawFees (codes[, params])
+deribit.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -818,7 +818,7 @@ fetch the current funding rate
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://docs.deribit.com/#public-get_funding_rate_value  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -829,7 +829,7 @@ fetch the current funding rate
 
 
 ```javascript
-deribit.fetchFundingRate (symbol[, params])
+deribit.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -841,7 +841,7 @@ fetch the current funding rate
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://docs.deribit.com/#public-get_funding_rate_history  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -854,7 +854,7 @@ fetch the current funding rate
 
 
 ```javascript
-deribit.fetchFundingRateHistory (symbol[, since, limit, params])
+deribit.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -866,7 +866,7 @@ retrieves the public liquidations of a trading pair
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
-**See**: https://docs.deribit.com/#public-get_last_settlements_by_currency  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -878,7 +878,7 @@ retrieves the public liquidations of a trading pair
 
 
 ```javascript
-deribit.fetchLiquidations (symbol[, since, limit, params])
+deribit.fetchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -890,7 +890,7 @@ retrieves the users liquidated positions
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
-**See**: https://docs.deribit.com/#private-get_settlement_history_by_instrument  
+**See**: https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -901,7 +901,7 @@ retrieves the users liquidated positions
 
 
 ```javascript
-deribit.fetchMyLiquidations (symbol[, since, limit, params])
+deribit.fetchMyLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -913,7 +913,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
-**See**: https://docs.deribit.com/#public-ticker  
+**See**: https://docs.deribit.com/api-reference/market-data/public-ticker  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -922,7 +922,7 @@ fetches an option contracts greeks, financial metrics used to measure the factor
 
 
 ```javascript
-deribit.fetchGreeks (symbol[, params])
+deribit.fetchGreeks (symbol, params?)
 ```
 
 
@@ -934,7 +934,7 @@ fetches option data that is commonly found in an option chain
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
 
-**See**: https://docs.deribit.com/#public-get_book_summary_by_instrument  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -943,7 +943,7 @@ fetches option data that is commonly found in an option chain
 
 
 ```javascript
-deribit.fetchOption (symbol[, params])
+deribit.fetchOption (symbol, params?)
 ```
 
 
@@ -955,7 +955,7 @@ fetches data for an underlying asset that is commonly found in an option chain
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/?id=option-chain-structure)
 
-**See**: https://docs.deribit.com/#public-get_book_summary_by_currency  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -964,7 +964,7 @@ fetches data for an underlying asset that is commonly found in an option chain
 
 
 ```javascript
-deribit.fetchOptionChain (code[, params])
+deribit.fetchOptionChain (code, params?)
 ```
 
 
@@ -976,7 +976,7 @@ Retrieves the open interest of a symbol
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
-**See**: https://docs.deribit.com/?shell#public-get_book_summary_by_instrument  
+**See**: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -985,7 +985,7 @@ Retrieves the open interest of a symbol
 
 
 ```javascript
-deribit.fetchOpenInterest (symbol[, params])
+deribit.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -997,7 +997,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.deribit.com/#user-portfolio-currency  
+**See**: https://docs.deribit.com/subscriptions/user/userportfoliocurrency  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1005,7 +1005,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-deribit.watchBalance ([params])
+deribit.watchBalance (params?)
 ```
 
 
@@ -1017,7 +1017,7 @@ watches a price ticker, a statistical calculation with the information for a spe
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.deribit.com/#ticker-instrument_name-interval  
+**See**: https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1027,7 +1027,7 @@ watches a price ticker, a statistical calculation with the information for a spe
 
 
 ```javascript
-deribit.watchTicker (symbol[, params])
+deribit.watchTicker (symbol, params?)
 ```
 
 
@@ -1039,7 +1039,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.deribit.com/#ticker-instrument_name-interval  
+**See**: https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1049,7 +1049,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-deribit.watchTickers ([symbols, params])
+deribit.watchTickers (symbols?, params?)
 ```
 
 
@@ -1061,7 +1061,7 @@ watches best bid & ask for symbols
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.deribit.com/#quote-instrument_name  
+**See**: https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1070,7 +1070,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-deribit.watchBidsAsks ([symbols, params])
+deribit.watchBidsAsks (symbols?, params?)
 ```
 
 
@@ -1082,7 +1082,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://docs.deribit.com/#trades-instrument_name-interval  
+**See**: https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1094,7 +1094,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-deribit.watchTrades (symbol[, since, limit, params])
+deribit.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1106,7 +1106,7 @@ get the list of most recent trades for a list of symbols
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://docs.deribit.com/#trades-instrument_name-interval  
+**See**: https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1117,7 +1117,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-deribit.watchTradesForSymbols (symbols[, since, limit, params])
+deribit.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1129,7 +1129,7 @@ get the list of trades associated with the user
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://docs.deribit.com/#user-trades-instrument_name-interval  
+**See**: https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1141,7 +1141,7 @@ get the list of trades associated with the user
 
 
 ```javascript
-deribit.watchMyTrades (symbol[, since, limit, params])
+deribit.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1151,9 +1151,9 @@ deribit.watchMyTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://docs.deribit.com/#book-instrument_name-group-depth-interval  
+**See**: https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1164,7 +1164,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-deribit.watchOrderBook (symbol[, limit, params])
+deribit.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1174,9 +1174,9 @@ deribit.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://docs.deribit.com/#book-instrument_name-group-depth-interval  
+**See**: https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1186,7 +1186,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-deribit.watchOrderBookForSymbols (symbols[, limit, params])
+deribit.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1198,7 +1198,7 @@ watches information on multiple orders made by the user
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.deribit.com/#user-orders-instrument_name-raw  
+**See**: https://docs.deribit.com/subscriptions/user/userordersinstrument_nameraw  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1209,7 +1209,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-deribit.watchOrders (symbol[, since, limit, params])
+deribit.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1221,7 +1221,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.deribit.com/#chart-trades-instrument_name-resolution  
+**See**: https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1233,7 +1233,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-deribit.watchOHLCV (symbol, timeframe[, since, limit, params])
+deribit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1245,7 +1245,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>deribit</code>](#deribit)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.deribit.com/#chart-trades-instrument_name-resolution  
+**See**: https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1256,6 +1256,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-deribit.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+deribit.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 

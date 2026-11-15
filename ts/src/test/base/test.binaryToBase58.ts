@@ -1,8 +1,9 @@
+// AUTO_TRANSPILE_ENABLED
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
-function helperStrToBinary5 (exchange, str: string) {
+function helperStrToBinary5 (exchange: any, str: string) {
     return exchange.base64ToBinary (exchange.stringToBase64 (str));
 }
 

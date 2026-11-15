@@ -1,8 +1,6 @@
-- [How To Import One Exchange Esm](./examples/js/)
-
-
- ```javascript
- import { binance } from '../../js/ccxt.js';
+```javascript
+// @NO_AUTO_TRANSPILE
+import { binance } from '../../js/ccxt.js';
 async function example() {
     const exchange = new binance({});
     const ob = await exchange.fetchOrderBook('BTC/USDT', 3);
@@ -12,5 +10,5 @@ async function example() {
     console.log(bids);
 }
 example();
- 
+
 ```

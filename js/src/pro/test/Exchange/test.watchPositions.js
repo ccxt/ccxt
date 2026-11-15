@@ -16,6 +16,9 @@ async function testWatchPositions(exchange, skippedProperties, symbol) {
         let success = true;
         try {
             response = await exchange.watchPositions([symbol]);
+            if (response === undefined) {
+                throw new Error(exchange.id + ' watch returned undefined response');
+            }
         }
         catch (e) {
             if (!testSharedMethods.isTemporaryFailure(e)) {
@@ -25,7 +28,10 @@ async function testWatchPositions(exchange, skippedProperties, symbol) {
             // continue;
             success = false;
         }
-        if (success === true) {
+        if (success) {
+            if (response === undefined) {
+                throw new Error(exchange.id + ' watch returned undefined response');
+            }
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
             now = exchange.milliseconds();
             for (let i = 0; i < response.length; i++) {
@@ -49,7 +55,7 @@ async function testWatchPositions(exchange, skippedProperties, symbol) {
             // continue;
             success2 = false;
         }
-        if (success2 === true) {
+        if (success2) {
             assert(Array.isArray(positionsForSymbols), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(positionsForSymbols));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert(positionsForSymbols.length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json(positionsForSymbols));

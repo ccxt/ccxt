@@ -1,8 +1,6 @@
-- [Exchange Capabitities](./examples/js/)
-
-
- ```javascript
- // This example uses Node-only libraries (ololog, as-table, ansicolor)
+```javascript
+// @NO_AUTO_TRANSPILE
+// This example uses Node-only libraries (ololog, as-table, ansicolor)
 // and ansi-color property chains (str.red.dim, str.green) that can't
 // be transpiled meaningfully to Python or PHP. Kept as a JS-only
 // developer tool — the auto-transpile flag is intentionally omitted.
@@ -11,6 +9,7 @@ import asTable from 'as-table';
 import log from 'ololog';
 import ansi from 'ansicolor';
 import ccxt from '../../js/ccxt.js';
+// @ts-expect-error
 ansi.nice; // eslint-disable-line no-unused-expressions
 // @ts-expect-error
 log.nice = log.configure({ locate: false, stringify: asTable.configure({ print: x => x }) }); // eslint-disable-line
@@ -66,5 +65,5 @@ async function test() {
     total.toString(), 'total'); // eslint-disable-line
 }
 test();
- 
+
 ```

@@ -17,6 +17,7 @@
 * [fetchTickers](#fetchtickers)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchBalance](#fetchbalance)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [fetchAccounts](#fetchaccounts)
@@ -27,6 +28,7 @@
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [withdraw](#withdraw)
+* [fetchTrades](#fetchtrades)
 * [fetchMyTrades](#fetchmytrades)
 * [setLeverage](#setleverage)
 * [setMarginMode](#setmarginmode)
@@ -53,6 +55,9 @@
 * [watchLiquidations](#watchliquidations)
 * [watchBalance](#watchbalance)
 * [unWatchOrders](#unwatchorders)
+* [createOrderWs](#createorderws)
+* [cancelOrderWs](#cancelorderws)
+* [cancelAllOrdersWs](#cancelallordersws)
 
 <a name="preLoadLighterLibrary" id="preloadlighterlibrary"></a>
 
@@ -69,7 +74,7 @@ if the required credentials are available in options, it will pre-load the light
 
 
 ```javascript
-lighter.preLoadLighterLibrary ([params])
+lighter.preLoadLighterLibrary (params?)
 ```
 
 
@@ -101,7 +106,7 @@ create a trade order
 
 
 ```javascript
-lighter.createOrder (symbol, type, side, amount[, price, params])
+lighter.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -128,7 +133,7 @@ cancels an order and places a new order
 
 
 ```javascript
-lighter.editOrder (id, symbol, type, side, amount[, price, params])
+lighter.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -148,7 +153,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-lighter.fetchStatus ([params])
+lighter.fetchStatus (params?)
 ```
 
 
@@ -168,7 +173,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-lighter.fetchTime ([params])
+lighter.fetchTime (params?)
 ```
 
 
@@ -188,7 +193,7 @@ retrieves data on all markets for lighter
 
 
 ```javascript
-lighter.fetchMarkets ([params])
+lighter.fetchMarkets (params?)
 ```
 
 
@@ -208,7 +213,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-lighter.fetchCurrencies ([params])
+lighter.fetchCurrencies (params?)
 ```
 
 
@@ -218,7 +223,7 @@ lighter.fetchCurrencies ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.lighter.xyz/reference/orderbookorders  
 
@@ -230,7 +235,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lighter.fetchOrderBook (symbol[, limit, params])
+lighter.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -251,7 +256,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lighter.fetchTicker (symbol[, params])
+lighter.fetchTicker (symbol, params?)
 ```
 
 
@@ -272,7 +277,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-lighter.fetchTickers (symbols[, params])
+lighter.fetchTickers (symbols, params?)
 ```
 
 
@@ -297,7 +302,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-lighter.fetchOHLCV (symbol, timeframe[, since, limit, params])
+lighter.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -318,7 +323,30 @@ fetch the current funding rate for multiple symbols
 
 
 ```javascript
-lighter.fetchFundingRates ([symbols, params])
+lighter.fetchFundingRates (symbols?, params?)
+```
+
+
+<a name="fetchBalance" id="fetchbalance"></a>
+
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://apidocs.lighter.xyz/reference/account-1  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.by | <code>string</code> | No | fetch balance by 'index' or 'l1_address', defaults to 'index' |
+| params.value | <code>string</code> | No | fetch balance value, account index or l1 address |
+| params.type | <code>string</code> | No | 'spot', 'swap', default is 'swap' |
+
+
+```javascript
+lighter.fetchBalance (params?)
 ```
 
 
@@ -341,7 +369,7 @@ fetch data on an open position
 
 
 ```javascript
-lighter.fetchPosition (symbol[, params])
+lighter.fetchPosition (symbol, params?)
 ```
 
 
@@ -364,7 +392,7 @@ fetch all open positions
 
 
 ```javascript
-lighter.fetchPositions ([symbols, params])
+lighter.fetchPositions (symbols?, params?)
 ```
 
 
@@ -386,7 +414,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-lighter.fetchAccounts ([params])
+lighter.fetchAccounts (params?)
 ```
 
 
@@ -410,7 +438,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-lighter.fetchOpenOrders (symbol[, since, limit, params])
+lighter.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -434,7 +462,7 @@ fetch all unfilled currently closed orders
 
 
 ```javascript
-lighter.fetchClosedOrders (symbol[, since, limit, params])
+lighter.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -461,7 +489,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-lighter.transfer (code, amount, fromAccount, toAccount[, params])
+lighter.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -486,7 +514,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-lighter.fetchTransfers (code[, since, limit, params])
+lighter.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -512,7 +540,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-lighter.fetchDeposits ([code, since, limit, params])
+lighter.fetchDeposits (code?, since?, limit?, params?)
 ```
 
 
@@ -537,7 +565,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-lighter.fetchWithdrawals ([code, since, limit, params])
+lighter.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -555,15 +583,38 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | No |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.accountIndex | <code>string</code> | No | account index |
 | params.apiKeyIndex | <code>string</code> | No | api key index |
 | params.routeType | <code>int</code> | No | wallet type, 0: perp, 1: spot, default is 0 |
 
 
 ```javascript
-lighter.withdraw (code, amount, address[, tag, params])
+lighter.withdraw (code, amount, address, params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://apidocs.lighter.xyz/reference/recenttrades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch, default 100, max 100 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -589,7 +640,7 @@ fetch all trades made by the user
 
 
 ```javascript
-lighter.fetchMyTrades ([symbol, since, limit, params])
+lighter.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -613,7 +664,7 @@ set the level of leverage for a market
 
 
 ```javascript
-lighter.setLeverage (leverage, symbol[, params])
+lighter.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -637,7 +688,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-lighter.setMarginMode (marginMode, symbol[, params])
+lighter.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -660,7 +711,7 @@ cancels an open order
 
 
 ```javascript
-lighter.cancelOrder (id, symbol[, params])
+lighter.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -682,7 +733,7 @@ cancel all open orders
 
 
 ```javascript
-lighter.cancelAllOrders ([symbol, params])
+lighter.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -702,7 +753,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-lighter.cancelAllOrdersAfter (timeout[, params])
+lighter.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -723,7 +774,7 @@ add margin
 
 
 ```javascript
-lighter.addMargin (symbol, amount[, params])
+lighter.addMargin (symbol, amount, params?)
 ```
 
 
@@ -744,7 +795,7 @@ remove margin from a position
 
 
 ```javascript
-lighter.reduceMargin (symbol, amount[, params])
+lighter.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -761,13 +812,13 @@ Either adds or reduces margin in an isolated position in order to set the margin
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market to set margin in |
 | amount | <code>float</code> | Yes | the amount to set the margin to |
-| params | <code>object</code> | No | parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | parameters specific to the exchange API endpoint |
 | params.accountIndex | <code>string</code> | No | account index |
 | params.apiKeyIndex | <code>string</code> | No | api key index |
 
 
 ```javascript
-lighter.setMargin (symbol, amount[, params])
+lighter.setMargin (symbol, amount, params?)
 ```
 
 
@@ -790,7 +841,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-lighter.watchOrders (symbol[, since, limit, params])
+lighter.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -800,7 +851,7 @@ lighter.watchOrders (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#order-book  
 
@@ -812,7 +863,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lighter.watchOrderBook (symbol[, limit, params])
+lighter.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -822,7 +873,7 @@ lighter.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#order-book  
 
@@ -833,7 +884,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-lighter.unWatchOrderBook (symbol[, params])
+lighter.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -849,12 +900,12 @@ watches a price ticker, a statistical calculation with the information calculate
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-lighter.watchTicker (symbol[, params])
+lighter.watchTicker (symbol, params?)
 ```
 
 
@@ -870,12 +921,12 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-lighter.unWatchTicker (symbol[, params])
+lighter.unWatchTicker (symbol, params?)
 ```
 
 
@@ -891,13 +942,12 @@ watches a price ticker, a statistical calculation with the information calculate
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.channel | <code>string</code> | No | the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers |
 
 
 ```javascript
-lighter.watchTickers ([symbols, params])
+lighter.watchTickers (symbols?, params?)
 ```
 
 
@@ -913,12 +963,12 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbol of the market to fetch the ticker for |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-lighter.unWatchTickers ([symbols, params])
+lighter.unWatchTickers (symbols?, params?)
 ```
 
 
@@ -939,7 +989,7 @@ watches a mark price
 
 
 ```javascript
-lighter.watchMarkPrice (symbol[, params])
+lighter.watchMarkPrice (symbol, params?)
 ```
 
 
@@ -960,7 +1010,7 @@ watches mark prices
 
 
 ```javascript
-lighter.watchMarkPrices ([symbols, params])
+lighter.watchMarkPrices (symbols?, params?)
 ```
 
 
@@ -981,7 +1031,7 @@ unWatches a mark price
 
 
 ```javascript
-lighter.unWatchMarkPrice (symbol[, params])
+lighter.unWatchMarkPrice (symbol, params?)
 ```
 
 
@@ -1002,7 +1052,7 @@ unWatches mark prices
 
 
 ```javascript
-lighter.unWatchMarkPrices ([symbols, params])
+lighter.unWatchMarkPrices (symbols?, params?)
 ```
 
 
@@ -1025,7 +1075,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-lighter.watchTrades (symbol[, since, limit, params])
+lighter.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1046,7 +1096,7 @@ unsubscribe from the trades channel
 
 
 ```javascript
-lighter.unWatchTrades (symbol[, params])
+lighter.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1069,7 +1119,7 @@ subscribe to recent trades of an account.
 
 
 ```javascript
-lighter.watchMyTrades ([symbol, since, limit, params])
+lighter.watchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1079,18 +1129,19 @@ lighter.watchMyTrades ([symbol, since, limit, params])
 unsubscribe from the account trades channel
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+**Returns**: <code>any</code> - status of the unwatch request
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
+| symbol | <code>string</code> | No | not supported by lighter.unWatchMyTrades, the account trades channel covers every market |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountIndex | <code>string</code> | No | account index |
 
 
 ```javascript
-lighter.unWatchMyTrades ([symbol, params])
+lighter.unWatchMyTrades (symbol?, params?)
 ```
 
 
@@ -1113,7 +1164,7 @@ watch the public liquidations of a trading pair
 
 
 ```javascript
-lighter.watchLiquidations (symbol[, since, limit, params])
+lighter.watchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -1134,7 +1185,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-lighter.watchBalance ([params])
+lighter.watchBalance (params?)
 ```
 
 
@@ -1155,6 +1206,86 @@ unWatches information on multiple orders made by the user
 
 
 ```javascript
-lighter.unWatchOrders (symbol[, params])
+lighter.unWatchOrders (symbol, params?)
+```
+
+
+<a name="createOrderWs" id="createorderws"></a>
+
+### createOrderWs{docsify-ignore}
+create a trade order
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#send-tx  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| price | <code>float</code>, <code>undefined</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.timeInForce | <code>string</code> | No | 'GTT' or 'IOC', default is 'GTT' |
+| params.clientOrderId | <code>int</code> | No | client order id, should be unique for each order, default is a random number |
+| params.triggerPrice | <code>string</code> | No | trigger price for stop loss or take profit orders, in units of the quote currency |
+| params.reduceOnly | <code>boolean</code> | No | whether the order is reduce only, default false |
+| params.nonce | <code>int</code> | No | nonce for the account |
+| params.apiKeyIndex | <code>int</code> | No | apiKeyIndex |
+| params.accountIndex | <code>int</code> | No | accountIndex |
+| params.orderExpiry | <code>int</code> | No | orderExpiry |
+
+
+```javascript
+lighter.createOrderWs (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="cancelOrderWs" id="cancelorderws"></a>
+
+### cancelOrderWs{docsify-ignore}
+cancel multiple orders
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#send-tx  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | No | unified market symbol, default is undefined |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountIndex | <code>string</code> | No | account index |
+| params.apiKeyIndex | <code>string</code> | No | api key index |
+
+
+```javascript
+lighter.cancelOrderWs (id, symbol?, params?)
+```
+
+
+<a name="cancelAllOrdersWs" id="cancelallordersws"></a>
+
+### cancelAllOrdersWs{docsify-ignore}
+cancel all open orders in a market
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#send-tx  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountIndex | <code>string</code> | No | account index |
+| params.apiKeyIndex | <code>string</code> | No | api key index |
+
+
+```javascript
+lighter.cancelAllOrdersWs (symbol?, params?)
 ```
 

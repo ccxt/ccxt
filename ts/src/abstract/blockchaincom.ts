@@ -5,35 +5,109 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetTickersSymbol (params?: {}): Promise<implicitReturnType>;
-    publicGetSymbols (params?: {}): Promise<implicitReturnType>;
-    publicGetSymbolsSymbol (params?: {}): Promise<implicitReturnType>;
-    publicGetL2Symbol (params?: {}): Promise<implicitReturnType>;
-    publicGetL3Symbol (params?: {}): Promise<implicitReturnType>;
-    privateGetFees (params?: {}): Promise<implicitReturnType>;
-    privateGetOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    privateGetTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetFills (params?: {}): Promise<implicitReturnType>;
-    privateGetDeposits (params?: {}): Promise<implicitReturnType>;
-    privateGetDepositsDepositId (params?: {}): Promise<implicitReturnType>;
-    privateGetAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsAccountCurrency (params?: {}): Promise<implicitReturnType>;
-    privateGetWhitelist (params?: {}): Promise<implicitReturnType>;
-    privateGetWhitelistCurrency (params?: {}): Promise<implicitReturnType>;
-    privateGetWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateGetWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostDepositsCurrency (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetTickers (params = {}): Promise<List> {
+        return this.request ('tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetTickersSymbol (params = {}): Promise<Dict> {
+        return this.request ('tickers/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetSymbols (params = {}): Promise<Dict> {
+        return this.request ('symbols', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetSymbolsSymbol (params = {}): Promise<Dict> {
+        return this.request ('symbols/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetL2Symbol (params = {}): Promise<Dict> {
+        return this.request ('l2/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetL3Symbol (params = {}): Promise<Dict> {
+        return this.request ('l3/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFees (params = {}): Promise<Dict> {
+        return this.request ('fees', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetInternalOrders (params = {}): Promise<Dict> {
+        return this.request ('internal/orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrders (params = {}): Promise<List> {
+        return this.request ('orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ('orders/{orderId}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFills (params = {}): Promise<List> {
+        return this.request ('fills', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetDeposits (params = {}): Promise<List> {
+        return this.request ('deposits', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetDepositsDepositId (params = {}): Promise<Dict> {
+        return this.request ('deposits/{depositId}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ('accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccountsAccountCurrency (params = {}): Promise<Dict> {
+        return this.request ('accounts/{account}/{currency}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWhitelist (params = {}): Promise<List> {
+        return this.request ('whitelist', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWhitelistCurrency (params = {}): Promise<List> {
+        return this.request ('whitelist/{currency}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWithdrawals (params = {}): Promise<List> {
+        return this.request ('withdrawals', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWithdrawalsWithdrawalId (params = {}): Promise<Dict> {
+        return this.request ('withdrawals/{withdrawalId}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostDepositsCurrency (params = {}): Promise<Dict> {
+        return this.request ('deposits/{currency}', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWithdrawals (params = {}): Promise<Dict> {
+        return this.request ('withdrawals', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privateDeleteOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ('orders/{orderId}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

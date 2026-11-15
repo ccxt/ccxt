@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var Precise = require('./base/Precise.js');
 var foxbit$1 = require('./abstract/foxbit.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -41,7 +41,8 @@ class foxbit extends foxbit$1["default"] {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
-                'fecthOrderBook': true,
+                'createOrders': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -55,7 +56,10 @@ class foxbit extends foxbit$1["default"] {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -95,37 +99,37 @@ class foxbit extends foxbit$1["default"] {
                     'https://docs.foxbit.com.br',
                 ],
             },
-            'precisionMode': number.DECIMAL_PLACES,
+            'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
                     // https://docs.foxbit.com.br/rest/v3/#tag/API-Codes/Errors
-                    '400': errors.BadRequest,
-                    '429': errors.RateLimitExceeded,
-                    '404': errors.BadRequest,
-                    '500': errors.ExchangeError,
-                    '2001': errors.AuthenticationError,
-                    '2002': errors.AuthenticationError,
-                    '2003': errors.AuthenticationError,
-                    '2004': errors.BadRequest,
-                    '2005': errors.PermissionDenied,
-                    '3001': errors.PermissionDenied,
-                    '3002': errors.PermissionDenied,
-                    '3003': errors.AccountSuspended,
-                    '4001': errors.BadRequest,
-                    '4002': errors.InsufficientFunds,
-                    '4003': errors.InvalidOrder,
-                    '4004': errors.BadSymbol,
-                    '4005': errors.BadRequest,
-                    '4007': errors.ExchangeError,
-                    '4008': errors.InvalidOrder,
-                    '4009': errors.PermissionDenied,
-                    '4011': errors.RateLimitExceeded,
-                    '4012': errors.ExchangeError,
-                    '5001': errors.ExchangeNotAvailable,
-                    '5002': errors.OnMaintenance,
-                    '5003': errors.OnMaintenance,
-                    '5004': errors.InvalidOrder,
-                    '5005': errors.InvalidOrder,
+                    '400': errors.BadRequest, // Bad request. An unknown error occurred while processing request parameters.
+                    '429': errors.RateLimitExceeded, // Too many requests. Request limit exceeded. Try again later.
+                    '404': errors.BadRequest, // Resource not found. A resource was not found while processing the request.
+                    '500': errors.ExchangeError, // Internal server error. An unknown error occurred while processing the request.
+                    '2001': errors.AuthenticationError, // Authentication error. Error authenticating request.
+                    '2002': errors.AuthenticationError, // Invalid signature. The signature for this request is not valid.
+                    '2003': errors.AuthenticationError, // Invalid access key. Access key missing, invalid or not found.
+                    '2004': errors.BadRequest, // Invalid timestamp. Invalid or missing timestamp.
+                    '2005': errors.PermissionDenied, // IP not allowed. The IP address {IP_ADDR} isn't on the trusted list for this API key.
+                    '3001': errors.PermissionDenied, // Permission denied. Permission denied for this request.
+                    '3002': errors.PermissionDenied, // KYC required. A greater level of KYC verification is required to proceed with this request.
+                    '3003': errors.AccountSuspended, // Member disabled. This member is disabled. Please get in touch with our support for more information.
+                    '4001': errors.BadRequest, // Validation error. A validation error occurred.
+                    '4002': errors.InsufficientFunds, // Insufficient funds. Insufficient funds to proceed with this request.
+                    '4003': errors.InvalidOrder, // Quantity below the minimum allowed. Quantity below the minimum allowed to proceed with this request.
+                    '4004': errors.BadSymbol, // Invalid symbol. The market or asset symbol is invalid or was not found.
+                    '4005': errors.BadRequest, // Invalid idempotent. Characters allowed are "a-z", "0-9", "_" or "-", and 36 at max. We recommend UUID v4 in lowercase.
+                    '4007': errors.ExchangeError, // Locked error. There was an error in your allocated balance, please contact us.
+                    '4008': errors.InvalidOrder, // Cannot submit order. The order cannot be created.
+                    '4009': errors.PermissionDenied, // Invalid level. The sub-member does not have the required level to create the transaction.
+                    '4011': errors.RateLimitExceeded, // Too many open orders. You have reached the limit of open orders per market/side.
+                    '4012': errors.ExchangeError, // Too many simultaneous account operations. We are currently unable to process your balance change due to simultaneous operations on your account. Please retry shortly.
+                    '5001': errors.ExchangeNotAvailable, // Service unavailable. The requested resource is currently unavailable. Try again later.
+                    '5002': errors.OnMaintenance, // Service under maintenance. The requested resource is currently under maintenance. Try again later.
+                    '5003': errors.OnMaintenance, // Market under maintenance. The market is under maintenance. Try again later.
+                    '5004': errors.InvalidOrder, // Market is not deep enough. The market is not deep enough to complete your request.
+                    '5005': errors.InvalidOrder, // Price out of range from market. The order price is out of range from market to complete your request.
                     '5006': errors.InvalidOrder, // Significant price deviation detected, exceeding acceptable limits. The order price is exceeding acceptable limits from market to complete your request.
                 },
                 'broad': {
@@ -140,42 +144,46 @@ class foxbit extends foxbit$1["default"] {
                 'v3': {
                     'public': {
                         'get': {
-                            'currencies': 5,
-                            'markets': 5,
-                            'markets/ticker/24hr': 60,
-                            'markets/{market}/orderbook': 6,
-                            'markets/{market}/candlesticks': 12,
-                            'markets/{market}/trades/history': 12,
-                            'markets/{market}/ticker/24hr': 15, // 4 requests per 2 seconds
+                            'currencies': { 'cost': 5 }, // 6 requests per second
+                            'markets': { 'cost': 5 }, // 6 requests per second
+                            'markets/ticker/24hr': { 'cost': 60 }, // 1 request per 2 seconds
+                            'markets/{market}/orderbook': { 'cost': 6 }, // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks': { 'cost': 12 }, // 5 requests per 2 seconds
+                            'markets/{market}/trades/history': { 'cost': 12 }, // 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr': { 'cost': 15 }, // 4 requests per 2 seconds
+                            'markets/sparkline/{window}': { 'cost': 20 }, // 3 requests per 2 seconds
+                            'travel_rule/operation_reasons': { 'cost': 30 }, // 2 requests per 2 seconds
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 2,
-                            'accounts/{symbol}/transactions': 60,
-                            'orders': 2,
-                            'orders/by-order-id/{id}': 2,
-                            'trades': 6,
-                            'deposits/address': 10,
-                            'deposits': 10,
-                            'withdrawals': 10,
-                            'me/fees/trading': 60, // 1 requests per 2 seconds
+                            'accounts': { 'cost': 2 }, // 15 requests per second
+                            'accounts/{symbol}/transactions': { 'cost': 60 }, // 1 requests per 2 seconds
+                            'orders': { 'cost': 2 }, // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}': { 'cost': 2 }, // 30 requests per 2 seconds
+                            'trades': { 'cost': 6 }, // 5 orders per second
+                            'deposits/address': { 'cost': 10 }, // 3 requests per second
+                            'deposits': { 'cost': 10 }, // 3 requests per second
+                            'withdrawals': { 'cost': 10 }, // 3 requests per second
+                            'me/fees/trading': { 'cost': 60 }, // 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}': { 'cost': 10 }, // 6 requests per 2 seconds
                         },
                         'post': {
-                            'orders': 2,
-                            'orders/batch': 7.5,
-                            'orders/cancel-replace': 3,
-                            'withdrawals': 10, // 3 requests per second
+                            'orders': { 'cost': 2 }, // 30 requests per 2 seconds
+                            'orders/batch': { 'cost': 7.5 }, // 8 requests per 2 seconds
+                            'orders/cancel-replace': { 'cost': 3 }, // 20 requests per 2 seconds
+                            'withdrawals': { 'cost': 10 }, // 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule': { 'cost': 30 }, // 2 requests per 2 seconds
                         },
                         'put': {
-                            'orders/cancel': 2, // 30 requests per 2 seconds
+                            'orders/cancel': { 'cost': 2 }, // 30 requests per 2 seconds
                         },
                     },
                 },
                 'status': {
                     'public': {
                         'get': {
-                            'status': 30, // 1 request per second
+                            'status': { 'cost': 30 }, // 1 request per second
                         },
                     },
                 },
@@ -201,7 +209,7 @@ class foxbit extends foxbit$1["default"] {
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -225,7 +233,7 @@ class foxbit extends foxbit$1["default"] {
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -247,7 +255,7 @@ class foxbit extends foxbit$1["default"] {
                         'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': {
-                            'last': true,
+                            'last': true, // foxbit default trigger price type is last, no params will change it
                             'mark': false,
                             'index': false,
                         },
@@ -267,9 +275,9 @@ class foxbit extends foxbit$1["default"] {
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': {
-                            'expire_maker': true,
-                            'expire_taker': true,
-                            'expire_both': true,
+                            'expire_maker': true, // foxbit prevents self trading by default, no params can change this
+                            'expire_taker': true, // foxbit prevents self trading by default, no params can change this
+                            'expire_both': true, // foxbit prevents self trading by default, no params can change this
                             'none': true, // foxbit prevents self trading by default, no params can change this
                         },
                         'trailing': false,
@@ -282,7 +290,7 @@ class foxbit extends foxbit$1["default"] {
                         'marginMode': false,
                         'limit': 100,
                         'daysBack': 90,
-                        'untilDays': 10000,
+                        'untilDays': 10000, // high value just to keep clear that there is no range limit, just the limit of the page size
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -305,7 +313,7 @@ class foxbit extends foxbit$1["default"] {
                         'marginMode': true,
                         'limit': 100,
                         'daysBack': 90,
-                        'untilDays': 10000,
+                        'untilDays': 10000, // high value just to keep clear that there is no range limit, just the limit of the page size
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -315,7 +323,7 @@ class foxbit extends foxbit$1["default"] {
                         'limit': 100,
                         'daysBack': 90,
                         'daysBackCanceled': 90,
-                        'untilDays': 10000,
+                        'untilDays': 10000, // high value just to keep clear that there is no range limit, just the limit of the page size
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': false,
@@ -370,7 +378,6 @@ class foxbit extends foxbit$1["default"] {
         return this.parseCurrencies(data);
     }
     parseCurrency(rawCurrency) {
-        const precision = this.safeInteger(rawCurrency, 'precision');
         const currencyId = this.safeString(rawCurrency, 'symbol');
         const name = this.safeString(rawCurrency, 'name');
         const code = this.safeCurrencyCode(currencyId);
@@ -380,38 +387,40 @@ class foxbit extends foxbit$1["default"] {
         const type = this.safeStringLower(rawCurrency, 'type');
         const parsedNetworks = {};
         for (let j = 0; j < networks.length; j++) {
-            const network = networks[j];
+            const network = this.safeDict(networks, j);
             const networkId = this.safeString(network, 'code');
             const networkCode = this.networkIdToCode(networkId, code);
             const networkWithdrawInfo = this.safeDict(network, 'withdraw_info');
             const networkDepositInfo = this.safeDict(network, 'deposit_info');
             const isWithdrawEnabled = this.safeString(networkWithdrawInfo, 'status') === 'ENABLED';
             const isDepositEnabled = this.safeString(networkDepositInfo, 'status') === 'ENABLED';
-            parsedNetworks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'name': this.safeString(network, 'name'),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'active': true,
-                'precision': precision,
-                'fee': this.safeNumber(networkWithdrawInfo, 'fee'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString(network, 'name'),
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'active': true,
+                    'precision': undefined,
+                    'fee': this.safeNumber(networkWithdrawInfo, 'fee'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(depositInfo, 'min_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(withdrawInfo, 'min_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(depositInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber(withdrawInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -423,7 +432,7 @@ class foxbit extends foxbit$1["default"] {
             'deposit': this.safeBool(depositInfo, 'enabled', false),
             'withdraw': this.safeBool(withdrawInfo, 'enabled', false),
             'fee': this.safeNumber(withdrawInfo, 'fee'),
-            'precision': precision,
+            'precision': this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision'))),
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -558,7 +567,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -609,8 +620,10 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v3PublicGetMarketsTicker24hr(params);
         //  {
         //    "data": [
@@ -634,7 +647,7 @@ class foxbit extends foxbit$1["default"] {
         //    ]
         //  }
         const data = this.safeList(response, 'data', []);
-        return this.parseTickers(data, symbols);
+        return this.parseTickers(data, symbolsNormalized);
     }
     /**
      * @method
@@ -645,7 +658,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v3PrivateGetMeFeesTrading(params);
         // [
         //     {
@@ -673,10 +688,12 @@ class foxbit extends foxbit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, the maximum is 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const defaultLimit = 20;
         const request = {
@@ -723,7 +740,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -760,7 +779,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
@@ -792,7 +813,7 @@ class foxbit extends foxbit$1["default"] {
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return this.parseOHLCVs(response, market, interval, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, interval, since, limit);
     }
     /**
      * @method
@@ -803,7 +824,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v3PrivateGetAccounts(params);
         // {
         //     "data": [
@@ -820,7 +843,7 @@ class foxbit extends foxbit$1["default"] {
             'info': response,
         };
         for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
+            const account = this.safeDict(accounts, i);
             const currencyId = this.safeString(account, 'currency_symbol');
             const currencyCode = this.safeCurrencyCode(currencyId);
             const total = this.safeString(account, 'balance');
@@ -831,7 +854,9 @@ class foxbit extends foxbit$1["default"] {
                 'used': used,
                 'total': total,
             };
-            result[currencyCode] = balanceObj;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = balanceObj;
+            }
         }
         return this.safeBalance(result);
     }
@@ -867,7 +892,9 @@ class foxbit extends foxbit$1["default"] {
         return await this.fetchOrdersByStatus('CANCELED', symbol, since, limit, params);
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
             'state': status,
@@ -907,23 +934,26 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        type = type.toUpperCase();
-        if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
-            throw new errors.InvalidOrder('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
+        const typeValue = type.toUpperCase();
+        if (typeValue !== 'LIMIT' && typeValue !== 'MARKET' && typeValue !== 'STOP_MARKET' && typeValue !== 'STOP_LIMIT' && typeValue !== 'INSTANT') {
+            throw new errors.InvalidOrder('Invalid order type: ' + typeValue + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
         }
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const postOnly = this.safeBool(params, 'postOnly', false);
         const triggerPrice = this.safeNumber(params, 'triggerPrice');
+        this.checkRequiredArgument('createOrder', side, 'side');
         const request = {
             'market_symbol': market['id'],
             'side': side.toUpperCase(),
-            'type': type,
+            'type': typeValue,
         };
-        if (type === 'STOP_MARKET' || type === 'STOP_LIMIT') {
+        if (typeValue === 'STOP_MARKET' || typeValue === 'STOP_LIMIT') {
             if (triggerPrice === undefined) {
-                throw new errors.InvalidOrder('Invalid order type: ' + type + '. Must have triggerPrice.');
+                throw new errors.InvalidOrder('Invalid order type: ' + typeValue + '. Must have triggerPrice.');
             }
         }
         if (timeInForce !== undefined) {
@@ -940,21 +970,21 @@ class foxbit extends foxbit$1["default"] {
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        if (type === 'INSTANT') {
+        if (typeValue === 'INSTANT') {
             request['amount'] = this.priceToPrecision(symbol, amount);
         }
         else {
             request['quantity'] = this.amountToPrecision(symbol, amount);
         }
-        if (type === 'LIMIT' || type === 'STOP_LIMIT') {
+        if (typeValue === 'LIMIT' || typeValue === 'STOP_LIMIT') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit(params, ['timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId']);
-        const response = await this.v3PrivatePostOrders(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['timeInForce', 'postOnly', 'triggerPrice', 'clientOrderId']);
+        const response = await this.v3PrivatePostOrders(this.extend(request, paramsOmitted));
         // {
         //     "id": 1234567890,
         //     "sn": "OKMAKSDHRVVREK",
@@ -972,13 +1002,15 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeDict(orders, i);
             const symbol = this.safeString(order, 'symbol');
             const market = this.market(symbol);
-            const type = this.safeStringUpper(order, 'type');
+            const type = this.safeStringUpper(order, 'type', '');
             const orderParams = this.safeDict(order, 'params', {});
             if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
                 throw new errors.InvalidOrder('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
@@ -1055,7 +1087,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': this.parseNumber(id),
             'type': 'ID',
@@ -1078,12 +1112,14 @@ class foxbit extends foxbit$1["default"] {
      * @name foxbit#cancelAllOrders
      * @description Cancel all open orders or all open orders for a specific market.
      * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'type': 'ALL',
         };
@@ -1116,7 +1152,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -1156,7 +1194,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1214,7 +1254,9 @@ class foxbit extends foxbit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market_symbol': market['id'],
@@ -1257,7 +1299,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency_symbol': currency['id'],
@@ -1291,7 +1335,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -1338,7 +1384,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -1440,7 +1488,7 @@ class foxbit extends foxbit$1["default"] {
         };
         return {
             'status': this.safeString(statusMap, statusRaw, statusRaw),
-            'updated': this.safeString(attributes, 'updatedAt'),
+            'updated': this.parse8601(this.safeString(attributes, 'updatedAt')),
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -1461,40 +1509,42 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
+        this.checkRequiredArgument('editOrder', symbol, 'symbol');
+        const typeValue = type.toUpperCase();
+        if (typeValue !== 'LIMIT' && typeValue !== 'MARKET' && typeValue !== 'STOP_MARKET' && typeValue !== 'INSTANT') {
+            throw new errors.InvalidOrder('Invalid order type: ' + typeValue + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.');
         }
-        type = type.toUpperCase();
-        if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'INSTANT') {
-            throw new errors.InvalidOrder('Invalid order type: ' + type + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.');
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        await this.loadMarkets();
         const market = this.market(symbol);
+        this.checkRequiredArgument('editOrder', side, 'side');
+        const createRequest = {
+            'type': typeValue,
+            'side': side.toUpperCase(),
+            'market_symbol': market['id'],
+        };
+        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
+            createRequest['quantity'] = this.amountToPrecision(symbol, amount);
+            if (typeValue === 'LIMIT') {
+                createRequest['price'] = this.priceToPrecision(symbol, price);
+            }
+        }
+        if (typeValue === 'STOP_MARKET') {
+            createRequest['stop_price'] = this.priceToPrecision(symbol, price);
+            createRequest['quantity'] = this.amountToPrecision(symbol, amount);
+        }
+        if (typeValue === 'INSTANT') {
+            createRequest['amount'] = this.priceToPrecision(symbol, amount);
+        }
         const request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
                 'type': 'ID',
                 'id': this.parseNumber(id),
             },
-            'create': {
-                'type': type,
-                'side': side.toUpperCase(),
-                'market_symbol': market['id'],
-            },
+            'create': createRequest,
         };
-        if (type === 'LIMIT' || type === 'MARKET') {
-            request['create']['quantity'] = this.amountToPrecision(symbol, amount);
-            if (type === 'LIMIT') {
-                request['create']['price'] = this.priceToPrecision(symbol, price);
-            }
-        }
-        if (type === 'STOP_MARKET') {
-            request['create']['stop_price'] = this.priceToPrecision(symbol, price);
-            request['create']['quantity'] = this.amountToPrecision(symbol, amount);
-        }
-        if (type === 'INSTANT') {
-            request['create']['amount'] = this.priceToPrecision(symbol, amount);
-        }
         const response = await this.v3PrivatePostOrdersCancelReplace(this.extend(request, params));
         // {
         //     "cancel": {
@@ -1505,7 +1555,8 @@ class foxbit extends foxbit$1["default"] {
         //         "client_order_id": "451637946501"
         //     }
         // }
-        return this.parseOrder(response['create'], market);
+        const created = this.safeDict(response, 'create', {});
+        return this.parseOrder(created, market);
     }
     /**
      * @method
@@ -1515,28 +1566,30 @@ class foxbit extends foxbit$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency_symbol': currency['id'],
             'amount': this.numberToString(amount),
             'destination_address': address,
         };
-        if (tag !== undefined) {
-            request['destination_tag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destination_tag'] = tagWithdrawTag;
         }
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(paramsWithdrawTag);
         if (networkCode !== undefined) {
             request['network_code'] = this.networkCodeToId(networkCode, code);
         }
-        const response = await this.v3PrivatePostWithdrawals(this.extend(request, params));
+        const response = await this.v3PrivatePostWithdrawals(this.extend(request, paramsNetworkCode));
         // {
         //     "amount": "2",
         //     "currency_symbol": "xrp",
@@ -1558,7 +1611,9 @@ class foxbit extends foxbit$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchLedger() requires a code argument');
@@ -1586,6 +1641,9 @@ class foxbit extends foxbit$1["default"] {
         const quoteId = this.safeString(quoteAssets, 'symbol');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         const fees = this.safeDict(market, 'default_fees');
         return this.safeMarketStructure({
@@ -1618,9 +1676,8 @@ class foxbit extends foxbit$1["default"] {
             'tierBased': false,
             'feeSide': 'get',
             'precision': {
-                'price': this.safeInteger(quoteAssets, 'precision'),
-                'amount': this.safeInteger(baseAssets, 'precision'),
-                'cost': this.safeInteger(quoteAssets, 'precision'),
+                'price': this.safeNumber(market, 'price_increment'),
+                'amount': this.safeNumber(market, 'quantity_increment'),
             },
             'limits': {
                 'amount': {
@@ -1646,7 +1703,7 @@ class foxbit extends foxbit$1["default"] {
     parseTradingFee(entry, market = undefined) {
         return {
             'info': entry,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'maker': this.safeNumber(entry, 'maker'),
             'taker': this.safeNumber(entry, 'taker'),
             'percentage': true,
@@ -1656,12 +1713,20 @@ class foxbit extends foxbit$1["default"] {
     parseTicker(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 'market_symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'spot');
-        const rolling_24h = ticker['rolling_24h'];
+        const rolling_24h = this.safeDict(ticker, 'rolling_24h');
         const best = this.safeDict(ticker, 'best');
         const bestAsk = this.safeDict(best, 'ask');
         const bestBid = this.safeDict(best, 'bid');
-        const lastTrade = ticker['last_trade'];
-        const lastPrice = this.safeString(lastTrade, 'price');
+        const lastTrade = this.safeDict(ticker, 'last_trade');
+        let lastPrice = this.safeString(lastTrade, 'price');
+        let change = this.safeString(rolling_24h, 'price_change');
+        let percentage = this.safeString(rolling_24h, 'price_change_percent');
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise["default"].stringEq(lastPrice, '0')) {
+            lastPrice = undefined;
+            change = undefined;
+            percentage = undefined;
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': this.parseDate(this.safeString(lastTrade, 'date')),
@@ -1677,8 +1742,8 @@ class foxbit extends foxbit$1["default"] {
             'close': lastPrice,
             'last': lastPrice,
             'previousClose': undefined,
-            'change': this.safeString(rolling_24h, 'price_change'),
-            'percentage': this.safeString(rolling_24h, 'price_change_percent'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString(rolling_24h, 'volume'),
             'quoteVolume': this.safeString(rolling_24h, 'quote_volume'),
@@ -1712,7 +1777,7 @@ class foxbit extends foxbit$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'order': undefined,
             'type': undefined,
             'side': side,
@@ -1736,11 +1801,13 @@ class foxbit extends foxbit$1["default"] {
     }
     parseOrder(order, market = undefined) {
         let symbol = this.safeString(order, 'market_symbol');
-        if (market === undefined && symbol !== undefined) {
-            market = this.market(symbol);
-        }
+        let marketResolved = market;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString(market, 'symbol');
+        }
+        else if (symbol !== undefined) {
+            marketResolved = this.market(symbol);
+            symbol = this.safeString(marketResolved, 'symbol');
         }
         const timestamp = this.parseDate(this.safeString(order, 'created_at'));
         const price = this.safeString(order, 'price');
@@ -1752,15 +1819,15 @@ class foxbit extends foxbit$1["default"] {
             amount = Precise["default"].stringAdd(remaining, filled);
         }
         let cost = this.safeString(order, 'funds_received');
-        if (!cost) {
+        if ((cost === undefined) || (cost === '')) {
             const priceAverage = this.safeString(order, 'price_avg');
             const priceToCalculate = this.safeString(order, 'price', priceAverage);
             cost = Precise["default"].stringMul(priceToCalculate, amount);
         }
         const side = this.safeStringLower(order, 'side');
-        let feeCurrency = this.safeStringUpper(market, 'quoteId');
+        let feeCurrency = this.safeStringUpper(marketResolved, 'quoteId');
         if (side === 'buy') {
-            feeCurrency = this.safeStringUpper(market, 'baseId');
+            feeCurrency = this.safeStringUpper(marketResolved, 'baseId');
         }
         return this.safeOrder({
             'id': this.safeString(order, 'id'),
@@ -1770,7 +1837,7 @@ class foxbit extends foxbit$1["default"] {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus(this.safeString(order, 'state')),
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'type': this.safeString(order, 'type'),
             'timeInForce': this.safeString(order, 'time_in_force'),
             'postOnly': this.safeBool(order, 'post_only'),
@@ -1830,7 +1897,7 @@ class foxbit extends foxbit$1["default"] {
         const address = this.safeString2(cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString(transaction, 'sn');
         let type = 'withdrawal';
-        if (sn !== undefined && sn[0] === 'D') {
+        if (sn !== undefined && sn.startsWith('D')) {
             type = 'deposit';
         }
         const fee = this.safeString(transaction, 'fee', '0');
@@ -1858,7 +1925,7 @@ class foxbit extends foxbit$1["default"] {
             'txid': this.safeString(cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'network_code'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -1912,9 +1979,19 @@ class foxbit extends foxbit$1["default"] {
             'cost': this.safeNumber(item, 'fee'),
             'currency': currencySymbol,
         };
-        if (amount < 0) {
-            direction = 'out';
-            realAmount = amount * -1;
+        if (amount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
+        }
+        if (balance === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseLedgerEntry() missing balance');
+        }
+        let before = undefined;
+        if (amount !== undefined && balance !== undefined) {
+            before = balance - amount;
+            if (0 > amount) {
+                direction = 'out';
+                realAmount = -amount;
+            }
         }
         return {
             'id': id,
@@ -1928,13 +2005,13 @@ class foxbit extends foxbit$1["default"] {
             'type': type,
             'currency': currencySymbol,
             'amount': realAmount,
-            'before': balance - amount,
+            'before': before,
             'after': balance,
             'status': 'ok',
             'fee': fee,
         };
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams(path, params);
@@ -1942,68 +2019,76 @@ class foxbit extends foxbit$1["default"] {
             fullPath = '/status';
             urlPath = 'status';
         }
-        let url = this.urls['api'][urlPath] + fullPath;
-        params = this.omit(params, this.extractParams(path));
+        const apiUrl = this.safeString(this.urls['api'], urlPath);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + fullPath;
+        const paramsOmitted = this.omit(params, this.extractParams(path));
         const timestamp = this.milliseconds();
         let query = '';
         let signatureQuery = '';
         if (method === 'GET') {
-            const paramKeys = Object.keys(params);
+            const paramKeys = Object.keys(paramsOmitted);
             const paramKeysLength = paramKeys.length;
+            const lastKeyIndex = paramKeysLength - 1;
             if (paramKeysLength > 0) {
-                query = this.urlencode(params);
+                query = this.urlencode(paramsOmitted);
                 url += '?' + query;
             }
             for (let i = 0; i < paramKeys.length; i++) {
                 const key = paramKeys[i];
-                const value = this.safeString(params, key);
+                const value = this.safeString(paramsOmitted, key);
                 if (value !== undefined) {
                     signatureQuery += key + '=' + value;
                 }
-                if (i < paramKeysLength - 1) {
+                if (i < lastKeyIndex) {
                     signatureQuery += '&';
                 }
             }
         }
+        let requestBody = undefined;
         if (method === 'POST' || method === 'PUT') {
-            body = this.json(params);
+            requestBody = this.json(paramsOmitted);
         }
         let bodyToSignature = '';
-        if (body !== undefined) {
-            bodyToSignature = body;
+        if (requestBody !== undefined) {
+            bodyToSignature = requestBody;
         }
-        headers = {
+        const headersValue = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': this.getCcxtVersion(),
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials();
-            const preHash = this.numberToString(timestamp) + method + fullPath + signatureQuery + bodyToSignature;
-            const signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256.sha256, 'hex');
-            headers['X-FB-ACCESS-KEY'] = this.apiKey;
-            headers['X-FB-ACCESS-TIMESTAMP'] = this.numberToString(timestamp);
-            headers['X-FB-ACCESS-SIGNATURE'] = signature;
+            const preHash = timestamp.toString() + method + fullPath + signatureQuery + bodyToSignature;
+            const signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha2_js.sha256, 'hex');
+            headersValue['X-FB-ACCESS-KEY'] = this.apiKey;
+            headersValue['X-FB-ACCESS-TIMESTAMP'] = timestamp.toString();
+            headersValue['X-FB-ACCESS-SIGNATURE'] = signature;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
         const error = this.safeDict(response, 'error');
-        const code = this.safeString(error, 'code');
+        const codeError = this.safeString(error, 'code');
         const details = this.safeList(error, 'details');
-        const message = this.safeString(error, 'message');
+        const message = this.safeString(error, 'message', '');
         let detailsString = '';
-        if (details) {
+        if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
-                detailsString = detailsString + details[i] + ' ';
+                detailsString = detailsString + this.safeString(details, i, '') + ' ';
             }
         }
         if (error !== undefined) {
             const feedback = this.id + ' ' + message + ' details: ' + detailsString;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], detailsString, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new errors.ExchangeError(feedback);
         }
         return undefined;

@@ -1,6 +1,7 @@
 package io.github.ccxt.ws;
 
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Helpers;
 
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class BinanceDemoRestTest {
 
-    static Exchange exchange;
+    static BaseExchange exchange;
     static final String SYMBOL = "BTC/USDT";
     static final int TIMEOUT_SEC = 30;
     static int passed = 0;
@@ -40,7 +41,7 @@ public class BinanceDemoRestTest {
         exchange.enableDemoTrading(true);
         System.out.println("Demo trading enabled");
         System.out.println("Loading markets...\n");
-        exchange.loadMarkets().join();
+        exchange.loadMarkets(false, new java.util.HashMap<String, Object>()).join();
 
         // ── Public endpoints (no auth needed) ──
         section("PUBLIC ENDPOINTS");

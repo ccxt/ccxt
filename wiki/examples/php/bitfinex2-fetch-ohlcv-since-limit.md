@@ -1,15 +1,12 @@
-- [Bitfinex2 Fetch Ohlcv Since Limit](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
 date_default_timezone_set('UTC');
 
 // instantiate the exchange by id
-$exchange = '\\ccxt\\bitfinex2';
+$exchange = '\\ccxt\\bitfinex';
 $exchange = new $exchange();
 
 // load all markets from the exchange
@@ -28,5 +25,5 @@ printf("--------------------------------------------------------------\n");
 run($exchange, 'ETH/BTC', '1m', 1518842513569, 10);
 printf("--------------------------------------------------------------\n");
 
-?> 
+?>
 ```

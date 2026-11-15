@@ -1,0 +1,41 @@
+import assert from 'assert';
+import ccxt from '../../../ccxt.js';
+import type { Dict } from '../../base/types.js';
+
+function testMergeBalanceAccount () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    // isolated margin hands one account per market; the same code across two
+    // markets is summed into a single flat entry, missing fields stay undefined.
+    // the helper returns the merged dict and callers reassign it: PHP arrays are
+    // passed by value, so mutating the argument alone is invisible there.
+    // accounts and the result are map literals; extend keeps the reassigned local a dictionary
+    const btcAccount: Dict = { 'free': '1', 'used': '0.5', 'debt': '0.1' };
+    let result: Dict = {};
+    result = exchange.extend (exchange.mergeBalanceAccount (result, 'BTC', btcAccount));
+    assert (exchange.safeString (result['BTC'], 'free') === '1');
+    const btcAccount2: Dict = { 'free': '2', 'used': '0.25', 'total': '2.25' };
+    result = exchange.extend (exchange.mergeBalanceAccount (result, 'BTC', btcAccount2));
+    assert (exchange.safeString (result['BTC'], 'free') === '3');
+    assert (exchange.safeString (result['BTC'], 'used') === '0.75');
+    assert (exchange.safeString (result['BTC'], 'total') === '2.25');
+    assert (exchange.safeString (result['BTC'], 'debt') === '0.1');
+    const usdtAccount: Dict = { 'free': '5' };
+    result = exchange.extend (exchange.mergeBalanceAccount (result, 'USDT', usdtAccount));
+    assert (exchange.safeString (result['USDT'], 'free') === '5');
+    assert (exchange.safeString (result['USDT'], 'used') === undefined);
+    const keys = Object.keys (result);
+    assert (keys.length === 2);
+    // the merged dict is a regular safeBalance input. safeBalance parses to a number,
+    // and each port spells that number differently (JS "3", PHP "3.0"), so assert on
+    // the parsed value rather than on its string form
+    const balance = exchange.safeBalance (result);
+    assert (exchange.safeNumber (balance['BTC'], 'free') === exchange.parseNumber ('3'));
+    assert (exchange.safeNumber (balance['free'], 'USDT') === exchange.parseNumber ('5'));
+    assert (exchange.safeNumber (balance['debt'], 'BTC') === exchange.parseNumber ('0.1'));
+}
+
+export default testMergeBalanceAccount;

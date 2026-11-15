@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitvavo$1 = require('../bitvavo.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -17,13 +17,22 @@ class bitvavo extends bitvavo$1["default"] {
                 'cancelOrdersWs': false,
                 'fetchTradesWs': false,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchBidsAsks': true,
                 'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
                 'cancelAllOrdersWs': true,
                 'cancelOrderWs': true,
                 'createOrderWs': true,
@@ -55,7 +64,7 @@ class bitvavo extends bitvavo$1["default"] {
                 },
             },
             'options': {
-                'supressMultipleWsRequestsError': false,
+                'supressMultipleWsRequestsError': false, // if true, will not throw an error when using the same messageHash for more than one request. By making false you may receive responses from different requests on the same action
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -63,10 +72,12 @@ class bitvavo extends bitvavo$1["default"] {
         });
     }
     async watchPublic(name, symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const messageHash = name + '@' + this.safeString(market, 'id', '');
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -82,15 +93,17 @@ class bitvavo extends bitvavo$1["default"] {
         return await this.watch(url, messageHash, message, messageHash);
     }
     async watchPublicMultiple(methodName, channelName, symbols, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
         const messageHashes = [methodName];
         const args = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market(symbols[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(symbolsNormalized[i]);
             args.push(market['id']);
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -112,8 +125,8 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker(symbol, params = {}) {
-        return await this.watchPublic('ticker24h', symbol, params);
+    watchTicker(symbol, params = {}) {
+        return this.watchPublic('ticker24h', symbol, params);
     }
     /**
      * @method
@@ -125,11 +138,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const channel = 'ticker24h';
-        const tickers = await this.watchPublicMultiple(channel, channel, symbols, params);
-        return this.filterByArray(tickers, 'symbol', symbols);
+        const tickers = await this.watchPublicMultiple(channel, channel, symbolsNormalized, params);
+        return this.filterByArray(tickers, 'symbol', symbolsNormalized);
     }
     handleTicker(client, message) {
         //
@@ -155,18 +170,20 @@ class bitvavo extends bitvavo$1["default"] {
         //
         this.handleBidAsk(client, message);
         const event = this.safeString(message, 'event');
-        const tickers = this.safeValue(message, 'data', []);
+        const tickers = this.safeList(message, 'data', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const marketId = this.safeString(data, 'market');
             const market = this.safeMarket(marketId, undefined, '-');
-            const messageHash = event + '@' + marketId;
             const ticker = this.parseTicker(data, market);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             result.push(ticker);
-            client.resolve(ticker, messageHash);
+            if (event !== undefined) {
+                const messageHash = event + '@' + this.safeString(data, 'market', '');
+                client.resolve(ticker, messageHash);
+            }
         }
         client.resolve(result, event);
     }
@@ -180,20 +197,22 @@ class bitvavo extends bitvavo$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const channel = 'ticker24h';
-        const tickers = await this.watchPublicMultiple('bidask', channel, symbols, params);
-        return this.filterByArray(tickers, 'symbol', symbols);
+        const tickers = await this.watchPublicMultiple('bidask', channel, symbolsNormalized, params);
+        return this.filterByArray(tickers, 'symbol', symbolsNormalized);
     }
     handleBidAsk(client, message) {
         const event = 'bidask';
-        const tickers = this.safeValue(message, 'data', []);
+        const tickers = this.safeList(message, 'data', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const ticker = this.parseWsBidAsk(data);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol', '');
             this.bidsasks[symbol] = ticker;
             result.push(ticker);
             const messageHash = event + ':' + symbol;
@@ -203,8 +222,8 @@ class bitvavo extends bitvavo$1["default"] {
     }
     parseWsBidAsk(ticker, market = undefined) {
         const marketId = this.safeString(ticker, 'market');
-        market = this.safeMarket(marketId, undefined, '-');
-        const symbol = this.safeString(market, 'symbol');
+        const marketResolved = this.safeMarket(marketId, undefined, '-');
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(ticker, 'timestamp');
         return this.safeTicker({
             'symbol': symbol,
@@ -215,7 +234,7 @@ class bitvavo extends bitvavo$1["default"] {
             'bid': this.safeNumber(ticker, 'bid'),
             'bidVolume': this.safeNumber(ticker, 'bidSize'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -228,13 +247,16 @@ class bitvavo extends bitvavo$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
-        const trades = await this.watchPublic('trades', symbol, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        const symbolValue = this.symbol(symbol);
+        const trades = await this.watchPublic('trades', symbolValue, params);
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit(symbolValue, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrade(client, message) {
         //
@@ -252,7 +274,7 @@ class bitvavo extends bitvavo$1["default"] {
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const name = 'trades';
-        const messageHash = name + '@' + marketId;
+        const messageHash = name + '@' + this.safeString(message, 'market', '');
         const trade = this.parseTrade(message, market);
         let tradesArray = this.safeValue(this.trades, symbol);
         if (tradesArray === undefined) {
@@ -262,6 +284,95 @@ class bitvavo extends bitvavo$1["default"] {
         tradesArray.append(trade);
         this.trades[symbol] = tradesArray;
         client.resolve(tradesArray, messageHash);
+    }
+    /**
+     * @method
+     * @name bitvavo#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+     * @param {string[]} symbols unified symbols of the markets to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const name = 'trades';
+        const marketIds = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(symbolsNormalized[i]);
+            marketIds.push(market['id']);
+            messageHashes.push(name + '@' + this.safeString(market, 'id', ''));
+        }
+        const url = this.safeString(this.urls['api'], 'ws');
+        const request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': name,
+                    'markets': marketIds,
+                },
+            ],
+        };
+        const message = this.extend(request, params);
+        const trades = await this.watchMultiple(url, messageHashes, message, messageHashes);
+        const first = this.safeDict(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit(tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name bitvavo#unWatchTrades
+     * @description stop watching the list of most recent trades for a particular symbol
+     * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+     * @param {string} symbol unified symbol of the market to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
+    /**
+     * @method
+     * @name bitvavo#unWatchTradesForSymbols
+     * @description stop watching the list of most recent trades for a list of symbols
+     * @see https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+     * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const name = 'trades';
+        const marketIds = [];
+        const subMessageHashes = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(symbolsNormalized[i]);
+            marketIds.push(market['id']);
+            subMessageHashes.push(name + '@' + this.safeString(market, 'id', ''));
+        }
+        const channels = [
+            {
+                'name': name,
+                'markets': marketIds,
+            },
+        ];
+        const subscriptionArgs = {
+            'symbols': symbolsNormalized,
+        };
+        return await this.unWatchChannels('trades', channels, subMessageHashes, subscriptionArgs, params);
     }
     /**
      * @method
@@ -275,14 +386,16 @@ class bitvavo extends bitvavo$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const name = 'candles';
         const marketId = market['id'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
-        const messageHash = name + '@' + marketId + '_' + interval;
-        const url = this.urls['api']['ws'];
+        const messageHash = name + '@' + this.safeString(market, 'id', '') + '_' + interval;
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -295,10 +408,11 @@ class bitvavo extends bitvavo$1["default"] {
         };
         const message = this.extend(request, params);
         const ohlcv = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleFetchOHLCV(client, message) {
         //
@@ -310,7 +424,7 @@ class bitvavo extends bitvavo$1["default"] {
         //        ]
         //    }
         //
-        const response = this.safeValue(message, 'response');
+        const response = this.safeList(message, 'response');
         const ohlcv = this.parseOHLCVs(response, undefined, undefined, undefined);
         const messageHash = this.safeString(message, 'requestId');
         client.resolve(ohlcv, messageHash);
@@ -337,11 +451,11 @@ class bitvavo extends bitvavo$1["default"] {
         const marketId = this.safeString(message, 'market');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
-        const interval = this.safeString(message, 'interval');
+        const interval = this.safeString(message, 'interval', '');
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe(interval);
-        const messageHash = name + '@' + marketId + '_' + interval;
-        const candles = this.safeValue(message, 'candle');
+        const messageHash = name + '@' + this.safeString(message, 'market', '') + '_' + interval;
+        const candles = this.safeList(message, 'candle', []);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -355,6 +469,120 @@ class bitvavo extends bitvavo$1["default"] {
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
+        // watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
+        client.resolve([symbol, timeframe, stored], 'multi:' + messageHash);
+    }
+    /**
+     * @method
+     * @name bitvavo#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+     * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const name = 'candles';
+        const messageHashes = [];
+        const marketIdsByInterval = {};
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
+            const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
+            const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if (!(interval in marketIdsByInterval)) {
+                marketIdsByInterval[interval] = [];
+            }
+            const intervalIds = marketIdsByInterval[interval];
+            intervalIds.push(market['id']);
+            messageHashes.push('multi:' + name + '@' + this.safeString(market, 'id', '') + '_' + interval);
+        }
+        const channels = [];
+        const intervals = Object.keys(marketIdsByInterval);
+        for (let i = 0; i < intervals.length; i++) {
+            const interval = intervals[i];
+            channels.push({
+                'name': name,
+                'interval': [interval],
+                'markets': marketIdsByInterval[interval],
+            });
+        }
+        const url = this.safeString(this.urls['api'], 'ws');
+        const request = {
+            'action': 'subscribe',
+            'channels': channels,
+        };
+        const message = this.extend(request, params);
+        const [symbol, timeframe, candles] = await this.watchMultiple(url, messageHashes, message, messageHashes);
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = candles.getLimit(symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit(candles, since, limitResolved, 0, true);
+        return this.createOHLCVObject(symbol, timeframe, filtered);
+    }
+    /**
+     * @method
+     * @name bitvavo#unWatchOHLCV
+     * @description stop watching historical candlestick data for a market
+     * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+     * @param {string} symbol unified symbol of the market to stop watching the candles for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
+    }
+    /**
+     * @method
+     * @name bitvavo#unWatchOHLCVForSymbols
+     * @description stop watching historical candlestick data for multiple markets
+     * @see https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to stop watching the candles for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const name = 'candles';
+        const subMessageHashes = [];
+        const marketIdsByInterval = {};
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
+            const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
+            const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if (!(interval in marketIdsByInterval)) {
+                marketIdsByInterval[interval] = [];
+            }
+            const intervalIds = marketIdsByInterval[interval];
+            intervalIds.push(market['id']);
+            // both the single-symbol and the multi-symbol watch hashes must be released
+            subMessageHashes.push(name + '@' + this.safeString(market, 'id', '') + '_' + interval);
+            subMessageHashes.push('multi:' + name + '@' + this.safeString(market, 'id', '') + '_' + interval);
+        }
+        const channels = [];
+        const intervals = Object.keys(marketIdsByInterval);
+        for (let i = 0; i < intervals.length; i++) {
+            const interval = intervals[i];
+            channels.push({
+                'name': name,
+                'interval': [interval],
+                'markets': marketIdsByInterval[interval],
+            });
+        }
+        const subscriptionArgs = {
+            'symbolsAndTimeframes': symbolsAndTimeframes,
+        };
+        return await this.unWatchChannels('ohlcv', channels, subMessageHashes, subscriptionArgs, params);
     }
     /**
      * @method
@@ -363,15 +591,17 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const name = 'book';
-        const messageHash = name + '@' + market['id'];
-        const url = this.urls['api']['ws'];
+        const messageHash = name + '@' + this.safeString(market, 'id', '');
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -386,7 +616,7 @@ class bitvavo extends bitvavo$1["default"] {
         const subscription = {
             'messageHash': messageHash,
             'name': name,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'marketId': market['id'],
             'method': this.handleOrderBookSubscription,
             'limit': limit,
@@ -395,6 +625,96 @@ class bitvavo extends bitvavo$1["default"] {
         const message = this.extend(request, params);
         const orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
         return orderbook.limit();
+    }
+    /**
+     * @method
+     * @name bitvavo#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+     * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+     * @param {string[]} symbols unified symbols of the markets to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     */
+    async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const name = 'book';
+        const marketIds = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(symbolsNormalized[i]);
+            marketIds.push(market['id']);
+            messageHashes.push(name + '@' + this.safeString(market, 'id', ''));
+        }
+        const url = this.safeString(this.urls['api'], 'ws');
+        const request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': name,
+                    'markets': marketIds,
+                },
+            ],
+        };
+        // the per-market snapshot machinery reads the marketId from the buffered
+        // delta messages, so the shared subscription only carries the common fields
+        const subscription = {
+            'name': name,
+            'symbols': symbolsNormalized,
+            'limit': limit,
+            'params': params,
+        };
+        const message = this.extend(request, params);
+        const orderbook = await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
+        return orderbook.limit();
+    }
+    /**
+     * @method
+     * @name bitvavo#unWatchOrderBook
+     * @description stop watching the order book for a particular symbol
+     * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+     * @param {string} symbol unified symbol of the market to stop watching the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOrderBook(symbol, params = {}) {
+        return await this.unWatchOrderBookForSymbols([symbol], params);
+    }
+    /**
+     * @method
+     * @name bitvavo#unWatchOrderBookForSymbols
+     * @description stop watching the order book for multiple markets
+     * @see https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+     * @param {string[]} symbols unified symbols of the markets to stop watching the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOrderBookForSymbols(symbols, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const name = 'book';
+        const marketIds = [];
+        const subMessageHashes = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market(symbolsNormalized[i]);
+            marketIds.push(market['id']);
+            subMessageHashes.push(name + '@' + this.safeString(market, 'id', ''));
+        }
+        const channels = [
+            {
+                'name': name,
+                'markets': marketIds,
+            },
+        ];
+        const subscriptionArgs = {
+            'symbols': symbolsNormalized,
+        };
+        return await this.unWatchChannels('orderbook', channels, subMessageHashes, subscriptionArgs, params);
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 0);
@@ -421,9 +741,10 @@ class bitvavo extends bitvavo$1["default"] {
         //     }
         //
         const nonce = this.safeInteger(message, 'nonce');
-        if (nonce > orderbook['nonce']) {
-            this.handleDeltas(orderbook['asks'], this.safeValue(message, 'asks', []));
-            this.handleDeltas(orderbook['bids'], this.safeValue(message, 'bids', []));
+        const currentNonce = this.safeInteger(orderbook, 'nonce');
+        if ((nonce !== undefined) && (currentNonce !== undefined) && (nonce > currentNonce)) {
+            this.handleDeltas(orderbook['asks'], this.safeList(message, 'asks', []));
+            this.handleDeltas(orderbook['bids'], this.safeList(message, 'bids', []));
             orderbook['nonce'] = nonce;
         }
         return orderbook;
@@ -442,22 +763,25 @@ class bitvavo extends bitvavo$1["default"] {
         //         "asks": []
         //     }
         //
-        const event = this.safeString(message, 'event');
+        const event = this.safeString(message, 'event', '');
         const marketId = this.safeString(message, 'market');
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
-        const messageHash = event + '@' + market['id'];
+        const messageHash = event + '@' + this.safeString(message, 'market', '');
         const orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
             return;
         }
-        if (orderbook['nonce'] === undefined) {
+        if (this.safeInteger(orderbook, 'nonce') === undefined) {
             const subscription = this.safeValue(client.subscriptions, messageHash, {});
-            const watchingOrderBookSnapshot = this.safeValue(subscription, 'watchingOrderBookSnapshot');
+            // multi-symbol watches share one subscription object, so the
+            // snapshot-in-flight flag must be tracked per market
+            const flagKey = 'watchingOrderBookSnapshot@' + this.safeString(message, 'market', '');
+            const watchingOrderBookSnapshot = this.safeBool(subscription, flagKey);
             if (watchingOrderBookSnapshot === undefined) {
-                subscription['watchingOrderBookSnapshot'] = true;
+                subscription[flagKey] = true;
                 client.subscriptions[messageHash] = subscription;
-                const options = this.safeValue(this.options, 'watchOrderBookSnapshot', {});
+                const options = this.safeDict(this.options, 'watchOrderBookSnapshot', {});
                 const delay = this.safeInteger(options, 'delay', this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
                 this.delay(delay, this.watchOrderBookSnapshot, client, message, subscription);
@@ -470,11 +794,19 @@ class bitvavo extends bitvavo$1["default"] {
         }
     }
     async watchOrderBookSnapshot(client, message, subscription) {
-        const params = this.safeValue(subscription, 'params');
-        const marketId = this.safeString(subscription, 'marketId');
+        const params = this.safeDict(subscription, 'params');
+        // multi-symbol watches share one subscription object without a marketId,
+        // in that case the buffered delta message identifies the market
+        const marketId = this.safeString2(subscription, 'marketId', 'market', this.safeString(message, 'market'));
+        const snapshotSymbol = this.safeSymbol(marketId, undefined, '-');
+        if (!(snapshotSymbol in this.orderbooks)) {
+            // this snapshot fetch was scheduled before an unsubscribe removed the
+            // order book - skip it so the getBook request is not sent for a dead market
+            return undefined;
+        }
         const name = 'getBook';
         const messageHash = name + '@' + marketId;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const request = {
             'action': name,
             'market': marketId,
@@ -502,15 +834,19 @@ class bitvavo extends bitvavo$1["default"] {
         //         }
         //     }
         //
-        const response = this.safeValue(message, 'response');
+        const response = this.safeDict(message, 'response');
         if (response === undefined) {
             return;
         }
         const marketId = this.safeString(response, 'market');
         const symbol = this.safeSymbol(marketId, undefined, '-');
         const name = 'book';
-        const messageHash = name + '@' + marketId;
-        const orderbook = this.orderbooks[symbol];
+        const messageHash = name + '@' + this.safeString(response, 'market', '');
+        const orderbook = this.safeValue(this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            // the market was unsubscribed while this snapshot request was in flight
+            return;
+        }
         const snapshot = this.parseOrderBook(response, symbol);
         snapshot['nonce'] = this.safeInteger(response, 'nonce');
         orderbook.reset(snapshot);
@@ -522,29 +858,98 @@ class bitvavo extends bitvavo$1["default"] {
         }
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);
+        // getBook is a one-shot request but this.watch tracks it as a persistent
+        // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
+        // instead of suppressing the request as an already-active subscription
+        const snapshotHash = 'getBook@' + this.safeString(response, 'market', '');
+        if (snapshotHash in client.subscriptions) {
+            delete client.subscriptions[snapshotHash];
+        }
     }
     handleOrderBookSubscription(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
         const limit = this.safeInteger(subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+        const limits = this.safeDict(this.options, 'orderBookLimits', {});
+        const storedLimit = this.safeInteger(limits, symbol);
+        if (!(symbol in this.orderbooks) || (storedLimit !== limit)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
+            limits[symbol] = limit;
+            this.options['orderBookLimits'] = limits;
         }
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        const orderbook = this.orderbooks[symbol];
+        orderbook['nonce'] = undefined;
+        orderbook.cache = [];
     }
     handleOrderBookSubscriptions(client, message, marketIds) {
         const name = 'book';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString(marketIds, i);
             const symbol = this.safeSymbol(marketId, undefined, '-');
-            const messageHash = name + '@' + marketId;
+            const messageHash = name + '@' + this.safeString(marketIds, i, '');
             if (!(symbol in this.orderbooks)) {
                 const subscription = this.safeValue(client.subscriptions, messageHash);
                 const method = this.safeValue(subscription, 'method');
                 if (method !== undefined) {
                     method.call(this, client, message, subscription);
                 }
+                else if (subscription !== undefined) {
+                    // multi-symbol watches share one subscription object without a
+                    // per-market method - initialize the order book directly
+                    const limit = this.safeInteger(subscription, 'limit');
+                    this.orderbooks[symbol] = this.orderBook({}, limit);
+                }
             }
         }
+    }
+    async unWatchChannels(topic, channels, subMessageHashes, subscriptionArgs, params = {}) {
+        const url = this.safeString(this.urls['api'], 'ws');
+        const request = {
+            'action': 'unsubscribe',
+            'channels': channels,
+        };
+        const unsubHashes = [];
+        for (let i = 0; i < subMessageHashes.length; i++) {
+            unsubHashes.push('unsubscribe:' + this.safeString(subMessageHashes, i, ''));
+        }
+        const subscription = this.extend({
+            'topic': topic,
+            'subMessageHashes': subMessageHashes,
+            'unsubHashes': unsubHashes,
+        }, subscriptionArgs);
+        const message = this.extend(request, params);
+        return await this.watchMultiple(url, unsubHashes, message, unsubHashes, subscription);
+    }
+    handleUnsubscriptionStatus(client, message) {
+        //
+        //     {
+        //         "event": "unsubscribed",
+        //         "subscriptions": {}
+        //     }
+        //
+        // the confirmation carries the remaining subscriptions without identifying
+        // which unsubscribe request it belongs to, so settle every pending unsubscription
+        const keys = Object.keys(client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!(key in client.subscriptions)) {
+                continue;
+            }
+            if (!key.startsWith('unsubscribe:')) {
+                continue;
+            }
+            const subscription = this.safeValue(client.subscriptions, key);
+            const subHash = key.replace('unsubscribe:', '');
+            this.cleanCache(subscription);
+            this.cleanUnsubscription(client, subHash, key);
+            // bitvavo resolves-and-deletes the data futures on every message, so at
+            // unsubscribe time the sub future is usually already gone and cleanUnsubscription
+            // stashes the error in client.rejections instead - that stale entry
+            // would immediately reject the next subscribe's fresh future, so clear it here
+            if (subHash in client.rejections) {
+                delete client.rejections[subHash];
+            }
+        }
+        return message;
     }
     /**
      * @method
@@ -560,14 +965,16 @@ class bitvavo extends bitvavo$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
-        const messageHash = 'order:' + symbol;
+        const messageHash = 'order:' + symbolValue;
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -578,10 +985,11 @@ class bitvavo extends bitvavo$1["default"] {
             ],
         };
         const orders = await this.watch(url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolValue, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolValue, since, limitResolved, true);
     }
     /**
      * @method
@@ -597,14 +1005,16 @@ class bitvavo extends bitvavo$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const marketId = market['id'];
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const name = 'account';
-        const messageHash = 'myTrades:' + symbol;
+        const messageHash = 'myTrades:' + symbolValue;
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -615,10 +1025,11 @@ class bitvavo extends bitvavo$1["default"] {
             ],
         };
         const trades = await this.watch(url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true);
     }
     /**
      * @method
@@ -630,7 +1041,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -645,7 +1056,9 @@ class bitvavo extends bitvavo$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         return await this.watchRequest('privateCreateOrder', request);
@@ -661,11 +1074,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} side 'buy' or 'sell'
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         return await this.watchRequest('privateUpdateOrder', request);
@@ -677,11 +1092,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = this.cancelOrderRequest(id, symbol, params);
         return await this.watchRequest('privateCancelOrder', request);
@@ -692,15 +1109,16 @@ class bitvavo extends bitvavo$1["default"] {
      * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = {};
-        let operatorId = undefined;
-        [operatorId, params] = this.handleOptionAndParams(params, 'cancelAllOrdersWs', 'operatorId');
+        const [operatorId, paramsOperatorId] = this.handleOptionAndParams(params, 'cancelAllOrdersWs', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt(operatorId);
         }
@@ -712,7 +1130,7 @@ class bitvavo extends bitvavo$1["default"] {
             market = this.market(symbol);
             request['market'] = market['id'];
         }
-        return await this.watchRequest('privateCancelOrders', this.extend(request, params));
+        return await this.watchRequest('privateCancelOrders', this.extend(request, paramsOperatorId));
     }
     handleMultipleOrders(client, message) {
         //
@@ -741,14 +1159,16 @@ class bitvavo extends bitvavo$1["default"] {
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrderWs(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         const request = {
@@ -765,14 +1185,16 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrdersWs() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = this.fetchOrdersRequest(symbol, since, limit, params);
         const orders = await this.watchRequest('privateGetOrders', request);
@@ -782,14 +1204,14 @@ class bitvavo extends bitvavo$1["default"] {
         const ts = this.milliseconds().toString();
         const randomNumber = this.randNumber(4);
         const randomPart = randomNumber.toString();
-        return parseInt(ts + randomPart);
+        return this.parseToInt(ts + randomPart);
     }
     async watchRequest(action, request) {
         const messageHash = this.requestId();
         const messageHashStr = messageHash.toString();
         request['action'] = action;
         request['requestId'] = messageHash;
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         return await this.watch(url, messageHashStr, request, messageHashStr);
     }
     /**
@@ -799,11 +1221,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = {
         // 'market': market['id'], // rate limit 25 without a market, 1 with market specified
@@ -824,14 +1248,16 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTradesWs() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = this.fetchMyTradesRequest(symbol, since, limit, params);
         const myTrades = await this.watchRequest('privateGetTrades', request);
@@ -874,16 +1300,18 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdrawWs(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
-        await this.loadMarkets();
+    async withdrawWs(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
-        const request = this.withdrawRequest(code, amount, address, tag, params);
+        const request = this.withdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag);
         return await this.watchRequest('privateWithdrawAssets', request);
     }
     handleWithdraw(client, message) {
@@ -900,7 +1328,7 @@ class bitvavo extends bitvavo$1["default"] {
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeValue(message, 'response');
+        const response = this.safeDict(message, 'response', {});
         const withdraw = this.parseTransaction(response);
         client.resolve(withdraw, messageHash);
     }
@@ -912,11 +1340,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawalsWs(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = this.fetchWithdrawalsRequest(code, since, limit, params);
         const withdraws = await this.watchRequest('privateGetWithdrawalHistory', request);
@@ -954,11 +1384,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, params);
         const action = 'getCandles';
         const ohlcv = await this.watchRequest(action, request);
@@ -972,11 +1404,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWs(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = this.fetchDepositsRequest(code, since, limit, params);
         const deposits = await this.watchRequest('privateGetDepositHistory', request);
@@ -998,7 +1432,7 @@ class bitvavo extends bitvavo$1["default"] {
         //        ]
         //    }
         //
-        const response = this.safeValue(message, 'response');
+        const response = this.safeList(message, 'response', []);
         const deposits = this.parseTransactions(response, undefined, undefined, undefined, { 'type': 'deposit' });
         const messageHash = this.safeString(message, 'requestId');
         client.resolve(deposits, messageHash);
@@ -1008,11 +1442,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @name bitvavo#fetchTradingFeesWs
      * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
      * @description fetch the trading fees for multiple markets
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFeesWs(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         return await this.watchRequest('privateGetAccount', params);
     }
@@ -1021,22 +1457,24 @@ class bitvavo extends bitvavo$1["default"] {
      * @name bitvavo#fetchMarketsWs
      * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
      * @description retrieves data on all markets for bitvavo
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarketsWs(params = {}) {
-        return await this.watchRequest('getMarkets', params);
+    fetchMarketsWs(params = {}) {
+        return this.watchRequest('getMarkets', params);
     }
     /**
      * @method
      * @name bitvavo#fetchCurrenciesWs
      * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
      * @description fetches all available currencies on an exchange
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrenciesWs(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         return await this.watchRequest('getAssets', params);
     }
     handleFetchCurrencies(client, message) {
@@ -1061,7 +1499,7 @@ class bitvavo extends bitvavo$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeValue(message, 'response');
+        const response = this.safeList(message, 'response');
         const currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
     }
@@ -1079,7 +1517,7 @@ class bitvavo extends bitvavo$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeValue(message, 'response');
+        const response = this.safeDict(message, 'response');
         const fees = this.parseTradingFees(response);
         client.resolve(fees, messageHash);
     }
@@ -1088,11 +1526,13 @@ class bitvavo extends bitvavo$1["default"] {
      * @name bitvavo#fetchBalanceWs
      * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
     async fetchBalanceWs(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         return await this.watchRequest('privateGetBalance', params);
     }
@@ -1110,8 +1550,8 @@ class bitvavo extends bitvavo$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeValue(message, 'response', []);
-        const balance = this.parseBalance(response);
+        const response = this.safeList(message, 'response', []);
+        const balance = this.parseBalanceList(response);
         client.resolve(balance, messageHash);
     }
     handleSingleOrder(client, message) {
@@ -1143,7 +1583,7 @@ class bitvavo extends bitvavo$1["default"] {
         //        }
         //    }
         //
-        const response = this.safeValue(message, 'response', {});
+        const response = this.safeDict(message, 'response', {});
         const order = this.parseOrder(response);
         const messageHash = this.safeString(message, 'requestId');
         client.resolve(order, messageHash);
@@ -1168,7 +1608,7 @@ class bitvavo extends bitvavo$1["default"] {
         //        ]
         //    }
         //
-        const response = this.safeValue(message, 'response', {});
+        const response = this.safeList(message, 'response', []);
         const markets = this.parseMarkets(response);
         const messageHash = this.safeString(message, 'requestId');
         client.resolve(markets, messageHash);
@@ -1272,7 +1712,7 @@ class bitvavo extends bitvavo$1["default"] {
         //         }
         //     }
         //
-        const subscriptions = this.safeValue(message, 'subscriptions', {});
+        const subscriptions = this.safeDict(message, 'subscriptions', {});
         const methods = {
             'book': this.handleOrderBookSubscriptions,
         };
@@ -1288,7 +1728,7 @@ class bitvavo extends bitvavo$1["default"] {
         return message;
     }
     async authenticate(params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const client = this.client(url);
         const messageHash = 'authenticated';
         let future = this.safeValue(client.subscriptions, messageHash);
@@ -1296,7 +1736,7 @@ class bitvavo extends bitvavo$1["default"] {
             const timestamp = this.milliseconds();
             const stringTimestamp = timestamp.toString();
             const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
             const action = 'authenticate';
             const request = {
                 'action': action,
@@ -1349,20 +1789,24 @@ class bitvavo extends bitvavo$1["default"] {
         //    }
         //
         const error = this.safeString(message, 'error');
+        if (error === undefined) {
+            return undefined;
+        }
         const code = this.safeInteger(error, 'errorCode');
         const action = this.safeString(message, 'action');
         const buildMessage = this.buildMessageHash(action, message);
         const messageHash = this.safeString(message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors(code, error, client.url, '', {}, error, message, {}, {});
+            this.handleErrors(code, error, client.url, '', {}, error, message, {}, '');
         }
         catch (e) {
             rejected = true;
             client.reject(e, messageHash);
         }
         if (!rejected) {
-            client.reject(message, messageHash);
+            const feedback = new errors.ExchangeError(this.id + ' ' + this.json(message));
+            client.reject(feedback, messageHash);
             return true;
         }
         return undefined;
@@ -1417,6 +1861,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
         const methods = {
             'subscribed': this.handleSubscriptionStatus,
+            'unsubscribed': this.handleUnsubscriptionStatus,
             'book': this.handleOrderBook,
             'getBook': this.handleOrderBookSnapshot,
             'trade': this.handleTrade,

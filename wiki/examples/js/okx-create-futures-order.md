@@ -1,8 +1,6 @@
-- [Okx Create Futures Order](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+// @NO_AUTO_TRANSPILE
+'use strict';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 const exchange = new ccxt.okx({
@@ -10,7 +8,7 @@ const exchange = new ccxt.okx({
     'secret': 'YOUR_API_SECRET',
     'password': 'YOUR_API_PASSWORD',
     'enableRateLimit': true,
-    'options': { 'defaultType': 'futures' },
+    'options': { 'defaultType': 'future' },
 });
 const symbol = 'BTC/USDT:USDT-201225';
 const amount = 1; // how may contracts
@@ -41,5 +39,5 @@ async function main() {
     }
 }
 main();
- 
+
 ```

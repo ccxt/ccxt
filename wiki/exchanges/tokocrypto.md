@@ -42,7 +42,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-tokocrypto.fetchTime ([params])
+tokocrypto.fetchTime (params?)
 ```
 
 
@@ -62,7 +62,7 @@ retrieves data on all markets for tokocrypto
 
 
 ```javascript
-tokocrypto.fetchMarkets ([params])
+tokocrypto.fetchMarkets (params?)
 ```
 
 
@@ -72,19 +72,19 @@ tokocrypto.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>tokocrypto</code>](#tokocrypto)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.tokocrypto.com/apidocs/#order-book  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return, symbol type 3 markets accept 5, 10, 20, 50, 100, 500 or 1000 only |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-tokocrypto.fetchOrderBook (symbol[, limit, params])
+tokocrypto.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -111,7 +111,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-tokocrypto.fetchTrades (symbol[, since, limit, params])
+tokocrypto.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -132,7 +132,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-tokocrypto.fetchTickers (symbols[, params])
+tokocrypto.fetchTickers (symbols, params?)
 ```
 
 
@@ -153,7 +153,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-tokocrypto.fetchTicker (symbol[, params])
+tokocrypto.fetchTicker (symbol, params?)
 ```
 
 
@@ -174,7 +174,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-tokocrypto.fetchBidsAsks (symbols[, params])
+tokocrypto.fetchBidsAsks (symbols, params?)
 ```
 
 
@@ -200,7 +200,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-tokocrypto.fetchOHLCV (symbol, timeframe[, since, limit, params])
+tokocrypto.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -217,13 +217,13 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>string</code> | No | 'future', 'delivery', 'savings', 'funding', or 'spot' |
+| params.type | <code>string</code> | No | 'spot', 'margin', 'swap', 'future', 'savings' or 'funding' |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
 | params.symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | No | unified market symbols, only used in isolated margin mode |
 
 
 ```javascript
-tokocrypto.fetchBalance ([params])
+tokocrypto.fetchBalance (params?)
 ```
 
 
@@ -247,10 +247,12 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | the price at which a trigger order would be triggered |
 | params.cost | <code>float</code> | No | for spot market buy orders, the quote quantity that can be used as an alternative for the amount |
+| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC' or 'FOK', defaults to the defaultTimeInForce option on the order types that rest on the book, market orders accept 'IOC' as a no-op and reject the rest |
+| params.postOnly | <code>bool</code> | No | true for a post only order, the 'PO' and 'GTX' timeInForce spellings do the same |
 
 
 ```javascript
-tokocrypto.createOrder (symbol, type, side, amount[, price, params])
+tokocrypto.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -272,7 +274,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-tokocrypto.fetchOrder (id, symbol[, params])
+tokocrypto.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -295,7 +297,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-tokocrypto.fetchOrders (symbol[, since, limit, params])
+tokocrypto.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -318,7 +320,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-tokocrypto.fetchOpenOrders (symbol[, since, limit, params])
+tokocrypto.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -341,7 +343,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-tokocrypto.fetchClosedOrders (symbol[, since, limit, params])
+tokocrypto.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -363,7 +365,7 @@ cancels an open order
 
 
 ```javascript
-tokocrypto.cancelOrder (id, symbol[, params])
+tokocrypto.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -386,7 +388,7 @@ fetch all trades made by the user
 
 
 ```javascript
-tokocrypto.fetchMyTrades (symbol[, since, limit, params])
+tokocrypto.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -407,7 +409,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-tokocrypto.fetchDepositAddress (code[, params])
+tokocrypto.fetchDepositAddress (code, params?)
 ```
 
 
@@ -431,7 +433,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-tokocrypto.fetchDeposits (code[, since, limit, params])
+tokocrypto.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -454,7 +456,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-tokocrypto.fetchWithdrawals (code[, since, limit, params])
+tokocrypto.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -473,11 +475,11 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-tokocrypto.withdraw (code, amount, address, tag[, params])
+tokocrypto.withdraw (code, amount, address, params?)
 ```
 

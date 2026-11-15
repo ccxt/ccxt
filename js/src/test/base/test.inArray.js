@@ -11,9 +11,9 @@ function testInArray() {
         'id': 'regirock',
     });
     const array = [1, 2, 3];
-    assert(exchange.inArray(1, array) === true);
-    assert(exchange.inArray(2, array) === true);
-    assert(exchange.inArray(3, array) === true);
-    assert(exchange.inArray(4, array) === false);
+    assert(exchange.inArray(1, array));
+    assert(exchange.inArray(2, array));
+    assert(exchange.inArray(3, array));
+    assert(!exchange.inArray(4, array));
 }
 export default testInArray;

@@ -186,7 +186,7 @@ The contents of the repository are structured as follows:
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /build/                    # build scripts
 /build/export-exchanges.js # used to create tables of exchanges in the docs during the build
-/build/transpile.js        # the transpilation script
+/build/transpile.ts        # the transpilation script
 /build/update-badges.js    # a JS script to update badges in the README and in docs
 /build/vss.js              # reads single-sourced version from package.json and writes it everywhere
 /dist/                     # a folder for the generated browser bundle of CCXT
@@ -200,10 +200,7 @@ The contents of the repository are structured as follows:
 /python/__init__.py        # entry point for the Python version of the ccxt.library
 /python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
-/python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
 /python/README.md          # a copy of README.md for PyPI
-/python/setup.cfg          # wheels config file for the Python package
-/python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
 /examples/                 # self-explanatory
 /examples/js               # ...
@@ -211,14 +208,15 @@ The contents of the repository are structured as follows:
 /examples/py               # ...
 /java/examples/            # Java examples (Gradle module)
 /exchanges.cfg             # custom bundle config for including only the exchanges you need
-/package.json              # npm package file, also used in setup.py for version single-sourcing
+/package.json              # npm package file, version single-sourced into pyproject.toml and other files via `npm run vss`
+/pyproject.toml            # metadata and build config (pip/setuptools) for the ccxt package in Python
 /run-tests.js              # a front-end to run individual tests of all exchanges in all languages (JS/PHP/Python)
 /wiki/                     # the source of all docs (edits go here)
 ```
 
 ### Multilanguage Support
 
-The ccxt library is available in several different languages (TypeScript, JavaScript, Python, PHP, C#, Go and Java). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in several different languages (TypeScript, JavaScript, Python, PHP, C#, Go, Java and Rust). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
 At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is TypeScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a TS or a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
@@ -233,10 +231,37 @@ The module entry points are:
 
 Generated versions and docs are transpiled from the source `ts/src` folder by the `npm run build` command.
 
+### Base WS Runtime Changes Require Their Mirrors
+
+The files under `ts/src/base/ws/` (caches, orderbooks, futures, client plumbing) are **not** transpiled - each language carries a hand-written mirror:
+
+| ts source | mirrors |
+|---|---|
+| `ts/src/base/ws/Cache.ts` | `python/ccxt/async_support/base/ws/cache.py`, `php/pro/ArrayCache*.php`, `cs/ccxt/ws/ArrayCache.cs`, `go/v4/exchange_cache.go`, `java/lib/src/main/java/io/github/ccxt/ws/ArrayCache.java` |
+| `ts/src/base/ws/OrderBook.ts` + `OrderBookSide.ts` | `python/ccxt/async_support/base/ws/order_book*.py`, `php/pro/OrderBook*.php` + `Asks/Bids`, `cs/ccxt/ws/OrderBook*.cs`, `go/v4/exchange_ws_orderbook*.go`, `java/lib/src/main/java/io/github/ccxt/ws/*OrderBook*.java` |
+| `ts/src/base/ws/Future.ts` / `Client.ts` | the per-language `Future` / client files (`php/pro/Future.php`, `php/pro/ClientTrait.php`, `cs/ccxt/ws/Future.cs`, ...) |
+
+Two rules:
+
+1. **A PR that changes base WS behavior in ts must change the mirrors in the same PR.** The shared base ws tests (`ts/src/pro/test/base/*.ts`) are regenerated per language on every CI run, so a ts-only behavioral merge ships assertions the other runtimes cannot satisfy and breaks every subsequent PR's build gates. Genuinely non-behavioral ts changes (comments, type annotations, formatting) are exempt - say so in the PR description.
+
+2. **Native (non-transpiled) base WS tests state ts-derived expectations only.** Write expected values by reading the ts source or running the shared js test - never by running the local implementation and recording what it produces. A mirror bug must never certify itself.
+
 ### Transpiled (generated) files
 
 - All derived exchange classes are transpiled by `tsc` from TypeScript to JavaScript and by our custom transpiler from TypeScript to PHP and Python. The source files are language-agnostic, easily mapped line-to-line to any other language and written in a cross-language-compatible way. Any coder can read it (by design).
 - Base classes are **not** entirely transpiled and are only transpiled partially, as they are language-specific.
+
+#### Base types
+
+The base type declarations are generated from `ts/src/base/types.ts` by `npm run transpile-types`:
+
+- `python/ccxt/base/types.py`
+- `cs/ccxt/base/Exchange.Types.cs`, `cs/ccxt/base/PredictionTypes.cs`
+- `go/v4/exchange_types.go`
+- `java/lib/src/main/java/io/github/ccxt/types/*.java`
+
+Do not edit them by hand — edit `ts/src/base/types.ts` and regenerate. `npm run transpile-types-check` fails the build when they are out of sync. PHP needs no type file (unified structures are plain associative arrays) and the JS/TS declarations are emitted by `tsc`.
 
 #### JavaScript
 
@@ -252,7 +277,7 @@ These files containing derived exchange classes are transpiled from TS into Pyth
 
 These Python base classes and files are not transpiled:
 
-- `python/ccxt/base/*`
+- `python/ccxt/base/*` (except `types.py`, see [Base types](#base-types))
 - `python/ccxt/async/base/*`
 
 #### PHP
@@ -342,6 +367,7 @@ And structurally:
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
+- an empty container is ambiguous in PHP: `{}` and `[]` are both `array()` there, so `isDictionary` returns `true` for an empty array in PHP while every other language can tell them apart and returns `false` — never branch dict-vs-list logic on a possibly-empty container, and don't assert empty containers in shared tests, see https://github.com/ccxt/ccxt/pull/29704 and https://github.com/ccxt/ccxt/pull/29698
 
 #### Sending Market Ids
 
@@ -908,8 +934,9 @@ Upon instantiation the base exchange class takes each URL from its list of endpo
 ### Docstrings
 
 - when a method takes another parameter as a property on params (ex. `params['something']`) add that parameter to the docstring, as params.something
-   - if that parameter is required, the type is `{str}`, `{int}`, `{etc}`, if it's optional the type is `{str|undefined}`, `{int|undefined}`, `{etc|undefined}`
-- when a parameter's default value is `undefined`, but the method contains something like `if (symbol === undefined) { throw new ArgumentsRequired('...')}`, then set the type of that parameter as `{str}`, `{int}`, `{etc}`. If an error is not thrown, then the type is `{str|undefined}`, `{int|undefined}`, `{etc|undefined}`
+   - if that parameter is required, the type is `{string}`, `{int}`, `{object}`, `{etc}`, if it's optional the type stays the same and the name is wrapped in square brackets, as `@param {string} [params.something]`
+- when a parameter's default value is `undefined`, but the method contains something like `if (symbol === undefined) { throw new ArgumentsRequired('...')}`, then document that parameter as required, `@param {string} symbol`. If an error is not thrown, then it is optional, `@param {string} [symbol]`
+- always write the type names in their TypeScript form — the transpiler rewrites them per language, so `{string}` becomes `str` and `{object}` becomes `dict` in Python, `{object}` becomes `array` in PHP, and `{int}`, `{float}` and `{boolean}` are carried over unchanged
 - if a method doesn't use one of the unified parameters, set the description of that parameter to `not used by exchange_name.method_name ()` (replace `exchange_name` and `method_name` with the real exchange and method names)
 - if the method has any other special case uses, put these in the description of the docstring, these cases can be included in the class docstring as well
 
@@ -943,8 +970,19 @@ Folder: `ts/src/test/static/request/`
 You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/request/binance.json`)
 
 ```shell
-node cli.js binance fetchTrades "BTC/USDT:USDT" --report
+npm run cli.ts -- binance fetchTrades "BTC/USDT:USDT" --request
 ````
+
+The `output` field holds the expected HTTP body. When that body is itself JSON, store it
+as a JSON object (or array) so the fixture stays valid RFC 8259 and readable:
+
+```json
+"output": { "symbol": "BTC_USDT_PERP", "side": "BUY", "type": "LIMIT", "sz": "1", "px": "84000" }
+```
+
+The request comparator already parses string `output` values as JSON when `outputType` is
+`json`, so an object and a stringified object compare the same. Query-string bodies stay
+plain strings (`"symbol=BTCUSDT&side=BUY"`).
 
 
 **Response-static**
@@ -955,7 +993,7 @@ Folder: `ts/src/test/static/response/binance.json`
 You can create a static-response test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
 
 ```shell
-node cli.js binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
+npm run cli.ts -- binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
 ````
 #### Adding Exchange Credentials
 
@@ -1071,8 +1109,8 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 
 Follow this steps to add a test:
 
-- Create a file in [ts/tests/Exchange](ts/test/Exchange/) following syntax that can be transpiled.
-- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/tests.ts](ts/src/test/tests.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/tests.ts](ts/src/pro/test/tests.ts#L121)
+- Create a file in [ts/tests/Exchange](https://github.com/ccxt/ccxt/tree/master/ts/test/Exchange) following syntax that can be transpiled.
+- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/test/tests.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/tests.ts](https://github.com/ccxt/ccxt/blob/master/ts/src/pro/test/tests.ts#L121)
 - run `npm run transpile` to generate the test file in javascript, python and php.
 - Call tests `node run-tests`
 
