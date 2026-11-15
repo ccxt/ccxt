@@ -2916,9 +2916,10 @@ impl Exchange {
     /// `ethEncodeStructuredData(domain, types, message)` — EIP-712
     /// encoding: returns the `\x19\x01 || domainSeparator || structHash`
     /// preimage that the caller keccak-hashes before signing.
-    pub fn eth_encode_structured_data(&self, domain: Value, types: Value, message: Value) -> Value {
+    /// Returns the typed byte handle (TS `Uint8Array`); `Value::from` boxes it to the same list as before.
+    pub fn eth_encode_structured_data(&self, domain: Value, types: Value, message: Value) -> crate::value::Bytes {
         let bytes = crate::exchange::eip712_encode(&domain, &types, &message);
-        Value::Array(bytes.iter().map(|b| Value::Int(*b as i64)).collect())
+        crate::value::Bytes::of(&bytes)
     }
 
     /// `uuid22()` — pseudo-random 22-char hex id.
@@ -3445,5 +3446,46 @@ mod spawn_queue_tests {
         assert_eq!(batch.len(), 1);
         assert_eq!(batch[0].0, "keep_alive_listen_key");
         assert!(next_spawn_due().is_none(), "queue drained");
+    }
+}
+
+#[cfg(test)]
+mod eth_encode_structured_data_bytes_tests {
+    // ral-44e: `eth_encode_structured_data` returns the typed `Bytes` handle; boxing it gives exactly the
+    // `Value::Arr` of byte ints the old `-> Value` stub returned, and the same 0x1901-prefixed preimage.
+    use super::*;
+
+    fn entry(name: &'static str, ty: &'static str) -> Value {
+        let mut m = HashMap::new();
+        m.insert("name".to_string(), Value::Str(name.into()));
+        m.insert("type".to_string(), Value::Str(ty.into()));
+        Value::Dict(Arc::new(m))
+    }
+
+    fn inputs() -> (Value, Value, Value) {
+        let mut domain = HashMap::new();
+        domain.insert("name".to_string(), Value::Str("ccxt".into()));
+        domain.insert("chainId".to_string(), Value::Int(1));
+        let mut types = HashMap::new();
+        types.insert("Mail".to_string(), Value::Array(vec![entry("contents", "string"), entry("nonce", "uint256")]));
+        let mut message = HashMap::new();
+        message.insert("contents".to_string(), Value::Str("hello".into()));
+        message.insert("nonce".to_string(), Value::Int(7));
+        (Value::Dict(Arc::new(domain)), Value::Dict(Arc::new(types)), Value::Dict(Arc::new(message)))
+    }
+
+    #[test]
+    fn bytes_box_to_the_old_value_list() {
+        let ex = Exchange::default();
+        let (d, t, m) = inputs();
+        let raw = crate::exchange::eip712_encode(&d, &t, &m);
+        let old = Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect());
+        let (d, t, m) = inputs();
+        let typed: crate::value::Bytes = ex.eth_encode_structured_data(d, t, m);
+        assert_eq!(typed.0.len(), 66);
+        assert_eq!(typed.0[0], Value::Int(0x19));
+        assert_eq!(typed.0[1], Value::Int(0x01));
+        assert_eq!(Value::from(&typed), old);
+        assert_eq!(Value::from(typed), old);
     }
 }
