@@ -1333,16 +1333,16 @@ impl Bit2c {
 
     pub fn remove_comma_from_value(&self, str_val: &str) -> Option<String> {
         let mut str_val: Value = str_val.into();
-        let mut newString: Value = Value::Str("".into());
+        let mut newString: String = "".to_string();
         let mut strParts: Vec<Value> = Value::Array(if let Some(__s) = str_val.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_334: bool = true;
             while { if !__for_first_334 { i += 1; } __for_first_334 = false; i < (strParts.len() as i64) } {
-            newString = Value::Str(format!("{}{}", newString, strParts.get(i as usize).cloned().unwrap_or(Value::Null)).into());
+            newString.push_str(&(strParts.get(i as usize).cloned().unwrap_or(Value::Null)).to_string());
         }
         }
-        return newString.as_str().map(str::to_owned);
+        return Some(newString);
 }
 
     pub fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {

@@ -2723,7 +2723,7 @@ impl Bithumb {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2736,7 +2736,7 @@ impl Bithumb {
                     request.insert("market".into(), self.get_gen2_market_id(market.clone()));
                 }
                 request.insert("uuids".into(), Value::from(vec![id.clone()]));
-                let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_get_v1_twap(&[__ws_arg_23]).await;
                 //
                 //     {
@@ -2768,8 +2768,8 @@ impl Bithumb {
     m
 })]);
             }  else {
-                let mut clientOrderId: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
-                let mut paramsClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(paramsOmitted.clone(), &["clientOrderId"], &[]) } else { paramsOmitted.clone() }).into_dict();
+                let mut clientOrderId: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
+                let mut paramsClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&paramsOmitted, &["clientOrderId"], &[]).into_dict() } else { paramsOmitted.clone() });
                 if (clientOrderId.is_some()) {
                     request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
                 }  else {
@@ -2814,7 +2814,7 @@ impl Bithumb {
             request.insert("order_id".into(), id.clone());
             request.insert("order_currency".into(), base.map(Value::from).unwrap_or(Value::Null));
             request.insert("payment_currency".into(), quote.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_25 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_info_order_detail(&[__ws_arg_25]).await;
             //
             //     {
@@ -3215,14 +3215,14 @@ impl Bithumb {
             m
         });
         let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]).into_dict();
         let mut clientOrderIds: Value = Value::Null;
         if twap {
             clientOrderIds = Value::Null;
         }  else {
-            clientOrderIds = self.safe_list2(paramsOmitted.clone(), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[]);
+            clientOrderIds = self.safe_list2(&paramsOmitted, Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[]);
         }
-        let mut paramsRequest: crate::value::Dict = (if (clientOrderIds != Value::Null) { self.omit(paramsOmitted.clone(), &["clientOrderIds"], &[]) } else { paramsOmitted }).into_dict();
+        let mut paramsRequest: crate::value::Dict = (if (clientOrderIds != Value::Null) { self.omit(&paramsOmitted, &["clientOrderIds"], &[]).into_dict() } else { paramsOmitted });
         if (clientOrderIds != Value::Null) {
             request.insert("client_order_ids".into(), clientOrderIds);
         }

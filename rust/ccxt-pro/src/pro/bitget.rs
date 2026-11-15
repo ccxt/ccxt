@@ -1594,14 +1594,14 @@ impl Bitget {
                     let mut __for_first_114: bool = true;
                     while { if !__for_first_114 { i += 1; } __for_first_114 = false; (i as f64) < ((25i64) as f64) } {
                     if i < bidsLength {
-                        let mut bidLevel: Value = storedBids.level(&Value::Int(i));
-                        let mut bidParts: Value = get_value(&bidLevel, &Value::Int(2));
+                        let bidLevel: crate::value::List = storedBids.level(&Value::Int(i)).into_list();
+                        let bidParts: &Value = bidLevel.get(2).unwrap_or(&Value::Null);
                         payloadArray.push(get_value(&bidParts, &Value::Int(0)));
                         payloadArray.push(get_value(&bidParts, &Value::Int(1)));
                     }
                     if i < asksLength {
-                        let mut askLevel: Value = storedAsks.level(&Value::Int(i));
-                        let mut askParts: Value = get_value(&askLevel, &Value::Int(2));
+                        let askLevel: crate::value::List = storedAsks.level(&Value::Int(i)).into_list();
+                        let askParts: &Value = askLevel.get(2).unwrap_or(&Value::Null);
                         payloadArray.push(get_value(&askParts, &Value::Int(0)));
                         payloadArray.push(get_value(&askParts, &Value::Int(1)));
                     }

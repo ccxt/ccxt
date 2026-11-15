@@ -3114,24 +3114,24 @@ impl Sxbet {
             m
         })]).into_dict();
         let mut sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(&snapshot, isOutcomeOne).into_dict();
-        let mut sortedBids: Value = self.safe_list_k(&sides, "bids", &[Value::from(vec![])]);
-        let mut sortedAsks: Value = self.safe_list_k(&sides, "asks", &[Value::from(vec![])]);
+        let mut sortedBids: crate::value::List = self.safe_list_k(&sides, "bids", &[Value::from(vec![])]).into_list();
+        let mut sortedAsks: crate::value::List = self.safe_list_k(&sides, "asks", &[Value::from(vec![])]).into_list();
         if (limit != Value::Null) {
             let mut bidsLength: i64 = sortedBids.len() as i64;
             if (limit.as_i64().is_some() && limit.as_i64() < Some(bidsLength)) {
-                sortedBids = self.array_slice(sortedBids, Value::Int(0), &[limit.clone()]);
+                sortedBids = self.array_slice(Value::Arr(sortedBids), Value::Int(0), &[limit.clone()]).into_list();
             }
             let mut asksLength: i64 = sortedAsks.len() as i64;
             if (limit.as_i64().is_some() && limit.as_i64() < Some(asksLength)) {
-                sortedAsks = self.array_slice(sortedAsks, Value::Int(0), &[limit]);
+                sortedAsks = self.array_slice(Value::Arr(sortedAsks), Value::Int(0), &[limit]).into_list();
             }
         }
         let mut timestamp: i64 = self.milliseconds();
         return self.safe_prediction_order_book(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[outcome]));
-        m.insert("bids".to_string(), sortedBids);
-        m.insert("asks".to_string(), sortedAsks);
+        m.insert("bids".to_string(), Value::Arr(sortedBids));
+        m.insert("asks".to_string(), Value::Arr(sortedAsks));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("nonce".to_string(), Value::Null);
@@ -3786,8 +3786,8 @@ impl Sxbet {
         let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome);
         let mut sym: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "trades::", sym);
-        let mut trades: Value = self.subscribe_sxbet_channel(messageHash.as_str(), "recent_trades_v3:global").await;
-        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_sxbet_channel(messageHash.as_str(), "recent_trades_v3:global").await.into();
+        return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3911,8 +3911,8 @@ impl Sxbet {
             messageHash = format!("{}{}", "myTrades::", sym);
         }
         let mut channel: String = format!("{}{}", "account:fills_v3_#", self.walletAddress.clone());
-        let mut trades: Value = self.subscribe_sxbet_channel(messageHash.as_str(), channel.as_str()).await;
-        return self.filter_by_since_limit(trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_sxbet_channel(messageHash.as_str(), channel.as_str()).await.into();
+        return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -3982,8 +3982,8 @@ impl Sxbet {
             messageHash = format!("{}{}", "orders::", sym);
         }
         let mut channel: String = format!("{}{}", "account:orders_v3_#", self.walletAddress.clone());
-        let mut orders: Value = self.subscribe_sxbet_channel(messageHash.as_str(), channel.as_str()).await;
-        return self.filter_by_since_limit(orders, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_sxbet_channel(messageHash.as_str(), channel.as_str()).await.into();
+        return self.filter_by_since_limit(&orders, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

@@ -673,7 +673,7 @@ impl Predictfun {
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
-        let mut rawTopics: Value = Value::from(vec![]);
+        let mut rawTopics: crate::value::List = std::sync::Arc::new(Vec::new());
         if (slug.is_some()) {
             let __ws_arg_1 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -682,12 +682,12 @@ impl Predictfun {
             }), &[&rest]);
             let mut response: crate::value::Dict = self.predictfun_get_v1_categories_slug(&[__ws_arg_1]).await.into_dict();
             let mut data: Value = self.safe_dict_k(&response, "data", &[]);
-            rawTopics = Value::from(vec![data]);
+            rawTopics = std::sync::Arc::new(vec![data]);
         }  else if queriesLength > 0 {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
             // the venue's semantic matches and cost one request per page
-            rawTopics = self.fetch_raw_topics_by_queries(Value::from(&queries), &[Value::from(&paramsValue)]).await;
+            rawTopics = self.fetch_raw_topics_by_queries(Value::from(&queries), &[Value::from(&paramsValue)]).await.into_list();
         }  else {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -867,7 +867,7 @@ impl Predictfun {
             //     }
             //
             let mut data: Value = self.safe_list_k(rawTopicsResponse.clone(), "data", &[Value::from(vec![])]);
-            rawTopics = self.array_concat(rawTopics, data.clone());
+            rawTopics = self.array_concat(Value::Arr(rawTopics), data.clone()).into_list();
             let mut topicsLength: i64 = rawTopics.len() as i64;
             while Some(topicsLength) < fetchCap {
                 let mut nextPageToken: Option<String> = self.safe_string_k(rawTopicsResponse.clone(), "cursor", &[]).as_str().map(str::to_owned);
@@ -877,11 +877,11 @@ impl Predictfun {
                 std::sync::Arc::make_mut(&mut extendedRequest).insert("after".into(), nextPageToken.map(Value::from).unwrap_or(Value::Null));
                 rawTopicsResponse = self.predictfun_get_v1_categories(&[Value::from(&extendedRequest)]).await;
                 data = self.safe_list_k(rawTopicsResponse.clone(), "data", &[Value::from(vec![])]);
-                rawTopics = self.array_concat(rawTopics, data.clone());
+                rawTopics = self.array_concat(Value::Arr(rawTopics), data.clone()).into_list();
                 topicsLength = rawTopics.len() as i64;
             }
             if (fetchCap.is_some() && Some(topicsLength) > fetchCap) {
-                rawTopics = self.array_slice(rawTopics, Value::Int(0), &[Value::from(fetchCap)]);
+                rawTopics = self.array_slice(Value::Arr(rawTopics), Value::Int(0), &[Value::from(fetchCap)]).into_list();
             }
         }
         let mut rawTopicsLength: i64 = rawTopics.len() as i64;
@@ -890,7 +890,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1459: bool = true;
             while { if !__for_first_1459 { i += 1; } __for_first_1459 = false; i < rawTopicsLength } {
-            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
             result.push(Value::from(&parsedEvent));
             let mut parsedMarkets: crate::value::List = self.safe_list_k(&parsedEvent, "markets", &[Value::from(vec![])]).into_list();
             let mut parsedMarketsLength: i64 = parsedMarkets.len() as i64;

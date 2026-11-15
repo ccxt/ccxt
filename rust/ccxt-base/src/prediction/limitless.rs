@@ -1834,9 +1834,9 @@ impl Limitless {
             let mut __for_first_1313: bool = true;
             while { if !__for_first_1313 { i += 1; } __for_first_1313 = false; i < (slugs.len() as i64) } {
             let mut slug: Option<String> = slugs.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut detailIndex: Value = Value::Int((i * 2));
-            let mut detail: Option<crate::value::Dict> = self.safe_dict(&responses, detailIndex.clone(), &[]).into_opt_dict();
-            let mut book: Option<crate::value::Dict> = self.safe_dict(&responses, self.sum(&[detailIndex, Value::Int(1)]), &[]).into_opt_dict();
+            let mut detailIndex: i64 = (i * 2);
+            let mut detail: Option<crate::value::Dict> = self.safe_dict(&responses, detailIndex, &[]).into_opt_dict();
+            let mut book: Option<crate::value::Dict> = self.safe_dict(&responses, Value::Int((detailIndex + 1)), &[]).into_opt_dict();
             let mut tickerInput: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("market".to_string(), detail.map_or(Value::Null, Value::Dict));

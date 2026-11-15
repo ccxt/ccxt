@@ -5926,7 +5926,7 @@ if _try_result.is_err() {
         let mut isolated: bool = (marginMode.as_deref() == Some("margin")) && (type_var.as_deref() == Some("spot"));
         let mut data: Value = response;
         if (matches!(&data, Value::Dict(__d) if __d.contains_key("balances"))) {
-            let mut flatBalances: Value = Value::from(vec![]);
+            let mut flatBalances: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut balances: Value = self.safe_dict_k(data.clone(), "balances", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5941,10 +5941,10 @@ if _try_result.is_err() {
                 let mut currencyId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let mut content: Option<crate::value::Dict> = get_value(&balances, currencyId.as_deref()).into_opt_dict();
                 if let Some(__d) = &mut content { std::sync::Arc::make_mut(__d).insert("currency".into(), Value::from(currencyId.as_deref())); }
-                if let Value::Arr(__a) = &mut flatBalances { std::sync::Arc::make_mut(__a).push(content.map_or(Value::Null, Value::Dict)); }
+                std::sync::Arc::make_mut(&mut flatBalances).push(content.map_or(Value::Null, Value::Dict));
             }
             }
-            data = flatBalances;
+            data = Value::Arr(flatBalances);
         }
         {
                         let mut i: i64 = 0;
@@ -8039,8 +8039,8 @@ if _try_result.is_err() {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut trigger: bool = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("is_stop_order".into()), Value::Str("stop".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, &["is_stop_order", "stop", "trigger"], &[]);
-        let mut clientOrderIdRaw: Option<String> = self.safe_string2(paramsOmitted.clone(), Value::Str("text".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["is_stop_order", "stop", "trigger"], &[]).into_dict();
+        let mut clientOrderIdRaw: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("text".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
         let mut orderId: Value = id;
         if (clientOrderIdRaw.is_some()) {
             if !(clientOrderIdRaw.as_deref().unwrap_or_default().starts_with("t")) {
@@ -8049,7 +8049,7 @@ if _try_result.is_err() {
                 orderId = clientOrderIdRaw.clone().map(Value::from).unwrap_or(Value::Null);
             }
         }
-        let mut paramsOrder: crate::value::Dict = (if (clientOrderIdRaw.is_some()) { self.omit(paramsOmitted.clone(), &["text", "clientOrderId"], &[]) } else { paramsOmitted }).into_dict();
+        let mut paramsOrder: crate::value::Dict = (if (clientOrderIdRaw.is_some()) { self.omit(&paramsOmitted, &["text", "clientOrderId"], &[]).into_dict() } else { paramsOmitted });
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), market.as_ref(), &[Value::from(&paramsOrder)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -8526,7 +8526,7 @@ if _try_result.is_err() {
         //
         let mut result: Value = response.clone();
         if openSpotOrders {
-            let mut spotResult: Value = Value::from(vec![]);
+            let mut spotResult: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_702: bool = true;
@@ -8536,10 +8536,10 @@ if _try_result.is_err() {
     m
 })]).into_dict();
                 let mut ordersInner: Value = self.safe_value_k(&responseEntry, "orders", &[]);
-                spotResult = self.array_concat(spotResult, ordersInner);
+                spotResult = self.array_concat(Value::Arr(spotResult), ordersInner).into_list();
             }
             }
-            result = spotResult;
+            result = Value::Arr(spotResult);
         }
         let mut orders: crate::value::List = self.parse_orders(result, market.as_ref(), &[since.clone(), limit.clone()]).into_list();
         return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
@@ -10032,16 +10032,16 @@ if _try_result.is_err() {
             let mut settle: Value = self.safe_dict(params.clone(), Value::Int(0), &[]);
             pathImploded = self.implode_params(path.clone(), settle);
             // remove the first element from params
-            let mut newParams: Value = Value::from(vec![]);
+            let mut newParams: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut anyParams: crate::value::List = self.to_array(params.clone()).into_list();
             {
                                 let mut i: i64 = 1;
                 let mut __for_first_707: bool = true;
                 while { if !__for_first_707 { i += 1; } __for_first_707 = false; i < (anyParams.len() as i64) } {
-                if let Value::Arr(__a) = &mut newParams { std::sync::Arc::make_mut(__a).push(get_value(&params, &Value::Int(i))); }
+                std::sync::Arc::make_mut(&mut newParams).push(get_value(&params, &Value::Int(i)));
             }
             }
-            query = newParams;
+            query = Value::Arr(newParams);
         }  else if (matches!(&params, Value::Arr(_))) {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements

@@ -3309,7 +3309,7 @@ impl Krakenfutures {
         let mut fixed: bool = false;
         let mut statusId: Option<String> = None;
         let mut price: Value = Value::Null;
-        let mut trades: Value = Value::from(vec![]);
+        let mut trades: crate::value::List = std::sync::Arc::new(Vec::new());
         if orderEventsLength > 0 {
             let mut executions: Vec<Value> = Vec::new();
             {
@@ -3343,7 +3343,7 @@ impl Krakenfutures {
                 }
             }
             }
-            trades = self.parse_trades(Value::from(executions), None, &[]);
+            trades = self.parse_trades(Value::from(executions), None, &[]).into_list();
             statusId = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
         }
         if (details == Value::Null) {
@@ -3373,7 +3373,7 @@ impl Krakenfutures {
                                 let mut i: i64 = 0;
                 let mut __for_first_879: bool = true;
                 while { if !__for_first_879 { i += 1; } __for_first_879 = false; i < (trades.len() as i64) } {
-                let mut trade: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(i), &[]).into_dict();
+                let mut trade: crate::value::Dict = self.safe_dict(&trades, Value::Int(i), &[]).into_dict();
                 let mut tradeAmount: Option<String> = self.safe_string_k(&trade, "amount", &[]).as_str().map(str::to_owned);
                 let mut tradePrice: Option<String> = self.safe_string_k(&trade, "price", &[]).as_str().map(str::to_owned);
                 filled2 = crate::precise::Precise::stringAdd(&filled2, &tradeAmount).as_str().map(str::to_owned);
@@ -3464,7 +3464,7 @@ impl Krakenfutures {
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::Null);
-        m.insert("trades".to_string(), trades);
+        m.insert("trades".to_string(), Value::Arr(trades));
     m
 }), None);
 

@@ -166,7 +166,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         let mut eventId: Value = (match params.get("eventId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut slug: Value = (match params.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         if (eventId != Value::Null) || (slug != Value::Null) {
-            let mut filtered: Value = Value::from(vec![]);
+            let mut filtered: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_187: bool = true;
@@ -175,11 +175,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 let mut idMatch: bool = (eventId != Value::Null) && (self.safe_string_k(event.clone(), "id", &[]).as_str() == eventId.as_str());
                 let mut slugMatch: bool = (slug != Value::Null) && (self.safe_string_k(event.clone(), "slug", &[]).as_str() == slug.as_str());
                 if idMatch || slugMatch {
-                    if let Value::Arr(__a) = &mut filtered { std::sync::Arc::make_mut(__a).push(event); }
+                    std::sync::Arc::make_mut(&mut filtered).push(event);
                 }
             }
             }
-            result = filtered;
+            result = Value::Arr(filtered);
         }
         result = self.filter_events_by_status(result, &[(match params.get("status") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
         result = self.filter_events_by_tags(result, &[(match params.get("tags") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null })]);
@@ -966,17 +966,17 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 self.load_outcomes(&[]).await;
-                let mut stillMissing: Value = Value::from(vec![]);
+                let mut stillMissing: crate::value::List = std::sync::Arc::new(Vec::new());
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_209: bool = true;
                     while { if !__for_first_209 { i += 1; } __for_first_209 = false; i < missingLength } {
                     if !(self.has_outcome(missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
-                        if let Value::Arr(__a) = &mut stillMissing { std::sync::Arc::make_mut(__a).push(missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); }
+                        std::sync::Arc::make_mut(&mut stillMissing).push(missing.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                     }
                 }
                 }
-                missing = stillMissing;
+                missing = Value::Arr(stillMissing);
                 missingLength = missing.len() as i64;
             }
             if missingLength > 0 {

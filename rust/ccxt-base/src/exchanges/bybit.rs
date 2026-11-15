@@ -5278,18 +5278,18 @@ impl Bybit {
         if (category.as_deref() == Some("spot")) {
             // bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
             // resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
-            let mut spotTickers: Value = Value::from(vec![]);
+            let mut spotTickers: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_506: bool = true;
                 while { if !__for_first_506 { i += 1; } __for_first_506 = false; i < (tickerList.len() as i64) } {
                 let mut tickerMarket: crate::types::Market = self.safe_market(self.safe_string_k(tickerList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]), None, &[Value::Null, Value::Str("spot".into())]);
                 if !(tickerMarket).contract {
-                    if let Value::Arr(__a) = &mut spotTickers { std::sync::Arc::make_mut(__a).push(tickerList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); }
+                    std::sync::Arc::make_mut(&mut spotTickers).push(tickerList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 }
             }
             }
-            tickerList = spotTickers;
+            tickerList = Value::Arr(spotTickers);
         }
         return self.parse_tickers(tickerList, &[parsedSymbols]);
         Value::Null
