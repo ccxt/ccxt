@@ -1541,7 +1541,7 @@ impl Bitget {
         }
         let mut marketId: Option<String> = self.safe_string2(&arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(marketType)]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
         // tokenized stock snapshots arrive as a plain dict instead of a list
@@ -1559,7 +1559,7 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                ob.set_book_meta("symbol", symbol.clone());
+                ob.set_book_meta("symbol", Value::from(symbol.clone()));
                 CacheStore::put(&mut self.orderbooks, &symbol, ob);
             }
             let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
@@ -1569,7 +1569,7 @@ impl Bitget {
                 // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
                 storedOrderBook.reset(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("symbol".to_string(), symbol.clone());
+                        m.insert("symbol".to_string(), Value::from(symbol.clone()));
                     m
                 }));
             }
@@ -1610,7 +1610,7 @@ impl Bitget {
                 let mut payload: String = payloadArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(":");
                 let mut calculatedChecksum: i64 = self.crc32(&[Value::from(payload), Value::Bool(true)]);
                 if (Some(calculatedChecksum) != responseChecksum) {
-                    self.spawn(&[Value::Str("handle_check_sum_error".into()).clone(), client.clone(), symbol.clone(), Value::from(messageHash.clone())]);
+                    self.spawn(&[Value::Str("handle_check_sum_error".into()).clone(), client.clone(), Value::from(symbol.clone()), Value::from(messageHash.clone())]);
                     return;
                 }
             }
@@ -1639,7 +1639,7 @@ impl Bitget {
                     bidsKey = "b".to_string();
                 }
             }
-            let mut parsedOrderbook: crate::value::Dict = self.parse_order_book(rawOrderBook, symbol.clone(), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]).into_dict();
+            let mut parsedOrderbook: crate::value::Dict = self.parse_order_book(rawOrderBook, Value::from(symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]).into_dict();
             orderbook.reset(Value::Dict(parsedOrderbook));
         }
         client.resolve(Value::from(self.orderbooks.at(&symbol)), messageHash.as_str());
@@ -1894,8 +1894,8 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_117: bool = true;
             while { if !__for_first_117 { i += 1; } __for_first_117 = false; i < length } {
-            let mut index: Value = Value::Int((((length - i)) - 1));
-            let mut rawTrade: crate::value::Dict = crate::value::KeyRead::read(&&data, &index).into_dict();
+            let mut index: i64 = (((length - i)) - 1);
+            let mut rawTrade: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::from(index)).into_dict();
             let mut parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, Some(&market)).into_dict();
             stored.append(Value::Dict(parsed));
         }

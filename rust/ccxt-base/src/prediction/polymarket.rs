@@ -1087,11 +1087,11 @@ impl Polymarket {
         let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut rest: crate::value::Dict = self.omit(params, &["query", "queries"], &[]).into_dict();
         let mut queriesLength: i64 = queries.len() as i64;
-        let mut rawEvents: Value = Value::from(vec![]);
+        let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(Value::Arr(queries), &[Value::from(&rest)]).await;
+            rawEvents = self.fetch_raw_events_by_search(Value::Arr(queries), &[Value::from(&rest)]).await.into_list();
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await;
+            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await.into_list();
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: Value = Value::Map({
@@ -1102,7 +1102,7 @@ impl Polymarket {
                         let mut rei: i64 = 0;
             let mut __for_first_1405: bool = true;
             while { if !__for_first_1405 { rei += 1; } __for_first_1405 = false; rei < (rawEvents.len() as i64) } {
-            let mut rawEvent: crate::value::Dict = rawEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(rei as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut rawEvent: crate::value::Dict = rawEvents.get(rei as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut ccxtMarkets: Vec<Value> = self.parse_event_to_markets(Value::from(&rawEvent)).as_array().cloned().unwrap_or_default();
             {
                                 let mut mi: i64 = 0;

@@ -2313,7 +2313,7 @@ impl Dydx {
             m
         })]).into_dict();
         let mut orderRequestRes: Vec<Value> = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, Value::Dict(newParams)]).as_array().cloned().unwrap_or_default();
-        let mut orderId: Value = orderRequestRes.get(0).cloned().unwrap_or(Value::Null);
+        let mut orderId: Option<String> = orderRequestRes.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut orderRequest: Value = orderRequestRes.get(1).cloned().unwrap_or(Value::Null);
         let mut chainName: Option<String> = self.safe_string_k(self.options.clone(), "chainName", &[]).as_str().map(str::to_owned);
         let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), orderRequest.clone(), Some(""), chainName.as_deref(), &account, Value::Null, &[]);
@@ -2353,7 +2353,7 @@ impl Dydx {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map(result));
-        m.insert("id".to_string(), orderId);
+        m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&requestOrderId, "clientId", &[]));
     m
 }), None);

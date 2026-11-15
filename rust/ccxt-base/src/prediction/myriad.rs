@@ -578,11 +578,11 @@ impl Myriad {
         let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut rest: crate::value::Dict = self.omit(params, &["query", "queries"], &[]).into_dict();
         let mut queriesLength: i64 = queries.len() as i64;
-        let mut rawMarkets: Value = Value::from(vec![]);
+        let mut rawMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
-            rawMarkets = self.fetch_raw_markets_by_search(Value::Arr(queries), &[Value::from(&rest)]).await;
+            rawMarkets = self.fetch_raw_markets_by_search(Value::Arr(queries), &[Value::from(&rest)]).await.into_list();
         }  else {
-            rawMarkets = self.fetch_raw_markets_list(&[Value::Dict(rest)]).await;
+            rawMarkets = self.fetch_raw_markets_list(&[Value::Dict(rest)]).await.into_list();
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: Value = Value::Map({
@@ -593,7 +593,7 @@ impl Myriad {
                         let mut i: i64 = 0;
             let mut __for_first_1339: bool = true;
             while { if !__for_first_1339 { i += 1; } __for_first_1339 = false; i < (rawMarkets.len() as i64) } {
-            let mut raw: crate::value::Dict = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut m: crate::value::Dict = self.parse_myriad_market(&raw, None).into_dict();
             flatMarkets.push(Value::from(&m));
             let mut ev: crate::value::Dict = self.parse_market_to_event(&raw, &m).into_dict();

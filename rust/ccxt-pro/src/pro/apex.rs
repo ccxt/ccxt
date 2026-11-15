@@ -1145,8 +1145,8 @@ impl Apex {
         self.set_positions_cache(client.as_value(), &[symbolsNormalized2.clone()]);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         if (cache.is_none()) {
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized2.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+            let mut snapshot: Option<crate::pro::cache::Cache> = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str("fetchPositionsSnapshot".into()))).await.into();
+            return self.filter_by_symbols_since_limit(&snapshot, symbolsNormalized2.clone(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut topics: crate::value::List = std::sync::Arc::new(vec![Value::Str("positions".into())]);
         let mut newPositions: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[params]).await;

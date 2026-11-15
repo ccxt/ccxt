@@ -3272,19 +3272,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 })]);
         let mut networkAndParams: Vec<Value> = self.handle_network_code_and_params(params).as_array().cloned().unwrap_or_default();
-        let mut networkParam: Value = networkAndParams.get(0).cloned().unwrap_or(Value::Null);
-        let mut networkDefinedByUser: bool = networkParam != Value::Null;
-        let mut network: Value = networkParam;
+        let mut networkParam: Option<String> = networkAndParams.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut networkDefinedByUser: bool = networkParam.is_some();
+        let mut network: Option<String> = networkParam;
         if (length > 1) || (networkDefinedByUser) {
             // some currencies have multiple networks
-            if (network == Value::Null) {
+            if (network.is_none()) {
                 // use default network if not specified and multiple are available
                 network = self.safe_string(self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), code.clone(), &[self.safe_string_k(self.options.clone(), "defaultNetwork", &[])]);
+})]), code.clone(), &[self.safe_string_k(self.options.clone(), "defaultNetwork", &[])]).as_str().map(str::to_owned);
             }
-            if (network != Value::Null) {
+            if (network.is_some()) {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_495: bool = true;
@@ -3295,7 +3295,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 })]).into_dict();
                     let mut networkId: Option<String> = self.safe_string_k(&entry, "network", &[]).as_str().map(str::to_owned);
                     let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]);
-                    if ((networkCode.as_deref() == network.as_str())) {
+                    if (network == networkCode) {
                         data = Value::Dict(entry);
                         break;
                     }

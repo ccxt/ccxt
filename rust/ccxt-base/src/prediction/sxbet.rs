@@ -3016,30 +3016,30 @@ impl Sxbet {
         let mut outcomeId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
         let mut marketHash: Option<String> = self.safe_string_k(raw.clone(), "marketHash", &[]).as_str().map(str::to_owned);
         let mut isOutcomeOne: bool = outcomeId == marketHash;
-        let mut outcomeOneOdds: Value = self.safe_dict_k(raw.clone(), "outcomeOne", &[Value::Map({
+        let mut outcomeOneOdds: crate::value::Dict = self.safe_dict_k(raw.clone(), "outcomeOne", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut outcomeTwoOdds: Value = self.safe_dict_k(raw.clone(), "outcomeTwo", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ownOdds: Value = outcomeTwoOdds.clone();
+        let mut ownOdds: crate::value::Dict = outcomeTwoOdds.clone().into_dict();
         if isOutcomeOne {
-            ownOdds = outcomeOneOdds.clone();
+            ownOdds = Value::from(&outcomeOneOdds).into_dict();
         }
-        let mut oppositeOdds: Value = outcomeOneOdds;
+        let mut oppositeOdds: crate::value::Dict = Value::from(&outcomeOneOdds).into_dict();
         if isOutcomeOne {
-            oppositeOdds = outcomeTwoOdds;
+            oppositeOdds = outcomeTwoOdds.into_dict();
         }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         let mut oneDenom: String = "100000000000000000000".to_string();
-        let mut ownPercentage: Option<String> = self.safe_string_k(ownOdds.clone(), "percentageOdds", &[]).as_str().map(str::to_owned);
-        let mut oppositePercentage: Option<String> = self.safe_string_k(oppositeOdds, "percentageOdds", &[]).as_str().map(str::to_owned);
+        let mut ownPercentage: Option<String> = self.safe_string_k(&ownOdds, "percentageOdds", &[]).as_str().map(str::to_owned);
+        let mut oppositePercentage: Option<String> = self.safe_string_k(&oppositeOdds, "percentageOdds", &[]).as_str().map(str::to_owned);
         let mut bid: Option<f64> = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage, &oneDenom), &[]).as_f64() } else { None });
         let mut ask: Option<f64> = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage, &oneDenom)), &[]).as_f64() } else { None });
-        let mut updatedAt: Option<i64> = self.safe_integer_k(ownOdds, "updatedAt", &[]).as_i64();
+        let mut updatedAt: Option<i64> = self.safe_integer_k(&ownOdds, "updatedAt", &[]).as_i64();
         let mut now: i64 = self.milliseconds();
         let mut timestamp: i64 = updatedAt.unwrap_or(now);
         let mut average: Option<f64> = None;

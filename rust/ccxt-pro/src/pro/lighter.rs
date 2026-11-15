@@ -1122,8 +1122,8 @@ impl Lighter {
                         let mut i: i64 = 0;
             let mut __for_first_470: bool = true;
             while { if !__for_first_470 { i += 1; } __for_first_470 = false; i < dataLength } {
-            let mut iReversed: Value = Value::from(self.parse_to_int(Value::Int((((dataLength - 1)) - i))));
-            let mut trade: crate::value::Dict = self.parse_ws_trade(crate::value::KeyRead::read(&&data, &iReversed), Some(&market)).into_dict();
+            let mut iReversed: Option<i64> = self.parse_to_int(Value::Int((((dataLength - 1)) - i)));
+            let mut trade: crate::value::Dict = self.parse_ws_trade(crate::value::KeyRead::read(&&data, &Value::from(iReversed)), Some(&market)).into_dict();
             stored.append(Value::Dict(trade));
         }
         }
@@ -1603,8 +1603,8 @@ impl Lighter {
                         let mut i: i64 = 0;
             let mut __for_first_473: bool = true;
             while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < dataLength } {
-            let mut iReversed: Value = Value::from(self.parse_to_int(Value::Int((((dataLength - 1)) - i))));
-            let mut liquidation: Value = self.parse_ws_liquidation(crate::value::KeyRead::read(&&data, &iReversed), Some(&market));
+            let mut iReversed: Option<i64> = self.parse_to_int(Value::Int((((dataLength - 1)) - i)));
+            let mut liquidation: Value = self.parse_ws_liquidation(crate::value::KeyRead::read(&&data, &Value::from(iReversed)), Some(&market));
             stored.append(liquidation);
         }
         }

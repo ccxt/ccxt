@@ -2443,7 +2443,7 @@ impl Okx {
         let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
         let mut marketId: Option<String> = self.safe_string_k(&arg, "instId", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
+        let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut depths: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bbo-tbt".to_string(), Value::Int(1));
@@ -2455,7 +2455,7 @@ impl Okx {
             m
         });
         let mut limit: Option<i64> = self.safe_integer(&depths, channel.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), symbol).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), symbol.as_deref().unwrap_or("null")).into());
         if (action.as_deref() == Some("snapshot")) {
             {
                                 let mut i: i64 = 0;
@@ -2476,7 +2476,7 @@ impl Okx {
                 // rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
-                let mut snapshot: crate::value::Dict = self.parse_order_book(&update, symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), Value::Int(4)]).into_dict();
+                let mut snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), Value::Int(4)]).into_dict();
                 std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&update, "seqId", &[]));
                 snapshotBook.reset(Value::Dict(snapshot));
                 if !(__ch.has_subscription(&messageHash)) {
@@ -2521,7 +2521,7 @@ impl Okx {
                     while { if !__for_first_547 { i += 1; } __for_first_547 = false; i < (data.len() as i64) } {
                     let mut update: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut timestamp: Option<i64> = self.safe_integer_k(&update, "ts", &[]).as_i64();
-                    let mut snapshot: crate::value::Dict = self.parse_order_book(&update, symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).into_dict();
+                    let mut snapshot: crate::value::Dict = self.parse_order_book(&update, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]).into_dict();
                     bboBook.reset(Value::Dict(snapshot));
                     client.resolve(Value::from(&bboBook), &messageHash);
                 }

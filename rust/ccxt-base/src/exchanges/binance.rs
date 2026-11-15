@@ -13327,7 +13327,7 @@ impl Binance {
         if (!stock) && (type_var.as_deref() != Some("option")) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
-        let mut endTime: Value = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]);
+        let mut endTime: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
         if (since != Value::Null) {
             let mut startTime: Option<i64> = since.as_i64();
             request.insert("startTime".into(), Value::from(startTime));
@@ -13335,17 +13335,17 @@ impl Binance {
             // The time between startTime and endTime cannot be longer than 7 days.
             // The parameter fromId cannot be sent with startTime or endTime.
             let mut currentTimestamp: i64 = self.milliseconds();
-            let mut oneWeek: Value = Value::Int(604800000); // 7 * 24 * 60 * 60 * 1000
-            if (Value::from((if let Some(__r) = since.as_i64() { Some(currentTimestamp - __r) } else { None }))).as_f64().unwrap_or(f64::NAN) >= oneWeek.as_f64().unwrap_or(f64::NAN) {
-                if (endTime == Value::Null) && matches!((self.safe_bool_k(&market, "linear", &[Value::Bool(false)])), Value::Bool(true)) {
-                    endTime = self.sum(&[Value::from(startTime), oneWeek.clone()]);
-                    let mut endTimeValue: Value = (if (endTime == Value::Null) { Value::Int(0) } else { endTime.clone() });
-                    endTime = crate::runtime::Math::min(&endTimeValue, &Value::from(currentTimestamp));
+            let mut oneWeek: i64 = 604800000; // 7 * 24 * 60 * 60 * 1000
+            if ((if let Some(__r) = since.as_i64() { Some(currentTimestamp - __r) } else { None })) >= Some(oneWeek) {
+                if (endTime.is_none()) && matches!((self.safe_bool_k(&market, "linear", &[Value::Bool(false)])), Value::Bool(true)) {
+                    endTime = (if let Some(__m0) = startTime { Some((__m0 + oneWeek)) } else { None });
+                    let mut endTimeValue: i64 = endTime.unwrap_or(0);
+                    endTime = Some(i64::min(endTimeValue, currentTimestamp));
                 }
             }
         }
-        if (endTime != Value::Null) {
-            request.insert("endTime".into(), endTime.clone());
+        if (endTime.is_some()) {
+            request.insert("endTime".into(), Value::from(endTime));
             paramsPaginate = self.omit(&paramsPaginate, &["endTime", "until"], &[]).into_dict();
         }
         let mut isContractLimit: bool = (type_var.as_deref() == Some("option")) || self.safe_bool_k(&market, "contract", &[Value::Bool(false)]).as_bool() == Some(true);
@@ -13376,7 +13376,7 @@ impl Binance {
             if stock {
                 // request['endTime'] holds endTime whenever endTime is defined
                 let mut endTimeResolved: Option<i64> = self.safe_integer_k(&request, "endTime", &[Value::Int(self.milliseconds())]).as_i64();
-                if (endTime == Value::Null) {
+                if (endTime.is_none()) {
                     request.insert("endTime".into(), Value::from(endTimeResolved));
                 }
                 if (since == Value::Null) {
@@ -14726,10 +14726,10 @@ impl Binance {
             while { if !__for_first_295 { i += 1; } __for_first_295 = false; i < (coins.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&coins, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut networkList: crate::value::List = self.safe_list_k(&entry, "networkList", &[Value::from(vec![])]).into_list();
-            if (code != Value::Null) {
-                withdrawFees.entry(crate::runtime::stringify_param(&code)).or_default();
+            if (code.is_some()) {
+                withdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default();
             }
             {
                                 let mut j: i64 = 0;
@@ -14737,10 +14737,10 @@ impl Binance {
                 while { if !__for_first_294 { j += 1; } __for_first_294 = false; j < (networkList.len() as i64) } {
                 let mut networkEntry: crate::value::Dict = self.safe_dict(&networkList, Value::Int(j), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&networkEntry, "network", &[]).as_str().map(str::to_owned);
-                let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
+                let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]);
                 let mut fee: Option<f64> = self.safe_number_k(&networkEntry, "withdrawFee", &[]).as_f64();
-                if (code != Value::Null) && (networkCode != Value::Null) {
-                    withdrawFees.entry(crate::runtime::stringify_param(&code)).or_default().insert(crate::runtime::stringify_param(&networkCode), Value::from(fee));
+                if (code.is_some()) && (networkCode.is_some()) {
+                    withdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default().insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::from(fee));
                 }
             }
             }

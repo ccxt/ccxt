@@ -1998,16 +1998,16 @@ impl Limitless {
         let mut scaleStr: Option<String> = self.parse_precision(&[Value::from(self.number_to_string((match &(decimals) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })))]).as_str().map(str::to_owned);
         let mut outcomeLabel: Option<String> = self.safe_string_lower_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "outcomeLabel", &[Value::Str("yes".into())]).as_str().map(str::to_owned);
         let mut isYes: bool = outcomeLabel.as_deref() != Some("no");
-        let mut rawBids: Value = self.safe_list_k(&response, "bids", &[Value::from(vec![])]);
+        let mut rawBids: crate::value::List = self.safe_list_k(&response, "bids", &[Value::from(vec![])]).into_list();
         let mut rawAsks: Value = self.safe_list_k(&response, "asks", &[Value::from(vec![])]);
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-        let mut bidsSource: Value = rawAsks.clone();
+        let mut bidsSource: crate::value::List = rawAsks.clone().into_list();
         if isYes {
-            bidsSource = rawBids.clone();
+            bidsSource = Value::from(&rawBids).into_list();
         }
-        let mut asksSource: Value = rawBids;
+        let mut asksSource: crate::value::List = Value::from(&rawBids).into_list();
         if isYes {
-            asksSource = rawAsks;
+            asksSource = rawAsks.into_list();
         }
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
@@ -2015,11 +2015,11 @@ impl Limitless {
                         let mut bi: i64 = 0;
             let mut __for_first_1315: bool = true;
             while { if !__for_first_1315 { bi += 1; } __for_first_1315 = false; bi < (bidsSource.len() as i64) } {
-            let mut priceStr: Value = self.safe_string(self.safe_dict(bidsSource.clone(), Value::Int(bi), &[]), Value::Str("price".into()), &[]);
+            let mut priceStr: Value = self.safe_string(self.safe_dict(&bidsSource, Value::Int(bi), &[]), Value::Str("price".into()), &[]);
             if !isYes && (priceStr != Value::Null) {
                 priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr);
             }
-            let mut sizeStr: Value = self.safe_string(self.safe_dict(bidsSource.clone(), Value::Int(bi), &[]), Value::Str("size".into()), &[]);
+            let mut sizeStr: Value = self.safe_string(self.safe_dict(&bidsSource, Value::Int(bi), &[]), Value::Str("size".into()), &[]);
             if (sizeStr != Value::Null) {
                 sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
             }
@@ -2030,11 +2030,11 @@ impl Limitless {
                         let mut ai: i64 = 0;
             let mut __for_first_1316: bool = true;
             while { if !__for_first_1316 { ai += 1; } __for_first_1316 = false; ai < (asksSource.len() as i64) } {
-            let mut priceStr: Value = self.safe_string(self.safe_dict(asksSource.clone(), Value::Int(ai), &[]), Value::Str("price".into()), &[]);
+            let mut priceStr: Value = self.safe_string(self.safe_dict(&asksSource, Value::Int(ai), &[]), Value::Str("price".into()), &[]);
             if !isYes && (priceStr != Value::Null) {
                 priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr);
             }
-            let mut sizeStr: Value = self.safe_string(self.safe_dict(asksSource.clone(), Value::Int(ai), &[]), Value::Str("size".into()), &[]);
+            let mut sizeStr: Value = self.safe_string(self.safe_dict(&asksSource, Value::Int(ai), &[]), Value::Str("size".into()), &[]);
             if (sizeStr != Value::Null) {
                 sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
             }
@@ -2140,7 +2140,7 @@ impl Limitless {
 })]).into_dict();
             let mut firstPrices: Option<crate::value::List> = self.safe_list_k(&first, "prices", &[]).into_opt_list();
             if (firstPrices.is_some()) {
-                let mut selectedSeries: Value = Value::Dict(first);
+                let mut selectedSeries: crate::value::Dict = Value::from(&first).into_dict();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_1317: bool = true;
@@ -2154,12 +2154,12 @@ impl Limitless {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOHLCV() missing title")));
                     }
                     if (outcomeLabel.is_some()) && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), outcomeLabel.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
-                        selectedSeries = Value::Dict(series);
+                        selectedSeries = Value::from(&series).into_dict();
                         break;
                     }
                 }
                 }
-                history = self.safe_list_k(selectedSeries, "prices", &[Value::from(vec![])]);
+                history = self.safe_list_k(&selectedSeries, "prices", &[Value::from(vec![])]);
             }
         }
         // the endpoint returns raw price points, not candles - bucket them into

@@ -3311,14 +3311,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
         let mut eventId: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("eventId".into()), Value::Str("slug".into()), &[]).as_str().map(str::to_owned);
-        let mut rawEvents: Value = Value::from(vec![]);
+        let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
-            rawEvents = self.fetch_events_by_query(queries, Value::from(fetchCap), &[rest.clone()]).await;
+            rawEvents = self.fetch_events_by_query(queries, Value::from(fetchCap), &[rest.clone()]).await.into_list();
         }  else if (eventId.is_some()) {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
             let mut fullEvent: crate::value::Dict = self.fetch_raw_event_by_ticker(eventId.as_deref().unwrap_or_default(), &[rest.clone()]).await.into_dict();
-            rawEvents = Value::from(vec![Value::Dict(fullEvent)]);
+            rawEvents = std::sync::Arc::new(vec![Value::Dict(fullEvent)]);
         }  else {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
             let mut seriesTickers: crate::value::List = self.resolve_event_series_tickers(&[Value::from(&paramsOmitted)]).await.into_list();
@@ -3326,7 +3326,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (seriesTickersLength == 0) {
                 self.require_event_query(&[Value::from(&paramsOmitted)]);
             }
-            rawEvents = self.fetch_series_events(Value::Arr(seriesTickers), status.as_deref(), Value::from(fetchCap), &[rest]).await;
+            rawEvents = self.fetch_series_events(Value::Arr(seriesTickers), status.as_deref(), Value::from(fetchCap), &[rest]).await.into_list();
         }
         let mut rawEventsLength: i64 = rawEvents.len() as i64;
         let mut result: Vec<Value> = Vec::new();
@@ -3334,7 +3334,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut di: i64 = 0;
             let mut __for_first_1286: bool = true;
             while { if !__for_first_1286 { di += 1; } __for_first_1286 = false; di < rawEventsLength } {
-            let mut parsedEvent: indexmap::IndexMap<String, Value> = self.parse_event(rawEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(di as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
+            let mut parsedEvent: indexmap::IndexMap<String, Value> = self.parse_event(rawEvents.get(di as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
             result.push(Value::Map(parsedEvent.clone()));
             // register the parsed markets so populateOutcomes can index their outcomes
             let mut parsedMarkets: Value = parsedEvent.get("markets").cloned().unwrap_or(Value::Null);

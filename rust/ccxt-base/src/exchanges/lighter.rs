@@ -1391,7 +1391,7 @@ if _try_result.is_err() {
     m
 })]), Value::Str("signer".into()), &[]);
         let privateKeypublicKeyVariable: Vec<Value> = self.lighter_generate_api_key(signerNotLoad.clone()).as_array().cloned().unwrap_or_default();
-        let mut privateKey: Value = privateKeypublicKeyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut privateKey: Option<String> = privateKeypublicKeyVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut publicKey: Option<String> = privateKeypublicKeyVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let __ws_arg_7 = self.extend(&paramsAccountIndex, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1408,7 +1408,7 @@ if _try_result.is_err() {
             m
         });
         // create lighter client
-        let mut signer: Value = self.lighter_create_client(signerNotLoad, self.safe_integer_k(self.options.clone(), "chainId", &[]), privateKey.clone(), Value::from(apiKeyIndex), Value::from(accountIndex));
+        let mut signer: Value = self.lighter_create_client(signerNotLoad, self.safe_integer_k(self.options.clone(), "chainId", &[]), Value::from(privateKey.as_deref()), Value::from(apiKeyIndex), Value::from(accountIndex));
         let __ws_arg_8 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
         let txTypetxInfomessageToSignVariable: Vec<Value> = self.lighter_sign_change_pubkey(signer.clone(), __ws_arg_8).as_array().cloned().unwrap_or_default();
         let mut txType: Option<i64> = txTypetxInfomessageToSignVariable.get(0).and_then(Value::as_i64);
@@ -1424,7 +1424,7 @@ if _try_result.is_err() {
         self.public_post_send_tx(&[Value::Map(request)]).await;
         self.set_auth_entry(strAccountIndex, strApiKeyIndex, Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("lighterPrivateKey".to_string(), privateKey);
+                m.insert("lighterPrivateKey".to_string(), privateKey.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signer".to_string(), signer.clone());
             m
         })); // reassign signer in go

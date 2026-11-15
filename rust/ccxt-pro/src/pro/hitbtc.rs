@@ -741,9 +741,9 @@ impl Hitbtc {
             while { if !__for_first_362 { i += 1; } __for_first_362 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
-            let mut symbol: Value = self.safe_symbol(Value::from(marketId.as_deref()), Some(&market), &[]);
+            let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), Some(&market), &[]).as_str().map(str::to_owned);
             let mut item: crate::value::Dict = get_value(&data, marketId.as_deref()).into_dict();
-            let mut messageHash: String = format!("{}{}", "orderbooks::", symbol);
+            let mut messageHash: String = format!("{}{}", "orderbooks::", symbol.as_deref().unwrap_or("null"));
             if !(self.orderbooks.has(&symbol)) {
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -759,7 +759,7 @@ impl Hitbtc {
             let mut timestamp: Option<i64> = self.safe_integer_k(&item, "t", &[]).as_i64();
             let mut nonce: Option<i64> = self.safe_integer_k(&item, "s", &[]).as_i64();
             if (type_var == "snapshot") {
-                let mut parsedSnapshot: crate::value::Dict = self.parse_order_book(&item, symbol.clone(), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
+                let mut parsedSnapshot: crate::value::Dict = self.parse_order_book(&item, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]).into_dict();
                 orderbook.reset(Value::Dict(parsedSnapshot));
             }  else {
                 let mut asks: crate::value::List = self.safe_list_k(&item, "a", &[Value::from(vec![])]).into_list();
@@ -770,7 +770,7 @@ impl Hitbtc {
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             orderbook.set_book_meta("nonce", Value::from(nonce));
-            orderbook.set_book_meta("symbol", symbol.clone());
+            orderbook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
             CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }

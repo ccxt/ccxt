@@ -2656,9 +2656,9 @@ impl Bitso {
     m
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
+        self.check_address(&[address.clone(), code.clone(), Value::from(tagWithdrawTag.as_deref())]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2680,7 +2680,7 @@ impl Bitso {
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), amount);
                 m.insert("address".to_string(), address);
-                m.insert("destination_tag".to_string(), tagWithdrawTag);
+                m.insert("destination_tag".to_string(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut classMethod: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", "privatePost", method.as_deref().unwrap_or("null")).into()), "Withdrawal").into());

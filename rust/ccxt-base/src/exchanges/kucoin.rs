@@ -3531,8 +3531,8 @@ impl Kucoin {
         if fetchSpotMarkets {
             symbolsData = self.safe_list(crate::value::KeyRead::read(&&responses, &Value::Int(0)), Value::Str("data".into()), &[Value::from(vec![])]).into_list();
         }
-        let mut crossIndex: Value = Value::Int(0);
-        let mut isolatedIndex: Value = Value::Int(0);
+        let mut crossIndex: i64 = 0;
+        let mut isolatedIndex: i64 = 0;
         let mut tickersIndex: i64 = 0;
         let mut contractIndex: i64 = 0;
         let mut nextIndex: i64 = 0;
@@ -3540,9 +3540,9 @@ impl Kucoin {
             nextIndex = 1;
         }
         if requestMarginables {
-            crossIndex = Value::from(nextIndex);
+            crossIndex = nextIndex;
             nextIndex = (nextIndex + 2);
-            isolatedIndex = self.sum(&[crossIndex.clone(), Value::Int(1)]);
+            isolatedIndex = (crossIndex + 1);
         }
         if fetchTickersFees.as_bool() == Some(true) {
             tickersIndex = nextIndex;
@@ -3551,7 +3551,7 @@ impl Kucoin {
         if fetchContractMarkets {
             contractIndex = nextIndex;
         }
-        let mut crossData: crate::value::Dict = (if (requestMarginables) { self.safe_dict_k(crate::value::KeyRead::read(&&responses, &crossIndex), "data", &[Value::Map({
+        let mut crossData: crate::value::Dict = (if (requestMarginables) { self.safe_dict(crate::value::KeyRead::read(&&responses, &Value::from(crossIndex)), Value::Str("data".into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
@@ -3560,7 +3560,7 @@ impl Kucoin {
 }) }).into_dict();
         let mut crossItems: crate::value::List = self.safe_list_k(&crossData, "items", &[Value::from(vec![])]).into_list();
         let mut crossById: crate::value::Dict = self.index_by(Value::Arr(crossItems), Value::Str("symbol".into())).into_dict();
-        let mut isolatedData: crate::value::Dict = (if (requestMarginables) { crate::value::KeyRead::read(&&responses, &isolatedIndex) } else { Value::Map({
+        let mut isolatedData: crate::value::Dict = (if (requestMarginables) { crate::value::KeyRead::read(&&responses, &Value::from(isolatedIndex)) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
@@ -11338,13 +11338,13 @@ impl Kucoin {
             currency = Some(self.currency(code.map(Value::from).unwrap_or(Value::Null)));
         }
         let requestedTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[Value::from(&paramsUta)]).as_array().cloned().unwrap_or_default();
-        let mut requestedType: Value = requestedTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut requestedType: Option<String> = requestedTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = requestedTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut type_var: Option<String> = self.safe_string(&accountsByType, requestedType.clone(), &[requestedType.clone()]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string(&accountsByType, Value::from(requestedType.as_deref()), &[Value::from(requestedType.as_deref())]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::Str("type".into()), &[]).into_dict();
         if (type_var.as_deref() == Some("contract")) {
             return self.fetch_contract_balance(&[Value::from(&paramsOmitted)]).await;

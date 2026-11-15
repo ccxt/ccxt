@@ -763,7 +763,7 @@ impl Gemini {
         let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
         let mut marketId: Option<String> = self.safe_string_lower_k(message, "symbol", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
@@ -791,7 +791,7 @@ impl Gemini {
                     m.insert("bids".to_string(), Value::from(bidsSnapshot));
                     m.insert("asks".to_string(), Value::from(asksSnapshot));
                 m
-            }), symbol.clone(), &[]).into_dict();
+            }), Value::from(symbol.clone()), &[]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
             return;
@@ -812,7 +812,7 @@ impl Gemini {
             }
         }
         }
-        orderbook.set_book_meta("symbol", symbol.clone());
+        orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
@@ -1023,7 +1023,7 @@ impl Gemini {
         let mut firstChange: crate::value::Dict = rawOrderBookChanges.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
         let mut marketId: Value = (self.safe_string_k(&firstChange, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut market: crate::types::Market = self.safe_market(marketId, None, &[]);
-        let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);
         if !(self.orderbooks.has(&symbol)) {
             let mut ob: crate::pro::order_book::Book = self.order_book(&[]);
@@ -1047,7 +1047,7 @@ impl Gemini {
             }
         }
         }
-        orderbook.set_book_meta("symbol", symbol.clone());
+        orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
         orderbook.set_book_meta("nonce", nonce);
         orderbook.set_book_meta("timestamp", timestamp.clone());
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));

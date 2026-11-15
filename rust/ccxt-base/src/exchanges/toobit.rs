@@ -2732,10 +2732,10 @@ impl Toobit {
             request.insert("timeInForce".into(), Value::Str("LIMIT_MAKER".into()));
         }
         let mut values: Vec<Value> = self.handle_trigger_prices_and_params(symbol.clone(), &paramsPostOnly, &[]).as_array().cloned().unwrap_or_default();
-        let mut triggerPrice: Value = values.get(0).cloned().unwrap_or(Value::Null);
+        let mut triggerPrice: Option<String> = values.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTrigger: Value = values.get(3).cloned().unwrap_or(Value::Null);
-        if (triggerPrice != Value::Null) {
-            request.insert("stopPrice".into(), triggerPrice);
+        if (triggerPrice.is_some()) {
+            request.insert("stopPrice".into(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }
         let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsTrigger.clone(), "stopLoss", &[]).into_opt_dict();
         let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsTrigger.clone(), "takeProfit", &[]).into_opt_dict();

@@ -1840,7 +1840,7 @@ impl Whitebit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut codesValue: Value = self.market_codes(&[codes]);
+        let mut codesValue: Option<crate::value::List> = self.market_codes(&[codes]).into_opt_list();
         let mut currencyIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1851,7 +1851,7 @@ impl Whitebit {
             let mut currencyId: Option<String> = splitEntry.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut feeInfo: Value = self.safe_dict(response.clone(), entry.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) && ((codesValue == Value::Null) || (self.in_array(code.clone(), codesValue.clone()))) {
+            if (code != Value::Null) && ((codesValue.is_none()) || (self.in_array(code.clone(), codesValue.clone().map_or(Value::Null, Value::Arr)))) {
                 let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(&depositWithdrawFees, code.clone(), &[]).into_opt_dict();
                 if (depositWithdrawFee.is_none()) {
                     depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({

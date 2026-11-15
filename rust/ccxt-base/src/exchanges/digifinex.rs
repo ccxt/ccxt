@@ -2635,13 +2635,13 @@ impl Digifinex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginResult: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params.clone()]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginResult.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginResult.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), params]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             response = self.private_swap_post_trade_order_place(&[Value::from(&request)]).await.into_opt_dict();
         }  else {
-            if (marginMode != Value::Null) {
+            if (marginMode.is_some()) {
                 response = self.private_spot_post_margin_order_new(&[Value::from(&request)]).await.into_opt_dict();
             }  else {
                 response = self.private_spot_post_spot_order_new(&[Value::Dict(request)]).await.into_opt_dict();
@@ -2702,7 +2702,7 @@ impl Digifinex {
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut symbol: Option<String> = None;
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_643: bool = true;
@@ -2725,12 +2725,12 @@ impl Digifinex {
                 m
             })]).into_dict();
             let mut marginResult: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]).as_array().cloned().unwrap_or_default();
-            let mut currentMarginMode: Value = marginResult.get(0).cloned().unwrap_or(Value::Null);
-            if (currentMarginMode != Value::Null) {
-                if (marginMode == Value::Null) {
+            let mut currentMarginMode: Option<String> = marginResult.get(0).and_then(Value::as_str).map(str::to_owned);
+            if (currentMarginMode.is_some()) {
+                if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();
                 }  else {
-                    if (marginMode.as_str() != currentMarginMode.as_str()) {
+                    if (marginMode != currentMarginMode) {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrders() requires all orders to have the same margin mode (isolated or cross)")));
                     }
                 }
@@ -2748,7 +2748,7 @@ impl Digifinex {
         if (market).swap {
             response = self.private_swap_post_trade_batch_order(&[Value::from(ordersRequests.clone())]).await.into_opt_dict();
         }  else {
-            request.insert("market".into(), (if (marginMode != Value::Null) { Value::Str("margin".into()) } else { Value::Str("spot".into()) }));
+            request.insert("market".into(), (if (marginMode.is_some()) { Value::Str("margin".into()) } else { Value::Str("spot".into()) }));
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("list".into(), json_stringify(&Value::from(ordersRequests)));
             response = self.private_spot_post_market_order_batch_new(&[Value::Map(request)]).await.into_opt_dict();
@@ -6073,7 +6073,7 @@ impl Digifinex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut codesValue: Value = self.market_codes(&[codes]);
+        let mut codesValue: Option<crate::value::List> = self.market_codes(&[codes]).into_opt_list();
         let mut rows: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
@@ -6081,7 +6081,7 @@ impl Digifinex {
             while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < (rows.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&rows, Value::Int(i), &[]).into_opt_dict();
             let mut code: Value = self.safe_currency_code(self.safe_string_k(&entry, "currency", &[]), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) && ((codesValue == Value::Null) || (self.in_array(code.clone(), codesValue.clone()))) {
+            if (code != Value::Null) && ((codesValue.is_none()) || (self.in_array(code.clone(), codesValue.clone().map_or(Value::Null, Value::Arr)))) {
                 if !(matches!(&code, Value::Str(__k) if depositWithdrawFees.contains_key(__k.as_ref()))) {
                     let mut feeStructure: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(Value::Map({
                         let mut m = indexmap::IndexMap::new();

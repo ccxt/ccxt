@@ -4913,8 +4913,8 @@ impl Bitfinex {
                         let mut i: i64 = 0;
             let mut __for_first_361: bool = true;
             while { if !__for_first_361 { i += 1; } __for_first_361 = false; i < ratesLength } {
-            let mut index: Value = Value::Int((((ratesLength - i)) - 1));
-            let mut valueAtIndex: Value = crate::value::KeyRead::read(&&rawRates, &index);
+            let mut index: i64 = (((ratesLength - i)) - 1);
+            let mut valueAtIndex: Value = crate::value::KeyRead::read(&&rawRates, &Value::from(index));
             reversedArray.push(valueAtIndex);
         }
         }

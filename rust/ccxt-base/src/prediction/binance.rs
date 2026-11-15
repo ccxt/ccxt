@@ -685,12 +685,12 @@ impl Binance {
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
-        let mut rawTopics: Value = Value::from(vec![]);
+        let mut rawTopics: crate::value::List = std::sync::Arc::new(Vec::new());
         if allQueriesLength > 0 {
-            rawTopics = self.fetch_events_by_query(Value::from(allQueries), Value::from(fetchCap), &[Value::from(&rest)]).await;
+            rawTopics = self.fetch_events_by_query(Value::from(allQueries), Value::from(fetchCap), &[Value::from(&rest)]).await.into_list();
         }  else if (eventId.is_some()) {
             let mut detail: crate::value::Dict = self.fetch_raw_topic_detail(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await.into_dict();
-            rawTopics = Value::from(vec![Value::Dict(detail)]);
+            rawTopics = std::sync::Arc::new(vec![Value::Dict(detail)]);
         }  else {
             let mut listingRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -721,7 +721,7 @@ impl Binance {
             }
             let __ws_arg_2 = self.extend(Value::Map(listingRequest), &[&rest]);
             let mut listed: crate::value::List = self.fetch_raw_topics(Value::from(fetchCap), &[__ws_arg_2]).await.into_list();
-            rawTopics = self.complete_raw_topics(&listed).await;
+            rawTopics = self.complete_raw_topics(&listed).await.into_list();
         }
         let mut rawTopicsLength: i64 = rawTopics.len() as i64;
         let mut result: Vec<Value> = Vec::new();
@@ -729,7 +729,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_1216: bool = true;
             while { if !__for_first_1216 { i += 1; } __for_first_1216 = false; i < rawTopicsLength } {
-            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
+            let mut parsedEvent: crate::value::Dict = self.parse_event(rawTopics.get(i as usize).cloned().unwrap_or(Value::Null)).into_dict();
             result.push(Value::from(&parsedEvent));
             let mut parsedMarkets: crate::value::List = self.safe_list_k(&parsedEvent, "markets", &[Value::from(vec![])]).into_list();
             let mut parsedMarketsLength: i64 = parsedMarkets.len() as i64;

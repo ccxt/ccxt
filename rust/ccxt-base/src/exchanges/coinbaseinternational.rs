@@ -2236,9 +2236,9 @@ impl Coinbaseinternational {
         }
         self.authenticate_v2(&[]).await;
         let mut code: Option<String> = self.safe_string_k(&paramsResolved, "code", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = Value::from(&paramsResolved);
+        let mut paramsOmitted: crate::value::Dict = Value::from(&paramsResolved).into_dict();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            paramsOmitted = self.omit(&paramsResolved, Value::Str("code".into()), &[]);
+            paramsOmitted = self.omit(&paramsResolved, Value::Str("code".into()), &[]).into_dict();
         }
         let mut response: Option<crate::value::Dict> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) && (code.is_some()) {
@@ -2247,10 +2247,10 @@ impl Coinbaseinternational {
                     m.insert("currency".to_string(), self.currency_id(code.map(Value::from).unwrap_or(Value::Null)));
                 m
             });
-            let __ws_arg_5 = self.extend(Value::Map(request), &[paramsOmitted.clone()]);
+            let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_get_account_summary(&[__ws_arg_5]).await.into_opt_dict();
         }  else {
-            response = self.private_get_get_account_summaries(&[paramsOmitted]).await.into_opt_dict();
+            response = self.private_get_get_account_summaries(&[Value::Dict(paramsOmitted)]).await.into_opt_dict();
         }
         //
         // {

@@ -1137,7 +1137,7 @@ impl Deribit {
             descriptor = self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }
         let mut marketId: Option<String> = self.safe_string_k(&data, "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.counted_order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
@@ -1150,9 +1150,9 @@ impl Deribit {
         storedOrderBook.set_book_meta("nonce", Value::from(timestamp));
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
         storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
-        storedOrderBook.set_book_meta("symbol", symbol.clone());
+        storedOrderBook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
         CacheStore::put(&mut self.orderbooks, &symbol, storedOrderBook.clone());
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "book|", symbol).into()), "|").into()), descriptor);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "book|", symbol.as_deref().unwrap_or("null")).into()), "|").into()), descriptor);
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 

@@ -4598,7 +4598,7 @@ impl Poloniex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut codesValue: Value = self.market_codes(&[codes]);
+        let mut codesValue: Option<crate::value::List> = self.market_codes(&[codes]).into_opt_list();
         let mut responseKeys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -4607,7 +4607,7 @@ impl Poloniex {
             let mut currencyId: Option<&str> = responseKeys.get(i as usize).and_then(Value::as_str);
             let mut code: Value = self.safe_currency_code(Value::from(currencyId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
             let mut feeInfo: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::from(currencyId.as_deref()), &[]).into_opt_dict();
-            if (code != Value::Null) && ((codesValue == Value::Null) || (self.in_array(code.clone(), codesValue.clone()))) {
+            if (code != Value::Null) && ((codesValue.is_none()) || (self.in_array(code.clone(), codesValue.clone().map_or(Value::Null, Value::Arr)))) {
                 let mut currency: crate::types::Currency = self.currency(code.clone());
                 depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(&feeInfo, Some(&currency)));
                 let mut parsedFee: indexmap::IndexMap<String, Value> = self.safe_dict(&depositWithdrawFees, code.clone(), &[Value::Map({

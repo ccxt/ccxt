@@ -375,7 +375,7 @@ impl Coinone {
         if (base.is_none()) || (quote.is_none()) {
             return;
         }
-        let mut symbol: Value = Value::from(self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into())));
+        let mut symbol: String = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
         if (orderbook.is_none()) {
@@ -383,7 +383,7 @@ impl Coinone {
         }  else {
             orderbook.reset0();
         }
-        orderbook.set_book_meta("symbol", symbol.clone());
+        orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
         let mut asks: crate::value::List = self.safe_list_k(&data, "asks", &[Value::from(vec![])]).into_list();
         let mut bids: crate::value::List = self.safe_list_k(&data, "bids", &[Value::from(vec![])]).into_list();
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));

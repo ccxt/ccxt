@@ -4754,7 +4754,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let mut tagAndParams: Value = self.handle_param_string(params, Value::Str("tag".into()), &[]);
-        let mut tagWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut tagWithdrawTag: Option<String> = tagAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: Value = tagAndParams.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         if (matches!(&paramsWithdrawTag, Value::Dict(__d) if __d.contains_key("key"))) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4767,7 +4767,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             if (address != Value::Null) && (address.as_str() != Some("")) {
                 request.insert("address".into(), address.clone());
-                self.check_address(&[address, code, tagWithdrawTag]);
+                self.check_address(&[address, code, tagWithdrawTag.map(Value::from).unwrap_or(Value::Null)]);
             }
             let __ws_arg_26 = self.extend(Value::Map(request), &[paramsWithdrawTag.clone()]);
             let mut response: crate::value::Dict = self.private_post_withdraw(&[__ws_arg_26]).await.into_dict();

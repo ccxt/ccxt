@@ -12150,7 +12150,7 @@ impl Okx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut codesValue: Value = self.market_codes(&[codes]);
+        let mut codesValue: Option<crate::value::List> = self.market_codes(&[codes]).into_opt_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1027: bool = true;
@@ -12158,7 +12158,7 @@ impl Okx {
             let mut feeInfo: Value = get_value(&response, &Value::Int(i));
             let mut currencyId: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) && ((codesValue == Value::Null) || (self.in_array(code.clone(), codesValue.clone()))) {
+            if (code != Value::Null) && ((codesValue.is_none()) || (self.in_array(code.clone(), codesValue.clone().map_or(Value::Null, Value::Arr)))) {
                 let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(&depositWithdrawFees, code.clone(), &[]).into_opt_dict();
                 if (depositWithdrawFee.is_none()) {
                     depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({

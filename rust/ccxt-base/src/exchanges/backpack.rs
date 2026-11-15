@@ -1384,11 +1384,11 @@ impl Backpack {
             marketQuery.insert("marketType".into(), marketTypes.clone());
         }
         let mut response: crate::value::List = self.public_get_api_v1_markets(&[Value::Map(marketQuery)]).await.into_list();
-        let mut securities: Value = Value::from(vec![]);
+        let mut securities: crate::value::List = std::sync::Arc::new(Vec::new());
         if includeRfq {
-            securities = self.fetch_securities(&[]).await;
+            securities = self.fetch_securities(&[]).await.into_list();
         }
-        let mut securityById: crate::value::Dict = self.index_by(securities.clone(), Value::Str("asset".into())).into_dict();
+        let mut securityById: crate::value::Dict = self.index_by(Value::Arr(securities.clone()), Value::Str("asset".into())).into_dict();
         let mut markets: Vec<Value> = Vec::new();
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1431,7 +1431,7 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_247: bool = true;
                 while { if !__for_first_247 { i += 1; } __for_first_247 = false; i < (securities.len() as i64) } {
-                let mut security: Option<crate::value::Dict> = securities.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+                let mut security: Option<crate::value::Dict> = securities.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
                 let mut assetId: Option<String> = self.safe_string_k(&security, "asset", &[]).as_str().map(str::to_owned);
                 if (assetId.is_none()) {
                     continue;

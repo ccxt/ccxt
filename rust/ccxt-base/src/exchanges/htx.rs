@@ -8503,7 +8503,7 @@ impl Htx {
         let mut ordersRequests: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut symbol: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_782: bool = true;
@@ -8526,12 +8526,12 @@ impl Htx {
                 m
             })]).into_dict();
             let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]);
-            let mut currentMarginMode: Value = marginResult.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            if (currentMarginMode != Value::Null) {
-                if (marginMode == Value::Null) {
+            let mut currentMarginMode: Option<String> = marginResult.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            if (currentMarginMode.is_some()) {
+                if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();
                 }  else {
-                    if (marginMode.as_str() != currentMarginMode.as_str()) {
+                    if (marginMode != currentMarginMode) {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrders() requires all orders to have the same margin mode (isolated or cross)")));
                     }
                 }
@@ -11161,8 +11161,8 @@ impl Htx {
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
             let mut marginModeAndParams: Value = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]);
-            let mut marginMode: Value = marginModeAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            request.insert("margin_mode".into(), marginMode);
+            let mut marginMode: Option<String> = marginModeAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_133 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.contract_private_post_v5_position_lever(&[__ws_arg_133]).await.into_opt_dict();
         }  else {

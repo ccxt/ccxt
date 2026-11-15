@@ -612,8 +612,8 @@ impl Cex {
                         let mut i: i64 = 0;
             let mut __for_first_217: bool = true;
             while { if !__for_first_217 { i += 1; } __for_first_217 = false; i < dataLength } {
-            let mut index: Value = Value::Int((((dataLength - 1)) - i));
-            let mut parsed: crate::value::Dict = self.parse_ws_old_trade(crate::value::KeyRead::read(&&data, &index), Some(&market)).into_dict();
+            let mut index: i64 = (((dataLength - 1)) - i);
+            let mut parsed: crate::value::Dict = self.parse_ws_old_trade(crate::value::KeyRead::read(&&data, &Value::from(index)), Some(&market)).into_dict();
             stored.append(Value::Dict(parsed));
         }
         }

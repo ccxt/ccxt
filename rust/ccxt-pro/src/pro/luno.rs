@@ -798,7 +798,7 @@ impl Luno {
                         let mut j: i64 = 0;
             let mut __for_first_483: bool = true;
             while { if !__for_first_483 { j += 1; } __for_first_483 = false; j < (handlers.len() as i64) } {
-            let mut handler: Value = handlers.get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut handler: Option<String> = handlers.get(j as usize).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone(), subscriptions.get(0).cloned().unwrap_or(Value::Null)]);
         }
         }

@@ -1164,7 +1164,7 @@ impl Bitfinex {
         //     ]
         //
         let mut marketId: String = self.safe_string_k(subscription.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut symbol: Value = self.safe_symbol(Value::from(marketId.clone()), None, &[]);
+        let mut symbol: Option<String> = self.safe_symbol(Value::from(marketId.clone()), None, &[]).as_str().map(str::to_owned);
         let mut channel: String = "book".to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), marketId);
         let mut prec: Option<String> = self.safe_string_k(subscription.clone(), "prec", &[Value::Str("P0".into())]).as_str().map(str::to_owned);
@@ -1222,7 +1222,7 @@ impl Bitfinex {
                 }
                 }
             }
-            orderbook.set_book_meta("symbol", symbol.clone());
+            orderbook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
             client.resolve(orderbook.clone(), messageHash.as_str());
         }  else {
             let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));

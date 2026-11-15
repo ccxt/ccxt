@@ -2440,11 +2440,11 @@ impl Delta {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset_id", &[]).as_str().map(str::to_owned);
             let mut currency: Option<crate::value::Dict> = self.safe_dict(&currenciesByNumericId, currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
-            let mut code: Value = (if (currency.is_none()) { currencyId.map(Value::from).unwrap_or(Value::Null) } else { crate::value::KeyRead::key_read(&&currency, "code") });
+            let mut code: Option<String> = (if (currency.is_none()) { currencyId } else { crate::value::KeyRead::key_read(&&currency, "code").into_opt_string() });
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
             account.insert("free".into(), self.safe_string_k(&balance, "available_balance", &[]));
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));

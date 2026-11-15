@@ -10073,7 +10073,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginParams: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params.clone()]);
-        let mut marginMode: Value = marginParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         let mut isStock: Option<bool> = (market).stock;
         let mut isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
         let mut paramsStock: crate::value::Dict = self.omit(params.clone(), Value::Str("stock".into()), &[]).into_dict();
@@ -10114,9 +10114,9 @@ if _try_result.is_err() {
             if (market).spot {
                 if isTriggerOrder {
                     response = self.private_spot_post_v2_spot_trade_place_plan_order(&[Value::from(&request)]).await.into_opt_dict();
-                }  else if (marginMode.as_str() == Some("isolated")) {
+                }  else if (marginMode.as_deref() == Some("isolated")) {
                     response = self.private_margin_post_v2_margin_isolated_place_order(&[Value::from(&request)]).await.into_opt_dict();
-                }  else if (marginMode.as_str() == Some("cross")) {
+                }  else if (marginMode.as_deref() == Some("cross")) {
                     response = self.private_margin_post_v2_margin_crossed_place_order(&[Value::from(&request)]).await.into_opt_dict();
                 }  else {
                     response = self.private_spot_post_v2_spot_trade_place_order(&[Value::from(&request)]).await.into_opt_dict();
@@ -10566,7 +10566,7 @@ if _try_result.is_err() {
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut firstOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(0), &[]).into_dict();
         let mut symbol: Option<String> = self.safe_string_k(&firstOrder, "symbol", &[]).as_str().map(str::to_owned);
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_380: bool = true;
@@ -10589,12 +10589,12 @@ if _try_result.is_err() {
                 m
             })]).into_dict();
             let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]);
-            let mut currentMarginMode: Value = marginResult.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            if (currentMarginMode != Value::Null) {
-                if (marginMode == Value::Null) {
+            let mut currentMarginMode: Option<String> = marginResult.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            if (currentMarginMode.is_some()) {
+                if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();
                 }  else {
-                    if (marginMode.as_str() != currentMarginMode.as_str()) {
+                    if (marginMode != currentMarginMode) {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrders() requires all orders to have the same margin mode (isolated or cross)")));
                     }
                 }
@@ -10661,7 +10661,7 @@ if _try_result.is_err() {
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut firstOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(0), &[]).into_dict();
         let mut symbol: Option<String> = self.safe_string_k(&firstOrder, "symbol", &[]).as_str().map(str::to_owned);
-        let mut marginMode: Value = Value::Null;
+        let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_381: bool = true;
@@ -10684,12 +10684,12 @@ if _try_result.is_err() {
                 m
             })]).into_dict();
             let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]);
-            let mut currentMarginMode: Value = marginResult.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-            if (currentMarginMode != Value::Null) {
-                if (marginMode == Value::Null) {
+            let mut currentMarginMode: Option<String> = marginResult.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            if (currentMarginMode.is_some()) {
+                if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();
                 }  else {
-                    if (marginMode.as_str() != currentMarginMode.as_str()) {
+                    if (marginMode != currentMarginMode) {
                         panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrders() requires all orders to have the same margin mode (isolated or cross)")));
                     }
                 }
@@ -10708,7 +10708,7 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap || (market).future {
             let mut marginModeRequest: String = "isolated".to_string();
-            if (marginMode == Value::Null) || (marginMode.as_str() == Some("cross")) {
+            if (marginMode.is_none()) || (marginMode.as_deref() == Some("cross")) {
                 marginModeRequest = "crossed".to_string();
             }
             request.insert("marginMode".into(), Value::from(marginModeRequest));
@@ -10717,9 +10717,9 @@ if _try_result.is_err() {
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             response = self.private_mix_post_v2_mix_order_batch_place_order(&[Value::Map(request.clone())]).await.into_opt_dict();
-        }  else if (marginMode.as_str() == Some("isolated")) {
+        }  else if (marginMode.as_deref() == Some("isolated")) {
             response = self.private_margin_post_v2_margin_isolated_batch_place_order(&[Value::Map(request.clone())]).await.into_opt_dict();
-        }  else if (marginMode.as_str() == Some("cross")) {
+        }  else if (marginMode.as_deref() == Some("cross")) {
             response = self.private_margin_post_v2_margin_crossed_batch_place_order(&[Value::Map(request.clone())]).await.into_opt_dict();
         }  else {
             response = self.private_spot_post_v2_spot_trade_batch_orders(&[Value::Map(request)]).await.into_opt_dict();

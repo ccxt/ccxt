@@ -828,7 +828,7 @@ impl Bithumb {
             if (legacyMarketId.is_none()) {
                 return;
             }
-            let mut legacySymbol: Value = self.safe_symbol(legacyMarketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into())]);
+            let mut legacySymbol: Option<String> = self.safe_symbol(legacyMarketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into())]).as_str().map(str::to_owned);
             let mut timestampStr: Option<String> = self.safe_string_k_opt(&content, "datetime", &[]);
             if (timestampStr.is_none()) {
                 return;
@@ -836,14 +836,14 @@ impl Bithumb {
             let mut legacyTimestamp: Option<i64> = self.parse_to_int(timestampStr.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
             if !(self.orderbooks.has(&legacySymbol)) {
                 let mut ob: crate::pro::order_book::Book = self.order_book(&[]);
-                ob.set_book_meta("symbol", legacySymbol.clone());
+                ob.set_book_meta("symbol", legacySymbol.clone().map(Value::from).unwrap_or(Value::Null));
                 CacheStore::put(&mut self.orderbooks, &legacySymbol, ob);
             }
             let mut legacyOrderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&legacySymbol);
             self.handle_book_deltas(Value::from(&legacyOrderbook), Value::Arr(list));
             legacyOrderbook.set_book_meta("timestamp", Value::from(legacyTimestamp));
             legacyOrderbook.set_book_meta("datetime", self.iso8601(legacyTimestamp));
-            let mut legacyMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), legacySymbol);
+            let mut legacyMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), legacySymbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&legacyOrderbook), legacyMessageHash.as_str());
             return;
         }

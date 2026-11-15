@@ -7815,7 +7815,7 @@ impl Bybit {
             m
         });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrdersAfter".into()), None, &[params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut productMap: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7824,7 +7824,7 @@ impl Bybit {
                 m.insert("option".to_string(), Value::Str("OPTIONS".into()));
             m
         });
-        let mut product: Option<String> = self.safe_string(&productMap, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        let mut product: Option<String> = self.safe_string(&productMap, Value::from(type_var.as_deref()), &[Value::from(type_var.as_deref())]).as_str().map(str::to_owned);
         request.insert("product".into(), product.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let mut response: Value = self.private_post_v5_order_disconnected_cancel_all(&[__ws_arg_26]).await;

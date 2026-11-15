@@ -4897,16 +4897,16 @@ impl Deribit {
             m
         });
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
-        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]) } else { Value::from(&paramsPaginate) });
+        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsPaginate, &["until"], &[]).into_dict() } else { paramsPaginate });
         let mut endTimestamp: Option<i64> = time;
         if (until.is_some()) {
             endTimestamp = self.parse_to_int(Value::from(until));
         }
         request.insert("end_timestamp".into(), Value::from(endTimestamp));
-        let mut isPaginationCall: bool = self.safe_bool_k(paramsUntil.clone(), "isDeribitPaginationCall", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = paramsUntil.clone();
+        let mut isPaginationCall: bool = self.safe_bool_k(&paramsUntil, "isDeribitPaginationCall", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsOmitted: crate::value::Dict = Value::from(&paramsUntil).into_dict();
         if isPaginationCall {
-            paramsOmitted = self.omit(paramsUntil, Value::Str("isDeribitPaginationCall".into()), &[]);
+            paramsOmitted = self.omit(&paramsUntil, Value::Str("isDeribitPaginationCall".into()), &[]).into_dict();
         }
         if isPaginationCall {
             if (limit == Value::Null) {
@@ -4915,7 +4915,7 @@ impl Deribit {
             let mut maxUntil: Option<i64> = self.parse_to_int(Value::from((if let Some(__m1) = ((if let Some(__l) = limit.as_i64() { Some(__l * duration) } else { None })) { Some((sinceResolved + __m1)) } else { None })));
             request.insert("end_timestamp".into(), (if ((endTimestamp.is_some() && maxUntil.is_some() && endTimestamp < maxUntil)) { Value::from(endTimestamp) } else { Value::from(maxUntil) }));
         }
-        let __ws_arg_41 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_get_funding_rate_history(&[__ws_arg_41]).await.into_dict();
         //
         //    {

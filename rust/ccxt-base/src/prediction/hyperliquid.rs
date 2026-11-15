@@ -555,17 +555,16 @@ impl Hyperliquid {
                     }
                     }
                     let mut thresholdsLength: i64 = thresholds.len() as i64;
-                    let mut index: Value = Value::from(self.parse_to_int(indexStr.map(Value::from).unwrap_or(Value::Null)));
+                    let mut index: Option<i64> = self.parse_to_int(indexStr.map(Value::from).unwrap_or(Value::Null));
                     if thresholdsLength > 0 {
                         let mut bucketLabel: Value = Value::Null;
-                        if index.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
+                        if (index.is_some() && index <= Some(0)) {
                             bucketLabel = Value::Str(format!("{}{}", "BELOW_", thresholds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).into());
-                        }  else if index.as_f64().unwrap_or(f64::NAN) >= (thresholdsLength as f64) {
-                            let mut lastIdx: Value = Value::Int((thresholdsLength - 1));
-                            bucketLabel = Value::Str(format!("{}{}", "ABOVE_", get_value(&thresholds, &lastIdx)).into());
+                        }  else if index >= Some(thresholdsLength) {
+                            let mut lastIdx: i64 = (thresholdsLength - 1);
+                            bucketLabel = Value::Str(format!("{}{}", "ABOVE_", get_value(&thresholds, &Value::from(lastIdx))).into());
                         }  else {
-                            bucketLabel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "BETWEEN_", get_value(&thresholds, &(match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-                                Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).into()), "_").into()), get_value(&thresholds, &index)).into());
+                            bucketLabel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "BETWEEN_", get_value(&thresholds, &Value::from((if let Some(__l) = index { Some(__l - 1) } else { None })))).into()), "_").into()), get_value(&thresholds, &Value::from(index))).into());
                         }
                         return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), bucketLabel).into()), questionExpiryPart));
                     }
