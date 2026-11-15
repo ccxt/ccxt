@@ -93,6 +93,28 @@ test ('call_read_method: an oversized result is paged through next_page from one
     await client.close ();
 });
 
+test ('search_markets caps a page at 100 rows and pages the rest with offset', async () => {
+    const { client, ctx } = await connect ({});
+    const exchange: any = await ctx.pools.getPublic ('fakex', undefined, false);
+    const markets: Record<string, any> = {};
+    for (let i = 0; i < 150; i++) {
+        const symbol = 'COIN' + i + '/USDT';
+        markets[symbol] = { symbol, 'id': 'COIN' + i + 'USDT', 'type': 'spot', 'base': 'COIN' + i, 'quote': 'USDT', 'active': true, 'spot': true };
+    }
+    exchange.markets = markets;
+    const first = await call (client, 'search_markets', { 'exchange': 'fakex', 'limit': 150 });
+    assert.equal (first.ok, true);
+    assert.equal (first.data.length, 100, 'a limit above the cap is clamped, not rejected');
+    assert.equal (first.meta.returned, 100);
+    assert.equal (first.meta.available, 150);
+    assert.ok (first.meta.notice.includes ('offset'));
+    const second = await call (client, 'search_markets', { 'exchange': 'fakex', 'limit': 150, 'offset': 100 });
+    assert.equal (second.data.length, 50);
+    assert.equal (second.meta.notice ?? null, null, 'no "more matches" notice on the last page');
+    assert.deepEqual ([ ...first.data, ...second.data ].map ((market: any) => market.symbol), Object.keys (markets));
+    await client.close ();
+});
+
 test ('call_read_method: sortBy/limit/fields shape a bulk read into one small response', async () => {
     const { client } = await connect ({});
     const top = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'sortBy': '-fundingRate', 'limit': 5, 'fields': [ 'fundingRate', 'nextFundingDatetime' ] });
