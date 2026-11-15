@@ -99048,6 +99048,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 1
         });
     }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
     publicGetRubikStatTradingDataSupportCoin(params = {}) {
         return this.request('rubik/stat/trading-data/support-coin', [
             'public'
@@ -103250,6 +103257,13 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'cost': 1
         });
     }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
     publicGetRubikStatTradingDataSupportCoin(params = {}) {
         return this.request('rubik/stat/trading-data/support-coin', [
             'public'
@@ -106554,6 +106568,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
     }
     publicGetPublicDeltaHedgeCurrencies(params = {}) {
         return this.request('public/delta-hedge-currencies', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
             'public'
         ], 'GET', params, {
             'cost': 1
@@ -148644,6 +148665,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
             'cost': 1
         });
     }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
     publicGetRubikStatTradingDataSupportCoin(params = {}) {
         return this.request('rubik/stat/trading-data/support-coin', [
             'public'
@@ -151948,6 +151976,13 @@ class okx extends _pro_okx_js__rspack_import_0/* ["default"] */.A {
     }
     publicGetPublicDeltaHedgeCurrencies(params = {}) {
         return this.request('public/delta-hedge-currencies', [
+            'public'
+        ], 'GET', params, {
+            'cost': 1
+        });
+    }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', [
             'public'
         ], 'GET', params, {
             'cost': 1
@@ -220918,7 +220953,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         };
         let response;
         if (this.safeBool(market, 'spot', false)) {
-            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+            response = await this.spotV2PublicGetQuoteTicker(this.extend(request, params));
         } else {
             if (this.safeBool(market, 'inverse', false)) {
                 response = await this.cswapV1PublicGetMarketTicker(this.extend(request, params));
@@ -221032,7 +221067,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchTickers', market, paramsMarketType);
         let response;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr(paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker(paramsSubType);
         } else {
             if (subType === 'inverse') {
                 response = await this.cswapV1PublicGetMarketTicker(paramsSubType);
@@ -457845,6 +457880,9 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
                         'public/delta-hedge-currencies': {
                             'cost': 1
                         },
+                        'public/corporate-actions': {
+                            'cost': 1
+                        },
                         // rubik
                         'rubik/stat/trading-data/support-coin': {
                             'cost': 4
@@ -639695,10 +639733,14 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
         //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
         //          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        //          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        //          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        //          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        //          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         //        },
         //        {
         //          ...
@@ -639729,7 +639771,6 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
         const swap = typeId === 'futures' || typeId === 'tradfiFutures';
         const margin = isCollateral && !swap;
         let contract = false;
-        const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
         let linear = undefined;
         let inverse = undefined;
         if (swap) {
@@ -639775,8 +639816,8 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'moneyPrec')))
+                'amount': this.safeNumber(market, 'stepSize'),
+                'price': this.safeNumber(market, 'tickSize')
             },
             'limits': {
                 'leverage': {

@@ -297,6 +297,11 @@ func (this *Okx) PublicGetPublicDeltaHedgeCurrencies(args ...any) <-chan Endpoin
 	return Fetch2Result[map[string]any](this, "public/delta-hedge-currencies", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
+// PublicGetPublicCorporateActions returns a channel that yields a JSON object.
+func (this *Okx) PublicGetPublicCorporateActions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/corporate-actions", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
 // PublicGetRubikStatTradingDataSupportCoin returns a channel that yields a JSON object.
 func (this *Okx) PublicGetRubikStatTradingDataSupportCoin(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "rubik/stat/trading-data/support-coin", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})

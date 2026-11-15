@@ -2157,7 +2157,7 @@ class bingx extends bingx$1["default"] {
         };
         let response;
         if (this.safeBool(market, 'spot', false)) {
-            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+            response = await this.spotV2PublicGetQuoteTicker(this.extend(request, params));
         }
         else {
             if (this.safeBool(market, 'inverse', false)) {
@@ -2274,7 +2274,7 @@ class bingx extends bingx$1["default"] {
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchTickers', market, paramsMarketType);
         let response;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr(paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker(paramsSubType);
         }
         else {
             if (subType === 'inverse') {

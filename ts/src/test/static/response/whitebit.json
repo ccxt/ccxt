@@ -1120,7 +1120,9 @@
                         "isCollateral": true,
                         "maxTotal": "100000000000",
                         "isTradFiFutures": false,
-                        "delistedAt": null
+                        "delistedAt": null,
+                        "tickSize": "0.1",
+                        "stepSize": "0.001"
                     },
                     {
                         "name": "ETH_BTC",
@@ -1138,7 +1140,9 @@
                         "isCollateral": true,
                         "maxTotal": "100000",
                         "isTradFiFutures": false,
-                        "delistedAt": null
+                        "delistedAt": null,
+                        "tickSize": "0.000001",
+                        "stepSize": "0.0001"
                     }
                 ],
                 "parsedResponse": [
@@ -1214,7 +1218,9 @@
                             "isCollateral": true,
                             "maxTotal": "100000000000",
                             "isTradFiFutures": false,
-                            "delistedAt": null
+                            "delistedAt": null,
+                            "tickSize": "0.1",
+                            "stepSize": "0.001"
                         }
                     },
                     {
@@ -1289,13 +1295,15 @@
                             "isCollateral": true,
                             "maxTotal": "100000",
                             "isTradFiFutures": false,
-                            "delistedAt": null
+                            "delistedAt": null,
+                            "tickSize": "0.000001",
+                            "stepSize": "0.0001"
                         }
                     }
                 ]
             },
             {
-                "description": "fetchMarkets: negative stockPrec swap - precision.amount is 1000000, contractSize stays 1",
+                "description": "fetchMarkets: swap with stepSize above 1 - precision.amount is 1000000, contractSize stays 1",
                 "method": "fetchMarkets",
                 "input": [],
                 "httpResponse": [
@@ -1315,7 +1323,9 @@
                         "isCollateral": true,
                         "maxTotal": "1000000000000",
                         "isTradFiFutures": false,
-                        "delistedAt": null
+                        "delistedAt": null,
+                        "tickSize": "0.000000001",
+                        "stepSize": "1000000"
                     }
                 ],
                 "parsedResponse": [
@@ -1391,7 +1401,9 @@
                             "isCollateral": true,
                             "maxTotal": "1000000000000",
                             "isTradFiFutures": false,
-                            "delistedAt": null
+                            "delistedAt": null,
+                            "tickSize": "0.000000001",
+                            "stepSize": "1000000"
                         }
                     }
                 ]
