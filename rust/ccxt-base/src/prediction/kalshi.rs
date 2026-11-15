@@ -976,23 +976,23 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut chunkSize: i64 = self.safe_integer_k(self.options.clone(), "fetchOutcomesBatchSize", &[Value::Int(100)]).as_i64().unwrap_or(100);
         let mut tickersLength: i64 = tickers.len() as i64;
         let mut lastTickerIndex: i64 = (tickersLength - 1);
-        let mut chunk: Value = Value::from(vec![]);
+        let mut chunk: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut ti: i64 = 0;
             let mut __for_first_1264: bool = true;
             while { if !__for_first_1264 { ti += 1; } __for_first_1264 = false; ti < tickersLength } {
-            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get(ti as usize).cloned().unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut chunk).push(tickers.get(ti as usize).cloned().unwrap_or(Value::Null));
             let mut chunkLength: i64 = chunk.len() as i64;
             if (chunkLength < chunkSize) && (ti < lastTickerIndex) {
                 continue;
             }
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tickers".to_string(), Value::Str(chunk.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                    m.insert("tickers".to_string(), Value::Str(chunk.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                     m.insert("limit".to_string(), Value::from(chunkSize));
                 m
             });
-            chunk = Value::from(vec![]);
+            chunk = std::sync::Arc::new(Vec::new());
             let mut response: crate::value::Dict = self.kalshi_public_get_markets(&[Value::Map(request)]).await.into_dict();
             let mut rawMarkets: crate::value::List = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).into_list();
             {
@@ -1704,23 +1704,23 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let mut tickersLength: i64 = tickers.len() as i64;
         let mut lastTickerIndex: i64 = (tickersLength - 1);
-        let mut chunk: Value = Value::from(vec![]);
+        let mut chunk: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut ti: i64 = 0;
             let mut __for_first_1270: bool = true;
             while { if !__for_first_1270 { ti += 1; } __for_first_1270 = false; ti < tickersLength } {
-            if let Value::Arr(__a) = &mut chunk { std::sync::Arc::make_mut(__a).push(tickers.get(ti as usize).cloned().unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut chunk).push(tickers.get(ti as usize).cloned().unwrap_or(Value::Null));
             let mut chunkLength: i64 = chunk.len() as i64;
             if (chunkLength < chunkSize) && (ti < lastTickerIndex) {
                 continue;
             }
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tickers".to_string(), Value::Str(chunk.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                    m.insert("tickers".to_string(), Value::Str(chunk.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                     m.insert("limit".to_string(), Value::from(chunkSize));
                 m
             });
-            chunk = Value::from(vec![]);
+            chunk = std::sync::Arc::new(Vec::new());
             let __ws_arg_3 = self.extend(Value::Map(request), &[params.clone()]);
             let mut response: crate::value::Dict = self.kalshi_public_get_markets(&[__ws_arg_3]).await.into_dict();
             let mut rawMarkets: crate::value::List = self.safe_list_k(&response, "markets", &[Value::from(vec![])]).into_list();

@@ -966,13 +966,13 @@ impl Hyperliquid {
         if intPartLength <= 5 {
             digitsLeft = (5 - intPartLength);
         }
-        let mut cappedDecimals: Value = (if (maxDecimals < digitsLeft) { Value::from(maxDecimals) } else { Value::from(digitsLeft) });
+        let mut cappedDecimals: i64 = (if (maxDecimals < digitsLeft) { maxDecimals } else { digitsLeft });
         // appends max (1, cappedDecimals) - 1 zeros
         let mut zeros: String = "".to_string();
         {
                         let mut zi: i64 = 1;
             let mut __for_first_1235: bool = true;
-            while { if !__for_first_1235 { zi += 1; } __for_first_1235 = false; (zi as f64) < cappedDecimals.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1235 { zi += 1; } __for_first_1235 = false; zi < cappedDecimals } {
             zeros = format!("{}{}", zeros, "0");
         }
         }

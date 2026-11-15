@@ -4485,13 +4485,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
-        let mut type_var: Value = self.safe_string2(self.options.clone(), Value::Str("defaultType".into()), Value::Str("authenticate".into()), &[Value::Str("spot".into())]);
-        type_var = self.safe_string_k(params.clone(), "type", &[type_var.clone()]);
+        let mut type_var: Option<String> = self.safe_string2(self.options.clone(), Value::Str("defaultType".into()), Value::Str("authenticate".into()), &[Value::Str("spot".into())]).as_str().map(str::to_owned);
+        type_var = self.safe_string_k(params.clone(), "type", &[type_var.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(params, Value::Str("keepAliveListenKey".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPortfolioMargin: crate::value::Dict = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subType: Option<String> = self.handle_sub_type_and_params(Value::Str("keepAliveListenKey".into()), None, &[Value::from(&paramsPortfolioMargin)]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
-        if (type_var.as_str() != Some("option")) && (type_var.as_str() != Some("stock")) {
+        if (type_var.as_deref() != Some("option")) && (type_var.as_deref() != Some("stock")) {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
             // which would incorrectly convert type='option' to 'linear'.
             // stock needs the same exemption: with a defaultSubType of 'linear' -
@@ -4499,18 +4499,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // subType alone and would flip 'stock' to 'linear' - the stock branch
             // below would never run, and the bucket lookup would renew the
             // FUTURES listen key while the stock key silently expires
-            if self.parent.is_linear(type_var.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-                type_var = Value::Str("linear".into());
-            }  else if self.parent.is_inverse(type_var.as_str().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
-                type_var = Value::Str("inverse".into());
+            if self.parent.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
+                type_var = Some("linear".to_string());
+            }  else if self.parent.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
+                type_var = Some("inverse".to_string());
             }
         }
         // For margin, token renewal is handled by renewListenToken method
-        if (type_var.as_str() == Some("margin")) {
+        if (type_var.as_deref() == Some("margin")) {
             return Value::Null;
         }
-        let mut isStock: bool = type_var.as_str() == Some("stock");
-        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
+        let mut isStock: bool = type_var.as_deref() == Some("stock");
+        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), Value::from(type_var.as_deref()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -4533,13 +4533,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }  else if isPortfolioMargin {
                 let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 self.parent.papi_put_listen_key(&[__ws_arg_15]).await;
-            }  else if (type_var.as_str() == Some("linear")) {
+            }  else if (type_var.as_deref() == Some("linear")) {
                 let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 self.parent.fapi_private_put_listen_key(&[__ws_arg_16]).await;
-            }  else if (type_var.as_str() == Some("inverse")) {
+            }  else if (type_var.as_deref() == Some("inverse")) {
                 let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 self.parent.dapi_private_put_listen_key(&[__ws_arg_17]).await;
-            }  else if (type_var.as_str() == Some("option")) {
+            }  else if (type_var.as_deref() == Some("option")) {
                 let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 self.parent.eapi_private_put_listen_key(&[__ws_arg_18]).await;
             }  else {
@@ -4555,19 +4555,19 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 // listenKey@orderReport, so the client is addressable without the key
                 url = self.get_stock_ws_url(&[Value::Str("user".into())]);
             }  else {
-                let mut urlType: Value = type_var.clone();
+                let mut urlType: Option<String> = type_var.clone();
                 if isPortfolioMargin {
-                    urlType = Value::Str("papi".into());
+                    urlType = Some("papi".to_string());
                 }
-                if (type_var.as_str() == Some("option")) {
-                    urlType = Value::Str("optionPrivate".into());
+                if (type_var.as_deref() == Some("option")) {
+                    urlType = Some("optionPrivate".to_string());
                 }
-                let mut optionsType: crate::value::Dict = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
+                let mut optionsType: crate::value::Dict = self.safe_dict(self.options.clone(), Value::from(type_var.as_deref()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
                 let mut cachedListenKey: Option<String> = self.safe_string_k(&optionsType, "listenKey", &[]).as_str().map(str::to_owned);
-                url = self.get_private_ws_url(urlType, cachedListenKey.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+                url = self.get_private_ws_url(urlType.map(Value::from).unwrap_or(Value::Null), cachedListenKey.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
             }
             let mut client: Value = self.client(&url);
             let mut messageHashes: Vec<Value> = Value::Array(get_value(&client, &Value::Str("futures".into())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
@@ -4584,7 +4584,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("listenKey".to_string(), Value::Null);
         m.insert("lastAuthenticatedTime".to_string(), Value::Int(0));
     m
-})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(type_var.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             return Value::Null;
         }
         { let __be_tmp = self.extend(options, &[Value::Map({
@@ -4592,7 +4592,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("listenKey".to_string(), listenKey.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastAuthenticatedTime".to_string(), Value::from(time));
     m
-})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(type_var.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
         // whether or not to schedule another listenKey keepAlive request
         let mut clients: crate::value::List = Value::Array(self.clients.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
         let mut refreshRateKey: String = "listenKeyRefreshRate".to_string();
@@ -4630,7 +4630,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 let mut __for_first_73: bool = true;
                 while { if !__for_first_73 { j += 1; } __for_first_73 = false; j < (subscriptionKeys.len() as i64) } {
                 let mut subscribeType: Option<String> = subscriptionKeys.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                if ((subscribeType.as_deref() == type_var.as_str())) {
+                if (subscribeType == type_var) {
                     self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()).clone(), delayParams.clone()]).await;
                     return Value::Null;
                 }
@@ -7019,8 +7019,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut awaitPositionsSnapshot: Option<bool> = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]).as_bool();
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&type_var);
         if (fetchPositionsSnapshot == Some(true)) && (awaitPositionsSnapshot == Some(true)) && (cache.is_none()) {
-            let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchPositionsSnapshot").into()))).await;
-            return self.filter_by_symbols_since_limit(snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+            let mut snapshot: Option<crate::pro::cache::Cache> = crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchPositionsSnapshot").into()))).await.into();
+            return self.filter_by_symbols_since_limit(&snapshot, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         }
         let mut newPositions: Value = self.watch(url.as_deref(), messageHash.as_str(), Value::Null, type_var.as_deref(), Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -7791,14 +7791,14 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //  }
         //
         // --- balance ---
-        let mut accountType: Value = Value::Str("option".into());
-        if ((if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
+        let mut accountType: String = "option".to_string();
+        if ((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(accountType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(accountType.to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
         }
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message.clone()); } }
+        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message.clone()); } }
         let mut B: crate::value::List = __pro_message.get("B").cloned().unwrap_or_default().into_list();
         {
                         let mut i: i64 = 0;
@@ -7810,15 +7810,15 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             if (code.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("total".into(), self.safe_string_k(&entry, "b", &[]));
-                if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
+                if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
             }
         }
         }
         let mut timestamp: Option<i64> = (match __pro_message.get("E") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
-        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
-        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(crate::runtime::stringify_param(&accountType)).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } };
-        { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), __be_tmp); } }
-        client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), accountType.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", accountType, ":balance").into())));
+        if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("timestamp".to_string(), Value::from(timestamp)); } }
+        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
+        { let __be_tmp = self.safe_balance((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(accountType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(accountType.to_string(), __be_tmp); } }
+        client.resolve((if let (Some(__m), Some(__k)) = (self.balance.as_map(), Some(accountType.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", accountType, ":balance").into())));
         // --- positions ---
         if !(self.positionsByType.has(&accountType)) {
             CacheStore::put(&mut self.positionsByType, &accountType, ArrayCacheBySymbolBySide::new(Value::Null));

@@ -1879,10 +1879,10 @@ impl Whitebit {
                 });
                 if (networkId.is_some()) {
                     let mut networkLength: i64 = (networkId.as_deref().unwrap_or_default().chars().count() as i64);
-                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 1, ((networkLength - 1))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l));
-                        __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None }).map(Value::from).unwrap_or(Value::Null), code.clone()]));
-                    if (networkCode != Value::Null) {
-                        add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("networks".into())), &networkCode, Value::Map({
+                    let mut networkCode: Option<String> = self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 1, ((networkLength - 1))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l));
+                        __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None }).map(Value::from).unwrap_or(Value::Null), code.clone()]);
+                    if (networkCode.is_some()) {
+                        add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("networks".into())), &networkCode.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawResult.clone()));
         m.insert("deposit".to_string(), Value::Map(depositResult.clone()));

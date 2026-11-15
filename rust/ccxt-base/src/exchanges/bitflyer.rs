@@ -623,14 +623,14 @@ impl Bitflyer {
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let mut markets: Value = self.array_concat(self.to_array(&jp_markets), self.to_array(&us_markets));
-        markets = self.array_concat(markets, self.to_array(&eu_markets));
+        let mut markets: crate::value::List = self.array_concat(self.to_array(&jp_markets), self.to_array(&us_markets)).into_list();
+        markets = self.array_concat(Value::Arr(markets), self.to_array(&eu_markets)).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_362: bool = true;
             while { if !__for_first_362 { i += 1; } __for_first_362 = false; i < (markets.len() as i64) } {
-            let mut market: crate::value::Dict = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "product_code", &[]);
             let mut currencies: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut marketType: Option<String> = self.safe_string_k(&market, "market_type", &[]).as_str().map(str::to_owned);

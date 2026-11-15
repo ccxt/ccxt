@@ -811,18 +811,18 @@ impl Sxbet {
         }
         let mut queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
-            let mut filtered: Value = Value::from(vec![]);
+            let mut filtered: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut preFilterLength: i64 = rawMarkets.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1495: bool = true;
                 while { if !__for_first_1495 { i += 1; } __for_first_1495 = false; i < preFilterLength } {
                 if self.matches_event_query(rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), queries.clone()).as_bool() == Some(true) {
-                    if let Value::Arr(__a) = &mut filtered { std::sync::Arc::make_mut(__a).push(rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); }
+                    std::sync::Arc::make_mut(&mut filtered).push(rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 }
             }
             }
-            rawMarkets = filtered;
+            rawMarkets = Value::Arr(filtered);
         }
         let mut grouped: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

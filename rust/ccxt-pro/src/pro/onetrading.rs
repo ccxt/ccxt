@@ -679,17 +679,17 @@ impl Onetrading {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params.clone()]).into_dict();
-        let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        trades = self.filter_by_symbol_since_limit(trades.clone(), symbolResolved.as_deref(), since.as_i64(), limitResolved.clone(), &[]);
-        let mut numTrades: i64 = get_array_length(&trades).as_i64().unwrap_or_default();
+        let mut trades: crate::value::List = self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since.as_i64(), limitResolved.clone(), &[]).into_list();
+        let mut numTrades: i64 = trades.len() as i64;
         if (numTrades == 0) {
             return crate::types::IntoRaw::into_raw(Box::pin(self.watch_my_trades(symbolResolved.as_deref(), since.as_i64(), limitResolved, params)).await);
         }
-        return trades;
+        return Value::Arr(trades);
         Value::Null
         }).await?))
     }
@@ -885,17 +885,17 @@ impl Onetrading {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params.clone()]).into_dict();
-        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), messageHash.as_str(), &request, subscribeHash.as_str(), &request).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit.as_i64());
         }
-        orders = self.filter_by_symbol_since_limit(orders.clone(), symbolResolved.as_deref(), since.as_i64(), limitResolved.clone(), &[]);
-        let mut numOrders: i64 = get_array_length(&orders).as_i64().unwrap_or_default();
+        let mut orders: crate::value::List = self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limitResolved.clone(), &[]).into_list();
+        let mut numOrders: i64 = orders.len() as i64;
         if (numOrders == 0) {
             return crate::types::IntoRaw::into_raw(Box::pin(self.watch_orders(symbolResolved.as_deref(), since.as_i64(), limitResolved, params)).await);
         }
-        return orders;
+        return Value::Arr(orders);
         Value::Null
         }).await?))
     }

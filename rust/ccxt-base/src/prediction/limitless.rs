@@ -679,14 +679,14 @@ impl Limitless {
             let mut firstData: crate::value::List = self.safe_list_k(&firstPageResponse, "data", &[Value::from(vec![])]).into_list();
             allRaw = self.array_concat(Value::Arr(allRaw), &firstData).into_list();
             let mut promises: Vec<Value> = Vec::new();
-            let mut cappedPages: Value = ((match ((Value::from(maxMarkets)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
+            let mut cappedPages: Option<f64> = (if let Some(__x) = ((if let (Some(__x), Some(__y)) = ((if let Some(__v) = maxMarkets { Some(__v as f64) } else { None }), Some((pageSize as f64))) { if __y != 0.0 { Some(__x / __y) } else { None } } else { None })) { Some(f64::ceil(__x)) } else { None });
             let mut knownTotal: i64 = self.safe_integer_k(&firstPageResponse, "totalMarketsCount", &[Value::Int(0)]).as_i64().unwrap_or(0);
             let mut allPages: Option<i64> = self.parse_to_int(((match ((Value::from(knownTotal)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
             {
                                 let mut i: i64 = 2;
                 let mut __for_first_1301: bool = true;
                 while { if !__for_first_1301 { i += 1; } __for_first_1301 = false; matches!(allPages, Some(__b) if (i as f64) <= (__b as f64)) } {
-                if (i as f64) > cappedPages.as_f64().unwrap_or(f64::NAN) {
+                if matches!(cappedPages, Some(__b) if (i as f64) > __b) {
                     break;
                 }
                 page = i;

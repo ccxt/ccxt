@@ -1699,23 +1699,23 @@ impl Btse {
                     let mut __for_first_480: bool = true;
                     while { if !__for_first_480 { j += 1; } __for_first_480 = false; j < (assets.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                     let mut assetRow: crate::value::Dict = self.safe_dict(&assets, Value::Int(j), &[]).into_dict();
-                    let mut code: Value = self.safe_currency_code(self.safe_string_k(&assetRow, "currency", &[]), None).map(Value::from).unwrap_or(Value::Null);
-                    if (code == Value::Null) {
+                    let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&assetRow, "currency", &[]), None);
+                    if (code.is_none()) {
                         continue;
                     }
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&totals, code.clone(), &[Value::Str("0".into())]), &self.safe_string_k(&assetRow, "balance", &[])); totals.insert(crate::runtime::stringify_param(&code), __be_tmp); }
-                    { let __be_tmp = self.safe_string(&useds, code.clone(), &[Value::Str("0".into())]); useds.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+                    { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&totals, Value::from(code.as_deref()), &[Value::Str("0".into())]), &self.safe_string_k(&assetRow, "balance", &[])); totals.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+                    { let __be_tmp = self.safe_string(&useds, Value::from(code.as_deref()), &[Value::Str("0".into())]); useds.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
                 }
                 }
             }  else {
                 // unified wallet row: {"asset": "BTC", "totalAmount": "100.0", "availableAmount": "100.0"}
                 // legacy spot wallet row: {"available": 520.52, "currency": "USD", "total": 5566.5566}
-                let mut code: Value = self.safe_currency_code(self.safe_string2(&row, Value::Str("asset".into()), Value::Str("currency".into()), &[]), None).map(Value::from).unwrap_or(Value::Null);
-                if (code == Value::Null) {
+                let mut code: Option<String> = self.safe_currency_code(self.safe_string2(&row, Value::Str("asset".into()), Value::Str("currency".into()), &[]), None);
+                if (code.is_none()) {
                     continue;
                 }
-                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&totals, code.clone(), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("totalAmount".into()), Value::Str("total".into()), &[])); totals.insert(crate::runtime::stringify_param(&code), __be_tmp); }
-                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&frees, code.clone(), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("availableAmount".into()), Value::Str("available".into()), &[])); frees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&totals, Value::from(code.as_deref()), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("totalAmount".into()), Value::Str("total".into()), &[])); totals.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+                { let __be_tmp = crate::precise::Precise::stringAdd(&self.safe_string(&frees, Value::from(code.as_deref()), &[Value::Str("0".into())]), &self.safe_string2(&row, Value::Str("availableAmount".into()), Value::Str("available".into()), &[])); frees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
             }
         }
         }
@@ -5125,13 +5125,13 @@ impl Btse {
             // spot and futures apis of every generation mount under /spot and /futures and
             // sign the /api/v... remainder, while the public-api wallet, otc and markets
             // endpoints mount on the bare host and sign the full path with the leading slash
-            let mut signPath: Value = Value::Null;
+            let mut signPath: Option<String> = None;
             if (path.as_str().unwrap_or("").starts_with("public-api/")) {
-                signPath = Value::Str(format!("{}{}", "/", path).into());
+                signPath = Some(format!("{}{}", "/", path));
             }  else {
-                signPath = self.clean_path(path.as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+                signPath = self.clean_path(path.as_str().unwrap_or_default());
             }
-            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", signPath, Value::Str(format!("{}", nonce).into())).into()), bodyString.as_deref().unwrap_or("null"));
+            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", signPath.as_deref().unwrap_or("null"), Value::Str(format!("{}", nonce).into())).into()), bodyString.as_deref().unwrap_or("null"));
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();

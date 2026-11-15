@@ -3163,7 +3163,7 @@ impl Poloniex {
         let mut upperCaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut isMarket: bool = upperCaseType == "MARKET";
         let mut isPostOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(upperCaseType == "LIMIT_MAKER"), &[Value::from(&query)]);
-        let mut queryOmitted: Value = self.omit(&query, &["postOnly", "triggerPrice", "stopPrice"], &[]);
+        let mut queryOmitted: crate::value::Dict = self.omit(&query, &["postOnly", "triggerPrice", "stopPrice"], &[]).into_dict();
         if (triggerPrice.is_some()) {
             if !(market).spot {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support trigger orders for ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " markets")));
@@ -3178,10 +3178,10 @@ impl Poloniex {
             if (side.as_str() == Some("buy")) {
                 let mut quoteAmount: Option<String> = None;
                 let mut createMarketBuyOrderRequiresPrice: bool = true;
-                { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(queryOmitted.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-                    createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); queryOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-                let mut cost: Option<f64> = self.safe_number_k(queryOmitted.clone(), "cost", &[]).as_f64();
-                queryOmitted = self.omit(queryOmitted, Value::Str("cost".into()), &[]);
+                { let __destr_tmp = self.handle_option_bool_and_params(&queryOmitted, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).into_list(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
+                    queryOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+                let mut cost: Option<f64> = self.safe_number_k(&queryOmitted, "cost", &[]).as_f64();
+                queryOmitted = self.omit(Value::Dict(queryOmitted), Value::Str("cost".into()), &[]).into_dict();
                 if (cost.is_some()) {
                     quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
                 }  else if createMarketBuyOrderRequiresPrice && (market).spot {
@@ -3220,7 +3220,7 @@ impl Poloniex {
             }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(priceKey, Value::from(self.price_to_precision(symbol, price))); }
         }
-        let mut clientOrderId: Option<String> = self.safe_string2(queryOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string2(&queryOmitted, Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             // the futures v3 api silently ignores the spot key and generates its own id
             let mut clientOrderIdKey: String = "clOrdId".to_string();
@@ -3228,9 +3228,9 @@ impl Poloniex {
                 clientOrderIdKey = "clientOrderId".to_string();
             }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(clientOrderIdKey, clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
-            queryOmitted = self.omit(queryOmitted, &["clientOrderId", "clOrdId"], &[]);
+            queryOmitted = self.omit(Value::Dict(queryOmitted), &["clientOrderId", "clOrdId"], &[]).into_dict();
         }
-        return Value::from(vec![result, queryOmitted]);
+        return Value::from(vec![result, Value::Dict(queryOmitted)]);
 
     Value::Null
 }

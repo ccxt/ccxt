@@ -14166,7 +14166,7 @@ impl Bybit {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Value = Value::Null;
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
@@ -14186,13 +14186,13 @@ impl Bybit {
             let mut timestamp: Value = Value::Str(format!("{}", self.nonce()).into());
             if isOpenapi {
                 if ((Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    requestBody = json_stringify(&params);
+                    requestBody = json_stringify(&params).as_str().map(str::to_owned);
                 }  else {
                     // this fix for PHP is required otherwise it generates
                     // '[]' on empty arrays even when forced to use objects
-                    requestBody = Value::Str("{}".into());
+                    requestBody = Some("{}".to_string());
                 }
-                let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), requestBody);
+                let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), requestBody.as_deref().unwrap_or("null"));
                 let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 requestHeaders = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -14222,8 +14222,8 @@ impl Bybit {
                 let mut auth_base: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("".into())]));
                 let mut authFull: Value = Value::Null;
                 if (method.as_str() == Some("POST")) {
-                    requestBody = json_stringify(&query);
-                    authFull = Value::Str(format!("{}{}", auth_base, requestBody).into());
+                    requestBody = json_stringify(&query).as_str().map(str::to_owned);
+                    authFull = Value::Str(format!("{}{}", auth_base, requestBody.as_deref().unwrap_or("null")).into());
                 }  else {
                     authFull = Value::Str(format!("{}{}", auth_base, queryEncoded).into());
                     url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.clone().map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path).into()), "?").into()), queryEncoded);
@@ -14260,14 +14260,14 @@ impl Bybit {
                         m
                     })]).into_dict();
                     if isSpot {
-                        requestBody = Value::from(self.urlencode(&extendedQuery, &[]));
+                        requestBody = Some(self.urlencode(&extendedQuery, &[]));
                         requestHeaders = Value::Map({
                             let mut m = indexmap::IndexMap::new();
                                 m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                             m
                         });
                     }  else {
-                        requestBody = json_stringify(&extendedQuery);
+                        requestBody = json_stringify(&extendedQuery).as_str().map(str::to_owned);
                         requestHeaders = Value::Map({
                             let mut m = indexmap::IndexMap::new();
                                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -14289,13 +14289,13 @@ impl Bybit {
 }) } else { headersBase });
             add_element_to_object(&mut requestHeaders, &Value::Str("Referer".into()), Value::from(brokerId));
         }
-        let mut bodyResolved: Value = requestBody;
+        let mut bodyResolved: Option<String> = requestBody;
         let mut headersResolved: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResolved);
+        m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResolved);
     m
 });

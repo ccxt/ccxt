@@ -2611,18 +2611,18 @@ impl Bitso {
             let mut __for_first_427: bool = true;
             while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (withdrawalKeys.len() as i64) } {
             let mut currencyId: Option<&str> = withdrawalKeys.get(i as usize).and_then(Value::as_str);
-            let mut code: Value = self.safe_currency_code(Value::from(currencyId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone())) {
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
+            if (code.is_some()) && ((codes == Value::Null) || self.in_array(&code, codes.clone())) {
                 let mut withdrawFee: Value = self.parse_number(crate::value::KeyRead::read(&&withdrawalResponse, &Value::from(currencyId)), &[]);
-                let mut resultValue: Option<crate::value::Dict> = self.safe_dict(&result, code.clone(), &[]).into_opt_dict();
+                let mut resultValue: Option<crate::value::Dict> = self.safe_dict(&result, Value::from(code.as_deref()), &[]).into_opt_dict();
                 if (resultValue.is_none()) {
-                    result.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), self.deposit_withdraw_fee(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })));
                 }
-                add_element_to_object(get_value_mut(result.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("withdraw".into())), &Value::Str("fee".into()), withdrawFee.clone());
-                add_element_to_object(get_value_mut(result.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("info".into())), &code, withdrawFee);
+                add_element_to_object(get_value_mut(result.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("withdraw".into())), &Value::Str("fee".into()), withdrawFee.clone());
+                add_element_to_object(get_value_mut(result.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("info".into())), &Value::from(code.as_deref()), withdrawFee);
             }
         }
         }

@@ -2043,20 +2043,20 @@ impl Hyperliquid {
         }
         let mut topic: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut info: Value = Value::Null;
-        let mut rawBalances: Value = Value::from(vec![]);
+        let mut rawBalances: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut account: Value = Value::Str("".into());
         let mut timestamp: Option<i64> = None;
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         if (topic.as_deref() == Some("spotState")) {
             let mut spotState: crate::value::Dict = self.safe_dict_k(&data, "spotState", &[]).into_dict();
-            rawBalances = self.safe_list_k(&spotState, "balances", &[Value::from(vec![])]);
+            rawBalances = self.safe_list_k(&spotState, "balances", &[Value::from(vec![])]).into_list();
             account = Value::Str("spot".into());
-            info = rawBalances.clone();
+            info = Value::Arr(rawBalances.clone());
         }
         if (topic.as_deref() == Some("clearinghouseState")) {
             account = Value::Str("swap".into());
             let mut clearinghouseState: Value = self.safe_dict_k(&data, "clearinghouseState", &[]);
-            if let Value::Arr(__a) = &mut rawBalances { std::sync::Arc::make_mut(__a).push(clearinghouseState.clone()); }
+            std::sync::Arc::make_mut(&mut rawBalances).push(clearinghouseState.clone());
             info = clearinghouseState.clone();
             timestamp = self.safe_integer_k(clearinghouseState, "time", &[]).as_i64();
             self.handle_positions(client.clone(), message);
@@ -2065,7 +2065,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_406: bool = true;
             while { if !__for_first_406 { i += 1; } __for_first_406 = false; i < (rawBalances.len() as i64) } {
-            self.parse_ws_balance(rawBalances.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[account.clone()]);
+            self.parse_ws_balance(rawBalances.get(i as usize).cloned().unwrap_or(Value::Null), &[account.clone()]);
         }
         }
         if !(matches!((&self.balance, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

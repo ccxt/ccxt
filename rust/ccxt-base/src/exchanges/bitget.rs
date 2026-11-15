@@ -13669,17 +13669,17 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut paginate: bool = false;
-        let mut paramsPaginate: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchPositions".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsPaginate: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchPositions".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchPositions".into()), &[Value::Null, Value::Null, Value::Null, paramsPaginate.clone(), Value::Str("endId".into()), Value::Str("idLessThan".into())]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchPositions".into()), &[Value::Null, Value::Null, Value::Null, Value::from(&paramsPaginate), Value::Str("endId".into()), Value::Str("idLessThan".into())]).await;
         }
         let mut method: Option<String> = None;
-        let mut useHistoryEndpoint: bool = self.safe_bool_k(paramsPaginate.clone(), "useHistoryEndpoint", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut useHistoryEndpoint: bool = self.safe_bool_k(&paramsPaginate, "useHistoryEndpoint", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if useHistoryEndpoint {
             method = Some("privateMixGetV2MixPositionHistoryPosition".to_string());
         }  else {
-            { let __destr_tmp = self.handle_option_string_and_params(paramsPaginate.clone(), Value::Str("fetchPositions".into()), Value::Str("method".into()), &[Value::Str("privateMixGetV2MixPositionAllPosition".into())]).into_list(); method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params(&paramsPaginate, Value::Str("fetchPositions".into()), Value::Str("method".into()), &[Value::Str("privateMixGetV2MixPositionAllPosition".into())]).into_list(); method = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbols != Value::Null) {
@@ -13690,7 +13690,7 @@ if _try_result.is_err() {
             }
         }
         let mut productType: Option<String> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(market.as_ref(), &[paramsPaginate.clone()]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(market.as_ref(), &[Value::from(&paramsPaginate)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -13698,13 +13698,13 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         let mut isHistory: bool = false;
         let mut uta: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(paramsPaginate.clone(), Some("fetchPositions"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(&paramsPaginate, Some("fetchPositions"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (uta == Some(true)) {
             request.insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_108 = self.extend(Value::Map(request.clone()), &[paramsPaginate.clone()]);
+            let __ws_arg_108 = self.extend(Value::Map(request.clone()), &[&paramsPaginate]);
             response = self.private_uta_get_v3_position_current_position(&[__ws_arg_108]).await.into_opt_dict();
         }  else if (method.as_deref() == Some("privateMixGetV2MixPositionAllPosition")) {
-            let mut marginCoin: Option<String> = self.safe_string_k(paramsPaginate.clone(), "marginCoin", &[Value::Str("USDT".into())]).as_str().map(str::to_owned);
+            let mut marginCoin: Option<String> = self.safe_string_k(&paramsPaginate, "marginCoin", &[Value::Str("USDT".into())]).as_str().map(str::to_owned);
             if (market.is_some()) {
                 marginCoin = self.safe_string_k(&market, "settleId", &[]).as_str().map(str::to_owned);
             }  else if (productType.as_deref() == Some("USDT-FUTURES")) {
@@ -13722,7 +13722,7 @@ if _try_result.is_err() {
             }
             request.insert("marginCoin".into(), marginCoin.map(Value::from).unwrap_or(Value::Null));
             request.insert("productType".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_109 = self.extend(Value::Map(request.clone()), &[paramsPaginate.clone()]);
+            let __ws_arg_109 = self.extend(Value::Map(request.clone()), &[&paramsPaginate]);
             response = self.private_mix_get_v2_mix_position_all_position(&[__ws_arg_109]).await.into_opt_dict();
         }  else {
             isHistory = true;
@@ -13730,7 +13730,7 @@ if _try_result.is_err() {
                 request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_110 = self.extend(Value::Map(request), &[paramsPaginate]);
+            let __ws_arg_110 = self.extend(Value::Map(request), &[&paramsPaginate]);
             response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_110]).await.into_opt_dict();
         }
         //

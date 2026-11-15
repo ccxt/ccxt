@@ -10897,17 +10897,16 @@ impl Okx {
             let mut __for_first_1024: bool = true;
             while { if !__for_first_1024 { i += 1; } __for_first_1024 = false; i < (response.len() as i64) } {
             let mut item: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::Int(i), &[]).into_opt_dict();
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(&item, "ccy", &[]), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone())) {
-                if !(matches!(&code, Value::Str(__k) if borrowRateHistories.contains_key(__k.as_ref()))) {
-                    borrowRateHistories.insert(crate::runtime::stringify_param(&code), Value::from(vec![]));
+            let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&item, "ccy", &[]), None);
+            if (code.is_some()) && ((codes == Value::Null) || self.in_array(&code, codes.clone())) {
+                if !(matches!(code.as_deref(), Some(__k) if borrowRateHistories.contains_key(__k))) {
+                    borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 }
                 let mut borrowRateStructure: crate::value::Dict = self.parse_borrow_rate(item.map_or(Value::Null, Value::Dict), None).into_dict();
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 std::sync::Arc::make_mut(&mut borrowRateStructure).insert("period".into(), Value::Int(31536000000));
-                let mut borrrowRateCode: Value = borrowRateHistories.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                if let Value::Arr(__a) = &mut borrrowRateCode { std::sync::Arc::make_mut(__a).push(Value::Dict(borrowRateStructure)); };
-                if let Some(__k) = code.as_str() { borrowRateHistories.insert(__k.to_string(), borrrowRateCode); }
+                let mut borrrowRateCode: Value = borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                if let Value::Arr(__a) = &mut borrrowRateCode { std::sync::Arc::make_mut(__a).push(Value::Dict(borrowRateStructure)); } if let Some(__k) = code.as_deref() { borrowRateHistories.insert(__k.to_string(), borrrowRateCode); }
             }
         }
         }
@@ -12156,18 +12155,18 @@ impl Okx {
             let mut __for_first_1027: bool = true;
             while { if !__for_first_1027 { i += 1; } __for_first_1027 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut feeInfo: Value = get_value(&response, &Value::Int(i));
-            let mut currencyId: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "ccy", &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) && ((codesValue.is_none()) || (self.in_array(code.clone(), codesValue.clone().map_or(Value::Null, Value::Arr)))) {
-                let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(&depositWithdrawFees, code.clone(), &[]).into_opt_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(feeInfo.clone(), "ccy", &[]).as_str().map(str::to_owned);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
+            if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, codesValue.clone().map_or(Value::Null, Value::Arr)))) {
+                let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(&depositWithdrawFees, Value::from(code.as_deref()), &[]).into_opt_dict();
                 if (depositWithdrawFee.is_none()) {
-                    depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
+                    depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), self.deposit_withdraw_fee(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })));
                 }
                 if (currencyId.is_some()) {
-                    add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("info".into())), &currencyId.clone().map(Value::from).unwrap_or(Value::Null), feeInfo.clone());
+                    add_element_to_object(get_value_mut(depositWithdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("info".into())), &currencyId.map(Value::from).unwrap_or(Value::Null), feeInfo.clone());
                 }
                 let mut chain: Option<String> = self.safe_string_k(feeInfo.clone(), "chain", &[]).as_str().map(str::to_owned);
                 if (chain.is_none()) {
@@ -12188,9 +12187,9 @@ impl Okx {
                         m.insert("percentage".to_string(), Value::Null);
                     m
                 });
-                let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone()]));
-                if (networkCode != Value::Null) {
-                    add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("networks".into())), &networkCode, Value::Map({
+                let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]);
+                if (networkCode.is_some()) {
+                    add_element_to_object(get_value_mut(depositWithdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("networks".into())), &networkCode.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawResult));
         m.insert("deposit".to_string(), Value::Map(depositResult));

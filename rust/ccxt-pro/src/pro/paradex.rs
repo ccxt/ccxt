@@ -579,17 +579,17 @@ impl Paradex {
         if (missingLength == 0) {
             return self.watch_multiple(&url, messageHashes.clone(), Value::Null, channels.clone(), Value::Null).await;
         }
-        let mut index: Value = missing.get(0).cloned().unwrap_or(Value::Null);
-        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(get_value(&channels, &index)).as_map().cloned().unwrap_or_default();
+        let mut index: Option<i64> = missing.get(0).and_then(Value::as_i64);
+        let mut request: indexmap::IndexMap<String, Value> = self.subscribe_request(get_value(&channels, &Value::from(index))).as_map().cloned().unwrap_or_default();
         // a failed subscribe rejects the watchers of its own channel only
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("messageHashes".to_string(), Value::from(vec![get_value(&messageHashes, &index)]));
+                m.insert("messageHashes".to_string(), Value::from(vec![get_value(&messageHashes, &Value::from(index))]));
             m
         });
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch_multiple(&url, messageHashes, __ws_arg_0, Value::from(vec![get_value(&channels, &index)]), Value::Map(subscription)).await;
+        return self.watch_multiple(&url, messageHashes, __ws_arg_0, Value::from(vec![get_value(&channels, &Value::from(index))]), Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -3192,15 +3192,14 @@ if _try_result.is_err() {
             Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
         let mut start: i64 = 63;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_613: bool = true;
-            while { if !__for_first_613 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_613 = false; i.as_f64().unwrap_or(f64::NAN) < ((63i64) as f64) } {
-            let mut next: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            if ((match (&(raw), (match &(i) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(next) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64),
-                Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-                __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str() != Some("0")) {
-                start = i.as_i64().unwrap_or_default();
+            while { if !__for_first_613 { i += 1; } __for_first_613 = false; (i as f64) < ((63i64) as f64) } {
+            let mut next: i64 = (i + 1);
+            if ((match (&(raw), i, Some(next)) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+                __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
+                Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str() != Some("0")) {
+                start = i;
                 break;
             }
         }

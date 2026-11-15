@@ -6666,27 +6666,27 @@ impl Kucoin {
             m
         });
         let mut triggerPriceType: String = self.safe_string_k(paramsOmitted.clone(), "triggerPriceType", &[Value::Str("mark".into())]).as_str().unwrap_or("mark").to_string();
-        let mut triggerPriceTypeValue: Value = self.safe_string(&triggerPriceTypes, Value::from(triggerPriceType.clone()), &[Value::from(triggerPriceType)]);
+        let mut triggerPriceTypeValue: Option<String> = self.safe_string(&triggerPriceTypes, Value::from(triggerPriceType.clone()), &[Value::from(triggerPriceType)]).as_str().map(str::to_owned);
         paramsOmitted = self.omit(paramsOmitted, &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"], &[]);
         if (triggerPrice.is_some()) {
             request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("up".into()) } else { Value::Str("down".into()) }));
             request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
-            request.insert("stopPriceType".into(), triggerPriceTypeValue.clone());
+            request.insert("stopPriceType".into(), Value::from(triggerPriceTypeValue.as_deref()));
         }  else if hasStopLoss || hasTakeProfit {
-            let mut priceType: Value = triggerPriceTypeValue.clone();
+            let mut priceType: Option<String> = triggerPriceTypeValue.clone();
             if hasStopLoss {
                 let mut slPrice: Option<String> = self.safe_string2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
                 request.insert("triggerStopDownPrice".into(), Value::from(self.price_to_precision(symbol.clone(), slPrice.map(Value::from).unwrap_or(Value::Null))));
-                priceType = self.safe_string_k(&stopLoss, "triggerPriceType", &[Value::Str("mark".into())]);
-                priceType = self.safe_string(&triggerPriceTypes, priceType.clone(), &[priceType.clone()]);
+                priceType = self.safe_string_k(&stopLoss, "triggerPriceType", &[Value::Str("mark".into())]).as_str().map(str::to_owned);
+                priceType = self.safe_string(&triggerPriceTypes, Value::from(priceType.as_deref()), &[Value::from(priceType.as_deref())]).as_str().map(str::to_owned);
             }
             if hasTakeProfit {
                 let mut tpPrice: Option<String> = self.safe_string2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("takeProfitPrice".into()), &[]).as_str().map(str::to_owned);
                 request.insert("triggerStopUpPrice".into(), Value::from(self.price_to_precision(symbol.clone(), tpPrice.map(Value::from).unwrap_or(Value::Null))));
-                priceType = self.safe_string_k(&takeProfit, "triggerPriceType", &[Value::Str("mark".into())]);
-                priceType = self.safe_string(&triggerPriceTypes, priceType.clone(), &[priceType.clone()]);
+                priceType = self.safe_string_k(&takeProfit, "triggerPriceType", &[Value::Str("mark".into())]).as_str().map(str::to_owned);
+                priceType = self.safe_string(&triggerPriceTypes, Value::from(priceType.as_deref()), &[Value::from(priceType.as_deref())]).as_str().map(str::to_owned);
             }
-            request.insert("stopPriceType".into(), priceType);
+            request.insert("stopPriceType".into(), priceType.map(Value::from).unwrap_or(Value::Null));
         }  else if (stopLossPrice.is_some()) || (takeProfitPrice.is_some()) {
             if (stopLossPrice.is_some()) {
                 request.insert("stop".into(), (if (side.as_str() == Some("buy")) { Value::Str("up".into()) } else { Value::Str("down".into()) }));
@@ -6696,7 +6696,7 @@ impl Kucoin {
                 request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(takeProfitPrice))));
             }
             request.insert("reduceOnly".into(), Value::Bool(true));
-            request.insert("stopPriceType".into(), triggerPriceTypeValue);
+            request.insert("stopPriceType".into(), triggerPriceTypeValue.map(Value::from).unwrap_or(Value::Null));
         }
         let mut uppercaseType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(paramsOmitted.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
@@ -13071,15 +13071,14 @@ if _try_result.is_err() {
             let mut __for_first_902: bool = true;
             while { if !__for_first_902 { i += 1; } __for_first_902 = false; i < (response.len() as i64) } {
             let mut item: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::Int(i), &[]).into_opt_dict();
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(&item, "currency", &[]), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone())) {
-                if !(matches!(&code, Value::Str(__k) if borrowRateHistories.contains_key(__k.as_ref()))) {
-                    borrowRateHistories.insert(crate::runtime::stringify_param(&code), Value::from(vec![]));
+            let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&item, "currency", &[]), None);
+            if (code.is_some()) && ((codes == Value::Null) || self.in_array(&code, codes.clone())) {
+                if !(matches!(code.as_deref(), Some(__k) if borrowRateHistories.contains_key(__k))) {
+                    borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 }
                 let mut borrowRateStructure: crate::value::Dict = self.parse_borrow_rate(item.map_or(Value::Null, Value::Dict), None).into_dict();
-                let mut borrowRateHistoriesCode: Value = borrowRateHistories.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                if let Value::Arr(__a) = &mut borrowRateHistoriesCode { std::sync::Arc::make_mut(__a).push(Value::Dict(borrowRateStructure)); };
-                if let Some(__k) = code.as_str() { borrowRateHistories.insert(__k.to_string(), borrowRateHistoriesCode); }
+                let mut borrowRateHistoriesCode: Value = borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                if let Value::Arr(__a) = &mut borrowRateHistoriesCode { std::sync::Arc::make_mut(__a).push(Value::Dict(borrowRateStructure)); } if let Some(__k) = code.as_deref() { borrowRateHistories.insert(__k.to_string(), borrowRateHistoriesCode); }
             }
         }
         }

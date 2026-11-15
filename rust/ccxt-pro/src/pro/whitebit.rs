@@ -1397,7 +1397,7 @@ impl Whitebit {
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut request: Option<crate::value::Dict> = None;
-        let mut marketIds: Value = Value::from(vec![]);
+        let mut marketIds: crate::value::List = std::sync::Arc::new(Vec::new());
         if (client == Value::Null) {
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1408,15 +1408,15 @@ impl Whitebit {
             if (marketId != Value::Null) {
                 subscription.insert(crate::runtime::stringify_param(&marketId), Value::Bool(true));
             }
-            marketIds = Value::from(vec![marketId]);
+            marketIds = std::sync::Arc::new(vec![marketId]);
             if isNested {
-                marketIds = Value::from(vec![marketIds.clone()]);
+                marketIds = std::sync::Arc::new(vec![Value::Arr(marketIds)]);
             }
             request = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(id));
                     m.insert("method".to_string(), method.clone());
-                    m.insert("params".to_string(), marketIds);
+                    m.insert("params".to_string(), Value::Arr(marketIds));
                 m
             }));
             let mut message: crate::value::Dict = self.extend(request.clone().map_or(Value::Null, Value::Dict), &[params]).into_dict();
@@ -1440,16 +1440,16 @@ impl Whitebit {
                 return self.watch(url.as_deref(), messageHash, request.map_or(Value::Null, Value::Dict), &method, subscription.clone()).await;
             }  else {
                 // resubscribe
-                let mut marketIdsNew: Value = Value::from(vec![]);
-                marketIdsNew = object_keys(&subscription);
+                let mut marketIdsNew: crate::value::List = std::sync::Arc::new(Vec::new());
+                marketIdsNew = object_keys(&subscription).into_list();
                 if isNested {
-                    marketIdsNew = Value::from(vec![marketIdsNew.clone()]);
+                    marketIdsNew = std::sync::Arc::new(vec![Value::Arr(marketIdsNew)]);
                 }
                 let mut resubRequest: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), Value::from(id));
                         m.insert("method".to_string(), method.clone());
-                        m.insert("params".to_string(), marketIdsNew);
+                        m.insert("params".to_string(), Value::Arr(marketIdsNew));
                     m
                 });
                 if (__ch.has_subscription(&method)) {

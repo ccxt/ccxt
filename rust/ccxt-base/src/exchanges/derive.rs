@@ -1559,9 +1559,9 @@ impl Derive {
         //         }
         //     }
         //
-        let mut result: Value = self.array_concat(&spotMarkets, &swapMarkets);
-        result = self.array_concat(result, &optionMarkets);
-        return result;
+        let mut result: crate::value::List = self.array_concat(&spotMarkets, &swapMarkets).into_list();
+        result = self.array_concat(Value::Arr(result), &optionMarkets).into_list();
+        return Value::Arr(result);
         Value::Null
         }).await?))
     }

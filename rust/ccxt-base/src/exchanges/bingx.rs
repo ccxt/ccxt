@@ -6237,14 +6237,14 @@ impl Bingx {
         if areClientOrderIds {
             idsToParse = clientOrderIds.map_or(Value::Null, Value::Arr);
         }
-        let mut parsedIds: Value = Value::from(vec![]);
+        let mut parsedIds: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_321: bool = true;
             while { if !__for_first_321 { i += 1; } __for_first_321 = false; i < (idsToParse.len() as i64) } {
             let mut id: String = self.safe_string(idsToParse.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut stringId: String = id;
-            if let Value::Arr(__a) = &mut parsedIds { std::sync::Arc::make_mut(__a).push(Value::from(stringId)); }
+            std::sync::Arc::make_mut(&mut parsedIds).push(Value::from(stringId));
         }
         }
         let mut response: Option<crate::value::Dict> = None;
@@ -6253,14 +6253,14 @@ impl Bingx {
             if areClientOrderIds {
                 spotReqKey = "clientOrderIDs".to_string();
             }
-            request.insert(spotReqKey, Value::Str(parsedIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+            request.insert(spotReqKey, Value::Str(parsedIds.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.spot_v1_private_post_trade_cancel_orders(&[__ws_arg_32]).await.into_opt_dict();
         }  else {
             if areClientOrderIds {
-                request.insert("clientOrderIDList".into(), json_stringify(&parsedIds));
+                request.insert("clientOrderIDList".into(), json_stringify(&Value::Arr(parsedIds)));
             }  else {
-                request.insert("orderIdList".into(), parsedIds);
+                request.insert("orderIdList".into(), Value::Arr(parsedIds));
             }
             let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.swap_v2_private_delete_trade_batch_orders(&[__ws_arg_33]).await.into_opt_dict();
