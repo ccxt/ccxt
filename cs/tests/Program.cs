@@ -161,7 +161,7 @@ public class Tests
                 WsOrderBookCopyAtomicityTests();
                 // the client suites are timer-bound (keepalive windows, settle delays) and touch
                 // only their own WebSocketClient instances, so they overlap instead of serializing
-                await Task.WhenAll(WsClientKeepAliveLivenessTests(), WsClientKeepAliveTimeoutTests(), WsClientRetirementRaceTests(), WsClientPingLoopErrorTests(), baseTestInstance.testWsBackoffLifecycle());
+                await Task.WhenAll(WsClientKeepAliveLivenessTests(), WsClientKeepAliveTimeoutTests(), WsClientRetirementRaceTests(), WsClientPingLoopErrorTests(), WsClientInlineRetryTests(), baseTestInstance.testWsBackoffLifecycle());
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -254,6 +254,12 @@ public class Tests
     {
         await baseTestInstance.testWsClientPingLoopErrors();
         Helper.Green(" [C#] WebSocketClient PingLoop error containment tests passed");
+    }
+
+    static async Task WsClientInlineRetryTests()
+    {
+        await baseTestInstance.testWsClientInlineRetry();
+        Helper.Green(" [C#] WebSocketClient inline retry reaches a fresh client tests passed");
     }
 
     static async Task WsClientRetirementRaceTests()

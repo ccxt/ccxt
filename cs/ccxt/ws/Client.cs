@@ -571,9 +571,9 @@ public partial class BaseExchange
             }
         }
 
-        // mirrors js Client.onError: set the error marker, reset, notify the
-        // exchange. the owner elects one winner when the transport error, a
-        // late onClose and a user Close() race on separate threads.
+        // mirrors js Client.onError: set the error marker, notify the exchange,
+        // reset. the owner elects one winner when the transport error, a late
+        // onClose and a user Close() race on separate threads.
         public void onError(object error)
         {
             var elected = (bool)ask(() =>
@@ -590,16 +590,16 @@ public partial class BaseExchange
                 return;
             }
             this.isConnected = false; // stops PingLoop's while() condition
-            if (this.startedConnecting)
-            {
-                var connectionError = error as Exception ?? new Exception(error?.ToString() ?? "WebSocket connection failed");
-                this.connected.TrySetException(connectionError);
-            }
-            this.reset(error);
-            // the callback is the exchange's virtual onError (and any override of
-            // it). the futures already carry the error, so a throw here must not
-            // reach the transport loops: PingLoop's keepalive timeout would skip
-            // its Close(), and nothing awaits the loops to observe it anyway.
+            // notify the exchange before settling anything: the callback is the
+            // exchange's virtual onError, which unregisters this client. awaiter
+            // continuations run inline on this thread when connected and the
+            // futures fault below, so a caller retrying from its catch would
+            // otherwise get this retired client back from exchange.client(url)
+            // and never reconnect. js gets the same order for free, its
+            // rejections settle only after onErrorCallback returns.
+            // a throw from the callback must not reach the transport loops
+            // (PingLoop's keepalive timeout would skip its Close(), and nothing
+            // awaits the loops to observe it) nor skip the rejections below,
             // see https://github.com/ccxt/ccxt/issues/29412
             try
             {
@@ -612,6 +612,12 @@ public partial class BaseExchange
                     Console.WriteLine($"onError callback error: {callbackError}");
                 }
             }
+            if (this.startedConnecting)
+            {
+                var connectionError = error as Exception ?? new Exception(error?.ToString() ?? "WebSocket connection failed");
+                this.connected.TrySetException(connectionError);
+            }
+            this.reset(error);
         }
 
         public void onOpen()
