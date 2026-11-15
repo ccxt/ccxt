@@ -1599,8 +1599,8 @@ impl Bitvavo {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, "@").into()), self.safe_string(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]));
             if !(self.orderbooks.has(&symbol)) {
                 let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash), &[]);
-                let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
-                if (method != Value::Null) {
+                let mut method: Option<String> = self.safe_value_k(subscription.clone(), "method", &[]).as_str().map(str::to_owned);
+                if (method.is_some()) {
                     self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription.clone()]);
                 }  else if (subscription != Value::Null) {
                     // multi-symbol watches share one subscription object without a

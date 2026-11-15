@@ -3624,8 +3624,8 @@ impl Woo {
             m
         })]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "rows", &[Value::from(vec![])]).into_list();
-        let mut first: Value = self.safe_dict(&rows, Value::Int(0), &[]);
-        if (first == Value::Null) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&rows, Value::Int(0), &[]).into_opt_dict();
+        if (first.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTicker() could not find ticker data for ").into()), symbol)));
         }
         let __ws_arg_17 = self.safe_integer_k(&response, "timestamp", &[]);
@@ -3633,7 +3633,7 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), __ws_arg_17);
             m
-        }), &[first]).into_dict();
+        }), &[&first]).into_dict();
         return self.parse_ticker(&ticker, Some(&market));
         Value::Null
         }).await?))

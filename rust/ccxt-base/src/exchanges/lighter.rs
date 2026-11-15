@@ -3804,13 +3804,13 @@ if _try_result.is_err() {
         //         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
         //     }
         //
-        let mut rows: Value = self.safe_list_k(&response, "transfers", &[Value::from(vec![])]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "transfers", &[Value::from(vec![])]).into_list();
         let mut cursor: Option<String> = self.safe_string_k_opt(&response, "cursor", &[]);
-        let mut first: Option<crate::value::Dict> = self.safe_dict(rows.clone(), Value::Int(0), &[]).into_opt_dict();
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&rows, Value::Int(0), &[]).into_opt_dict();
         if (first.is_some()) && (cursor.is_some()) {
             add_element_to_object(get_value_mut(&mut rows, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
-        return self.parse_transfers(rows, currency.as_ref(), &[since, limit, Value::Dict(paramsApiKeyIndex)]);
+        return self.parse_transfers(&rows, currency.as_ref(), &[since, limit, Value::Dict(paramsApiKeyIndex)]);
         Value::Null
         }).await?))
     }
@@ -3942,13 +3942,13 @@ if _try_result.is_err() {
         //         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "deposits", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "deposits", &[Value::from(vec![])]).into_list();
         let mut cursor: Option<String> = self.safe_string_k_opt(&response, "cursor", &[]);
-        let mut first: Option<crate::value::Dict> = self.safe_dict(data.clone(), Value::Int(0), &[]).into_opt_dict();
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(0), &[]).into_opt_dict();
         if (first.is_some()) && (cursor.is_some()) {
             add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
-        return self.parse_transactions(data, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&data, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4026,13 +4026,13 @@ if _try_result.is_err() {
         //         "cursor": "string"
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "withdraws", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "withdraws", &[Value::from(vec![])]).into_list();
         let mut cursor: Option<String> = self.safe_string_k_opt(&response, "cursor", &[]);
-        let mut first: Option<crate::value::Dict> = self.safe_dict(data.clone(), Value::Int(0), &[]).into_opt_dict();
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(0), &[]).into_opt_dict();
         if (first.is_some()) && (cursor.is_some()) {
             add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
-        return self.parse_transactions(data, currency.as_ref(), &[since, limit]);
+        return self.parse_transactions(&data, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4349,7 +4349,7 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
+        let mut data: crate::value::List = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_937: bool = true;
@@ -4358,11 +4358,11 @@ if _try_result.is_err() {
         }
         }
         let mut nextCursor: Option<String> = self.safe_string_k_opt(&response, "next_cursor", &[]);
-        let mut first: Option<crate::value::Dict> = self.safe_dict(data.clone(), Value::Int(0), &[]).into_opt_dict();
+        let mut first: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(0), &[]).into_opt_dict();
         if (first.is_some()) && (nextCursor.is_some()) {
             add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("next_cursor".into()), nextCursor.map(Value::from).unwrap_or(Value::Null));
         }
-        return self.parse_trades(data, market.as_ref(), &[since, limit, Value::Dict(paramsUntil)]);
+        return self.parse_trades(&data, market.as_ref(), &[since, limit, Value::Dict(paramsUntil)]);
         Value::Null
         }).await?))
     }

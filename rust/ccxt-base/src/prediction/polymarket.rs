@@ -3276,21 +3276,21 @@ impl Polymarket {
             let mut __for_first_1441: bool = true;
             while { if !__for_first_1441 { i += 1; } __for_first_1441 = false; i < (orders.len() as i64) } {
             let mut o: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
-            let mut orderParams: Value = self.safe_dict_k(&o, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&o, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            if (self.safe_string_k(orderParams.clone(), "salt", &[]) == Value::Null) {
+            })]).into_dict();
+            if (self.safe_string_k(&orderParams, "salt", &[]) == Value::Null) {
                 // a distinct salt per order so two identical orders don't collide, within a batch or across calls
                 let mut orderSalt: i64 = self.incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
                 let __ws_arg_13 = self.number_to_string(Value::from(orderSalt));
                 orderParams = self.extend(orderParams, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("salt".to_string(), Value::from(__ws_arg_13));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("salt".to_string(), Value::from(__ws_arg_13));
+    m
+})]).into_dict();
             }
-            let mut built: crate::value::Dict = self.build_clob_order_body((self.safe_string_k(&o, "outcome", &[])).as_str(), (self.safe_string_k(&o, "type", &[])).as_str(), (self.safe_string_k(&o, "side", &[])).as_str(), self.safe_number_k(&o, "amount", &[]), &[self.safe_number_k(&o, "price", &[]), orderParams]).into_dict();
+            let mut built: crate::value::Dict = self.build_clob_order_body((self.safe_string_k(&o, "outcome", &[])).as_str(), (self.safe_string_k(&o, "type", &[])).as_str(), (self.safe_string_k(&o, "side", &[])).as_str(), self.safe_number_k(&o, "amount", &[]), &[self.safe_number_k(&o, "price", &[]), Value::Dict(orderParams)]).into_dict();
             bodies.push(self.safe_dict_k(&built, "body", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m

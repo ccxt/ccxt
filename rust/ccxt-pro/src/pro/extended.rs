@@ -1227,18 +1227,18 @@ impl Extended {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "trades:", symbol);
-        let mut subscription: Value = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
+        let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[Value::from(defaultLimit)]).as_i64();
+            let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[Value::from(defaultLimit)]).as_i64();
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut previousNonce: Option<i64> = self.safe_integer_k(subscription.clone(), "nonce", &[]).as_i64();
+        let mut previousNonce: Option<i64> = self.safe_integer_k(&subscription, "nonce", &[]).as_i64();
         let mut nonce: Option<i64> = (match message.get("seq") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         if (previousNonce.is_some()) && (nonce.is_some()) && ((nonce.is_some() && previousNonce.is_some() && nonce <= previousNonce)) {
             return;
@@ -1348,29 +1348,29 @@ impl Extended {
         //         "seq": 1
         //     }
         //
-        let mut subscription: Value = self.find_subscription(client.clone(), Value::Str("ohlcv".into()));
-        if (subscription == Value::Null) {
+        let mut subscription: Option<crate::value::Dict> = self.find_subscription(client.clone(), Value::Str("ohlcv".into())).into_opt_dict();
+        if (subscription.is_none()) {
             return;
         }
-        let mut symbol: Option<String> = self.safe_string_k(subscription.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut timeframe: String = self.safe_string_k(subscription.clone(), "timeframe", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut candleType: String = self.safe_string_k(subscription.clone(), "candleType", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbol: Option<String> = self.safe_string_k(&subscription, "symbol", &[]).as_str().map(str::to_owned);
+        let mut timeframe: String = self.safe_string_k(&subscription, "timeframe", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut candleType: String = self.safe_string_k(&subscription, "candleType", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut cacheKey: Option<String> = None;
         if (candleType == "trades") {
             cacheKey = Some(timeframe.clone());
         }  else {
             cacheKey = Some(format!("{}{}", Value::Str(format!("{}{}", timeframe, ":").into()), candleType));
         }
-        let mut messageHash: Option<String> = self.safe_string_k(subscription.clone(), "messageHash", &[]).as_str().map(str::to_owned);
+        let mut messageHash: Option<String> = self.safe_string_k(&subscription, "messageHash", &[]).as_str().map(str::to_owned);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).lookup(&cacheKey);
         if (stored.is_none()) {
             let mut defaultLimit: i64 = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let mut limit: Option<i64> = self.safe_integer_k(subscription.clone(), "limit", &[Value::from(defaultLimit)]).as_i64();
+            let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[Value::from(defaultLimit)]).as_i64();
             stored = Some(ArrayCacheByTimestamp::new(Value::from(limit)));
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &cacheKey, stored.clone());
         }
-        let mut previousNonce: Option<i64> = self.safe_integer_k(subscription.clone(), "nonce", &[]).as_i64();
+        let mut previousNonce: Option<i64> = self.safe_integer_k(&subscription, "nonce", &[]).as_i64();
         let mut nonce: Option<i64> = (match message.get("seq") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         if (previousNonce.is_some()) && (nonce.is_some()) && ((nonce.is_some() && previousNonce.is_some() && nonce <= previousNonce)) {
             return;

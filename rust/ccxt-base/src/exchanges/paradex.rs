@@ -2321,7 +2321,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1057: bool = true;
@@ -2329,7 +2329,7 @@ impl Paradex {
             add_element_to_object(get_value_mut(&mut trades, &Value::Int(i)), &Value::Str("next".into()), self.safe_string_k(&response, "next", &[]));
         }
         }
-        return self.parse_trades(trades, Some(&market), &[since, limit]);
+        return self.parse_trades(&trades, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3898,7 +3898,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1062: bool = true;
@@ -3906,7 +3906,7 @@ impl Paradex {
             add_element_to_object(get_value_mut(&mut trades, &Value::Int(i)), &Value::Str("next".into()), self.safe_string_k(&response, "next", &[]));
         }
         }
-        return self.parse_trades(trades, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -4270,7 +4270,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         // the cursor pagination reads the next page cursor from the parsed entries
         let mut next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
@@ -4285,7 +4285,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1066: bool = true;
             while { if !__for_first_1066 { i += 1; } __for_first_1066 = false; i < (rows.len() as i64) } {
-            let mut row: crate::value::Dict = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             if allKinds || (self.safe_string_k(&row, "kind", &[]).as_str() == Some("DEPOSIT")) {
                 deposits.push(Value::Dict(row));
             }
@@ -4378,7 +4378,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         // the cursor pagination reads the next page cursor from the parsed entries
         let mut next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
@@ -4393,7 +4393,7 @@ impl Paradex {
                         let mut i: i64 = 0;
             let mut __for_first_1068: bool = true;
             while { if !__for_first_1068 { i += 1; } __for_first_1068 = false; i < (rows.len() as i64) } {
-            let mut row: crate::value::Dict = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             if allKinds || (self.safe_string_k(&row, "kind", &[]).as_str() == Some("WITHDRAWAL")) {
                 deposits.push(Value::Dict(row));
             }
@@ -4480,7 +4480,7 @@ impl Paradex {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
+        let mut rows: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         // the cursor pagination reads the next page cursor from the parsed entries
         let mut next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
@@ -4490,7 +4490,7 @@ impl Paradex {
             add_element_to_object(get_value_mut(&mut rows, &Value::Int(i)), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
-        return self.parse_transfers(rows, currency.as_ref(), &[since, limit]);
+        return self.parse_transfers(&rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -5168,7 +5168,7 @@ impl Paradex {
         //     ]
         // }
         //
-        let mut results: Value = self.safe_list_k(&response, "results", &[Value::from(vec![])]);
+        let mut results: crate::value::List = self.safe_list_k(&response, "results", &[Value::from(vec![])]).into_list();
         // the cursor pagination reads the next page cursor from the parsed entries
         let mut next: Option<String> = self.safe_string_k_opt(&response, "next", &[]);
         {
@@ -5178,7 +5178,7 @@ impl Paradex {
             add_element_to_object(get_value_mut(&mut results, &Value::Int(i)), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
         }
         }
-        return self.parse_incomes(results, &[(market).raw.clone(), since, limit]);
+        return self.parse_incomes(&results, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

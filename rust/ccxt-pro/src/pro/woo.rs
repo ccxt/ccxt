@@ -1135,12 +1135,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_715: bool = true;
             while { if !__for_first_715 { i += 1; } __for_first_715 = false; i < (data.len() as i64) } {
-            let mut ticker: Value = self.safe_dict(&data, Value::Int(i), &[]);
-            if (ticker == Value::Null) {
+            let mut ticker: Option<crate::value::Dict> = self.safe_dict(&data, Value::Int(i), &[]).into_opt_dict();
+            if (ticker.is_none()) {
                 continue;
             }
             add_element_to_object(&mut ticker, &Value::Str("ts".into()), Value::from(timestamp));
-            let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(ticker, None).into_dict();
+            let mut parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(&ticker, None).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&parsedTicker, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
@@ -2509,8 +2509,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
-        if (method != Value::Null) {
+        let mut method: Option<String> = self.safe_value_k(subscription.clone(), "method", &[]).as_str().map(str::to_owned);
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
         }
         return message;

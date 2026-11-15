@@ -3211,12 +3211,12 @@ impl Kraken {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduce_only".into(), Value::Str("true".into())); }; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        let mut rawClose: Value = self.safe_dict_k(&paramsOmitted2, "close", &[]);
-        if (rawClose != Value::Null) {
+        let mut rawClose: Option<crate::value::Dict> = self.safe_dict_k(&paramsOmitted2, "close", &[]).into_opt_dict();
+        if (rawClose.is_some()) {
             let mut close: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            }), &[rawClose]).into_dict();
+            }), &[&rawClose]).into_dict();
             let mut closePrice: Value = self.safe_value_k(&close, "price", &[]);
             if (closePrice != Value::Null) {
                 std::sync::Arc::make_mut(&mut close).insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), closePrice)));

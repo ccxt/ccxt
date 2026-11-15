@@ -914,8 +914,8 @@ impl Ndax {
         let mut id: Option<i64> = (match __pro_message.get("i") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         let mut subscription: Value = (if (id.is_none()) { Value::Null } else { self.safe_dict(&subscriptionsById, Value::from(id), &[]) });
         if (subscription != Value::Null) {
-            let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
-            if (method != Value::Null) {
+            let mut method: Option<String> = self.safe_value_k(subscription.clone(), "method", &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client, message, subscription]);
             }
         }

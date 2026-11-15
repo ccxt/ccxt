@@ -8701,31 +8701,31 @@ impl Htx {
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut stopLossTakeProfit: Option<bool> = self.safe_bool_n(Value::from(&paramsSubType), Value::from(vec![Value::Str("stopLossTakeProfit".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut query: Value = self.omit(&paramsSubType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]);
+        let mut query: Option<crate::value::Dict> = self.omit(&paramsSubType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_opt_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
-            let mut clientOrderId: Option<String> = self.safe_string2(query.clone(), Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut clientOrderId: Option<String> = self.safe_string2(&query, Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_none()) {
                 request.insert("order-id".into(), id.clone());
-                let __ws_arg_80 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                let __ws_arg_80 = self.extend(Value::Map(request.clone()), &[&query]);
                 response = self.spot_private_post_v1_order_orders_order_id_submitcancel(&[__ws_arg_80]).await;
             }  else {
                 request.insert("client-order-id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                query = self.omit(query, &["client-order-id", "clientOrderId"], &[]);
-                let __ws_arg_81 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                query = self.omit(&query, &["client-order-id", "clientOrderId"], &[]).into_opt_dict();
+                let __ws_arg_81 = self.extend(Value::Map(request.clone()), &[&query]);
                 response = self.spot_private_post_v1_order_orders_submit_cancel_client_order(&[__ws_arg_81]).await;
             }
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
             }
-            let mut clientOrderId: Option<String> = self.safe_string_n(query.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]).as_str().map(str::to_owned);
+            let mut clientOrderId: Option<String> = self.safe_string_n(&query, Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]).as_str().map(str::to_owned);
             if !(isLinear && ((trigger == Some(true)) || (stopLossTakeProfit == Some(true)) || trailing)) {
                 if (clientOrderId.is_none()) {
                     request.insert("order_id".into(), id.clone());
                 }  else {
                     request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
-                    query = self.omit(query, &["client_order_id", "clientOrderId"], &[]);
+                    query = self.omit(&query, &["client_order_id", "clientOrderId"], &[]).into_opt_dict();
                 }
             }
             if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -8742,44 +8742,44 @@ impl Htx {
                     });
                     if (clientOrderId.is_none()) {
                         requestItem.insert("algo_id".into(), id.clone());
-                        query = self.omit(query, Value::Str("algo_id".into()), &[]);
+                        query = self.omit(&query, Value::Str("algo_id".into()), &[]).into_opt_dict();
                     }  else {
                         requestItem.insert("algo_client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                        query = self.omit(query, &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]);
+                        query = self.omit(&query, &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]).into_opt_dict();
                     }
-                    let mut requestBody: Value = Value::from(vec![self.extend(Value::Map(requestItem), &[query.clone()])]);
+                    let mut requestBody: Value = Value::from(vec![self.extend(Value::Map(requestItem), &[&query])]);
                     response = self.contract_private_post_v5_algo_cancel_orders(&[requestBody]).await;
                 }  else {
-                    let __ws_arg_82 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                    let __ws_arg_82 = self.extend(Value::Map(request.clone()), &[&query]);
                     response = self.contract_private_post_v5_trade_cancel_order(&[__ws_arg_82]).await;
                 }
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_83 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_83 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[__ws_arg_83]).await;
                     }  else if (stopLossTakeProfit == Some(true)) {
-                        let __ws_arg_84 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_84 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[__ws_arg_84]).await;
                     }  else if trailing {
-                        let __ws_arg_85 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_85 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_track_cancel(&[__ws_arg_85]).await;
                     }  else {
-                        let __ws_arg_86 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_86 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_cancel(&[__ws_arg_86]).await;
                     }
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_87 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_87 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancel(&[__ws_arg_87]).await;
                     }  else if (stopLossTakeProfit == Some(true)) {
-                        let __ws_arg_88 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_88 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[__ws_arg_88]).await;
                     }  else if trailing {
-                        let __ws_arg_89 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_89 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_api_v1_contract_track_cancel(&[__ws_arg_89]).await;
                     }  else {
-                        let __ws_arg_90 = self.extend(Value::Map(request), &[query]);
+                        let __ws_arg_90 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_api_v1_contract_cancel(&[__ws_arg_90]).await;
                     }
                 }
@@ -8905,11 +8905,11 @@ impl Htx {
         });
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut query: Value = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trigger"], &[]);
+        let mut query: Option<crate::value::Dict> = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trigger"], &[]).into_opt_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            let mut clientOrderIds: Value = self.safe_value2(query.clone(), Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]);
-            clientOrderIds = self.safe_value2(query.clone(), Value::Str("client-order-ids".into()), Value::Str("clientOrderIds".into()), &[clientOrderIds.clone()]);
+            let mut clientOrderIds: Value = self.safe_value2(&query, Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]);
+            clientOrderIds = self.safe_value2(&query, Value::Str("client-order-ids".into()), Value::Str("clientOrderIds".into()), &[clientOrderIds.clone()]);
             if (clientOrderIds == Value::Null) {
                 if matches!(&clientOrderIds, Value::Str(_)) {
                     request.insert("order-ids".into(), Value::from(vec![ids.clone()]));
@@ -8922,17 +8922,17 @@ impl Htx {
                 }  else {
                     request.insert("client-order-ids".into(), clientOrderIds.clone());
                 }
-                query = self.omit(query, &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]);
+                query = self.omit(&query, &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]).into_opt_dict();
             }
-            let __ws_arg_92 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_92 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.spot_private_post_v1_order_orders_batchcancel(&[__ws_arg_92]).await.into_opt_dict();
         }  else {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a symbol argument")));
             }
-            let mut clientOrderIds: Value = self.safe_value2(query.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
-            clientOrderIds = self.safe_value2(query.clone(), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[clientOrderIds.clone()]);
-            query = self.omit(query, &["client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"], &[]);
+            let mut clientOrderIds: Value = self.safe_value2(&query, Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
+            clientOrderIds = self.safe_value2(&query, Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[clientOrderIds.clone()]);
+            query = self.omit(&query, &["client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"], &[]).into_opt_dict();
             if !matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (clientOrderIds == Value::Null) {
                     request.insert("order_id".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
@@ -8955,29 +8955,29 @@ impl Htx {
                         request.insert("client_order_id".into(), clientOrderIds);
                     }
                 }
-                let __ws_arg_93 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                let __ws_arg_93 = self.extend(Value::Map(request.clone()), &[&query]);
                 response = self.contract_private_post_v5_trade_cancel_batch_orders(&[__ws_arg_93]).await.into_opt_dict();
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_94 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_94 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[__ws_arg_94]).await.into_opt_dict();
                     }  else if stopLossTakeProfit {
-                        let __ws_arg_95 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_95 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[__ws_arg_95]).await.into_opt_dict();
                     }  else {
-                        let __ws_arg_96 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_96 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_swap_api_v1_swap_cancel(&[__ws_arg_96]).await.into_opt_dict();
                     }
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
-                        let __ws_arg_97 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_97 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancel(&[__ws_arg_97]).await.into_opt_dict();
                     }  else if stopLossTakeProfit {
-                        let __ws_arg_98 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+                        let __ws_arg_98 = self.extend(Value::Map(request.clone()), &[&query]);
                         response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[__ws_arg_98]).await.into_opt_dict();
                     }  else {
-                        let __ws_arg_99 = self.extend(Value::Map(request), &[query]);
+                        let __ws_arg_99 = self.extend(Value::Map(request), &[&query]);
                         response = self.contract_private_post_api_v1_contract_cancel(&[__ws_arg_99]).await.into_opt_dict();
                     }
                 }
@@ -10373,17 +10373,16 @@ impl Htx {
                                 let mut i: i64 = 0;
                 let mut __for_first_788: bool = true;
                 while { if !__for_first_788 { i += 1; } __for_first_788 = false; i < (result.len() as i64) } {
-                let mut entry: Value = get_value(&result, &Value::Int(i));
+                let mut entry: Option<crate::value::Dict> = get_value(&result, &Value::Int(i)).into_opt_dict();
                 add_element_to_object(&mut entry, &Value::Str("current_page".into()), cursor.clone());
-                crate::set_value(&mut result, &Value::Int(i), entry.clone());
-                let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "contract_code", &[]).as_str().map(str::to_owned);
+                let mut marketId: Option<String> = self.safe_string_k(&entry, "contract_code", &[]).as_str().map(str::to_owned);
                 let mut symbolInner: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-                let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "funding_time", &[]).as_i64();
+                let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_time", &[]).as_i64();
                 rates.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), entry.clone());
+                        m.insert("info".to_string(), entry.clone().map_or(Value::Null, Value::Dict));
                         m.insert("symbol".to_string(), symbolInner);
-                        m.insert("fundingRate".to_string(), self.safe_number_k(entry, "funding_rate", &[]));
+                        m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "funding_rate", &[]));
                         m.insert("timestamp".to_string(), Value::from(timestamp));
                         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                     m
@@ -12751,7 +12750,7 @@ impl Htx {
             let mut chainEntry: crate::value::Dict = self.safe_dict(&chains, Value::Int(j), &[]).into_dict();
             let mut networkId: Option<String> = self.safe_string_k(&chainEntry, "chain", &[]).as_str().map(str::to_owned);
             let mut withdrawFeeType: Option<String> = self.safe_string_k(&chainEntry, "withdrawFeeType", &[]).as_str().map(str::to_owned);
-            let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]));
+            let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut withdrawFee: Option<f64> = None;
             let mut withdrawResult: Value = Value::Null;
             if (withdrawFeeType.as_deref() == Some("fixed")) {
@@ -12771,8 +12770,8 @@ impl Htx {
                     m
                 });
             }
-            if (networkCode != Value::Null) {
-                if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+            if (networkCode.is_some()) {
+                if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), withdrawResult);
         m.insert("deposit".to_string(), Value::Map({

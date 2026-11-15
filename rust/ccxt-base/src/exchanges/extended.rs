@@ -1751,18 +1751,18 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_664: bool = true;
             while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < dataLength } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+})]).into_dict();
             }
-            result.push(entry);
+            result.push(Value::Dict(entry));
         }
         }
         return self.parse_trades(Value::from(result), market.as_ref(), &[since, limit]);
@@ -1855,18 +1855,18 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_665: bool = true;
             while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < dataLength } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+})]).into_dict();
             }
-            result.push(entry);
+            result.push(Value::Dict(entry));
         }
         }
         return self.parse_funding_histories(Value::from(result), market.as_ref(), &[since, limit]);
@@ -2173,18 +2173,18 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_667: bool = true;
             while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < dataLength } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+})]).into_dict();
             }
-            result.push(self.parse_funding_rate_history(entry, Some(&market)));
+            result.push(self.parse_funding_rate_history(Value::Dict(entry), Some(&market)));
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
@@ -2564,18 +2564,18 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_669: bool = true;
             while { if !__for_first_669 { i += 1; } __for_first_669 = false; i < dataLength } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+})]).into_dict();
             }
-            result.push(entry);
+            result.push(Value::Dict(entry));
         }
         }
         return self.parse_ledger(Value::from(result), currency.as_ref(), &[since, limit]);
@@ -2719,18 +2719,18 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_670: bool = true;
             while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < dataLength } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+})]).into_dict();
             }
-            result.push(entry);
+            result.push(Value::Dict(entry));
         }
         }
         return self.parse_transactions(Value::from(result), currency.as_ref(), &[since, limit]);
@@ -2957,18 +2957,18 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_671: bool = true;
             while { if !__for_first_671 { i += 1; } __for_first_671 = false; i < dataLength } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+})]).into_dict();
             }
-            result.push(entry);
+            result.push(Value::Dict(entry));
         }
         }
         return self.parse_transfers(Value::from(result), currency.as_ref(), &[since, limit]);
@@ -3658,18 +3658,18 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_673: bool = true;
             while { if !__for_first_673 { i += 1; } __for_first_673 = false; i < dataLength } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+})]).into_dict();
             }
-            result.push(entry);
+            result.push(Value::Dict(entry));
         }
         }
         let mut positions: crate::value::List = self.parse_positions(Value::from(result), &[symbolsList]).into_list();
@@ -4824,18 +4824,18 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_674: bool = true;
             while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < dataLength } {
-            let mut entry: Value = self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend(entry, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+})]).into_dict();
             }
-            result.push(entry);
+            result.push(Value::Dict(entry));
         }
         }
         let mut orders: crate::value::List = self.parse_orders(Value::from(result), market.as_ref(), &[since.clone(), limit.clone()]).into_list();

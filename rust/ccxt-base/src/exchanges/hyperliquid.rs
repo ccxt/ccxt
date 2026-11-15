@@ -4854,12 +4854,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let mut userAddress: Option<String> = None;
-        let mut params2: Value = Value::Null;
+        let mut params2: Option<crate::value::Dict> = None;
         userAddress = self.safe_string(self.handle_public_address("fetchOrder", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
         params2 = self.safe_dict(self.handle_public_address("fetchOrder", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4867,7 +4867,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut clientOrderId: Option<String> = self.safe_string_k(params2.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&params2, "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("orderStatus".into()));
@@ -4875,13 +4875,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if (clientOrderId.is_some()) {
-            params2 = self.omit(params2, Value::Str("clientOrderId".into()), &[]);
+            params2 = self.omit(&params2, Value::Str("clientOrderId".into()), &[]).into_opt_dict();
             request.insert("oid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
             let mut isClientOrderId: bool = ((id.len() as i64) as f64) >= ((34i64) as f64);
             request.insert("oid".into(), (if isClientOrderId { id.clone() } else { self.parse_to_numeric(id) }));
         }
-        let __ws_arg_25 = self.extend(Value::Map(request), &[params2]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&params2]);
         let mut response: crate::value::Dict = self.public_post_info(&[__ws_arg_25]).await.into_dict();
         //
         //     {
@@ -6518,12 +6518,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut userAddress: Option<String> = None;
-        let mut params2: Value = Value::Null;
+        let mut params2: Option<crate::value::Dict> = None;
         userAddress = self.safe_string(self.handle_public_address("fetchLedger", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
         params2 = self.safe_dict(self.handle_public_address("fetchLedger", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("userNonFundingLedgerUpdates".into()));
@@ -6533,12 +6533,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(params2.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&params2, "until", &[]).as_i64();
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
-            params2 = self.omit(params2, &["until"], &[]);
+            params2 = self.omit(&params2, &["until"], &[]).into_opt_dict();
         }
-        let __ws_arg_32 = self.extend(Value::Map(request), &[params2]);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[&params2]);
         let mut response: crate::value::Dict = self.public_post_info(&[__ws_arg_32]).await.into_dict();
         return self.parse_ledger(&response, None, &[since, limit]);
         Value::Null
