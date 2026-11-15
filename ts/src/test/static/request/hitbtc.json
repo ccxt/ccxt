@@ -818,6 +818,20 @@
                   "1h",
                   1704895882000
                 ]
+            },
+            {
+                "description": "fetch OHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.hitbtc.com/api/3/public/candles/BTCUSDT?period=H1&till=1704895882000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1704895882000
+                  }
+                ]
             }
         ],
         "fetchFundingRateHistory": [
@@ -827,6 +841,19 @@
                 "url": "https://api.hitbtc.com/api/3/public/futures/history/funding?symbols=BTCUSDT_PERP",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fundingRateHistory with until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.hitbtc.com/api/3/public/futures/history/funding?symbols=BTCUSDT_PERP&till=1704895882000",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "until": 1704895882000
+                    }
                 ]
             }
         ],

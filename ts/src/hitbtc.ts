@@ -1904,7 +1904,7 @@ export default class hitbtc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until', request, paramsPaginate);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('till', request, paramsPaginate);
         const price = this.safeString (paramsUntil, 'price');
         const paramsOmitted: Dict = this.omit (paramsUntil, 'price');
         let response: Dict | List = [];
@@ -2982,7 +2982,7 @@ export default class hitbtc extends Exchange {
             // 'limit': 100,
             // 'offset': 0,
         };
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until', request, paramsPaginate);
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('till', request, paramsPaginate);
         if (symbol !== undefined) {
             market = this.market (symbol);
             requestUntil['symbols'] = market['id'];
