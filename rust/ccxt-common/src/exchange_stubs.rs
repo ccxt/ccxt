@@ -654,8 +654,8 @@ impl Exchange {
     /// so we trust it as the formatted message and trim it. Used by
     /// exchanges that re-throw with a contextual prefix in their
     /// catch arms (grvt.transfer is the canonical case).
-    pub fn exception_message(&self, exc: Value, _optional_args: &[Value]) -> Value {
-        let s = match exc {
+    pub fn exception_message(&self, exc: impl Into<Value>, _optional_args: &[Value]) -> Value {
+        let s = match exc.into() {
             Value::Str(s) => s,
             other => crate::runtime::stringify_param(&other).into(),
         };
