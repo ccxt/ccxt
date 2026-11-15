@@ -2798,7 +2798,7 @@ impl Hyperliquid {
             let mut parentSymbol: Value = self.safe_string_k(&info, "parentSymbol", &[self.safe_string2(&mkt, Value::Str("market".into()), Value::Str("symbol".into()), &[])]);
             // Apply query filter
             if lowerQueriesLength > 0 {
-                let mut description: Value = (self.safe_string_k(&info, "description", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                let mut description: String = self.safe_string_k(&info, "description", &[Value::Str("".into())]).as_str().unwrap_or("").to_lowercase();
                 let mut parentSymbolOrEmpty: Value = (if (parentSymbol != Value::Null) { parentSymbol.clone() } else { Value::Str("".into()) });
                 let mut symLower: Option<String> = parentSymbolOrEmpty.as_str().map(str::to_lowercase);
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
@@ -3263,21 +3263,21 @@ if _try_result.is_err() {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut baseUrl: Value = Value::Null;
+        let mut baseUrl: Option<String> = None;
         if sandboxMode {
             let mut testUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "test", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            baseUrl = self.safe_string(&testUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&testUrls, "public", &[Value::Str("".into())])]);
+            baseUrl = self.safe_string(&testUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&testUrls, "public", &[Value::Str("".into())])]).as_str().map(str::to_owned);
         }  else {
             let mut apiUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            baseUrl = self.safe_string(&apiUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&apiUrls, "public", &[Value::Str("".into())])]);
+            baseUrl = self.safe_string(&apiUrls, Value::from(apiGroup.as_deref()), &[self.safe_string_k(&apiUrls, "public", &[Value::Str("".into())])]).as_str().map(str::to_owned);
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), path);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), path);
         let mut headersValue: Option<crate::value::Dict> = None;
         let mut bodyValue: Option<String> = None;
         if (method.as_str() == Some("POST")) {

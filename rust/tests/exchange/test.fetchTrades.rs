@@ -77,21 +77,21 @@ async fn helperTestFetchTradesSideSequence(mut exchange: Value, mut skippedPrope
         let mut side: Value = get_value(&trade, &Value::Str("side".into()));
         //
         let mut isSameTs: bool = is_equal(&ts, &lastTs);
-        let mut isSamePrice: Value = ccxt::precise::Precise::stringEq(&price, &lastPrice);
+        let mut isSamePrice: bool = ccxt::precise::Precise::stringEq(&price, &lastPrice).as_bool().unwrap_or(false);
         let mut isSameSide: bool = is_equal(&side, &lastSide);
         // we are only interested in trades that have: same timestamp, same side, but different(!) price
-        if isSameTs && isSameSide && !is_true(&isSamePrice) {
+        if isSameTs && isSameSide && !isSamePrice {
             let mut pair: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("previous".to_string(), lastTrade.clone());
                     m.insert("current".to_string(), trade.clone());
                 m
             });
-            let mut priceIncreasing: Value = ccxt::precise::Precise::stringGt(&price, &lastPrice);
-            let mut priceDecreasing: Value = ccxt::precise::Precise::stringLt(&price, &lastPrice);
-            if is_true(&priceIncreasing) {
+            let mut priceIncreasing: bool = ccxt::precise::Precise::stringGt(&price, &lastPrice).as_bool().unwrap_or(false);
+            let mut priceDecreasing: bool = ccxt::precise::Precise::stringLt(&price, &lastPrice).as_bool().unwrap_or(false);
+            if priceIncreasing {
                 assert!(ccxt::runtime::is_true(&((side.as_str() == Some("buy")))));
-            }  else if is_true(&priceDecreasing) {
+            }  else if priceDecreasing {
                 assert!(ccxt::runtime::is_true(&((side.as_str() == Some("sell")))));
             }
         }

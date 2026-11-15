@@ -2945,7 +2945,7 @@ impl Phemex {
         //
         let mut priceString: Value = Value::Null;
         let mut amountString: Value = Value::Null;
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
         let mut id: Option<String> = None;
         let mut side: Option<String> = None;
         let mut costString: Value = Value::Null;
@@ -2961,7 +2961,7 @@ impl Phemex {
         let mut takerOrMaker: Option<String> = None;
         if (matches!(&trade, Value::Arr(_))) {
             let mut tradeLength: i64 = trade.len() as i64;
-            timestamp = self.safe_integer_product(trade.clone(), Value::Int(0), Value::Float(0.000001), &[]);
+            timestamp = self.safe_integer_product(trade.clone(), Value::Int(0), Value::Float(0.000001), &[]).as_i64();
             if tradeLength > 4 {
                 id = self.safe_string(trade.clone(), Value::Int((tradeLength - 4)), &[]).as_str().map(str::to_owned);
             }
@@ -2974,9 +2974,9 @@ impl Phemex {
                 amountString = self.from_ev(amountString, &[marketResolved.clone()]);
             }
         }  else {
-            timestamp = self.safe_integer_product_k(trade.clone(), "transactTimeNs", Value::Float(0.000001), &[]);
-            if (timestamp == Value::Null) {
-                timestamp = self.safe_integer_k(trade.clone(), "createdAt", &[]);
+            timestamp = self.safe_integer_product_k(trade.clone(), "transactTimeNs", Value::Float(0.000001), &[]).as_i64();
+            if (timestamp.is_none()) {
+                timestamp = self.safe_integer_k(trade.clone(), "createdAt", &[]).as_i64();
             }
             id = self.safe_string2(trade.clone(), Value::Str("execId".into()), Value::Str("execID".into()), &[]).as_str().map(str::to_owned);
             orderId = self.safe_string_k(trade.clone(), "orderID", &[]).as_str().map(str::to_owned);
@@ -3051,7 +3051,7 @@ impl Phemex {
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));

@@ -280,18 +280,18 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 let mut qi: i64 = 0;
                 let mut __for_first_190: bool = true;
                 while { if !__for_first_190 { qi += 1; } __for_first_190 = false; qi < queriesLength } {
-                let mut q: Value = (self.safe_string(queries.clone(), Value::Int(qi), &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+                let mut q: String = self.safe_string(queries.clone(), Value::Int(qi), &[Value::Str("".into())]).as_str().unwrap_or("").to_lowercase();
                 if (false) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " filterEventsBySearchIn() missing title")));
                 }
-                if checkTitle && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), (q).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
+                if checkTitle && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), Some(q.as_str())) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                     matched = true;
                     break;
                 }
                 if (false) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " filterEventsBySearchIn() missing description")));
                 }
-                if checkDescription && (((if let (Some(__h), Some(__n)) = (Some(description.as_str()), (q).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
+                if checkDescription && (((if let (Some(__h), Some(__n)) = (Some(description.as_str()), Some(q.as_str())) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                     matched = true;
                     break;
                 }

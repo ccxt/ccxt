@@ -3165,8 +3165,8 @@ impl Deribit {
         }
         let mut lastTradeTimestamp: Option<i64> = None;
         if (filledString.is_some()) {
-            let mut isFilledPositive: Value = crate::precise::Precise::stringGt(&filledString, &Value::Str("0".into()));
-            if isFilledPositive.as_bool() == Some(true) {
+            let mut isFilledPositive: bool = crate::precise::Precise::stringGt(&filledString, &Value::Str("0".into())).as_bool().unwrap_or(false);
+            if isFilledPositive {
                 lastTradeTimestamp = lastUpdate.take();
             }
         }

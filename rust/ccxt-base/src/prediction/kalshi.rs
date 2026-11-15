@@ -1577,17 +1577,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut noAsk: Option<f64> = self.safe_number_k(raw.clone(), "no_ask_dollars", &[]).as_f64();
         let mut noBid: Option<f64> = self.safe_number_k(raw.clone(), "no_bid_dollars", &[]).as_f64();
         let mut last: Option<f64> = self.safe_number_k(raw.clone(), "last_price_dollars", &[]).as_f64();
-        let mut bid: Value = Value::Null;
-        let mut ask: Value = Value::Null;
-        let mut close: Value = Value::Null;
+        let mut bid: Option<f64> = None;
+        let mut ask: Option<f64> = None;
+        let mut close: Option<f64> = None;
         if isNo {
-            bid = Value::from(noBid);
-            ask = Value::from(noAsk);
-            close = (if (last.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(last)))), &[]) } else { Value::Null });
+            bid = noBid;
+            ask = noAsk;
+            close = (if (last.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(last)))), &[]).as_f64() } else { None });
         }  else {
-            bid = Value::from(yesBid);
-            ask = Value::from(yesAsk);
-            close = Value::from(last);
+            bid = yesBid;
+            ask = yesAsk;
+            close = last.take();
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
         let mut bidSizeString: Option<String> = None;
@@ -1613,8 +1613,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             askVolume = self.parse_number(askSizeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut average: Option<f64> = None;
-        if (bid != Value::Null) && (ask != Value::Null) {
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(bid.clone())), &Value::from(self.number_to_string(ask.clone()))), &Value::Str("2".into())), &[]).as_f64();
+        if (bid.is_some()) && (ask.is_some()) {
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(bid))), &Value::from(self.number_to_string(Value::from(ask)))), &Value::Str("2".into())), &[]).as_f64();
         }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1626,14 +1626,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), bid);
+        m.insert("bid".to_string(), Value::from(bid));
         m.insert("bidVolume".to_string(), Value::from(bidVolume));
-        m.insert("ask".to_string(), ask);
+        m.insert("ask".to_string(), Value::from(ask));
         m.insert("askVolume".to_string(), Value::from(askVolume));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), close.clone());
-        m.insert("last".to_string(), close);
+        m.insert("close".to_string(), Value::from(close));
+        m.insert("last".to_string(), Value::from(close));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);

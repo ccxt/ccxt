@@ -3368,14 +3368,14 @@ impl Weex {
         let mut triggerPrice: Option<String> = triggerPricestopLossPricetakeProfitPricequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut stopLossPrice: Option<String> = triggerPricestopLossPricetakeProfitPricequeryVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut takeProfitPrice: Option<String> = triggerPricestopLossPricetakeProfitPricequeryVariable.get(2).and_then(Value::as_str).map(str::to_owned);
-        let mut query: Value = triggerPricestopLossPricetakeProfitPricequeryVariable.get(3).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = triggerPricestopLossPricetakeProfitPricequeryVariable.get(3).cloned().unwrap_or(Value::Null).into_dict();
         let mut isTrigger: bool = triggerPrice.is_some();
         let mut isStopLoss: bool = stopLossPrice.is_some();
         let mut isTakeProfit: bool = takeProfitPrice.is_some();
         if isTrigger && (isStopLoss || isTakeProfit) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")));
         }
-        let mut reduceOnly: bool = self.safe_bool_k_opt(query, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(&query, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut isReduceOnly: bool = isStopLoss || isTakeProfit || reduceOnly;
         let mut positionSide: String = "LONG".to_string();
         if isReduceOnly {

@@ -1281,7 +1281,7 @@ impl Hyperliquid {
         let mut price: Value = price.into();
         let mut amountPrecision: Value = amountPrecision.into();
         let mut maxDecimals: Value = maxDecimals.into();
-        let mut pricePrecision: Value = Value::Int(0);
+        let mut pricePrecision: Option<i64> = Some(0);
         let mut priceStr: Option<String> = self.number_to_string(price);
         if (priceStr.is_none()) {
             return Value::Int(0);
@@ -1293,21 +1293,21 @@ impl Hyperliquid {
         if crate::precise::Precise::stringEq(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = Value::Int(i64::min(decimalsLeft, 5));
+            pricePrecision = Some(i64::min(decimalsLeft, 5));
         }  else if crate::precise::Precise::stringGt(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringLt(&priceStr, &Value::Str("1".into())).as_bool() == Some(true) {
             // Significant digits, always 5 in this case
             let mut significantDigits: i64 = 5;
             // Get the part after the decimal separator
             let mut decimalPart: Value = self.safe_string(&priceSplitted, Value::Int(1), &[Value::Str("".into())]);
             // Count the number of leading zeros in the decimal part
-            let mut leadingZeros: Value = Value::from(self.parse_to_int(Value::Int(0)));
-            while (leadingZeros.as_f64().unwrap_or(f64::NAN) <= ((decimalPart.len() as i64) as f64)) && (get_value(&decimalPart, &leadingZeros).as_str() == Some("0")) {
-                leadingZeros = Value::from(self.parse_to_int((match (&(leadingZeros), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
+            let mut leadingZeros: Option<i64> = self.parse_to_int(Value::Int(0));
+            while (matches!(leadingZeros, Some(__p) if (__p as f64) <= ((decimalPart.len() as i64) as f64))) && (get_value(&decimalPart, &Value::from(leadingZeros)).as_str() == Some("0")) {
+                leadingZeros = self.parse_to_int(Value::from((if let Some(__l) = leadingZeros { Some(__l + 1) } else { None })));
             }
             // Calculate price precision based on leading zeros and significant digits
-            pricePrecision = (match (&(leadingZeros), &(Value::from(significantDigits))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            pricePrecision = (if let Some(__l) = leadingZeros { Some(__l + significantDigits) } else { None });
             // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
-            pricePrecision = crate::runtime::Math::min(&Value::from(decimalsLeft), &pricePrecision);
+            pricePrecision = (if let Some(__m1) = pricePrecision { Some(i64::min(decimalsLeft, __m1)) } else { None });
         }  else {
             // Count the numbers before the decimal separator
             let mut integerPart: String = self.safe_string(&priceSplitted, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1317,9 +1317,9 @@ impl Hyperliquid {
             if ((integerPart.chars().count() as i64)) <= 5 {
                 digitsLeft = (5 - ((integerPart.chars().count() as i64)));
             }
-            pricePrecision = Value::Int(i64::min(decimalsLeft, digitsLeft));
+            pricePrecision = Some(i64::min(decimalsLeft, digitsLeft));
         }
-        return Value::from(self.parse_to_int(pricePrecision));
+        return Value::from(self.parse_to_int(Value::from(pricePrecision)));
 
     Value::Null
 }

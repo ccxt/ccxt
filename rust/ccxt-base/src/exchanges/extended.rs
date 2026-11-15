@@ -3983,17 +3983,17 @@ impl Extended {
         let mut fee: String = self.safe_string_k(params.clone(), "fee", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
         let mut builderFeeRate: Option<String> = None;
         let mut builderId: Option<String> = None;
-        let mut paramsBuilder: Value = params.clone();
+        let mut paramsBuilder: crate::value::Dict = params.clone().into_dict();
         let mut builderEnabled: bool = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if builderEnabled {
             if self.isSandboxModeEnabled.as_bool() == Some(true) {
                 builderFeeRate = self.safe_string2(params.clone(), Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), &[]).as_str().map(str::to_owned);
                 builderId = self.safe_string2(params.clone(), Value::Str("builderId".into()), Value::Str("defaultBuilderId".into()), &[]).as_str().map(str::to_owned);
-                paramsBuilder = self.omit(params.clone(), &["builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"], &[]);
+                paramsBuilder = self.omit(params.clone(), &["builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"], &[]).into_dict();
             }  else {
                 let mut paramsBuilderFeeRate: crate::value::Dict = Default::default();
                 { let __destr_tmp = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("builderFeeRate".into()), &[Value::Str("0.0001".into())]).into_list(); builderFeeRate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilderFeeRate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-                { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(&paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]).as_array().cloned().unwrap_or_default(); builderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilder = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+                { let __destr_tmp = self.handle_option_string_and_params(&paramsBuilderFeeRate, Value::Str("createOrder".into()), Value::Str("builderId".into()), &[]).into_list(); builderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsBuilder = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             }
         }
         let mut totalFee: Option<String> = Some(fee.clone());
@@ -4001,10 +4001,10 @@ impl Extended {
             totalFee = crate::precise::Precise::stringAdd(&fee, &builderFeeRate.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut now: i64 = self.milliseconds();
-        let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(paramsBuilder.clone(), "expiryEpochMillis", &[Value::Int((now + 3600000))]).as_i64();
+        let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(&paramsBuilder, "expiryEpochMillis", &[Value::Int((now + 3600000))]).as_i64();
         let mut settlementDefault: Value = (if (expiryEpochMillis.is_some()) { (match (&(Value::from(self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = expiryEpochMillis { Some(__l + 999) } else { None })) { Some((__l as f64) / 1000.0) } else { None }))))), &(Value::Int(1209600))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y),
             (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::Null });
-        let mut settlementExpiration: Value = self.safe_integer_k(paramsBuilder.clone(), "settlementExpiration", &[settlementDefault]);
+        let mut settlementExpiration: Value = self.safe_integer_k(&paramsBuilder, "settlementExpiration", &[settlementDefault]);
         let mut nonce: Option<String> = self.number_to_string(self.nonce());
         let mut account: crate::value::Dict = self.fetch_extended_account(&[]).await.into_dict();
         let mut starkKey: Option<String> = self.safe_string_k(&account, "l2Key", &[]).as_str().map(str::to_owned);
@@ -4038,7 +4038,7 @@ impl Extended {
             m
         });
         let mut isBuy: bool = uppercaseSide == "BUY";
-        let mut clientOrderId: Option<String> = self.safe_string2(paramsBuilder.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string2(&paramsBuilder, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(clientOrderId.as_deref()));
@@ -4062,7 +4062,7 @@ impl Extended {
         if (builderId.is_some()) {
             request.insert("builderId".into(), builderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut cancelId: Option<String> = self.safe_string2(paramsBuilder.clone(), Value::Str("cancelId".into()), Value::Str("previousOrderId".into()), &[]).as_str().map(str::to_owned);
+        let mut cancelId: Option<String> = self.safe_string2(&paramsBuilder, Value::Str("cancelId".into()), Value::Str("previousOrderId".into()), &[]).as_str().map(str::to_owned);
         if (cancelId.is_some()) {
             request.insert("cancelId".into(), cancelId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -4079,13 +4079,13 @@ impl Extended {
         m.insert("collateralPosition".to_string(), collateralPosition.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
-        let mut triggerPriceStr: Option<String> = self.safe_string2(paramsBuilder.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-        let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(paramsBuilder.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
-        let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(paramsBuilder.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut triggerPriceStr: Option<String> = self.safe_string2(&paramsBuilder, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(&paramsBuilder, "stopLossPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(&paramsBuilder, "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isStopLossOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsBuilder.clone(), "stopLoss", &[]).into_opt_dict();
-        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsBuilder.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&paramsBuilder, "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&paramsBuilder, "takeProfit", &[]).into_opt_dict();
         let mut hasStopLoss: bool = stopLoss.is_some();
         let mut hasTakeProfit: bool = takeProfit.is_some();
         if hasStopLoss || hasTakeProfit {
@@ -4156,7 +4156,7 @@ impl Extended {
             }
         }  else {
             if (triggerPriceStr.is_some()) {
-                let mut triggerDirection: Option<String> = self.safe_string_upper_k(paramsBuilder.clone(), "triggerDirection", &[]).as_str().map(str::to_owned);
+                let mut triggerDirection: Option<String> = self.safe_string_upper_k(&paramsBuilder, "triggerDirection", &[]).as_str().map(str::to_owned);
                 if (triggerDirection.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires triggerDirection for trigger order")));
                 }
@@ -4188,7 +4188,7 @@ impl Extended {
                 request.insert("trigger".into(), Value::Map(trigger));
             }
         }
-        let mut paramsOmitted: Value = self.omit(paramsBuilder, &["clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"], &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsBuilder, &["clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"], &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("request".to_string(), self.extend(Value::Map(request), &[paramsOmitted]));

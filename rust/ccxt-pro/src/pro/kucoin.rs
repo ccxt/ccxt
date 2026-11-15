@@ -2476,7 +2476,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if !(self.orderbooks.has(&symbol)) {
                 { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }  else {
-                let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
+                let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
                 orderbook.reset0();
             }
             { let mut __b = self.orderbooks.at(&symbol); __b.set_book_meta("symbol", symbol.clone()); }

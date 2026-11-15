@@ -1668,8 +1668,8 @@ impl Woofipro {
         }
         }
         // don't remove the future from the .futures cache
-        let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash, &[]);
-        if (future != Value::Null) {
+        let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
+        if ((future != crate::pro::ws_client::Flight::default())) {
             future.resolve(Value::from(&cache), None);
             client.resolve(Value::from(&cache), "positions");
         }

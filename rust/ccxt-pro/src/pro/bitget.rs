@@ -2082,15 +2082,15 @@ impl Bitget {
         let mut instType: Option<String> = Some("USDT-FUTURES".to_string());
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Option<bool> = utaparamsUtaVariable.get(0).and_then(Value::as_bool);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut hasSymbols: bool = (symbolsNormalized.is_some()) && !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true));
         if hasSymbols {
             market = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         }
-        let mut paramsInstType: Value = paramsUta.clone();
+        let mut paramsInstType: crate::value::Dict = Value::from(&paramsUta).into_dict();
         if hasSymbols {
-            { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchPositions".into()), market.as_ref(), &[uta.map_or(Value::Null, Value::Bool), paramsUta]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchPositions".into()), market.as_ref(), &[uta.map_or(Value::Null, Value::Bool), Value::Dict(paramsUta)]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         }
         if (uta == Some(true)) {
             instType = Some("UTA".to_string());
@@ -2110,7 +2110,7 @@ impl Bitget {
             channel = "position".to_string();
         }
         args.insert(topicOrChannel, Value::from(channel));
-        let mut paramsRequest: Value = paramsInstType.clone();
+        let mut paramsRequest: Value = Value::from(&paramsInstType);
         if (uta == Some(true)) {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2418,7 +2418,7 @@ impl Bitget {
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[Value::from(&paramsMarketType), Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if ((type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin"))) && (symbolResolved.is_none()) {
             marketId = Some("default".to_string());
         }
@@ -2433,9 +2433,9 @@ impl Bitget {
         }
         let mut useSpotInstType: bool = (symbol == Value::Null) && (type_var.as_deref() == Some("spot"));
         let mut instType: Option<String> = Some("SPOT".to_string());
-        let mut paramsInstType: Value = paramsSubType.clone();
+        let mut paramsInstType: Value = Value::from(&paramsSubType);
         if !useSpotInstType {
-            { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchOrders".into()), market.as_ref(), &[uta.map_or(Value::Null, Value::Bool), paramsSubType]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchOrders".into()), market.as_ref(), &[uta.map_or(Value::Null, Value::Bool), Value::Dict(paramsSubType)]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         if (type_var.as_deref() == Some("spot")) && (symbolResolved.is_some()) {
             subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, ":").into()), symbolResolved.as_deref().unwrap_or("null"));
@@ -2998,12 +2998,12 @@ impl Bitget {
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("watchMyTrades".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Option<bool> = utaparamsUtaVariable.get(0).and_then(Value::as_bool);
-        let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut useSpotInstType: bool = (symbol == Value::Null) && (type_var.as_deref() == Some("spot"));
         let mut instType: Option<String> = Some("SPOT".to_string());
-        let mut paramsInstType: Value = paramsUta.clone();
+        let mut paramsInstType: crate::value::Dict = Value::from(&paramsUta).into_dict();
         if !useSpotInstType {
-            { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchMyTrades".into()), market.as_ref(), &[uta.map_or(Value::Null, Value::Bool), paramsUta]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchMyTrades".into()), market.as_ref(), &[uta.map_or(Value::Null, Value::Bool), Value::Dict(paramsUta)]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         }
         if (uta == Some(true)) {
             instType = Some("UTA".to_string());
@@ -3019,7 +3019,7 @@ impl Bitget {
             topicOrChannel = "topic".to_string();
         }
         args.insert(topicOrChannel, Value::Str("fill".into()));
-        let mut paramsRequest: Value = paramsInstType.clone();
+        let mut paramsRequest: Value = Value::from(&paramsInstType);
         if (uta == Some(true)) {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

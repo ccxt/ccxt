@@ -2640,8 +2640,8 @@ impl Bitstamp {
         // if it is a private trade
         if (matches!(&trade, Value::Dict(__d) if __d.contains_key("id"))) {
             if (amountString.is_some()) {
-                let mut isAmountNeg: Value = crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into()));
-                if isAmountNeg.as_bool() == Some(true) {
+                let mut isAmountNeg: bool = crate::precise::Precise::stringLt(&amountString, &Value::Str("0".into())).as_bool().unwrap_or(false);
+                if isAmountNeg {
                     side = Some("sell".to_string());
                     amountString = crate::precise::Precise::stringNeg(&amountString).as_str().map(str::to_owned);
                 }  else {

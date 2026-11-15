@@ -666,11 +666,11 @@ impl Limitless {
             }
             }
         }  else {
-            let mut page: Value = Value::Int(1);
+            let mut page: i64 = 1;
             let mut pageSize: i64 = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(25)]).as_i64().unwrap_or(25);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("page".to_string(), page.clone());
+                    m.insert("page".to_string(), Value::from(page));
                     m.insert("limit".to_string(), Value::from(pageSize));
                 m
             });
@@ -689,8 +689,8 @@ impl Limitless {
                 if i.as_f64().unwrap_or(f64::NAN) > cappedPages.as_f64().unwrap_or(f64::NAN) {
                     break;
                 }
-                page = i.clone();
-                request.insert("page".into(), page.clone());
+                page = i.as_i64().unwrap_or_default();
+                request.insert("page".into(), Value::from(page));
                 let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&rest]);
                 promises.push(self.limitless_public_get_markets_active(&[__ws_arg_2]).await);
             }
@@ -712,8 +712,8 @@ impl Limitless {
             let mut allRawLength: i64 = allRaw.len() as i64;
             if lastPageLength >= pageSize && Some(allRawLength) < maxMarkets {
                 loop {
-                    page = self.sum(&[page.clone(), Value::Int(1)]);
-                    request.insert("page".into(), page.clone());
+                    page = (page + 1);
+                    request.insert("page".into(), Value::from(page));
                     let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[&rest]);
                     let mut response: Value = self.limitless_public_get_markets_active(&[__ws_arg_3]).await;
                     let mut responseRows: Value = Value::from(vec![]);

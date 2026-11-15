@@ -1417,7 +1417,7 @@ impl Upbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut tickers: Value = Value::from(vec![]);
+        let mut tickers: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_none()) {
             // ticker/all returns every market of the requested quote currencies with a single request
             let mut quoteIds: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1451,7 +1451,7 @@ impl Upbit {
                 m
             });
             let __ws_arg_3 = self.extend(Value::Map(request), &[params.clone()]);
-            tickers = self.public_get_ticker_all(&[__ws_arg_3]).await;
+            tickers = self.public_get_ticker_all(&[__ws_arg_3]).await.into_list();
         }  else {
             let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
             let mut promises: Vec<Value> = Vec::new();
@@ -1469,9 +1469,9 @@ impl Upbit {
             }
             }
             let mut responses: Value = promise_all(&Value::from(promises)).await;
-            tickers = self.arrays_concat(responses);
+            tickers = self.arrays_concat(responses).into_list();
         }
-        return self.parse_tickers(tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.parse_tickers(&tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

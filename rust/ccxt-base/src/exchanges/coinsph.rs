@@ -3125,7 +3125,7 @@ impl Coinsph {
     m
 }));
         let mut encodedArrayParams: String = "".to_string();
-        let mut remainingQuery: Value = query.clone();
+        let mut remainingQuery: crate::value::Dict = query.clone().into_dict();
         let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -3137,13 +3137,13 @@ impl Coinsph {
                     encodedArrayParams.push_str("&");
                 }
                 let mut innerArray: Value = (if let (Some(__m), Some(__k)) = (query.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-                remainingQuery = self.omit(remainingQuery, Value::from(key.as_deref()), &[]);
+                remainingQuery = self.omit(&remainingQuery, Value::from(key.as_deref()), &[]).into_dict();
                 let mut encodedArrayParam: Option<String> = self.parse_array_param(innerArray, key.as_deref().unwrap_or_default()).as_str().map(str::to_owned);
                 encodedArrayParams.push_str(encodedArrayParam.as_deref().unwrap_or("null"));
             }
         }
         }
-        let mut encodedQuery: String = self.urlencode(remainingQuery, &[]);
+        let mut encodedQuery: String = self.urlencode(&remainingQuery, &[]);
         if (((encodedQuery.chars().count() as i64)) != 0) {
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", encodedQuery, "&").into()), encodedArrayParams).into());
         }  else {

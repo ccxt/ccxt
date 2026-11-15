@@ -1448,12 +1448,12 @@ impl Coinbaseexchange {
     m
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             let mut snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_deref()), &[]).into_dict();
             orderbook.reset(Value::Dict(snapshot));
-            client.resolve(orderbook.clone(), messageHash.as_str());
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
         }  else if (type_var.as_deref() == Some("l2update")) {
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             let mut timestamp: Option<i64> = self.parse8601((match __pro_message.get("time").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
             let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
             let mut sides: indexmap::IndexMap<String, Value> = ({
@@ -1471,13 +1471,13 @@ impl Coinbaseexchange {
                 let mut side: Option<String> = self.safe_string(&sides, key.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut price: Option<f64> = self.safe_number(&change, Value::Int(1), &[]).as_f64();
                 let mut amount: Option<f64> = self.safe_number(&change, Value::Int(2), &[]).as_f64();
-                let mut bookside: Value = self.safe_value(orderbook.clone(), side.map(Value::from).unwrap_or(Value::Null), &[]);
+                let mut bookside: Value = self.safe_value(Value::from(&orderbook), side.map(Value::from).unwrap_or(Value::Null), &[]);
                 bookside.store(price, amount);
             }
             }
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
-            client.resolve(orderbook, messageHash.as_str());
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
 }
 

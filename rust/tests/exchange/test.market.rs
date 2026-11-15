@@ -265,8 +265,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         let mut isExclusivePair: bool = market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("BTC");
         let mut isNonSpot: bool = spot.as_bool() != Some(true); // such high precision is only allowed in contract markets
         let mut isPrice: bool = priceOrAmountKey.as_str() == Some("price");
-        let mut isTickSize5: Value = ccxt::precise::Precise::stringEq(&Value::Str("5".into()), &exchange.safe_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), priceOrAmountKey.clone(), &[]));
-        if isNonSpot && isPrice && isExclusivePair && is_true(&isTickSize5) {
+        let mut isTickSize5: bool = ccxt::precise::Precise::stringEq(&Value::Str("5".into()), &exchange.safe_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), priceOrAmountKey.clone(), &[])).as_bool().unwrap_or(false);
+        if isNonSpot && isPrice && isExclusivePair && isTickSize5 {
             continue;
         }
         if !(in_op(&skippedProperties, &Value::Str("precision".into()))) {

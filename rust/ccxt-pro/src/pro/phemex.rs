@@ -1385,12 +1385,12 @@ impl Phemex {
     m
 }), Value::from(depth)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             orderbook.reset(Value::Dict(snapshot));
-            client.resolve(orderbook.clone(), messageHash.as_str());
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
         }  else {
             if (self.orderbooks.has(&symbol)) {
-                let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
+                let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
                 let mut changes: crate::value::Dict = self.safe_dict2(message, Value::Str("book".into()), Value::Str("orderbook_p".into()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1403,7 +1403,7 @@ impl Phemex {
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
                 orderbook.set_book_meta("datetime", self.iso8601(timestamp));
                 CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
-                client.resolve(orderbook, messageHash.as_str());
+                client.resolve(Value::from(&orderbook), messageHash.as_str());
             }
         }
 }

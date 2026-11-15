@@ -1680,12 +1680,12 @@ impl Woo {
         let mut first: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut marketType: Option<String> = None;
         let mut spot: bool = false;
-        let mut swap: Value = Value::Bool(false);
+        let mut swap: bool = false;
         if (first.as_deref() == Some("SPOT")) {
             spot = true;
             marketType = Some("spot".to_string());
         }  else if (first.as_deref() == Some("PERP")) {
-            swap = Value::Bool(true);
+            swap = true;
             marketType = Some("swap".to_string());
         }
         let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
@@ -1702,8 +1702,8 @@ impl Woo {
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
         let mut margin: bool = true;
-        let mut contract: Value = swap.clone();
-        if contract.as_bool() == Some(true) {
+        let mut contract: bool = swap;
+        if contract {
             margin = false;
             settleId = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
             settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -1726,11 +1726,11 @@ impl Woo {
         m.insert("type".to_string(), marketType.map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(spot));
         m.insert("margin".to_string(), Value::Bool(margin));
-        m.insert("swap".to_string(), swap);
+        m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("contract".to_string(), contract);
+        m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("contractSize".to_string(), Value::from(contractSize));

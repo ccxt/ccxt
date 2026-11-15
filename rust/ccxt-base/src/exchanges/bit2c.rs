@@ -1380,7 +1380,7 @@ impl Bit2c {
         //     }
         //
         let mut timestamp: Option<i64> = None;
-        let mut id: Value = Value::Null;
+        let mut id: Option<String> = None;
         let mut price: Option<String> = None;
         let mut amount: Option<String> = None;
         let mut orderId: Option<String> = None;
@@ -1388,9 +1388,9 @@ impl Bit2c {
         let mut side: Value = Value::Null;
         let mut makerOrTaker: Option<String> = None;
         let mut tradeMarket: Option<crate::types::Market> = None;
-        let mut reference: Option<String> = self.safe_string_k_opt(trade.clone(), "reference", &[]);
+        let mut reference: Option<String> = self.safe_string_k(trade.clone(), "reference", &[]).as_str().map(str::to_owned);
         if (reference.is_some()) {
-            id = reference.clone().map(Value::from).unwrap_or(Value::Null);
+            id = reference.clone();
             timestamp = self.safe_timestamp_k(trade.clone(), "ticks", &[]).as_i64();
             let mut rawPrice: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
             if (rawPrice.is_some()) {
@@ -1421,7 +1421,7 @@ impl Bit2c {
             }
         }  else {
             timestamp = self.safe_timestamp_k(trade.clone(), "date", &[]).as_i64();
-            id = self.safe_string_k(trade.clone(), "tid", &[]);
+            id = self.safe_string_k(trade.clone(), "tid", &[]).as_str().map(str::to_owned);
             price = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
             amount = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
             tradeMarket = Some(self.safe_market(Value::Null, market, &[]));
@@ -1435,7 +1435,7 @@ impl Bit2c {
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));

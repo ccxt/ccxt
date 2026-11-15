@@ -1307,7 +1307,7 @@ impl Predictfun {
         //
         let mut rawMarkets: crate::value::List = self.safe_list_k(rawTopic.clone(), "markets", &[Value::from(vec![])]).into_list();
         let mut marketsList: Vec<Value> = Vec::new();
-        let mut anyActive: Value = Value::Bool(false);
+        let mut anyActive: bool = false;
         let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
         {
                         let mut i: i64 = 0;
@@ -1316,7 +1316,7 @@ impl Predictfun {
             let mut parsed: crate::value::Dict = self.parse_topic_market(rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null), rawTopic.clone()).into_dict();
             marketsList.push(Value::from(&parsed));
             if matches!(self.safe_bool_k(&parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
-                anyActive = Value::Bool(true);
+                anyActive = true;
             }
         }
         }
@@ -1325,9 +1325,9 @@ impl Predictfun {
         let mut endDate: Option<String> = self.safe_string_k(rawTopic.clone(), "endsAt", &[]).as_str().map(str::to_owned);
         let mut created: Option<String> = self.safe_string_k(rawTopic.clone(), "createdAt", &[]).as_str().map(str::to_owned);
         let mut status: Option<String> = self.safe_string_k(rawTopic.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = anyActive;
+        let mut active: bool = anyActive;
         if (rawMarketsLength == 0) {
-            active = Value::Bool((status.as_deref() == Some("REGISTERED")) || (status.as_deref() == Some("OPEN")));
+            active = ((status.as_deref() == Some("REGISTERED")) || (status.as_deref() == Some("OPEN")));
         }
         let mut resolved: Option<bool> = None;
         if (status.is_some()) {
@@ -1341,7 +1341,7 @@ impl Predictfun {
         m.insert("title".to_string(), title.map(Value::from).unwrap_or(Value::Null));
         m.insert("description".to_string(), self.safe_string_k(rawTopic.clone(), "description", &[]));
         m.insert("markets".to_string(), Value::from(marketsList));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("url".to_string(), Value::Null);
         m.insert("image".to_string(), self.safe_string_k(rawTopic.clone(), "imageUrl", &[]));
         m.insert("created".to_string(), Value::from(self.parse8601(created.clone().map(Value::from).unwrap_or(Value::Null))));
@@ -4057,13 +4057,13 @@ impl Predictfun {
         if (subscribeHash.is_some()) && (__ch.has_subscription((&subscribeHash).as_deref())) {
             __ch.remove_subscription(subscribeHash.as_deref());
         }
-        let mut messageHashes: Value = (match subscription.get("messageHashes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+        let mut messageHashes: crate::value::List = (match subscription.get("messageHashes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         if ((match subscription.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("walletEvents")) {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
             // only to the client. read the live waiters now, or those later callers would never be
             // rejected and, with the subscription gone below, never retried or torn down either
-            messageHashes = self.wallet_event_message_hashes(client.clone(), None);
+            messageHashes = self.wallet_event_message_hashes(client.clone(), None).into_list();
         }
         let mut messageHashesLength: i64 = messageHashes.len() as i64;
         if (messageHashesLength == 0) {
@@ -4073,7 +4073,7 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1481: bool = true;
             while { if !__for_first_1481 { i += 1; } __for_first_1481 = false; i < messageHashesLength } {
-            client.reject(error.clone(), &self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]));
+            client.reject(error.clone(), &self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]));
         }
         }
 }

@@ -3493,7 +3493,7 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut batchSize: Value = self.safe_integer_k(&options, "batchSize", &[Value::Int(20)]);
+        let mut batchSize: i64 = self.safe_integer_k(&options, "batchSize", &[Value::Int(20)]).as_i64().unwrap_or(20);
         let mut numTradeIds: i64 = tradeIds.len() as i64;
         // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
         let mut batches: Vec<Value> = Vec::new();
@@ -3503,7 +3503,7 @@ impl Kraken {
             let mut __for_first_855: bool = true;
             while { if !__for_first_855 { i += 1; } __for_first_855 = false; i < numTradeIds } {
             if let Value::Arr(__a) = &mut batch { std::sync::Arc::make_mut(__a).push(tradeIds.get(i as usize).cloned().unwrap_or(Value::Null)); }
-            if ((batch.len() as i64) as f64) >= batchSize.as_f64().unwrap_or(f64::NAN) {
+            if ((batch.len() as i64) as f64) >= (batchSize as f64) {
                 batches.push(batch.clone());
                 batch = Value::from(vec![]);
             }

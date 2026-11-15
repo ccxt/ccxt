@@ -4202,7 +4202,7 @@ impl Okx {
         if (type_var.as_deref() == Some("futures")) {
             type_var = Some("future".to_string());
         }
-        let mut spot: Value = (Value::Bool(type_var.as_deref() == Some("spot")));
+        let mut spot: bool = type_var.as_deref() == Some("spot");
         let mut future: bool = type_var.as_deref() == Some("future");
         let mut swap: bool = type_var.as_deref() == Some("swap");
         let mut option: bool = type_var.as_deref() == Some("option");
@@ -4212,12 +4212,12 @@ impl Okx {
         let mut settleId: Option<String> = self.safe_string_k(market.clone(), "settleCcy", &[]).as_str().map(str::to_owned);
         let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut underlying: Option<String> = self.safe_string_k(market.clone(), "uly", &[]).as_str().map(str::to_owned);
-        if (underlying.is_some()) && !(matches!(&spot, Value::Bool(true))) {
+        if (underlying.is_some()) && !spot {
             let mut parts: Value = Value::Array(if let Some(__s) = underlying.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             baseId = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             quoteId = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }
-        if ((baseId == "") || (quoteId == "")) && matches!(&spot, Value::Bool(true)) {
+        if ((baseId == "") || (quoteId == "")) && spot {
             let mut instId: String = self.safe_string_k(market.clone(), "instId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut parts: Value = Value::Array(instId.split("-").map(Value::from).collect());
             baseId = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -4266,7 +4266,7 @@ impl Okx {
         let mut maxLeverage: Option<String> = self.safe_string_k(market.clone(), "lever", &[Value::Str("1".into())]).as_str().map(str::to_owned);
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut maxSpotCost: Option<f64> = self.safe_number_k(market.clone(), "maxMktSz", &[]).as_f64();
-        let mut leverageAboveOne: Value = crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into()));
+        let mut leverageAboveOne: bool = crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into())).as_bool().unwrap_or(false);
         let mut quoteEqualSettle: bool = settleId.as_deref() == Some(quoteId.as_str());
         let mut baseEqualSettle: bool = settleId.as_deref() == Some(baseId.as_str());
         let mut status: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
@@ -4293,8 +4293,8 @@ impl Okx {
         m.insert("quoteId".to_string(), Value::from(quoteId));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), spot.clone());
-        m.insert("margin".to_string(), Value::Bool(matches!(&spot, Value::Bool(true)) && leverageAboveOne.as_bool() == Some(true)));
+        m.insert("spot".to_string(), Value::Bool(spot));
+        m.insert("margin".to_string(), Value::Bool((spot && leverageAboveOne)));
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(future));
         m.insert("option".to_string(), Value::Bool(option));

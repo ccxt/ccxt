@@ -3157,7 +3157,7 @@ impl Mexc {
                 m.insert("interval".to_string(), timeframeValue.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut candles: Value = Value::from(vec![]);
+        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
         let mut omitUntil: bool = (until.is_some()) && (since == Value::Null);
         let mut paramsUntil: crate::value::Dict = Value::from(&paramsPaginate).into_dict();
@@ -3205,7 +3205,7 @@ impl Mexc {
             //       ],
             //     ]
             //
-            candles = self.to_array(&response);
+            candles = self.to_array(&response).into_list();
         }  else if (market).swap {
             if (since != Value::Null) {
                 request.insert("start".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
@@ -3252,9 +3252,9 @@ impl Mexc {
             //     }
             //
             let mut data: Option<crate::value::Dict> = self.safe_dict_k(response, "data", &[]).into_opt_dict();
-            candles = self.convert_trading_view_to_ohlcv(&data, &[Value::Str("time".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("vol".into())]);
+            candles = self.convert_trading_view_to_ohlcv(&data, &[Value::Str("time".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("vol".into())]).into_list();
         }
-        return self.parse_ohlc_vs(candles, Some(&market), &[timeframe, since, limit]);
+        return self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }

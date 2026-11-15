@@ -442,7 +442,7 @@ impl Opinion {
         let mut rest: crate::value::Dict = self.omit(params.clone(), &["limit"], &[]).into_dict();
         let mut userLimit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
         let mut pageLimit: i64 = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(20)]).as_i64().unwrap_or(20);
-        let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]);
+        let mut maxPages: i64 = self.safe_integer_k(self.options.clone(), "maxMarketsPages", &[Value::Int(50)]).as_i64().unwrap_or(50);
         let mut flatMarkets: Vec<Value> = Vec::new();
         // seen-guard keyed by the event handle; the events themselves go through setEvents below
         // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
@@ -454,14 +454,14 @@ impl Opinion {
         // every raw (unflattened) row fetched so far, so its length is the raw fetched count
         let mut fetchedRawRows: Vec<Value> = Vec::new();
         {
-                        let mut page: Value = Value::Int(1);
+                        let mut page: i64 = 1;
             let mut __for_first_1386: bool = true;
-            while { if !__for_first_1386 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1386 = false; page.as_f64().unwrap_or(f64::NAN) <= maxPages.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1386 { page += 1; } __for_first_1386 = false; page <= maxPages } {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("marketType".to_string(), Value::Int(2));
                     m.insert("limit".to_string(), Value::from(pageLimit));
-                    m.insert("page".to_string(), page.clone());
+                    m.insert("page".to_string(), Value::Int(page));
                 m
             });
             let __ws_arg_0 = self.extend(Value::Map(request), &[&rest]);
@@ -506,7 +506,7 @@ impl Opinion {
             }
             let mut collectedLength: i64 = flatMarkets.len() as i64;
             let mut fetchedRawCount: i64 = fetchedRawRows.len() as i64;
-            if (rawMarketsLength < pageLimit) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || ((total.is_some()) && ((total.is_some() && Some(fetchedRawCount) >= total))) || ((userLimit.is_some()) && ((userLimit.is_some() && Some(collectedLength) >= userLimit))) {
+            if (rawMarketsLength < pageLimit) || (page >= maxPages) || ((total.is_some()) && ((total.is_some() && Some(fetchedRawCount) >= total))) || ((userLimit.is_some()) && ((userLimit.is_some() && Some(collectedLength) >= userLimit))) {
                 break;
             }
         }
@@ -771,12 +771,12 @@ impl Opinion {
         // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
         // label can still hold more than one page
         let mut fetchCap: Option<i64> = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchEventsResults".into()), &[Value::Int(100)])]).as_i64();
-        let mut maxPages: Value = self.safe_integer_k(self.options.clone(), "maxEventsPages", &[Value::Int(50)]);
+        let mut maxPages: i64 = self.safe_integer_k(self.options.clone(), "maxEventsPages", &[Value::Int(50)]).as_i64().unwrap_or(50);
         let mut rawEvents: Vec<Value> = Vec::new();
         {
-                        let mut page: Value = Value::Int(1);
+                        let mut page: i64 = 1;
             let mut __for_first_1389: bool = true;
-            while { if !__for_first_1389 { if let Value::Int(n) = &mut page { *n += 1; } } __for_first_1389 = false; page.as_f64().unwrap_or(f64::NAN) <= maxPages.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1389 { page += 1; } __for_first_1389 = false; page <= maxPages } {
             let mut fetchedSoFar: i64 = rawEvents.len() as i64;
             let mut remaining: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = fetchCap { Some(__l - fetchedSoFar) } else { None })));
             let mut reqLimit: Option<i64> = (if ((remaining.is_some() && pageLimit.is_some() && remaining < pageLimit)) { remaining } else { pageLimit });
@@ -787,7 +787,7 @@ impl Opinion {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("marketType".to_string(), Value::Int(1));
                     m.insert("limit".to_string(), Value::from(reqLimit));
-                    m.insert("page".to_string(), page.clone());
+                    m.insert("page".to_string(), Value::Int(page));
                 m
             });
             let __ws_arg_3 = self.extend(Value::Map(request), &[&rest]);
@@ -808,7 +808,7 @@ impl Opinion {
             // rawEvents holds every row fetched so far, so its length is the raw fetched count
             let mut fetchedRawCount: i64 = rawEvents.len() as i64;
             let mut total: Option<i64> = self.safe_integer_k(&result, "total", &[]).as_i64();
-            if (Some(pageEventsLength) < reqLimit) || (page.as_f64().unwrap_or(f64::NAN) >= maxPages.as_f64().unwrap_or(f64::NAN)) || ((total.is_some()) && ((total.is_some() && Some(fetchedRawCount) >= total))) || ((fetchCap.is_some() && Some(fetchedRawCount) >= fetchCap)) {
+            if (Some(pageEventsLength) < reqLimit) || (page >= maxPages) || ((total.is_some()) && ((total.is_some() && Some(fetchedRawCount) >= total))) || ((fetchCap.is_some() && Some(fetchedRawCount) >= fetchCap)) {
                 break;
             }
         }

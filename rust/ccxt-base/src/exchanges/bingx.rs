@@ -3748,10 +3748,10 @@ impl Bingx {
         let mut id: Option<String> = self.safe_string_k(interest.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(id.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into()), Value::Str("swap".into())]).as_str().map(str::to_owned);
         let mut openInterest: Option<f64> = self.safe_number_k(interest.clone(), "openInterest", &[]).as_f64();
-        let mut inverse: Value = self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]);
-        let mut isInverse: Value = (inverse);
-        let mut openInterestAmount: Option<f64> = (if isInverse.as_bool() == Some(true) { openInterest } else { None });
-        let mut openInterestValue: Option<f64> = (if isInverse.as_bool() == Some(true) { None } else { openInterest });
+        let mut inverse: bool = self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isInverse: bool = inverse;
+        let mut openInterestAmount: Option<f64> = (if isInverse { openInterest } else { None });
+        let mut openInterestValue: Option<f64> = (if isInverse { None } else { openInterest });
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));

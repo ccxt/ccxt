@@ -2779,22 +2779,22 @@ impl Btse {
         if (clientOrderId.is_some()) {
             request.insert("clOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut query: Value = self.omit(params, Value::Str("clientOrderId".into()), &[]);
+        let mut query: crate::value::Dict = self.omit(params, Value::Str("clientOrderId".into()), &[]).into_dict();
         let mut isMarketOrder: Value = (Value::Bool(typeValue == "MARKET"));
         let mut isLimitOrder: bool = typeValue == "LIMIT";
         let mut postOnly: bool = false;
         // exchange-specific postOnly is the same as the unified one
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(postOnly), &[query.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }; // this will remove PO from params.timeInForce if present
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(postOnly), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }; // this will remove PO from params.timeInForce if present
         if postOnly {
             request.insert("postOnly".into(), Value::Bool(true));
         }
-        let mut timeInForce: Option<String> = self.handle_time_in_force(&[query.clone()]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.handle_time_in_force(&[Value::from(&query)]).as_str().map(str::to_owned);
         if (timeInForce.is_some()) {
             request.insert("timeInForce".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut triggerPrice: Option<String> = self.safe_string_k(query.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
-        let mut takeProfitPrice: Option<String> = self.safe_string_k(query.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
-        let mut stopLossPrice: Option<String> = self.safe_string_k(query.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.safe_string_k(&query, "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k(&query, "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut stopLossPrice: Option<String> = self.safe_string_k(&query, "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
         let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (matches!(&isMarketOrder, Value::Bool(true)) || isLimitOrder);
@@ -2811,10 +2811,9 @@ impl Btse {
         if needsQuoteSize {
             let mut quoteAmount: Option<String> = None;
             let mut createMarketBuyOrderRequiresPrice: bool = true;
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
-                query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            let mut cost: Option<String> = self.safe_string_k(query.clone(), "cost", &[]).as_str().map(str::to_owned);
-            query = self.omit(query, Value::Str("cost".into()), &[]);
+            { let __destr_tmp = self.handle_option_bool_and_params(&query, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).into_list(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+            let mut cost: Option<String> = self.safe_string_k(&query, "cost", &[]).as_str().map(str::to_owned);
+            query = self.omit(Value::Dict(query), Value::Str("cost".into()), &[]).into_dict();
             if (cost.is_some()) {
                 quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null));
             }  else if createMarketBuyOrderRequiresPrice {
@@ -2867,7 +2866,7 @@ impl Btse {
             //         }
             //     ]
             //
-            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[query.clone()]);
+            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.private_post_spot_api_v4_trade_orders(&[__ws_arg_12]).await.into_opt_list();
         }  else {
             if isConditionalOrder {
@@ -2895,9 +2894,9 @@ impl Btse {
                 }
                 request.insert("triggerOrderType".into(), triggerOrderType.map(Value::from).unwrap_or(Value::Null));
                 request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPriceToSend.map(Value::from).unwrap_or(Value::Null))));
-                let mut triggerPriceType: String = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
+                let mut triggerPriceType: String = self.safe_string_k(&query, "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                 request.insert("triggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                query = self.omit(query, &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]);
+                query = self.omit(Value::Dict(query), &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]).into_dict();
             }  else {
                 request.insert("orderType".into(), Value::from(typeValue.clone()));
                 if (typeValue == "OCO") {
@@ -2905,22 +2904,22 @@ impl Btse {
                     // the stopPrice param is the limit price of the stop loss leg
                     // and the triggerPrice param is where the stop loss leg fires
                     request.insert("takeProfitOrderPrice".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
-                    let mut stopPrice: Option<String> = self.safe_string_k(query.clone(), "stopPrice", &[]).as_str().map(str::to_owned);
+                    let mut stopPrice: Option<String> = self.safe_string_k(&query, "stopPrice", &[]).as_str().map(str::to_owned);
                     if (stopPrice.is_some()) {
                         request.insert("stopLossOrderPrice".into(), Value::from(self.price_to_precision(symbol.clone(), stopPrice.map(Value::from).unwrap_or(Value::Null))));
                     }
                     if (triggerPrice.is_some()) {
                         request.insert("stopLossTriggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
                     }
-                    let mut triggerPriceType: String = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
+                    let mut triggerPriceType: String = self.safe_string_k(&query, "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                     request.insert("stopLossTriggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit(query, &["stopPrice", "triggerPrice", "triggerPriceType"], &[]);
+                    query = self.omit(Value::Dict(query), &["stopPrice", "triggerPrice", "triggerPriceType"], &[]).into_dict();
                 }  else if (typeValue == "PEG") {
                     // the required stealth and optional deviation params pass through
                     request.insert("orderPrice".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
                 }  else if (typeValue == "TRAILING") {
-                    let mut trailingAmount: Option<String> = self.safe_string_k(query.clone(), "trailingAmount", &[]).as_str().map(str::to_owned);
-                    let mut trailingPercent: Option<String> = self.safe_string_k(query.clone(), "trailingPercent", &[]).as_str().map(str::to_owned);
+                    let mut trailingAmount: Option<String> = self.safe_string_k(&query, "trailingAmount", &[]).as_str().map(str::to_owned);
+                    let mut trailingPercent: Option<String> = self.safe_string_k(&query, "trailingPercent", &[]).as_str().map(str::to_owned);
                     if (trailingAmount.is_some()) {
                         request.insert("trailValue".into(), Value::from(self.price_to_precision(symbol, trailingAmount.map(Value::from).unwrap_or(Value::Null))));
                         request.insert("trailValueType".into(), Value::Str("DISTANCE".into()));
@@ -2928,12 +2927,12 @@ impl Btse {
                         request.insert("trailValue".into(), trailingPercent.map(Value::from).unwrap_or(Value::Null));
                         request.insert("trailValueType".into(), Value::Str("PERCENTAGE".into()));
                     }
-                    let mut triggerPriceType: String = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
+                    let mut triggerPriceType: String = self.safe_string_k(&query, "triggerPriceType", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
                     request.insert("triggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
-                    query = self.omit(query, &["trailingAmount", "trailingPercent", "triggerPriceType"], &[]);
+                    query = self.omit(Value::Dict(query), &["trailingAmount", "trailingPercent", "triggerPriceType"], &[]).into_dict();
                 }
             }
-            let __ws_arg_13 = self.extend(Value::Map(request), &[query]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&query]);
             response = self.private_post_spot_api_v4_trade_orders_algo(&[__ws_arg_13]).await.into_opt_list();
         }
         let mut order: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({

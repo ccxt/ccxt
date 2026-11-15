@@ -3142,9 +3142,9 @@ impl Poloniex {
         let mut hedged: Option<String> = hedgedparamsHedgedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsHedged: crate::value::Dict = hedgedparamsHedgedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // marginMode and hedged are consumed for contract markets only
-        let mut query: Value = params;
+        let mut query: crate::value::Dict = params.into_dict();
         if isContract {
-            query = Value::Dict(paramsHedged);
+            query = paramsHedged;
         }
         if isContract {
             if (marginMode.is_some()) {
@@ -3156,15 +3156,15 @@ impl Poloniex {
                 if (marginMode.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")));
                 }
-                if (self.safe_string_k(query.clone(), "posSide", &[]) == Value::Null) {
+                if (self.safe_string_k(&query, "posSide", &[]) == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")));
                 }
             }
         }
         let mut upperCaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut isMarket: bool = upperCaseType == "MARKET";
-        let mut isPostOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(upperCaseType == "LIMIT_MAKER"), &[query.clone()]);
-        let mut queryOmitted: Value = self.omit(query, &["postOnly", "triggerPrice", "stopPrice"], &[]);
+        let mut isPostOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Bool(upperCaseType == "LIMIT_MAKER"), &[Value::from(&query)]);
+        let mut queryOmitted: Value = self.omit(&query, &["postOnly", "triggerPrice", "stopPrice"], &[]);
         if (triggerPrice.is_some()) {
             if !(market).spot {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support trigger orders for ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " markets")));

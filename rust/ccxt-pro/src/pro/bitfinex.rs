@@ -641,12 +641,12 @@ impl Bitfinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Value = self.subscribe("trades", symbol.as_str().unwrap_or_default(), &[params]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe("trades", symbol.as_str().unwrap_or_default(), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1185,7 +1185,7 @@ impl Bitfinex {
     m
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             if isRaw {
                 let mut deltas: crate::value::List = self.safe_list(message.clone(), Value::Int(1), &[Value::from(vec![])]).into_list();
                 {
@@ -1196,7 +1196,7 @@ impl Bitfinex {
                     let mut delta2: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
                     let mut size: Value = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(delta2) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { delta2.clone() });
                     let mut side: Value = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
-                    let mut bookside: Value = get_value(&orderbook, &side);
+                    let mut bookside: Value = get_value(&Value::from(&orderbook), &side);
                     let mut idString: Option<String> = self.safe_string(delta.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
                     let mut price: Option<f64> = self.safe_float(delta, Value::Int(1), &[]).as_f64();
                     bookside.store_array(Value::from(vec![Value::from(price), size, idString.map(Value::from).unwrap_or(Value::Null)]));
@@ -1217,15 +1217,15 @@ impl Bitfinex {
                     let mut price: Option<f64> = self.safe_number(&delta, Value::Int(0), &[]).as_f64();
                     let mut size: Value = (if (deltaAmount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(deltaAmount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { deltaAmount.clone() });
                     let mut side: Value = (if (deltaAmount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { Value::Str("asks".into()) } else { Value::Str("bids".into()) });
-                    let mut bookside: Value = get_value(&orderbook, &side);
+                    let mut bookside: Value = get_value(&Value::from(&orderbook), &side);
                     bookside.store_array(Value::from(vec![Value::from(price), size, Value::from(counter)]));
                 }
                 }
             }
             orderbook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
-            client.resolve(orderbook.clone(), messageHash.as_str());
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
         }  else {
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             let mut deltas: crate::value::List = self.safe_list(message, Value::Int(1), &[]).into_list();
             let mut orderbookItem: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             if isRaw {
@@ -1247,7 +1247,7 @@ impl Bitfinex {
                 let mut bookside: Value = get_value(&Value::from(&orderbookItem), &side);
                 bookside.store_array(Value::from(vec![self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(size, &[]), self.parse_number(counter.map(Value::from).unwrap_or(Value::Null), &[])]));
             }
-            client.resolve(orderbook, messageHash.as_str());
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
 }
 

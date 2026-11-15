@@ -2223,37 +2223,37 @@ impl Polymarket {
         let mut outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome, &[]).await;
         let mut tokenId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
         let mut fidelityMin: i64 = self.safe_integer(self.timeframes.clone(), timeframe, &[Value::Int(1)]).as_i64().unwrap_or(1); // fidelity in minutes
-        let mut nowS: Value = Value::Int(self.seconds());
-        let mut startS: Value = Value::Null;
-        let mut endS: Value = nowS.clone();
+        let mut nowS: i64 = self.seconds();
+        let mut startS: Option<i64> = None;
+        let mut endS: Option<i64> = Some(nowS);
         if (since != Value::Null) {
-            startS = Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            startS = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             if (limit != Value::Null) {
-                let mut endBound: Value = self.sum(&[startS.clone(), Value::from((if let Some(__l) = ((if let Some(__l) = limit.as_i64() { Some(__l * fidelityMin) } else { None })) { Some(__l * 60) } else { None }))]);
-                endS = (if (endBound.as_f64().unwrap_or(f64::NAN) < nowS.as_f64().unwrap_or(f64::NAN)) { endBound } else { nowS.clone() });
+                let mut endBound: Option<i64> = (if let (Some(__m0), Some(__m1)) = (startS, ((if let Some(__l) = ((if let Some(__l) = limit.as_i64() { Some(__l * fidelityMin) } else { None })) { Some(__l * 60) } else { None }))) { Some((__m0 + __m1)) } else { None });
+                endS = (if ((endBound.is_some() && endBound < Some(nowS))) { endBound } else { Some(nowS) });
             }
         }  else {
             let mut barCount: i64 = limit.as_i64().unwrap_or(100);
-            startS = (match (&(nowS), &((Value::Int((((barCount * fidelityMin)) * 60))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            startS = Some((nowS - ((((barCount * fidelityMin)) * 60))));
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
         // `since` anchor (oldest chunk first, consistent with since/limit paging),
         // or the most recent window when no `since` was given
-        let mut maxWindow: Value = self.safe_integer_k(self.options.clone(), "maxPricesHistoryWindow", &[Value::Int(1296000)]);
-        if ((match (&(endS), &(startS)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > maxWindow.as_f64().unwrap_or(f64::NAN) {
+        let mut maxWindow: i64 = self.safe_integer_k(self.options.clone(), "maxPricesHistoryWindow", &[Value::Int(1296000)]).as_i64().unwrap_or(1296000);
+        if ((if let (Some(__l), Some(__r)) = (endS, startS) { Some(__l - __r) } else { None })) > Some(maxWindow) {
             if (since != Value::Null) {
-                endS = self.sum(&[startS.clone(), maxWindow.clone()]);
+                endS = (if let Some(__m0) = startS { Some((__m0 + maxWindow)) } else { None });
             }  else {
-                startS = (match (&(endS), &(maxWindow)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                startS = (if let Some(__l) = endS { Some(__l - maxWindow) } else { None });
             }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("fidelity".to_string(), Value::from(fidelityMin));
-                m.insert("startTs".to_string(), startS);
-                m.insert("endTs".to_string(), endS);
+                m.insert("startTs".to_string(), Value::from(startS));
+                m.insert("endTs".to_string(), Value::from(endS));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
@@ -4837,7 +4837,7 @@ if _try_result.is_err() {
             if (outcome == Value::Null) || !(self.orderbooks.has(&outcome)) {
                 continue;
             }
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&outcome));
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcome);
             let mut price: Option<f64> = self.safe_number_k(&change, "price", &[]).as_f64();
             let mut size: Option<f64> = self.safe_number_k(&change, "size", &[]).as_f64();
             let mut isBuy: bool = self.safe_string_upper_k(&change, "side", &[Value::Str("".into())]).as_str() == Some("BUY");
@@ -4856,9 +4856,9 @@ if _try_result.is_err() {
             let mut __for_first_1455: bool = true;
             while { if !__for_first_1455 { k += 1; } __for_first_1455 = false; k < (updatedSymbols.len() as i64) } {
             let mut outcome: Option<String> = updatedSymbols.get(k as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&outcome));
-            client.resolve(orderbook.clone(), &(Value::Str(format!("{}{}", "orderbook::", outcome.as_deref().unwrap_or("null")).into())));
-            client.resolve(orderbook, &(Value::Str(format!("{}{}", "ticker::", outcome.as_deref().unwrap_or("null")).into())));
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcome);
+            client.resolve(Value::from(&orderbook), &(Value::Str(format!("{}{}", "orderbook::", outcome.as_deref().unwrap_or("null")).into())));
+            client.resolve(Value::from(&orderbook), &(Value::Str(format!("{}{}", "ticker::", outcome.as_deref().unwrap_or("null")).into())));
         }
         }
 }

@@ -9984,11 +9984,11 @@ impl Binance {
             request.insert("cancelOrderId".into(), id); // user can provide either cancelOrderId, cancelOrigClientOrderId or cancelOrigClientOrderId
         }
         // remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
-        let mut paramsTimeInForce: Value = params.clone();
+        let mut paramsTimeInForce: crate::value::Dict = params.clone().into_dict();
         if (self.safe_string_k(params.clone(), "timeInForce", &[]).as_str() == Some("PO")) {
-            paramsTimeInForce = self.omit(params, &["timeInForce"], &[]);
+            paramsTimeInForce = self.omit(params, &["timeInForce"], &[]).into_dict();
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTimeInForce, &["quoteOrderQty", "cost", "stopPrice", "newClientOrderId", "clientOrderId", "postOnly"], &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTimeInForce, &["quoteOrderQty", "cost", "stopPrice", "newClientOrderId", "clientOrderId", "postOnly"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null

@@ -3226,7 +3226,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut triggerPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut stopLossPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut takeProfitPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(2).cloned().unwrap_or(Value::Null);
-        let mut paramsTriggerPrices: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(3).cloned().unwrap_or(Value::Null);
+        let mut paramsTriggerPrices: crate::value::Dict = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(3).cloned().unwrap_or(Value::Null).into_dict();
         let mut isTriggerOrder: bool = (triggerPrice != Value::Null) || (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null);
         if isTriggerOrder {
             // trigger price
@@ -3246,7 +3246,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             }  else if (takeProfitPrice != Value::Null) {
                 selectedType = (if isBuy { Value::Str("TAKE_PROFIT".into()) } else { Value::Str("STOP_LOSS".into()) });
             }  else {
-                let mut triggerDirection: Option<String> = self.safe_string_k(paramsTriggerPrices.clone(), "triggerDirection", &[]).as_str().map(str::to_owned);
+                let mut triggerDirection: Option<String> = self.safe_string_k(&paramsTriggerPrices, "triggerDirection", &[]).as_str().map(str::to_owned);
                 if (triggerDirection.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be \"ascending\" or \"descending\"")));
                 }
@@ -3259,7 +3259,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 }
             }
             // trigger by
-            let mut triggerPriceType: Value = self.safe_string_upper_k(paramsTriggerPrices.clone(), "triggerPriceType", &[Value::Str("LAST".into())]);
+            let mut triggerPriceType: Value = self.safe_string_upper_k(&paramsTriggerPrices, "triggerPriceType", &[Value::Str("LAST".into())]);
             if let Value::Dict(__d) = orderRequest.entry("metadata".into()).or_default() { std::sync::Arc::make_mut(__d).insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("trigger_type".to_string(), selectedType);
@@ -3267,24 +3267,24 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     let mut m = indexmap::IndexMap::new();
         m.insert("trigger_by".to_string(), triggerPriceType);
         m.insert("trigger_price".to_string(), selectedPrice);
-        m.insert("close_position".to_string(), self.safe_bool_k(paramsTriggerPrices.clone(), "closePosition", &[Value::Bool(false)]));
+        m.insert("close_position".to_string(), self.safe_bool_k(&paramsTriggerPrices, "closePosition", &[Value::Bool(false)]));
     m
 }));
     m
 })); }
         }
-        let mut paramsTrigger: Value = paramsTriggerPrices.clone();
+        let mut paramsTrigger: crate::value::Dict = Value::from(&paramsTriggerPrices).into_dict();
         if isTriggerOrder {
-            paramsTrigger = self.omit(paramsTriggerPrices, &["triggerDirection", "triggerPriceType", "closePosition"], &[]);
+            paramsTrigger = self.omit(&paramsTriggerPrices, &["triggerDirection", "triggerPriceType", "closePosition"], &[]).into_dict();
         }
         let mut eipType: String = "EIP712_ORDER_TYPE".to_string();
-        let mut builderFee: Option<bool> = self.safe_bool_k(paramsTrigger.clone(), "builderFee", &[self.safe_bool(self.options.clone(), Value::Str("builderFee".into()), &[Value::Bool(true)])]).as_bool();
+        let mut builderFee: Option<bool> = self.safe_bool_k(&paramsTrigger, "builderFee", &[self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)])]).as_bool();
         if (builderFee == Some(true)) {
             eipType = "EIP712_ORDER_WITH_BUILDER_TYPE".to_string();
             orderRequest.insert("builder".into(), self.safe_string_k(self.options.clone(), "builder", &[]));
             orderRequest.insert("builder_fee".into(), self.safe_string_k(self.options.clone(), "builderRate", &[]));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTrigger, &["builderFee"], &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTrigger, &["builderFee"], &[]).into_dict();
         let mut signedOrderRequest: crate::value::Dict = self.create_signed_request(&mut orderRequest, eipType.as_str(), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3642,9 +3642,9 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut marketId: Option<String> = self.safe_string_k(position.clone(), "instrument", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(position.clone(), "event_time", Value::Float(0.000001), &[]).as_i64();
         let mut sizeRaw: Option<String> = self.safe_string_k(position.clone(), "size", &[]).as_str().map(str::to_owned);
-        let mut isLong: Value = (crate::precise::Precise::stringGe(&sizeRaw, &Value::Str("0".into())));
+        let mut isLong: bool = crate::precise::Precise::stringGe(&sizeRaw, &Value::Str("0".into())).as_bool().unwrap_or(false);
         let mut side: String = "short".to_string();
-        if isLong.as_bool() == Some(true) {
+        if isLong {
             side = "long".to_string();
         }
         // isolated_balance is the wallet balance reserved for the isolated position
