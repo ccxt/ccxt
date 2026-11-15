@@ -2976,7 +2976,7 @@ export default class binance extends Exchange {
             // see the comment in market () on the option id format
             isOption = (partsLength > 3) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')));
         }
-        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
+        if (isOption && (marketId !== undefined) && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
