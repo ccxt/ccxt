@@ -117,6 +117,8 @@ const TYPE_OVERRIDES: Record<string, Record<string, string>> = {
     'Account': { 'Info': 'any' },
     'MarginLoan': { 'Info': 'any' },
     'MarketInterface': { 'Info': 'any' },
+    // sxbet fetchEvent: info is the raw list of fixture markets
+    'PredictionEvent': { 'Info': 'any' },
 };
 
 /** TS string-literal union aliases emitted as Go `type X string` + one const per member. */

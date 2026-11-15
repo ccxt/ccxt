@@ -505,7 +505,7 @@ func NewPredictionMarketArray(data any) []PredictionMarket {
 }
 
 type PredictionEvent struct {
-	Info                  map[string]any
+	Info                  any
 	Id                    *string
 	Event                 *string
 	Title                 *string
@@ -543,7 +543,7 @@ func NewPredictionEvent(data any) PredictionEvent {
 	}
 	markets := NewPredictionMarketArray(m["markets"])
 	return PredictionEvent{
-		Info:                  GetInfo(m),
+		Info:                  SafeValue(m, "info", nil),
 		Id:                    SafeStringTyped(m, "id"),
 		Event:                 SafeStringTyped(m, "event"),
 		Title:                 SafeStringTyped(m, "title"),

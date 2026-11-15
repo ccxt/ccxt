@@ -23,7 +23,7 @@
         "Bitget.ReduceMargin": "MarginModification",
         "Bithumb.Authenticate": "ClientInterface",
         "Bitstamp.SubscribePrivate": "ArrayCacheInterface",
-        "Bitvavo.WatchPublicMultiple": "map[string]any",
+        "Bitvavo.WatchPublicMultiple": "[]any",
         "Blofin.SetMarginMode": "MarginMode",
         "BorrowCrossMargin": "MarginLoan",
         "BorrowIsolatedMargin": "MarginLoan",

@@ -105,10 +105,23 @@ func EvalTruthy(val any) bool {
 	// Check types of val
 
 	switch v := val.(type) {
-	case int, int32, int64, uint, uint32, uint64:
+	// one type per case: in a multi-type case v stays boxed and never equals the untyped constant
+	case int:
 		return v != 0
-	case float32, float64:
-		return v != 0.0
+	case int32:
+		return v != 0
+	case int64:
+		return v != 0
+	case uint:
+		return v != 0
+	case uint32:
+		return v != 0
+	case uint64:
+		return v != 0
+	case float32:
+		return v != 0 && v == v
+	case float64:
+		return v != 0 && v == v
 	case string:
 		return v != ""
 	case bool:

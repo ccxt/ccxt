@@ -433,7 +433,8 @@ func (obs *CountedOrderBookSide) StoreArray(delta any) {
 
 	index := bisectLeft(obs.Index, indexPrice)
 
-	if size != 0 && count != 0 {
+	// TS `if (size && count)`: JS truthiness, so a zero count of any numeric kind deletes the level
+	if size != 0 && IsTrue(count) {
 		if obs.Index[index] == indexPrice {
 			row := append([]any(nil), obs.Data[index]...)
 			row[1] = size
