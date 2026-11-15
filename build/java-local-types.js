@@ -11104,9 +11104,14 @@ function joinedAccumulatorTypeOf (printer, declaration) {
         }
         const host = unwrapParensUp (n);
         const parent = host.parent;
-        if (parent !== undefined && (ts.isReturnStatement (parent)
+        // a whole `return x` of an async method returns from its supplyAsync lambda, whose T is
+        // the declared core future's (target-typed) or joined by the typed-core proof; elsewhere
+        // returns / ternary arms move javac's inferred types
+        const asyncReturn = parent !== undefined && ts.isReturnStatement (parent) && parent.expression === host
+            && ts.isMethodDeclaration (scope) && (scope.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword);
+        if (parent !== undefined && ((ts.isReturnStatement (parent) && !asyncReturn)
             || (ts.isConditionalExpression (parent) && parent.condition !== host))) {
-            return undefined; // returns / ternary arms move javac's inferred types
+            return undefined;
         }
         if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === host
             && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {

@@ -5812,12 +5812,15 @@ function mapLocalsSelfTest (): string[] {
     const problems: string[] = [];
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [
-        "import Exchange from './abstract/binance.js';",
+        "import Exchange from './abstract/binance.js';", "import type { Dict } from './base/types.js';",
         'export default class zzmaplocalsselftest extends Exchange {',
         "    nestedIntKey (response: any, params = {}) { let data = this.extend (params, {}); if (Array.isArray (response)) { data = this.safeDict (response, 0, {}); } return this.omit (data, 'a'); }",
         "    nestedStrKey (ticker: any, params = {}) { let raw = this.extend (params, {}); if (ticker !== undefined) { if (ticker['x'] !== undefined) { raw = this.safeDict (ticker, 'market', {}); } } return this.omit (raw, 'a'); }",
         "    closure (params = {}) { let p = this.extend (params, {}); const f = () => { p = this.safeValue (params, 'q'); }; f (); return this.omit (p, 'a'); }",
         "    positive (params = {}) { let q = this.extend (params, {}); if (params['z'] !== undefined) { q = this.extend (q, {}); } return this.omit (q, 'a'); }",
+        "    async accReturnAsync (params = {}) { let r = undefined; try { r = await this.zzAccHelper (params); } catch (e) { r = await this.zzAccHelper (params); } return r; }",
+        "    async accReturnTernary (params = {}) { let s = undefined; try { s = await this.zzAccHelper (params); } catch (e) { s = await this.zzAccHelper (params); } return (params['z'] !== undefined) ? s : undefined; }",
+        "    async zzAccHelper (params = {}): Promise<Dict> {", "        return {};", "    }",
         '}',
     ].join('\n');
     try {
@@ -5829,6 +5832,9 @@ function mapLocalsSelfTest (): string[] {
             if (!new RegExp(`\\bObject ${name} = `).test(out) && !new RegExp(`\\b${name} = \\(java\\.util\\.Map<String, Object>\\) this\\.safeDict\\(`).test(out)) problems.push(`map locals: '${name}' safeDict write needs Object or a checkcast`);
         }
         if (!/Map<String, Object> q = /.test(out)) problems.push("map locals: 'q' (every write a Map) must print Map<String, Object>");
+        // a null accumulator returned whole from an async method (its supplyAsync lambda) joins its writes; a ternary-arm return keeps Object
+        if (!/Map<String, Object> r = null;/.test(out)) problems.push("null accumulator: 'r' returned from an async method must print java.util.Map<String, Object>");
+        if (!/\bObject s = null;/.test(out)) problems.push("null accumulator: 's' returned through a ternary arm must stay Object");
     } catch (e: any) {
         problems.push(`map locals self-test threw: ${e.message}`);
     } finally {
