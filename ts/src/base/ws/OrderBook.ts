@@ -11,28 +11,28 @@ import {
     CountedBids,
     IndexedAsks,
     IndexedBids,
-    IOrderBookSide
+    IOrderBookSide,
+    OrderBookSide
     // IncrementalAsks,
     // IncrementalBids,
     // IncrementalIndexedAsks,
     // IncrementalIndexedBids, // check this
 } from './OrderBookSide.js';
-import { Int, Str } from '../types.js';
+import { Int, Str, Dict, List } from '../types.js';
 
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
 
 interface CustomOrderBookProp  {
-    cache: any[];
 }
 
 class OrderBook implements CustomOrderBookProp {
 
-    cache = [] // make prop visible so we use typed OrderBooks
+    cache: List = [] // make prop visible so we use typed OrderBooks
 
-    asks: IOrderBookSide<any>;
+    asks: OrderBookSide;
 
-    bids: IOrderBookSide<any>;
+    bids: OrderBookSide;
 
     timestamp: Int;
 
@@ -42,7 +42,13 @@ class OrderBook implements CustomOrderBookProp {
 
     symbol: Str;
 
-    constructor (snapshot = {}, depth = undefined) {
+    declare outcome: Str;
+
+    declare outcomeId: Str;
+
+    declare market: Str;
+
+    constructor (snapshot: Dict = {}, depth: Int = undefined) {
 
         Object.defineProperty (this, 'cache', {
             __proto__: null, // make it invisible
@@ -81,13 +87,13 @@ class OrderBook implements CustomOrderBookProp {
         }
     }
 
-    limit () {
+    limit (): OrderBook {
         this.asks.limit ()
         this.bids.limit ()
         return this
     }
 
-    update (snapshot) {
+    update (snapshot: Dict): OrderBook {
         if ((snapshot.nonce !== undefined) &&
             (this.nonce !== undefined) &&
             (snapshot.nonce <= this.nonce)) {
@@ -99,7 +105,7 @@ class OrderBook implements CustomOrderBookProp {
         return this.reset (snapshot)
     }
 
-    reset (snapshot = {}) {
+    reset (snapshot: Dict = {}): OrderBook {
         this.asks.index.fill (Number.MAX_VALUE)
         this.asks.length = 0
         if (snapshot.asks) {
@@ -118,7 +124,33 @@ class OrderBook implements CustomOrderBookProp {
         this.timestamp = snapshot.timestamp
         this.datetime = iso8601 (this.timestamp)
         this.symbol = snapshot.symbol
+        // prediction-market identity — only attach when present, so crypto books are unchanged
+        if (snapshot.outcome !== undefined) {
+            this.outcome = snapshot.outcome
+            this.outcomeId = snapshot.outcomeId
+            this.market = snapshot.market
+            // prediction books are keyed by `outcome`; drop the unused `symbol` to match the REST shape
+            delete this.symbol
+        }
         return this
+    }
+
+    copy (): OrderBook {
+        const snapshot: Dict = {}
+        if (this.outcome !== undefined) {
+            snapshot['outcome'] = this.outcome
+            snapshot['outcomeId'] = this.outcomeId
+            snapshot['market'] = this.market
+        } else {
+            snapshot['symbol'] = this.symbol
+        }
+        const copy = new (this.constructor as any)(snapshot, this.asks.depth)
+        copy.asks = this.asks.copy ()
+        copy.bids = this.bids.copy ()
+        copy.nonce = this.nonce
+        copy.timestamp = this.timestamp
+        copy.datetime = this.datetime
+        return copy
     }
 }
 
@@ -127,7 +159,7 @@ class OrderBook implements CustomOrderBookProp {
 // or deletes price levels based on order counts (3rd value in a bidask delta)
 
 class CountedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = undefined) {
+    constructor (snapshot: Dict = {}, depth: Int = undefined) {
         super (extend (snapshot, {
             'asks': new CountedAsks (snapshot.asks || [], depth),
             'bids': new CountedBids (snapshot.bids || [], depth),
@@ -139,7 +171,7 @@ class CountedOrderBook extends OrderBook {
 // indexed by order ids (3rd value in a bidask delta)
 
 class IndexedOrderBook extends OrderBook {
-    constructor (snapshot = {}, depth = undefined) {
+    constructor (snapshot: Dict = {}, depth: Int = undefined) {
         super (extend (snapshot, {
             'asks': new IndexedAsks (snapshot.asks || [], depth),
             'bids': new IndexedBids (snapshot.bids || [], depth),
@@ -151,7 +183,7 @@ class IndexedOrderBook extends OrderBook {
 // adjusts the volumes by positive or negative relative changes or differences
 
 // class IncrementalOrderBook extends OrderBook {
-//     constructor (snapshot = {}, depth = undefined) {
+//     constructor (snapshot = {}, depth: Int = undefined) {
 //         super (extend (snapshot, {
 //             'asks': new IncrementalAsks (snapshot.asks || [], depth),
 //             'bids': new IncrementalBids (snapshot.bids || [], depth),
@@ -159,12 +191,11 @@ class IndexedOrderBook extends OrderBook {
 //     }
 // }
 
-
 // // ----------------------------------------------------------------------------
 // // incremental and indexed (2 in 1)
 
 // class IncrementalIndexedOrderBook extends OrderBook {
-//     constructor (snapshot = {}, depth = undefined) {
+//     constructor (snapshot = {}, depth: Int = undefined) {
 //         super (extend (snapshot, {
 //             'asks': new IncrementalIndexedAsks (snapshot.asks || [], depth),
 //             'bids': new IncrementalIndexedBids (snapshot.bids || [], depth),
@@ -176,6 +207,7 @@ class IndexedOrderBook extends OrderBook {
 
 export {
     OrderBook,
+    OrderBook as WsOrderBook,
     CountedOrderBook,
     IndexedOrderBook,
     // IncrementalOrderBook,

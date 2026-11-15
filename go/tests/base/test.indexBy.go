@@ -12,7 +12,7 @@ func TestIndexBy() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	// Test 1: Basic list of dicts with string key
-	var input1 any = []any{map[string]any{
+	var input1 []any = []any{map[string]any{
 		"id":  "a",
 		"val": 1,
 	}, map[string]any{
@@ -36,10 +36,10 @@ func TestIndexBy() {
 			"val": 3,
 		},
 	}
-	var result1 any = exchange.IndexBy(input1, "id")
+	var result1 map[string]any = exchange.IndexBy(input1, "id")
 	AssertDeepEqual(exchange, nil, "testIndexBy", result1, expected1)
 	// Test 2: Skip elements with None/undefined values
-	var input2 any = []any{map[string]any{
+	var input2 []any = []any{map[string]any{
 		"id":  "a",
 		"val": 1,
 	}, map[string]any{
@@ -56,10 +56,10 @@ func TestIndexBy() {
 			"val": 3,
 		},
 	}
-	var result2 any = exchange.IndexBy(input2, "id")
+	var result2 map[string]any = exchange.IndexBy(input2, "id")
 	AssertDeepEqual(exchange, nil, "testIndexBy", result2, expected2)
 	// Test 3: Skip elements missing the key
-	var input3 any = []any{map[string]any{
+	var input3 []any = []any{map[string]any{
 		"id":  "a",
 		"val": 1,
 	}, map[string]any{
@@ -78,15 +78,15 @@ func TestIndexBy() {
 			"val": 3,
 		},
 	}
-	var result3 any = exchange.IndexBy(input3, "id")
+	var result3 map[string]any = exchange.IndexBy(input3, "id")
 	AssertDeepEqual(exchange, nil, "testIndexBy", result3, expected3)
 	// Test 4: Empty array
-	var input4 any = []any{}
+	var input4 []any = []any{}
 	var expected4 map[string]any = map[string]any{}
-	var result4 any = exchange.IndexBy(input4, "id")
+	var result4 map[string]any = exchange.IndexBy(input4, "id")
 	AssertDeepEqual(exchange, nil, "testIndexBy", result4, expected4)
 	// Test 5: Duplicate keys (last one wins)
-	var input5 any = []any{map[string]any{
+	var input5 []any = []any{map[string]any{
 		"id":  "a",
 		"val": 1,
 	}, map[string]any{
@@ -102,10 +102,10 @@ func TestIndexBy() {
 			"val": 3,
 		},
 	}
-	var result5 any = exchange.IndexBy(input5, "id")
+	var result5 map[string]any = exchange.IndexBy(input5, "id")
 	AssertDeepEqual(exchange, nil, "testIndexBy", result5, expected5)
 	// Test 6: Numeric key values
-	var input6 any = []any{map[string]any{
+	var input6 []any = []any{map[string]any{
 		"code": 1,
 		"name": "one",
 	}, map[string]any{
@@ -129,19 +129,19 @@ func TestIndexBy() {
 			"name": "three",
 		},
 	}
-	var result6 any = exchange.IndexBy(input6, "code")
+	var result6 map[string]any = exchange.IndexBy(input6, "code")
 	AssertDeepEqual(exchange, nil, "testIndexBy", result6, expected6)
 	// Test 7: List of arrays with integer key
-	var input7 any = []any{[]any{"a", 1}, []any{"b", 2}, []any{"c", 3}}
+	var input7 []any = []any{[]any{"a", 1}, []any{"b", 2}, []any{"c", 3}}
 	var expected7 map[string]any = map[string]any{
 		"a": []any{"a", 1},
 		"b": []any{"b", 2},
 		"c": []any{"c", 3},
 	}
-	var result7 any = exchange.IndexBy(input7, 0)
+	var result7 map[string]any = exchange.IndexBy(input7, 0)
 	AssertDeepEqual(exchange, nil, "testIndexBy", result7, expected7)
 	// Test 8: Single element
-	var input8 any = []any{map[string]any{
+	var input8 []any = []any{map[string]any{
 		"id":  "only",
 		"val": 42,
 	}}
@@ -151,6 +151,6 @@ func TestIndexBy() {
 			"val": 42,
 		},
 	}
-	var result8 any = exchange.IndexBy(input8, "id")
+	var result8 map[string]any = exchange.IndexBy(input8, "id")
 	AssertDeepEqual(exchange, nil, "testIndexBy", result8, expected8)
 }

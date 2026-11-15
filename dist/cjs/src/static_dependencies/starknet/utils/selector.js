@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var index = require('../../scure-starknet/index.js');
+var starknet = require('@scure/starknet');
 var constants = require('../constants.js');
 var encode = require('./encode.js');
 var num = require('./num.js');
@@ -15,7 +15,7 @@ var num = require('./num.js');
  * @returns format: hex-string
  */
 function keccakHex(str) {
-    return encode.addHexPrefix(index.keccak(encode.utf8ToArray(str)).toString(16));
+    return encode.addHexPrefix(starknet.keccak(encode.utf8ToArray(str)).toString(16));
 }
 /**
  * Calculate bigint keccak hash for a given string

@@ -1,3 +1,4 @@
+// @NO_AUTO_TRANSPILE
 
 'use strict';
 
@@ -30,7 +31,7 @@ async function main () {
             'BTC/USDT',
             'ETH/BTC',
         ],
-        'coinex': [
+        'gate': [
             'BTC/USDT',
             'ETH/BTC',
         ],

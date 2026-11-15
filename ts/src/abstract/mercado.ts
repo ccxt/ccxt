@@ -5,32 +5,109 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetCoins (params?: {}): Promise<implicitReturnType>;
-    publicGetCoinOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTradesFrom (params?: {}): Promise<implicitReturnType>;
-    publicGetCoinTradesFromTo (params?: {}): Promise<implicitReturnType>;
-    publicGetCoinDaySummaryYearMonthDay (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostGetAccountInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostGetOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostGetWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostListSystemMessages (params?: {}): Promise<implicitReturnType>;
-    privatePostListOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostListOrderbook (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceBuyOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceSellOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceMarketBuyOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceMarketSellOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawCoin (params?: {}): Promise<implicitReturnType>;
-    v4PublicGetCoinCandle (params?: {}): Promise<implicitReturnType>;
-    v4PublicNetGetCandles (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetCoins (params = {}): Promise<List> {
+        return this.request ('coins', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetCoinOrderbook (params = {}): Promise<Dict> {
+        return this.request ('{coin}/orderbook/', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCoinTicker (params = {}): Promise<Dict> {
+        return this.request ('{coin}/ticker/', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCoinTrades (params = {}): Promise<List> {
+        return this.request ('{coin}/trades/', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCoinTradesFrom (params = {}): Promise<List> {
+        return this.request ('{coin}/trades/{from}/', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCoinTradesFromTo (params = {}): Promise<List> {
+        return this.request ('{coin}/trades/{from}/{to}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCoinDaySummaryYearMonthDay (params = {}): Promise<Dict> {
+        return this.request ('{coin}/day-summary/{year}/{month}/{day}/', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('cancel_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetAccountInfo (params = {}): Promise<Dict> {
+        return this.request ('get_account_info', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetOrder (params = {}): Promise<Dict> {
+        return this.request ('get_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('get_withdrawal', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostListSystemMessages (params = {}): Promise<Dict> {
+        return this.request ('list_system_messages', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostListOrders (params = {}): Promise<Dict> {
+        return this.request ('list_orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostListOrderbook (params = {}): Promise<Dict> {
+        return this.request ('list_orderbook', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPlaceBuyOrder (params = {}): Promise<Dict> {
+        return this.request ('place_buy_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPlaceSellOrder (params = {}): Promise<Dict> {
+        return this.request ('place_sell_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPlaceMarketBuyOrder (params = {}): Promise<Dict> {
+        return this.request ('place_market_buy_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPlaceMarketSellOrder (params = {}): Promise<Dict> {
+        return this.request ('place_market_sell_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWithdrawCoin (params = {}): Promise<Dict> {
+        return this.request ('withdraw_coin', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v4PublicGetCoinCandle (params = {}): Promise<Dict> {
+        return this.request ('{coin}/candle/', [ 'v4Public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v4PublicNetGetCandles (params = {}): Promise<Dict> {
+        return this.request ('candles', [ 'v4PublicNet' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v4PrivatePostAccounts (params = {}): Promise<Dict> {
+        return this.request ('accounts', [ 'v4Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v4PrivatePostAccountsAccountIdSymbolTransfersInternal (params = {}): Promise<Dict> {
+        return this.request ('accounts/{accountId}/{symbol}/transfers/internal', [ 'v4Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v4PrivatePostOauth2Token (params = {}): Promise<Dict> {
+        return this.request ('oauth2/token', [ 'v4Private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId (params = {}): Promise<Dict> {
+        return this.request ('accounts/{accountId}/wallet/{symbol}/deposits/{depositId}', [ 'v4Private' ], 'PATCH', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

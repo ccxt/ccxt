@@ -5,46 +5,153 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetGetmarketsUsa (params?: {}): Promise<implicitReturnType>;
-    publicGetGetmarketsEu (params?: {}): Promise<implicitReturnType>;
-    publicGetGetmarkets (params?: {}): Promise<implicitReturnType>;
-    publicGetGetboard (params?: {}): Promise<implicitReturnType>;
-    publicGetGetticker (params?: {}): Promise<implicitReturnType>;
-    publicGetGetexecutions (params?: {}): Promise<implicitReturnType>;
-    publicGetGethealth (params?: {}): Promise<implicitReturnType>;
-    publicGetGetboardstate (params?: {}): Promise<implicitReturnType>;
-    publicGetGetchats (params?: {}): Promise<implicitReturnType>;
-    publicGetGetfundingrate (params?: {}): Promise<implicitReturnType>;
-    privateGetGetpermissions (params?: {}): Promise<implicitReturnType>;
-    privateGetGetbalance (params?: {}): Promise<implicitReturnType>;
-    privateGetGetbalancehistory (params?: {}): Promise<implicitReturnType>;
-    privateGetGetcollateral (params?: {}): Promise<implicitReturnType>;
-    privateGetGetcollateralhistory (params?: {}): Promise<implicitReturnType>;
-    privateGetGetcollateralaccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetGetaddresses (params?: {}): Promise<implicitReturnType>;
-    privateGetGetcoinins (params?: {}): Promise<implicitReturnType>;
-    privateGetGetcoinouts (params?: {}): Promise<implicitReturnType>;
-    privateGetGetbankaccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetGetdeposits (params?: {}): Promise<implicitReturnType>;
-    privateGetGetwithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateGetGetchildorders (params?: {}): Promise<implicitReturnType>;
-    privateGetGetparentorders (params?: {}): Promise<implicitReturnType>;
-    privateGetGetparentorder (params?: {}): Promise<implicitReturnType>;
-    privateGetGetexecutions (params?: {}): Promise<implicitReturnType>;
-    privateGetGetpositions (params?: {}): Promise<implicitReturnType>;
-    privateGetGettradingcommission (params?: {}): Promise<implicitReturnType>;
-    privatePostSendcoin (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdraw (params?: {}): Promise<implicitReturnType>;
-    privatePostSendchildorder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelchildorder (params?: {}): Promise<implicitReturnType>;
-    privatePostSendparentorder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelparentorder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelallchildorders (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetGetmarketsUsa (params = {}): Promise<List> {
+        return this.request ('getmarkets/usa', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetGetmarketsEu (params = {}): Promise<List> {
+        return this.request ('getmarkets/eu', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetmarkets (params = {}): Promise<List> {
+        return this.request ('getmarkets', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetboard (params = {}): Promise<Dict> {
+        return this.request ('getboard', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetticker (params = {}): Promise<Dict> {
+        return this.request ('getticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetexecutions (params = {}): Promise<List> {
+        return this.request ('getexecutions', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGethealth (params = {}): Promise<Dict> {
+        return this.request ('gethealth', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetboardstate (params = {}): Promise<Dict> {
+        return this.request ('getboardstate', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetchats (params = {}): Promise<List> {
+        return this.request ('getchats', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetfundingrate (params = {}): Promise<Dict> {
+        return this.request ('getfundingrate', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetfundingratehistory (params = {}): Promise<List> {
+        return this.request ('getfundingratehistory', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetpermissions (params = {}): Promise<List> {
+        return this.request ('getpermissions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetbalance (params = {}): Promise<List> {
+        return this.request ('getbalance', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetbalancehistory (params = {}): Promise<List> {
+        return this.request ('getbalancehistory', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetcollateral (params = {}): Promise<Dict> {
+        return this.request ('getcollateral', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetcollateralhistory (params = {}): Promise<List> {
+        return this.request ('getcollateralhistory', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetcollateralaccounts (params = {}): Promise<List> {
+        return this.request ('getcollateralaccounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetaddresses (params = {}): Promise<List> {
+        return this.request ('getaddresses', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetcoinins (params = {}): Promise<List> {
+        return this.request ('getcoinins', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetcoinouts (params = {}): Promise<List> {
+        return this.request ('getcoinouts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetbankaccounts (params = {}): Promise<List> {
+        return this.request ('getbankaccounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetdeposits (params = {}): Promise<List> {
+        return this.request ('getdeposits', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetwithdrawals (params = {}): Promise<List> {
+        return this.request ('getwithdrawals', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetchildorders (params = {}): Promise<List> {
+        return this.request ('getchildorders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetparentorders (params = {}): Promise<List> {
+        return this.request ('getparentorders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetparentorder (params = {}): Promise<Dict> {
+        return this.request ('getparentorder', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetexecutions (params = {}): Promise<List> {
+        return this.request ('getexecutions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGetpositions (params = {}): Promise<List> {
+        return this.request ('getpositions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetGettradingcommission (params = {}): Promise<Dict> {
+        return this.request ('gettradingcommission', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostSendcoin (params = {}): Promise<Dict> {
+        return this.request ('sendcoin', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWithdraw (params = {}): Promise<Dict> {
+        return this.request ('withdraw', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSendchildorder (params = {}): Promise<Dict> {
+        return this.request ('sendchildorder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelchildorder (params = {}): Promise<Dict> {
+        return this.request ('cancelchildorder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSendparentorder (params = {}): Promise<Dict> {
+        return this.request ('sendparentorder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelparentorder (params = {}): Promise<Dict> {
+        return this.request ('cancelparentorder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelallchildorders (params = {}): Promise<Dict> {
+        return this.request ('cancelallchildorders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class myokx : okx
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "myokx" },
@@ -33,7 +33,7 @@ public partial class myokx : okx
                 { "CORS", null },
                 { "spot", true },
                 { "margin", null },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
             } },
@@ -45,6 +45,12 @@ public partial class myokx : okx
                 { "future", new Dictionary<string, object>() {
                     { "linear", null },
                     { "inverse", null },
+                } },
+            } },
+            { "options", new Dictionary<string, object>() {
+                { "mica", true },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "swap"} },
                 } },
             } },
         });

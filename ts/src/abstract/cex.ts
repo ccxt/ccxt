@@ -5,39 +5,125 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicPostGetServerTime (params?: {}): Promise<implicitReturnType>;
-    publicPostGetPairsInfo (params?: {}): Promise<implicitReturnType>;
-    publicPostGetCurrenciesInfo (params?: {}): Promise<implicitReturnType>;
-    publicPostGetProcessingInfo (params?: {}): Promise<implicitReturnType>;
-    publicPostGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicPostGetTradeHistory (params?: {}): Promise<implicitReturnType>;
-    publicPostGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    publicPostGetCandles (params?: {}): Promise<implicitReturnType>;
-    privatePostGetMyCurrentFee (params?: {}): Promise<implicitReturnType>;
-    privatePostGetFeeStrategy (params?: {}): Promise<implicitReturnType>;
-    privatePostGetMyVolume (params?: {}): Promise<implicitReturnType>;
-    privatePostDoCreateAccount (params?: {}): Promise<implicitReturnType>;
-    privatePostGetMyAccountStatusV3 (params?: {}): Promise<implicitReturnType>;
-    privatePostGetMyWalletBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostGetMyOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostDoMyNewOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostDoCancelMyOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostDoCancelAllOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    privatePostGetCandles (params?: {}): Promise<implicitReturnType>;
-    privatePostGetTradeHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostGetMyTransactionHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostGetMyFundingHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostDoMyInternalTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostGetProcessingInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostGetDepositAddress (params?: {}): Promise<implicitReturnType>;
-    privatePostDoDepositFundsFromWallet (params?: {}): Promise<implicitReturnType>;
-    privatePostDoWithdrawalFundsToWallet (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicPostGetServerTime (params = {}): Promise<Dict> {
+        return this.request ('get_server_time', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicPostGetPairsInfo (params = {}): Promise<Dict> {
+        return this.request ('get_pairs_info', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetCurrenciesInfo (params = {}): Promise<Dict> {
+        return this.request ('get_currencies_info', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetProcessingInfo (params = {}): Promise<Dict> {
+        return this.request ('get_processing_info', [ 'public' ], 'POST', params, { 'cost': 10 });
+    }
+
+    publicPostGetTicker (params = {}): Promise<Dict> {
+        return this.request ('get_ticker', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetTradeHistory (params = {}): Promise<Dict> {
+        return this.request ('get_trade_history', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetOrderBook (params = {}): Promise<Dict> {
+        return this.request ('get_order_book', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    publicPostGetCandles (params = {}): Promise<Dict> {
+        return this.request ('get_candles', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetMyCurrentFee (params = {}): Promise<Dict> {
+        return this.request ('get_my_current_fee', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostGetFeeStrategy (params = {}): Promise<Dict> {
+        return this.request ('get_fee_strategy', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetMyVolume (params = {}): Promise<Dict> {
+        return this.request ('get_my_volume', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDoCreateAccount (params = {}): Promise<Dict> {
+        return this.request ('do_create_account', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetMyAccountStatusV3 (params = {}): Promise<Dict> {
+        return this.request ('get_my_account_status_v3', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostGetMyWalletBalance (params = {}): Promise<Dict> {
+        return this.request ('get_my_wallet_balance', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostGetMyOrders (params = {}): Promise<Dict> {
+        return this.request ('get_my_orders', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDoMyNewOrder (params = {}): Promise<Dict> {
+        return this.request ('do_my_new_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostDoCancelMyOrder (params = {}): Promise<Dict> {
+        return this.request ('do_cancel_my_order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostDoCancelAllOrders (params = {}): Promise<Dict> {
+        return this.request ('do_cancel_all_orders', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostGetOrderBook (params = {}): Promise<Dict> {
+        return this.request ('get_order_book', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetTicker (params = {}): Promise<Dict> {
+        return this.request ('get_ticker', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetCandles (params = {}): Promise<Dict> {
+        return this.request ('get_candles', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetTradeHistory (params = {}): Promise<Dict> {
+        return this.request ('get_trade_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetMyTransactionHistory (params = {}): Promise<Dict> {
+        return this.request ('get_my_transaction_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetMyFundingHistory (params = {}): Promise<Dict> {
+        return this.request ('get_my_funding_history', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDoMyInternalTransfer (params = {}): Promise<Dict> {
+        return this.request ('do_my_internal_transfer', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetProcessingInfo (params = {}): Promise<Dict> {
+        return this.request ('get_processing_info', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    privatePostGetDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('get_deposit_address', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    privatePostDoDepositFundsFromWallet (params = {}): Promise<Dict> {
+        return this.request ('do_deposit_funds_from_wallet', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostDoWithdrawalFundsToWallet (params = {}): Promise<Dict> {
+        return this.request ('do_withdrawal_funds_to_wallet', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

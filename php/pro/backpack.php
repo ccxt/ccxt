@@ -8,16 +8,22 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use ccxt\BadRequest;
+use ccxt\BadSymbol;
+use ccxt\NotSupported;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class backpack extends \ccxt\async\backpack {
-
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'watchBalance' => false,
+                'watchBalance' => true,
+                'unWatchBalance' => true,
                 'watchBidsAsks' => true,
                 'watchMyTrades' => false,
                 'watchOHLCV' => true,
@@ -61,111 +67,296 @@ class backpack extends \ccxt\async\backpack {
         ));
     }
 
-    public function watch_public($topics, $messageHashes, $params = array (), $unwatch = false) {
-        return Async\async(function () use ($topics, $messageHashes, $params, $unwatch) {
-            Async\await($this->load_markets());
-            $url = $this->urls['api']['ws']['public'];
-            $method = $unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
-            $request = array(
-                'method' => $method,
-                'params' => $topics,
-            );
-            $message = $this->deep_extend($request, $params);
-            if ($unwatch) {
-                $this->handle_unsubscriptions($url, $messageHashes, $message);
-                return null;
-            }
-            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
-        }) ();
+    public function prepare_ws_stock_params(string $methodName, array $params): PromiseInterface {
+        return Async\async(self::do_prepare_ws_stock_params(...))($methodName, $params);
     }
 
-    public function watch_private($topics, $messageHashes, $params = array (), $unwatch = false) {
-        return Async\async(function () use ($topics, $messageHashes, $params, $unwatch) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws']['private'];
-            $instruction = 'subscribe';
-            $ts = (string) $this->nonce();
-            $method = $unwatch ? 'UNSUBSCRIBE' : 'SUBSCRIBE';
-            $recvWindow = $this->safe_string_2($this->options, 'recvWindow', 'X-Window', '5000');
-            $payload = 'instruction=' . $instruction . '&' . 'timestamp=' . $ts . '&window=' . $recvWindow;
-            $secretBytes = base64_decode($this->secret);
-            $seed = $this->array_slice($secretBytes, 0, 32);
-            $signature = $this->eddsa($this->encode($payload), $seed, 'ed25519');
-            $request = array(
-                'method' => $method,
-                'params' => $topics,
-                'signature' => array( $this->apiKey, $signature, $ts, $recvWindow ),
-            );
-            $message = $this->deep_extend($request, $params);
-            if ($unwatch) {
-                $this->handle_unsubscriptions($url, $messageHashes, $message);
-                return null;
+    private function do_prepare_ws_stock_params(string $methodName, array $params) {
+        /**
+         * @ignore
+         * validates the $stock selector before market loading and preserves it locally
+         * @param {string} $methodName calling method
+         * @param {array} $params exchange-specific parameters
+         * @return {array} local parameters with the validated $stock selector
+         */
+        list($stock, $query) = $this->handle_option_bool_and_params($params, $methodName, 'stock');
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($stock === null) {
+            return $query;
+        }
+        return $this->extend($query, array( 'stock' => $stock ));
+    }
+
+    public function ws_venue_market_id(string $methodName, array $market, array $params): ?string {
+        /**
+         * @ignore
+         * rejects undocumented provider and RFQ venue streams
+         * @param {string} $methodName calling method
+         * @param {array} $market resolved $market
+         * @param {array} $params local parameters
+         * @return {string} venue $market id
+         */
+        if ($market === null) {
+            throw new BadSymbol($this->id . ' ' . $methodName . '() requires a market');
+        }
+        $this->handleStockParams($methodName, $params, $market);
+        $source = $this->safe_string($params, 'source', 'Venue');
+        if (($source === 'External') || ($this->safe_string($market, 'executionModel') === 'rfq') || ($this->safe_string($market['info'], 'marketType') === 'RFQ')) {
+            throw new NotSupported($this->id . ' ' . $methodName . '() requires a venue order-book market; provider and RFQ streams are not documented for this method');
+        }
+        if ($source !== 'Venue') {
+            throw new BadRequest($this->id . ' ' . $methodName . '() source must be Venue');
+        }
+        return $market['id'];
+    }
+
+    public function subscribe_ws_tickers(string $methodName, ?array $symbols = null, $params = array(), bool $bidAsk = false, bool $unwatch = false): PromiseInterface {
+        return Async\async(self::do_subscribe_ws_tickers(...))($methodName, $symbols, $params, $bidAsk, $unwatch);
+    }
+
+    private function do_subscribe_ws_tickers(string $methodName, ?array $symbols = null, $params = array(), bool $bidAsk = false, bool $unwatch = false) {
+        /**
+         * @ignore
+         * subscribes to venue statistics or $stock provider streams with explicit $symbol routing
+         * @param {string} $methodName calling method
+         * @param {string[]} [$symbols] unified $symbols
+         * @param {array} [$params] local parameters
+         * @param {boolean} [$bidAsk] whether bid and ask data is requested
+         * @param {boolean} [$unwatch] whether to unsubscribe
+         * @return {array} unified tickers
+         */
+        $query = Async\await($this->prepare_ws_stock_params($methodName, $params));
+        $stock = $this->safe_bool($query, 'stock', false);
+        $explicitSource = $this->safe_string($query, 'source');
+        $channel = $this->safe_string($query, 'channel');
+        $normalized = $this->market_symbols($symbols, null, false);
+        $symbolsResolved = array();
+        $topics = array();
+        $messageHashes = array();
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public', '');
+        $client = $this->client($url);
+        $kind = ($bidAsk) ? 'bidask' : 'ticker';
+        for ($i = 0; $i < count($normalized); $i++) {
+            $market = $this->market($normalized[$i]);
+            if (($symbols === null) && ($stock || ($explicitSource === 'External') || ($channel !== null)) && ($market['stock'] !== true)) {
+                continue;
             }
-            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
-        }) ();
+            $marketSelection = $this->handleStockParams($methodName, $query, $market);
+            $marketStock = $this->safe_bool($marketSelection, 0, false);
+            $marketParams = $this->safe_dict($marketSelection, 1, array());
+            $isRfq = $this->safe_string($market['info'], 'marketType') === 'RFQ';
+            $source = $explicitSource;
+            if ($source === null) {
+                $source = ($isRfq && !$bidAsk) ? 'External' : 'Venue';
+            }
+            $requestParams = $this->extend($marketParams, array( 'stock' => $marketStock, 'source' => $source ));
+            $request = $this->stockDataRequest($methodName, $requestParams, $market);
+            $tickerSymbol = $this->safe_string($request, 'symbol', '');
+            $topic = 'ticker.' . $tickerSymbol;
+            if ($channel !== null) {
+                if (($channel !== 'stockPrice') && ($channel !== 'stockIndicativeQuote')) {
+                    throw new BadRequest($this->id . ' ' . $methodName . '() channel must be stockPrice or stockIndicativeQuote');
+                }
+                if ($market['stock'] !== true) {
+                    throw new BadSymbol($this->id . ' ' . $methodName . '() stock quote channels require a stock market');
+                }
+                $baseId = $this->safe_string($market, 'baseId', '');
+                $ticker = str_replace('.US', '', $baseId);
+                $topic = $channel . '.' . $ticker;
+            } elseif ($bidAsk) {
+                if (($source === 'External') || ($this->safe_string($market, 'executionModel') === 'rfq') || $isRfq) {
+                    if ($market['stock'] !== true) {
+                        throw new NotSupported($this->id . ' ' . $methodName . '() RFQ quote streams require a stock market');
+                    }
+                    $baseId = $this->safe_string($market, 'baseId', '');
+                    $ticker = str_replace('.US', '', $baseId);
+                    $quoteChannel = ($source === 'External') ? 'stockPrice' : 'stockIndicativeQuote';
+                    $topic = $quoteChannel . '.' . $ticker;
+                } else {
+                    $this->ws_venue_market_id($methodName, $market, $query);
+                    $topic = 'bookTicker.' . $this->safe_string($market, 'id', '');
+                }
+            } elseif ($source === 'External') {
+                $externalBaseId = $this->safe_string($market, 'baseId', '');
+                $topic = 'externalTicker.' . $externalBaseId . '_USDC';
+            } elseif (($this->safe_string($market, 'executionModel') === 'rfq') && ($market['stock'] !== true)) {
+                throw new NotSupported($this->id . ' ' . $methodName . '() RFQ venue tickers are only mapped for stock data');
+            }
+            $symbol = $market['symbol'];
+            $messageHash = $kind . ':' . $symbol . '@' . $topic;
+            $subscriptionKey = 'marketData:' . $topic;
+            $subscriptions = $this->safe_dict($client->subscriptions, $subscriptionKey, array());
+            if ($unwatch) {
+                $subscriptions = $this->omit($subscriptions, $messageHash);
+                $this->clean_unsubscription($client, $messageHash, 'unsubscribe:' . $messageHash);
+                if ($bidAsk) {
+                    unset($this->bidsasks[$symbol]);
+                } else {
+                    unset($this->tickers[$symbol]);
+                }
+            } else {
+                $subscriptions[$messageHash] = array( 'symbol' => $symbol, 'bidAsk' => $bidAsk );
+                $messageHashes[] = $messageHash;
+            }
+            $client->subscriptions[$subscriptionKey] = $subscriptions;
+            $subscriptionHashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
+            $subscriptionsLength = count($subscriptionHashes);
+            if (!$unwatch || ($subscriptionsLength === 0)) {
+                if (!$this->in_array($topic, $topics)) {
+                    $topics[] = $topic;
+                }
+            }
+            $symbolsResolved[] = $symbol;
+        }
+        $symbolsResolvedLength = count($symbolsResolved);
+        if ($symbolsResolvedLength === 0) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires at least one matching market');
+        }
+        $payload = $this->omit($query, array( 'stock', 'source', 'interval', 'channel' ));
+        if ($unwatch) {
+            $topicsLength = count($topics);
+            if ($topicsLength > 0) {
+                $request = $this->extend(array( 'method' => 'UNSUBSCRIBE', 'params' => $topics ), $payload);
+                $messageHash = 'unsubscribe:marketData:' . implode(',', $topics);
+                $this->watch_multiple($url, array( $messageHash ), $request);
+                $client->resolve(true, $messageHash);
+            }
+        } else {
+            Async\await($this->watch_public($topics, $messageHashes, $payload));
+        }
+        if ($bidAsk) {
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsResolved);
+        }
+        return $this->filter_by_array($this->tickers, 'symbol', $symbolsResolved);
+    }
+
+    public function watch_public(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
+        return Async\async(self::do_watch_public(...))($topics, $messageHashes, $params, $unwatch);
+    }
+
+    private function do_watch_public(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'public', '');
+        $method = 'SUBSCRIBE';
+        if ($unwatch) {
+            $method = 'UNSUBSCRIBE';
+        }
+        $request = array(
+            'method' => $method,
+            'params' => $topics,
+        );
+        $message = $this->deep_extend($request, $params);
+        if ($unwatch) {
+            $this->handle_unsubscriptions($url, $messageHashes, $message);
+            return null;
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+    }
+
+    public function watch_private(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
+        return Async\async(self::do_watch_private(...))($topics, $messageHashes, $params, $unwatch);
+    }
+
+    private function do_watch_private(array $topics, array $messageHashes, $params = array(), bool $unwatch = false) {
+        $this->check_required_credentials();
+        $apiUrls = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($apiUrls, 'ws', array());
+        $url = $this->safe_string($wsUrls, 'private', '');
+        $instruction = 'subscribe';
+        $ts = $this->number_to_string($this->nonce());
+        $method = 'SUBSCRIBE';
+        if ($unwatch) {
+            $method = 'UNSUBSCRIBE';
+        }
+        $recvWindow = $this->safe_string_2($this->options, 'recvWindow', 'X-Window', '5000');
+        $payload = 'instruction=' . $instruction . '&' . 'timestamp=' . $ts . '&window=' . $recvWindow;
+        $secretBytes = base64_decode($this->secret);
+        $seed = $this->array_slice($secretBytes, 0, 32);
+        $signature = $this->eddsa($this->encode($payload), $seed, 'ed25519');
+        $request = array(
+            'method' => $method,
+            'params' => $topics,
+            'signature' => array( $this->apiKey, $signature, $ts, $recvWindow ),
+        );
+        $message = $this->deep_extend($request, $params);
+        if ($unwatch) {
+            $this->handle_unsubscriptions($url, $messageHashes, $message);
+            return null;
+        }
+        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
     public function handle_unsubscriptions(string $url, array $messageHashes, array $message) {
         $client = $this->client($url);
         $this->watch_multiple($url, $messageHashes, $message, $messageHashes);
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
+            $messageHash = $this->safe_string($messageHashes, $i, '');
             $subMessageHash = str_replace('unsubscribe:', '', $messageHash);
             $this->clean_unsubscription($client, $subMessageHash, $messageHash);
             if (mb_strpos($messageHash, 'ticker') !== false) {
                 $symbol = str_replace('unsubscribe:ticker:', '', $messageHash);
-                if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
                     unset($this->tickers[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'bidask') !== false) {
                 $symbol = str_replace('unsubscribe:bidask:', '', $messageHash);
-                if (is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks)) {
+                if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
                     unset($this->bidsasks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'candles') !== false) {
                 $splitHashes = explode(':', $messageHash);
                 $symbol = $this->safe_string($splitHashes, 2);
                 $timeframe = $this->safe_string($splitHashes, 3);
-                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
-                    if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                if (($symbol !== null) && ($timeframe !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
+                    if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
                         unset($this->ohlcvs[$symbol][$timeframe]);
                     }
                 }
             } elseif (mb_strpos($messageHash, 'orderbook') !== false) {
                 $symbol = str_replace('unsubscribe:orderbook:', '', $messageHash);
-                if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                     unset($this->orderbooks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'trades') !== false) {
                 $symbol = str_replace('unsubscribe:trades:', '', $messageHash);
-                if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
                     unset($this->trades[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'orders') !== false) {
                 if ($messageHash === 'unsubscribe:orders') {
                     $cache = $this->orders;
-                    $keys = is_array($cache) ? array_keys($cache) : array();
-                    for ($j = 0; $j < count($keys); $j++) {
-                        $symbol = $keys[$j];
-                        unset($this->orders[$symbol]);
+                    if ($this->orders !== null) {
+                        $keys = is_array($cache) ? array_keys($cache) : array();
+                        for ($j = 0; $j < count($keys); $j++) {
+                            $symbol = $keys[$j];
+                            unset($cache[$symbol]);
+                        }
                     }
                 } else {
                     $symbol = str_replace('unsubscribe:orders:', '', $messageHash);
-                    if (is_array($this->orders) && array_key_exists($symbol, $this->orders)) {
-                        unset($this->orders[$symbol]);
+                    $cache = $this->orders;
+                    if (($this->orders !== null) && (is_array($cache) && array_key_exists($symbol ?? '', $cache))) {
+                        unset($cache[$symbol]);
                     }
                 }
             } elseif (mb_strpos($messageHash, 'positions') !== false) {
                 if ($messageHash === 'unsubscribe:positions') {
-                    $cache = $this->positions;
-                    $keys = is_array($cache) ? array_keys($cache) : array();
+                    $keys = is_array($this->positions) ? array_keys($this->positions) : array();
                     for ($j = 0; $j < count($keys); $j++) {
                         $symbol = $keys[$j];
                         unset($this->positions[$symbol]);
                     }
                 } else {
                     $symbol = str_replace('unsubscribe:positions:', '', $messageHash);
-                    if (is_array($this->positions) && array_key_exists($symbol, $this->positions)) {
+                    if (is_array($this->positions) && array_key_exists($symbol ?? '', $this->positions)) {
                         unset($this->positions[$symbol]);
                     }
                 }
@@ -173,140 +364,162 @@ class backpack extends \ccxt\async\backpack {
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $topic = 'ticker' . '.' . $market['id'];
-            $messageHash = 'ticker' . ':' . $symbol;
-            return Async\await($this->watch_public(array( $topic ), array( $messageHash ), $params));
-        }) ();
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
     }
 
-    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->un_watch_tickers(array( $symbol ), $params));
-        }) ();
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock data; inferred from $symbol when omitted
+         * @param {string} [$params->source] Venue or External; RFQ ticker symbols default to External
+         * @param {string} [$params->interval] External ticker interval, must be 1d
+         * @param {string} [$params->channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $tickers = Async\await($this->subscribe_ws_tickers('watchTicker', array( $symbol ), $params));
+        return $tickers[$this->symbol($symbol)];
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
-             *
-             * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $messageHashes = array();
-            $topics = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $marketId = $this->market_id($symbol);
-                $messageHashes[] = 'ticker:' . $symbol;
-                $topics[] = 'ticker.' . $marketId;
-            }
-            Async\await($this->watch_public($topics, $messageHashes, $params));
-            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
-             *
-             * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $marketId = $this->market_id($symbol);
-                $topics[] = 'ticker.' . $marketId;
-                $messageHashes[] = 'unsubscribe:ticker:' . $symbol;
-            }
-            return Async\await($this->watch_public($topics, $messageHashes, $params, true));
-        }) ();
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock data; inferred from $symbol when omitted
+         * @param {string} [$params->source] Venue or External, matching the subscription
+         * @param {string} [$params->interval] External ticker interval, must be 1d
+         * @param {string} [$params->channel] stockPrice or stockIndicativeQuote, matching the subscription
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        Async\await($this->subscribe_ws_tickers('watchTicker', array( $symbol ), $params, false, true));
+        return null;
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock markets only; inferred from $symbols when omitted
+         * @param {string} [$params->source] Venue or External; RFQ ticker $symbols default to External
+         * @param {string} [$params->interval] External ticker interval, must be 1d
+         * @param {string} [$params->channel] stockPrice or stockIndicativeQuote for quotes instead of statistics
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return Async\await($this->subscribe_ws_tickers('watchTickers', $symbols, $params));
+    }
+
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_tickers(...))($symbols, $params);
+    }
+
+    private function do_un_watch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock markets only; inferred from $symbols when omitted
+         * @param {string} [$params->source] Venue or External, matching the subscription
+         * @param {string} [$params->interval] External ticker interval, must be 1d
+         * @param {string} [$params->channel] stockPrice or stockIndicativeQuote, matching the subscription
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        Async\await($this->subscribe_ws_tickers('watchTickers', $symbols, $params, false, true));
+        return null;
+    }
+
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
-        //         data => array(
-        //             E => '1754176123312507',
-        //             V => '19419526.742584',
-        //             c => '3398.57',
-        //             e => 'ticker',
-        //             h => '3536.65',
-        //             l => '3371.8',
-        //             n => 17152,
-        //             o => '3475.45',
-        //             s => 'ETH_USDC',
-        //             v => '5573.5827'
-        //         ),
-        //         stream => 'bookTicker.ETH_USDC'
+        //         data: {
+        //             E: '1754176123312507',
+        //             V: '19419526.742584',
+        //             c: '3398.57',
+        //             e: 'ticker',
+        //             h: '3536.65',
+        //             l: '3371.8',
+        //             n: 17152,
+        //             o: '3475.45',
+        //             s: 'ETH_USDC',
+        //             v: '5573.5827'
+        //         },
+        //         stream: 'bookTicker.ETH_USDC'
         //     }
         //
         $ticker = $this->safe_dict($message, 'data', array());
+        $stream = $this->safe_string($message, 'stream', '');
+        $subscriptions = $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array());
+        $hashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
+        $hashesLength = count($hashes);
+        for ($i = 0; $i < $hashesLength; $i++) {
+            $messageHash = $hashes[$i];
+            $subscription = $this->safe_dict($subscriptions, $messageHash, array());
+            $symbol = $this->safe_string($subscription, 'symbol');
+            if ($symbol === null) {
+                continue;
+            }
+            $market = $this->market($symbol);
+            $mappedTicker = $this->extend($ticker, array( 's' => $market['id'] ));
+            $parsedTicker = $this->parse_ws_ticker($mappedTicker, $market);
+            $parsedTicker['info'] = $ticker;
+            $this->tickers[$symbol] = $parsedTicker;
+            $client->resolve($parsedTicker, $messageHash);
+        }
+        if ($hashesLength > 0) {
+            return;
+        }
         $marketId = $this->safe_string($ticker, 's');
-        $market = $this->safe_market($marketId);
-        $symbol = $this->safe_symbol($marketId, $market);
-        $parsedTicker = $this->parse_ws_ticker($ticker, $market);
-        $messageHash = 'ticker' . ':' . $symbol;
-        $this->tickers[$symbol] = $parsedTicker;
-        $client->resolve ($parsedTicker, $messageHash);
+        $fallbackMarket = $this->safe_market($marketId);
+        $fallbackSymbol = $this->safe_symbol($marketId, $fallbackMarket);
+        $fallbackTicker = $this->parse_ws_ticker($ticker, $fallbackMarket);
+        $fallbackHash = 'ticker' . ':' . $fallbackSymbol;
+        $this->tickers[$fallbackSymbol] = $fallbackTicker;
+        $client->resolve($fallbackTicker, $fallbackHash);
     }
 
     public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         E => '1754178406415232',
-        //         V => '19303818.6923',
-        //         c => '3407.54',
-        //         e => 'ticker',
-        //         h => '3536.65',
-        //         l => '3369.18',
-        //         n => 17272,
-        //         o => '3481.71',
-        //         s => 'ETH_USDC',
-        //         v => '5542.3911'
+        //         E: '1754178406415232',
+        //         V: '19303818.6923',
+        //         c: '3407.54',
+        //         e: 'ticker',
+        //         h: '3536.65',
+        //         l: '3369.18',
+        //         n: 17272,
+        //         o: '3481.71',
+        //         s: 'ETH_USDC',
+        //         v: '5542.3911'
         //     }
         //
-        $microseconds = $this->safe_integer($ticker, 'E');
+        $microseconds = $this->safe_integer($ticker, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $marketId = $this->safe_string($ticker, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $last = $this->safe_string($ticker, 'c');
         $open = $this->safe_string($ticker, 'o');
         return $this->safe_ticker(array(
@@ -330,101 +543,152 @@ class backpack extends \ccxt\async\backpack {
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => $this->safe_string($ticker, 'V'),
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * watches best bid & ask for $symbols
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker
-             *
-             * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $marketId = $this->market_id($symbol);
-                $topics[] = 'bookTicker.' . $marketId;
-                $messageHashes[] = 'bidask:' . $symbol;
+    public function handle_stock_ticker(Client $client, array $message): bool {
+        /**
+         * @ignore
+         * routes provider and indicative stock quotes without treating mid prices as trades
+         * @param {array} $client websocket $client
+         * @param {array} $message $stream envelope
+         * @return {boolean} whether a $subscription was updated
+         */
+        $data = $this->safe_dict($message, 'data', array());
+        $stream = $this->safe_string($message, 'stream', '');
+        $subscriptions = $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array());
+        $hashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
+        $hashesLength = count($hashes);
+        for ($i = 0; $i < $hashesLength; $i++) {
+            $messageHash = $hashes[$i];
+            $subscription = $this->safe_dict($subscriptions, $messageHash, array());
+            $symbol = $this->safe_string($subscription, 'symbol');
+            if ($symbol === null) {
+                continue;
             }
-            Async\await($this->watch_public($topics, $messageHashes, $params));
-            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
-        }) ();
-    }
-
-    public function un_watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches best bid & ask for $symbols
-             * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $marketId = $this->market_id($symbol);
-                $topics[] = 'bookTicker.' . $marketId;
-                $messageHashes[] = 'unsubscribe:bidask:' . $symbol;
+            $market = $this->market($symbol);
+            $timestamp = $this->safe_integer($data, 'timestamp');
+            $parsed = $this->safe_ticker(array(
+                'symbol' => $symbol,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'bid' => $this->safe_string($data, 'bid'),
+                'ask' => $this->safe_string($data, 'ask'),
+                'info' => $data,
+            ), $market);
+            if ($this->safe_bool($subscription, 'bidAsk', false)) {
+                $this->bidsasks[$symbol] = $parsed;
+            } else {
+                $this->tickers[$symbol] = $parsed;
             }
-            return Async\await($this->watch_public($topics, $messageHashes, $params, true));
-        }) ();
+            $client->resolve($parsed, $messageHash);
+        }
+        return $hashesLength > 0;
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * watches best bid & ask for $symbols
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker
+         *
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock quotes; inferred from $symbols when omitted
+         * @param {string} [$params->source] Venue or External; RFQ quotes default to indicative quotes
+         * @param {string} [$params->interval] External data interval, must be 1d
+         * @param {string} [$params->channel] stockPrice or stockIndicativeQuote, unavailable prices remain null
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return Async\await($this->subscribe_ws_tickers('watchBidsAsks', $symbols, $params, true));
+    }
+
+    public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_un_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches best bid & ask for $symbols
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock markets only; inferred from $symbols when omitted
+         * @param {string} [$params->source] Venue or External, matching the subscription
+         * @param {string} [$params->interval] External data interval, must be 1d
+         * @param {string} [$params->channel] stockPrice or stockIndicativeQuote, matching the subscription
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        Async\await($this->subscribe_ws_tickers('watchBidsAsks', $symbols, $params, true, true));
+        return null;
+    }
+
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             A => '0.4087',
-        //             B => '0.0020',
-        //             E => '1754517402450016',
-        //             T => '1754517402449064',
-        //             a => '3667.50',
-        //             b => '3667.49',
-        //             e => 'bookTicker',
-        //             s => 'ETH_USDC',
-        //             u => 1328288557
-        //         ),
-        //         stream => 'bookTicker.ETH_USDC'
+        //         data: {
+        //             A: '0.4087',
+        //             B: '0.0020',
+        //             E: '1754517402450016',
+        //             T: '1754517402449064',
+        //             a: '3667.50',
+        //             b: '3667.49',
+        //             e: 'bookTicker',
+        //             s: 'ETH_USDC',
+        //             u: 1328288557
+        //         },
+        //         stream: 'bookTicker.ETH_USDC'
         //     }
         $data = $this->safe_dict($message, 'data', array());
+        $stream = $this->safe_string($message, 'stream', '');
+        $subscriptions = $this->safe_dict($client->subscriptions, 'marketData:' . $stream, array());
+        $hashes = is_array($subscriptions) ? array_keys($subscriptions) : array();
+        $hashesLength = count($hashes);
+        for ($i = 0; $i < $hashesLength; $i++) {
+            $messageHash = $hashes[$i];
+            $subscription = $this->safe_dict($subscriptions, $messageHash, array());
+            $symbol = $this->safe_string($subscription, 'symbol');
+            if ($symbol === null) {
+                continue;
+            }
+            $market = $this->market($symbol);
+            $parsedBidAsk = $this->parse_ws_bid_ask($data, $market);
+            $this->bidsasks[$symbol] = $parsedBidAsk;
+            $client->resolve($parsedBidAsk, $messageHash);
+        }
+        if ($hashesLength > 0) {
+            return;
+        }
         $marketId = $this->safe_string($data, 's');
-        $market = $this->safe_market($marketId);
-        $symbol = $this->safe_symbol($marketId, $market);
-        $parsedBidAsk = $this->parse_ws_bid_ask($data, $market);
-        $messageHash = 'bidask' . ':' . $symbol;
-        $this->bidsasks[$symbol] = $parsedBidAsk;
-        $client->resolve ($parsedBidAsk, $messageHash);
+        $fallbackMarket = $this->safe_market($marketId);
+        $fallbackSymbol = $this->safe_symbol($marketId, $fallbackMarket);
+        $fallbackBidAsk = $this->parse_ws_bid_ask($data, $fallbackMarket);
+        $fallbackHash = 'bidask' . ':' . $fallbackSymbol;
+        $this->bidsasks[$fallbackSymbol] = $fallbackBidAsk;
+        $client->resolve($fallbackBidAsk, $fallbackHash);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         A => '0.4087',
-        //         B => '0.0020',
-        //         E => '1754517402450016',
-        //         T => '1754517402449064',
-        //         a => '3667.50',
-        //         b => '3667.49',
-        //         e => 'bookTicker',
-        //         s => 'ETH_USDC',
-        //         u => 1328288557
+        //         A: '0.4087',
+        //         B: '0.0020',
+        //         E: '1754517402450016',
+        //         T: '1754517402449064',
+        //         a: '3667.50',
+        //         b: '3667.49',
+        //         e: 'bookTicker',
+        //         s: 'ETH_USDC',
+        //         u: 1328288557
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_string($market, 'symbol');
-        $microseconds = $this->safe_integer($ticker, 'E');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($marketResolved, 'symbol');
+        $microseconds = $this->safe_integer($ticker, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $ask = $this->safe_string($ticker, 'a');
         $askVolume = $this->safe_string($ticker, 'A');
@@ -439,174 +703,199 @@ class backpack extends \ccxt\async\backpack {
             'bid' => $bid,
             'bidVolume' => $bidVolume,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-            return $result[$symbol][$timeframe];
-        }) ();
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
-        }) ();
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects stock spot order-book candles, RFQ candles are unsupported
+         * @param {string} [$params->source] Venue only
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOHLCV', $params));
+        $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $query));
+        return $result[$symbol][$timeframe];
     }
 
-    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of $candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
-             */
-            $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
-                throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
-            }
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects stock spot order-book candles
+         * @param {string} [$params->source] Venue only
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOHLCV', $params));
+        return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $query));
+    }
+
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\async(self::do_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $since, $limit, $params);
+    }
+
+    private function do_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires stock spot order-book markets, not RFQ markets
+         * @param {string} [$params->source] Venue only
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOHLCVForSymbols', $params));
+        $symbolsLength = count($symbolsAndTimeframes);
+        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
+        }
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
-                $marketId = $this->safe_string($symbolAndTimeframe, 0);
-                $market = $this->market($marketId);
-                $tf = $this->safe_string($symbolAndTimeframe, 1);
-                $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                $topics[] = 'kline.' . $interval . '.' . $market['id'];
-                $messageHashes[] = 'candles:' . $market['symbol'] . ':' . $interval;
-            }
-            list($symbol, $timeframe, $candles) = Async\await($this->watch_public($topics, $messageHashes, $params));
-            if ($this->newUpdates) {
-                $limit = $candles->getLimit ($symbol, $limit);
-            }
-            $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
-            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
-        }) ();
+        }
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $marketId = $this->safe_string($this->safe_list($symbolsAndTimeframes, $i), 0);
+            $market = $this->market($marketId);
+            $tf = $this->safe_string($this->safe_list($symbolsAndTimeframes, $i), 1, '');
+            $interval = $this->safe_string($this->timeframes, $tf, $tf);
+            $this->ws_venue_market_id('watchOHLCVForSymbols', $market, $query);
+            $topics[] = 'kline.' . $interval . '.' . $this->safe_string($market, 'id', '');
+            $messageHashes[] = 'candles:' . $market['symbol'] . ':' . $interval;
+        }
+        list($symbol, $timeframe, $candles) = Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' ))));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $candles->getLimit($symbol, $limit);
+        }
+        $filtered = $this->filter_by_since_limit($candles, $since, $limitResolved, 0, true);
+        return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
-    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbolsAndTimeframes, $params) {
-            /**
-             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
-             *
-             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
-                throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
-            }
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $params);
+    }
+
+    private function do_un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires stock spot order-book markets
+         * @param {string} [$params->source] Venue only
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOHLCVForSymbols', $params));
+        $symbolsLength = count($symbolsAndTimeframes);
+        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
+        }
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
-                $marketId = $this->safe_string($symbolAndTimeframe, 0);
-                $market = $this->market($marketId);
-                $tf = $this->safe_string($symbolAndTimeframe, 1);
-                $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                $topics[] = 'kline.' . $interval . '.' . $market['id'];
-                $messageHashes[] = 'unsubscribe:candles:' . $market['symbol'] . ':' . $interval;
-            }
-            return Async\await($this->watch_public($topics, $messageHashes, $params, true));
-        }) ();
+        }
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $marketId = $this->safe_string($this->safe_list($symbolsAndTimeframes, $i), 0);
+            $market = $this->market($marketId);
+            $tf = $this->safe_string($this->safe_list($symbolsAndTimeframes, $i), 1, '');
+            $interval = $this->safe_string($this->timeframes, $tf, $tf);
+            $this->ws_venue_market_id('watchOHLCVForSymbols', $market, $query);
+            $topics[] = 'kline.' . $interval . '.' . $this->safe_string($market, 'id', '');
+            $messageHashes[] = 'unsubscribe:candles:' . $market['symbol'] . ':' . $interval;
+        }
+        return Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' )), true));
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             E => '1754519557526056',
-        //             T => '2025-08-07T00:00:00',
-        //             X => false,
-        //             c => '3680.520000000',
-        //             e => 'kline',
-        //             h => '3681.370000000',
-        //             l => '3667.650000000',
-        //             n => 255,
-        //             o => '3670.150000000',
-        //             s => 'ETH_USDC',
-        //             t => '2025-08-06T22:00:00',
-        //             v => '62.2621000'
-        //         ),
-        //         $stream => 'kline.2h.ETH_USDC'
+        //         data: {
+        //             E: '1754519557526056',
+        //             T: '2025-08-07T00:00:00',
+        //             X: false,
+        //             c: '3680.520000000',
+        //             e: 'kline',
+        //             h: '3681.370000000',
+        //             l: '3667.650000000',
+        //             n: 255,
+        //             o: '3670.150000000',
+        //             s: 'ETH_USDC',
+        //             t: '2025-08-06T22:00:00',
+        //             v: '62.2621000'
+        //         },
+        //         stream: 'kline.2h.ETH_USDC'
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->market($marketId);
         $symbol = $market['symbol'];
-        $stream = $this->safe_string($message, 'stream');
+        $stream = $this->safe_string($message, 'stream', '');
         $parts = explode('.', $stream);
-        $timeframe = $this->safe_string($parts, 1);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        $timeframe = $this->safe_string($parts, 1, '');
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp ($limit);
+            $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
         $ohlcv = $this->ohlcvs[$symbol][$timeframe];
         $parsed = $this->parse_ws_ohlcv($data);
-        $ohlcv->append ($parsed);
+        $ohlcv->append($parsed);
         $messageHash = 'candles:' . $symbol . ':' . $timeframe;
-        $client->resolve (array( $symbol, $timeframe, $ohlcv ), $messageHash);
+        $client->resolve(array( $symbol, $timeframe, $ohlcv ), $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array(
-        //         E => '1754519557526056',
-        //         T => '2025-08-07T00:00:00',
-        //         X => false,
-        //         c => '3680.520000000',
-        //         e => 'kline',
-        //         h => '3681.370000000',
-        //         l => '3667.650000000',
-        //         n => 255,
-        //         o => '3670.150000000',
-        //         s => 'ETH_USDC',
-        //         t => '2025-08-06T22:00:00',
-        //         v => '62.2621000'
-        //     ),
+        //     {
+        //         E: '1754519557526056',
+        //         T: '2025-08-07T00:00:00',
+        //         X: false,
+        //         c: '3680.520000000',
+        //         e: 'kline',
+        //         h: '3681.370000000',
+        //         l: '3667.650000000',
+        //         n: 255,
+        //         o: '3670.150000000',
+        //         s: 'ETH_USDC',
+        //         t: '2025-08-06T22:00:00',
+        //         v: '62.2621000'
+        //     },
         //
         return array(
-            $this->parse8601($this->safe_string($ohlcv, 'T')),
+            $this->parse8601($this->safe_string($ohlcv, 't')),
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),
@@ -615,160 +904,187 @@ class backpack extends \ccxt\async\backpack {
         );
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple trades made in a market
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        }) ();
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches from the stream channel
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
-        }) ();
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple trades made in a market
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires a stock spot order-book market, RFQ public trades are unsupported
+         * @param {string} [$params->source] Venue only
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchTrades', $params));
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $query));
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made in a market
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
-             *
-             * @param {string[]} $symbols unified $symbol of the market to fetch $trades for
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unWatches from the stream channel
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires a stock spot order-book market
+         * @param {string} [$params->source] Venue only
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchTrades', $params));
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $query));
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made in a $market
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires stock spot order-book markets, not RFQ markets
+         * @param {string} [$params->source] Venue only
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchTradesForSymbols', $params));
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
-            }
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $marketId = $this->market_id($symbol);
-                $topics[] = 'trade.' . $marketId;
-                $messageHashes[] = 'trades:' . $symbol;
-            }
-            $trades = Async\await($this->watch_public($topics, $messageHashes, $params));
-            if ($this->newUpdates) {
-                $first = $this->safe_value($trades, 0);
-                $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit ($tradeSymbol, $limit);
-            }
-            $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-            return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
-        }) ();
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsLength = count($symbolsNormalized);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
+            $market = $this->market($symbol);
+            $this->ws_venue_market_id('watchTradesForSymbols', $market, $query);
+            $topics[] = 'trade.' . $this->safe_string($market, 'id', '');
+            $messageHashes[] = 'trades:' . $symbol;
+        }
+        $trades = Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' ))));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
+        }
+        $result = $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+        return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
     }
 
-    public function un_watch_trades_for_symbols(array $symbols, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches from the stream channel
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
-             *
-             * @param {string[]} $symbols unified $symbol of the market to fetch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unWatches from the stream channel
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Trade
+         *
+         * @param {string[]} $symbols unified $symbol of the $market to fetch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires stock spot order-book markets
+         * @param {string} [$params->source] Venue only
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchTradesForSymbols', $params));
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
-                throw new ArgumentsRequired($this->id . ' unWatchTradesForSymbols() requires a non-empty array of symbols');
-            }
-            $topics = array();
-            $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $marketId = $this->market_id($symbol);
-                $topics[] = 'trade.' . $marketId;
-                $messageHashes[] = 'unsubscribe:trades:' . $symbol;
-            }
-            return Async\await($this->watch_public($topics, $messageHashes, $params, true));
-        }) ();
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsLength = count($symbolsNormalized);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' unWatchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
+            $market = $this->market($symbol);
+            $this->ws_venue_market_id('watchTradesForSymbols', $market, $query);
+            $topics[] = 'trade.' . $this->safe_string($market, 'id', '');
+            $messageHashes[] = 'unsubscribe:trades:' . $symbol;
+        }
+        return Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' )), true));
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             E => '1754601477746429',
-        //             T => '1754601477744000',
-        //             a => '5121860761',
-        //             b => '5121861755',
-        //             e => 'trade',
-        //             m => false,
-        //             p => '3870.25',
-        //             q => '0.0008',
-        //             s => 'ETH_USDC_PERP',
-        //             t => 10782547
-        //         ),
-        //         stream => 'trade.ETH_USDC_PERP'
+        //         data: {
+        //             E: '1754601477746429',
+        //             T: '1754601477744000',
+        //             a: '5121860761',
+        //             b: '5121861755',
+        //             e: 'trade',
+        //             m: false,
+        //             p: '3870.25',
+        //             q: '0.0008',
+        //             s: 'ETH_USDC_PERP',
+        //             t: 10782547
+        //         },
+        //         stream: 'trade.ETH_USDC_PERP'
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->market($marketId);
         $symbol = $market['symbol'];
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $cache = $this->trades[$symbol];
         $trade = $this->parse_ws_trade($data, $market);
-        $cache->append ($trade);
+        $cache->append($trade);
         $messageHash = 'trades:' . $symbol;
-        $client->resolve ($cache, $messageHash);
-        $client->resolve ($cache, 'trades');
+        $client->resolve($cache, $messageHash);
+        $client->resolve($cache, 'trades');
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         E => '1754601477746429',
-        //         T => '1754601477744000',
-        //         a => '5121860761',
-        //         b => '5121861755',
-        //         e => 'trade',
-        //         m => false,
-        //         p => '3870.25',
-        //         q => '0.0008',
-        //         s => 'ETH_USDC_PERP',
-        //         t => 10782547
+        //         E: '1754601477746429',
+        //         T: '1754601477744000',
+        //         a: '5121860761',
+        //         b: '5121861755',
+        //         e: 'trade',
+        //         m: false,
+        //         p: '3870.25',
+        //         q: '0.0008',
+        //         s: 'ETH_USDC_PERP',
+        //         t: 10782547
         //     }
         //
-        $microseconds = $this->safe_integer($trade, 'E');
+        $microseconds = $this->safe_integer($trade, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $id = $this->safe_string($trade, 't');
         $marketId = $this->safe_string($trade, 's');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $isBuyerMaker = $this->safe_bool($trade, 'm');
         $side = null;
         $takerOrMaker = null;
@@ -793,7 +1109,7 @@ class backpack extends \ccxt\async\backpack {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,
@@ -805,115 +1121,140 @@ class backpack extends \ccxt\async\backpack {
                 'currency' => null,
                 'cost' => null,
             ),
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Depth
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        }) ();
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
-            /**
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Depth
-             *
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
-             */
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Depth
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires a stock spot order-book market, not an RFQ market
+         * @param {string} [$params->source] Venue only
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOrderBook', $params));
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $query));
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Public/Depth
+         *
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires stock spot order-book markets, not RFQ markets
+         * @param {string} [$params->source] Venue only
+         * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOrderBookForSymbols', $params));
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $marketIds = $this->market_ids($symbols);
-            $messageHashes = array();
-            $topics = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $messageHashes[] = 'orderbook:' . $symbol;
-                $marketId = $marketIds[$i];
-                $topic = 'depth.' . $marketId;
-                $topics[] = $topic;
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $messageHashes = array();
+        $topics = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
+            $messageHashes[] = 'orderbook:' . $symbol;
+            $market = $this->market($symbol);
+            $this->ws_venue_market_id('watchOrderBookForSymbols', $market, $query);
+            $topics[] = 'depth.' . $this->safe_string($market, 'id', '');
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
-            $orderbook = Async\await($this->watch_public($topics, $messageHashes, $params));
-            return $orderbook->limit (); // todo check if $limit is needed
-        }) ();
+        }
+        $orderbook = Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' ))));
+        return $orderbook->limit();
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified array of symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
-             */
-            return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
-        }) ();
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
     }
 
-    public function un_watch_order_book_for_symbols(array $symbols, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string[]} $symbols unified array of $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
-             */
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
+        /**
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified array of symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires a stock spot order-book market
+         * @param {string} [$params->source] Venue only
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOrderBook', $params));
+        return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $query));
+    }
+
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_order_book_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] requires stock spot order-book markets
+         * @param {string} [$params->source] Venue only
+         * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOrderBookForSymbols', $params));
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
-            $marketIds = $this->market_ids($symbols);
-            $messageHashes = array();
-            $topics = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
-                $marketId = $marketIds[$i];
-                $topic = 'depth.' . $marketId;
-                $topics[] = $topic;
-            }
-            return Async\await($this->watch_public($topics, $messageHashes, $params, true));
-        }) ();
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $messageHashes = array();
+        $topics = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
+            $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
+            $market = $this->market($symbol);
+            $this->ws_venue_market_id('watchOrderBookForSymbols', $market, $query);
+            $topics[] = 'depth.' . $this->safe_string($market, 'id', '');
+        }
+        return Async\await($this->watch_public($topics, $messageHashes, $this->omit($query, array( 'stock', 'source' )), true));
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
         //
         //     {
-        //         "data" => array(
-        //             "E" => "1754903057555305",
-        //             "T" => "1754903057554352",
-        //             "U" => 1345937436,
-        //             "a" => array(),
-        //             "b" => array(),
-        //             "e" => "depth",
-        //             "s" => "ETH_USDC",
-        //             "u" => 1345937436
-        //         ),
-        //         "stream" => "depth.ETH_USDC"
+        //         "data": {
+        //             "E": "1754903057555305",
+        //             "T": "1754903057554352",
+        //             "U": 1345937436,
+        //             "a": [],
+        //             "b": [],
+        //             "e": "depth",
+        //             "s": "ETH_USDC",
+        //             "u": 1345937436
+        //         },
+        //         "stream": "depth.ETH_USDC"
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $symbol = $this->safe_symbol($marketId);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $storedOrderBook = $this->orderbooks[$symbol];
@@ -922,23 +1263,27 @@ class backpack extends \ccxt\async\backpack {
         $messageHash = 'orderbook:' . $symbol;
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
-            // the rest API is very delayed
-            // usually it takes at least 9 deltas to resolve
-            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 10);
+            // cache the triggering delta before a synchronous snapshot can inspect the cache
+            $storedOrderBook->cache[] = $data;
+            // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
+            $market = $this->market($symbol);
+            $isStockMarket = ($market['stock'] === true) || (($marketId !== null) && ((mb_strpos($marketId, '.US_') !== false) || (mb_strpos($marketId, '.HK_') !== false)));
+            $defaultSnapshotDelay = $isStockMarket ? 0 : 10;
+            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', $defaultSnapshotDelay);
             if ($cacheLength === $snapshotDelay) {
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
             }
-            $storedOrderBook->cache[] = $data;
             return;
-        } elseif ($nonce > $deltaNonce) {
+        } elseif (($deltaNonce !== null) && ($nonce > $deltaNonce)) {
             return;
         }
-        $this->handle_delta($storedOrderBook, $data);
-        $client->resolve ($storedOrderBook, $messageHash);
+        $this->handle_book_delta($storedOrderBook, $data);
+        $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_delta($orderbook, $delta) {
-        $timestamp = $this->parse_to_int($this->safe_integer($delta, 'T') / 1000);
+    public function handle_book_delta(mixed $orderbook, mixed $delta) {
+        $microseconds = $this->safe_integer($delta, 'T', 0);
+        $timestamp = $this->parse_to_int($microseconds / 1000);
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $orderbook['nonce'] = $this->safe_integer($delta, 'u');
@@ -950,116 +1295,158 @@ class backpack extends \ccxt\async\backpack {
         $this->handle_bid_asks($storedAsks, $asks);
     }
 
-    public function handle_bid_asks($bookSide, $bidAsks) {
+    public function handle_bid_asks(mixed $bookSide, array $bidAsks) {
         for ($i = 0; $i < count($bidAsks); $i++) {
             $bidAsk = $this->parse_order_book_bid_ask($bidAsks[$i]);
-            $bookSide->storeArray ($bidAsk);
+            $bookSide->storeArray($bidAsk);
         }
     }
 
-    public function get_cache_index($orderbook, $cache) {
+    public function get_cache_index(?array $orderbook, array $cache): float {
         //
-        // array("E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":array(),"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171)
+        // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         $firstDelta = $this->safe_dict($cache, 0);
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDeltaStart = $this->safe_integer($firstDelta, 'U');
+        $cacheLength = count($cache);
+        if ($nonce === null) {
+            return $cacheLength;
+        }
+        if ($firstDeltaStart === null) {
+            return -1;
+        }
         if ($nonce < $firstDeltaStart - 1) {
             return -1;
         }
-        for ($i = 0; $i < count($cache); $i++) {
-            $delta = $cache[$i];
+        for ($i = 0; $i < $cacheLength; $i++) {
+            $delta = $this->safe_dict($cache, $i);
             $deltaStart = $this->safe_integer($delta, 'U');
             $deltaEnd = $this->safe_integer($delta, 'u');
+            if (($deltaStart === null) || ($deltaEnd === null)) {
+                return $cacheLength;
+            }
             if (($nonce >= $deltaStart - 1) && ($nonce < $deltaEnd)) {
                 return $i;
             }
         }
-        return count($cache);
+        return $cacheLength;
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
-             *
-             * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock $orders, RFQ markets use account.rfqUpdate
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOrders', $params));
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $this->handleStockParams('watchOrders', $query, $market);
+        }
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
+        $topic = 'account.orderUpdate';
+        $messageHash = 'orders';
+        if ($market !== null) {
+            $topic = 'account.orderUpdate.' . $this->safe_string($market, 'id', '');
+            if ($this->safe_string($market, 'executionModel') === 'rfq') {
+                $topic = 'account.rfqUpdate.' . $this->safe_string($market, 'id', '');
             }
-            $topic = 'account.orderUpdate';
-            $messageHash = 'orders';
-            if ($market !== null) {
-                $topic = 'account.orderUpdate.' . $market['id'];
-                $messageHash = 'orders:' . $symbol;
-            }
-            $orders = Async\await($this->watch_private(array( $topic ), array( $messageHash ), $params));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+            $messageHash = 'orders:' . $this->safe_string($market, 'symbol', '');
+        }
+        $topics = array( $topic );
+        if ($market === null) {
+            $topics[] = 'account.rfqUpdate';
+        }
+        $orders = Async\await($this->watch_private($topics, array( $messageHash ), $this->omit($query, 'stock')));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
+        }
+        $filtered = $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
+        if ($this->safe_bool($query, 'stock', false)) {
+            return $this->filterStockStructures($filtered);
+        }
+        return $filtered;
     }
 
-    public function un_watch_orders(?string $symbol = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on multiple orders made by the user
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
-             *
-             * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
+    public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_orders(...))($symbol, $params);
+    }
+
+    private function do_un_watch_orders(?string $symbol = null, $params = array()) {
+        /**
+         * unWatches information on multiple orders made by the user
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Private/Order-update
+         *
+         * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->stock] selects tokenized stock order subscriptions
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchOrders', $params));
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $this->handleStockParams('watchOrders', $query, $market);
+        }
+        $topic = 'account.orderUpdate';
+        $messageHash = 'unsubscribe:orders';
+        if ($market !== null) {
+            $topic = 'account.orderUpdate.' . $this->safe_string($market, 'id', '');
+            if ($this->safe_string($market, 'executionModel') === 'rfq') {
+                $topic = 'account.rfqUpdate.' . $this->safe_string($market, 'id', '');
             }
-            $topic = 'account.orderUpdate';
-            $messageHash = 'unsubscribe:orders';
-            if ($market !== null) {
-                $topic = 'account.orderUpdate.' . $market['id'];
-                $messageHash = 'unsubscribe:orders:' . $symbol;
-            }
-            return Async\await($this->watch_private(array( $topic ), array( $messageHash ), $params, true));
-        }) ();
+            $messageHash = 'unsubscribe:orders:' . $this->safe_string($market, 'symbol', '');
+        }
+        $topics = array( $topic );
+        if ($market === null) {
+            $topics[] = 'account.rfqUpdate';
+        }
+        return Async\await($this->watch_private($topics, array( $messageHash ), $this->omit($query, 'stock'), true));
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             E => '1754939110175843',
-        //             O => 'USER',
-        //             Q => '4.30',
-        //             S => 'Bid',
-        //             T => '1754939110174703',
-        //             V => 'RejectTaker',
-        //             X => 'New',
-        //             Z => '0',
-        //             e => 'orderAccepted',
-        //             f => 'GTC',
-        //             i => '5406825793',
-        //             o => 'MARKET',
-        //             q => '0.0010',
-        //             r => false,
-        //             s => 'ETH_USDC',
-        //             t => null,
-        //             z => '0'
-        //         ),
-        //         stream => 'account.orderUpdate.ETH_USDC'
+        //         data: {
+        //             E: '1754939110175843',
+        //             O: 'USER',
+        //             Q: '4.30',
+        //             S: 'Bid',
+        //             T: '1754939110174703',
+        //             V: 'RejectTaker',
+        //             X: 'New',
+        //             Z: '0',
+        //             e: 'orderAccepted',
+        //             f: 'GTC',
+        //             i: '5406825793',
+        //             o: 'MARKET',
+        //             q: '0.0010',
+        //             r: false,
+        //             s: 'ETH_USDC',
+        //             t: null,
+        //             z: '0'
+        //         },
+        //         stream: 'account.orderUpdate.ETH_USDC'
         //     }
         //
         $messageHash = 'orders';
@@ -1067,54 +1454,184 @@ class backpack extends \ccxt\async\backpack {
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $parsed = $this->parse_ws_order($data, $market);
+        $event = $this->safe_string($data, 'e', '');
+        if ((mb_strpos($event, 'rfq') === 0) || (mb_strpos($event, 'quote') === 0)) {
+            $parsed = $this->parse_ws_rfq_order($data, $market);
+        } else {
+            $parsed = $this->parse_ws_order($data, $market);
+        }
         $orders = $this->orders;
         if ($orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $orders = new ArrayCacheBySymbolById ($limit);
+            $orders = new ArrayCacheBySymbolById($limit);
             $this->orders = $orders;
         }
-        $orders->append ($parsed);
-        $client->resolve ($orders, $messageHash);
+        $orders->append($parsed);
+        $client->resolve($orders, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($orders, $symbolSpecificMessageHash);
+        $client->resolve($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_rfq_order(array $data, ?array $market = null): array {
+        /**
+         * @ignore
+         * maps documented RFQ lifecycle fields to the REST order parser without inventing fills or fees
+         * @param {array} $data RFQ update payload
+         * @param {array} [$market] resolved RFQ $market
+         * @return {array} unified order
+         */
+        $event = $this->safe_string($data, 'e', '');
+        $quoteEvent = mb_strpos($event, 'quote') === 0;
+        $microseconds = $this->safe_integer($data, 'E', 0);
+        $timestamp = $this->parse_to_int($microseconds / 1000);
+        $request = array(
+            'rfqId' => $this->safe_string($data, 'R'),
+            'clientId' => $this->safe_string($data, 'C'),
+            'symbol' => $this->safe_string($data, 's'),
+            'side' => $this->safe_string($data, 'S'),
+            'quantity' => $this->safe_string($data, 'q'),
+            'quoteQuantity' => $this->safe_string($data, 'Q'),
+            'price' => $this->safe_string($data, 'p'),
+            'status' => $this->safe_string($data, 'X'),
+            'createdAt' => $timestamp,
+            'submissionTime' => $this->safe_integer($data, 'w'),
+            'expiryTime' => $this->safe_integer($data, 'W'),
+            'systemOrderType' => $this->safe_string($data, 'o'),
+        );
+        if ($quoteEvent) {
+            $request['id'] = $this->safe_string($data, 'u');
+        }
+        $marketResolved = $this->safe_market($this->safe_string($data, 's'), $market);
+        $parsed = $this->parse_order($request, $marketResolved);
+        $parsed['info'] = $data;
+        if ($event === 'rfqFilled') {
+            $tradeMicroseconds = $this->safe_integer($data, 'T', 0);
+            $parsed['lastTradeTimestamp'] = $this->parse_to_int($tradeMicroseconds / 1000);
+        }
+        return $parsed;
+    }
+
+    public function watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_watch_balance(...))($params);
+    }
+
+    private function do_watch_balance($params = array()) {
+        /**
+         * watches absolute capital-$account asset updates accumulated since subscription, without an initial snapshot
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Private/Balance-update
+         *
+         * @param {array} [$params] extra exchange-specific parameters
+         * @param {boolean} [$params->stock] return tokenized $stock assets only; explicit because this method has no symbol
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchBalance', $params));
+        $stock = $this->safe_bool($query, 'stock', false);
+        if ($stock && ($this->safe_list($this->options, 'securities') === null)) {
+            Async\await($this->fetchSecurities());
+        }
+        $response = Async\await($this->watch_private(array( 'account.balanceUpdate' ), array( 'balance' ), $this->omit($query, 'stock')));
+        $balances = $this->safe_dict(array( 'balances' => $response ), 'balances', array());
+        if ($stock) {
+            $securities = $this->safe_list($this->options, 'securities', array());
+            $result = array( 'timestamp' => $this->safe_integer($balances, 'timestamp'), 'datetime' => $this->safe_string($balances, 'datetime'), 'info' => $this->safe_dict($balances, 'info') );
+            for ($i = 0; $i < count($securities); $i++) {
+                $security = $this->safe_dict($securities, $i, array());
+                $code = $this->safe_currency_code($this->safe_string($security, 'asset'));
+                if ($code === null) {
+                    continue;
+                }
+                $account = $this->safe_dict($balances, $code);
+                if ($account !== null) {
+                    $result[$code] = $account;
+                }
+            }
+            return $this->safe_balance($result);
+        }
+        return $this->safe_balance($balances);
+    }
+
+    public function un_watch_balance($params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_balance(...))($params);
+    }
+
+    private function do_un_watch_balance($params = array()) {
+        /**
+         * unsubscribes from all capital-account asset updates
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Private/Balance-update
+         *
+         * @param {array} [$params] extra exchange-specific parameters
+         * @param {boolean} [$params->stock] accepts the tokenized stock view selector; explicit because this method has no symbol
+         * @return {array} unsubscription result
+         */
+        $query = Async\await($this->prepare_ws_stock_params('watchBalance', $params));
+        return Async\await($this->watch_private(array( 'account.balanceUpdate' ), array( 'unsubscribe:balance' ), $this->omit($query, 'stock'), true));
+    }
+
+    public function handle_balance(Client $client, array $message): bool {
+        /**
+         * @ignore
+         * merges absolute asset balances using the REST capital parser
+         * @param {array} $client websocket $client
+         * @param {array} $message stream envelope
+         * @return {boolean} whether a balance was updated
+         */
+        $data = $this->safe_dict($message, 'data', array());
+        $assetId = $this->safe_string($data, 'a');
+        if ($assetId === null) {
+            return false;
+        }
+        $assets = $this->safe_dict($this->options, 'wsBalanceAssets', array());
+        $assets[$assetId] = array( 'available' => $this->safe_string($data, 'A'), 'locked' => $this->safe_string($data, 'L'), 'staked' => $this->safe_string($data, 'S') );
+        $this->options['wsBalanceAssets'] = $assets;
+        $response = $this->parse_balance($assets);
+        $parsed = $this->safe_dict(array( 'balances' => $response ), 'balances', array());
+        $microseconds = $this->safe_integer($data, 'E', 0);
+        $timestamp = $this->parse_to_int($microseconds / 1000);
+        $parsed['timestamp'] = $timestamp;
+        $parsed['datetime'] = $this->iso8601($timestamp);
+        $parsed['info'] = $assets;
+        $this->balance = $parsed;
+        $client->resolve($parsed, 'balance');
+        return true;
+    }
+
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
-        //     array(
-        //         E => '1754939110175879',
-        //         L => '4299.16',
-        //         N => 'ETH',
-        //         O => 'USER',
-        //         Q => '4.30',
-        //         S => 'Bid',
-        //         T => '1754939110174705',
-        //         V => 'RejectTaker',
-        //         X => 'Filled',
-        //         Z => '4.299160',
-        //         e => 'orderFill',
-        //         f => 'GTC',
-        //         i => '5406825793',
-        //         l => '0.0010',
-        //         m => false,
-        //         n => '0.000001',
-        //         o => 'MARKET',
-        //         q => '0.0010',
-        //         r => false,
-        //         s => 'ETH_USDC',
-        //         t => 2888471,
-        //         z => '0.0010'
-        //     ),
+        //     {
+        //         E: '1754939110175879',
+        //         L: '4299.16',
+        //         N: 'ETH',
+        //         O: 'USER',
+        //         Q: '4.30',
+        //         S: 'Bid',
+        //         T: '1754939110174705',
+        //         V: 'RejectTaker',
+        //         X: 'Filled',
+        //         Z: '4.299160',
+        //         e: 'orderFill',
+        //         f: 'GTC',
+        //         i: '5406825793',
+        //         l: '0.0010',
+        //         m: false,
+        //         n: '0.000001',
+        //         o: 'MARKET',
+        //         q: '0.0010',
+        //         r: false,
+        //         s: 'ETH_USDC',
+        //         t: 2888471,
+        //         z: '0.0010'
+        //     },
         //
         $id = $this->safe_string($order, 'i');
         $clientOrderId = $this->safe_string($order, 'c');
-        $microseconds = $this->safe_integer($order, 'E');
+        $microseconds = $this->safe_integer($order, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $status = $this->parse_ws_order_status($this->safe_string($order, 'X'), $market);
         $marketId = $this->safe_string($order, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $type = $this->safe_string_lower($order, 'o');
         $timeInForce = $this->safe_string($order, 'f');
         $side = $this->parse_ws_order_side($this->safe_string($order, 'S'));
@@ -1153,10 +1670,10 @@ class backpack extends \ccxt\async\backpack {
             'fee' => $fee,
             'trades' => null,
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
-    public function parse_ws_order_status($status, $market = null) {
+    public function parse_ws_order_status(?string $status, ?array $market = null): ?string {
         $statuses = array(
             'New' => 'open',
             'Filled' => 'closed',
@@ -1169,7 +1686,7 @@ class backpack extends \ccxt\async\backpack {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order_side(?string $side) {
+    public function parse_ws_order_side(?string $side): ?string {
         $sides = array(
             'Bid' => 'buy',
             'Ask' => 'sell',
@@ -1177,136 +1694,144 @@ class backpack extends \ccxt\async\backpack {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             * watch all open $positions
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Private/Position-update
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols to watch $positions for
-             * @param {int} [$since] the earliest time in ms to fetch $positions for
-             * @param {int} [$limit] the maximum number of $positions to retrieve
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
-            Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $messageHashes = array();
-            $topics = array();
-            if ($symbols !== null) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $messageHashes[] = 'positions' . ':' . $symbol;
-                    $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
-                }
-            } else {
-                $messageHashes[] = 'positions';
-                $topics[] = 'account.positionUpdate';
-            }
-            $positions = Async\await($this->watch_private($topics, $messageHashes, $params));
-            if ($this->newUpdates) {
-                return $positions;
-            }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        }) ();
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
     }
 
-    public function un_watch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * unWatches from the stream channel
-             *
-             * @see https://docs.backpack.exchange/#tag/Streams/Private/Position-update
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols to watch positions for
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch all open $positions
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Private/Position-update
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols to watch $positions for
+         * @param {int} [$since] the earliest time in ms to fetch $positions for
+         * @param {int} [$limit] the maximum number of $positions to retrieve
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($this->markets === null) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $messageHashes = array();
-            $topics = array();
-            if ($symbols !== null) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $messageHashes[] = 'unsubscribe:positions' . ':' . $symbol;
-                    $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
-                }
-            } else {
-                $messageHashes[] = 'unsubscribe:positions';
-                $topics[] = 'account.positionUpdate';
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $messageHashes = array();
+        $topics = array();
+        if ($symbolsNormalized !== null) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
+                $messageHashes[] = 'positions' . ':' . $symbol;
+                $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
             }
-            return Async\await($this->watch_private($topics, $messageHashes, $params, true));
-        }) ();
+        } else {
+            $messageHashes[] = 'positions';
+            $topics[] = 'account.positionUpdate';
+        }
+        $positions = Async\await($this->watch_private($topics, $messageHashes, $params));
+        if ($this->newUpdates) {
+            return $positions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }
 
-    public function handle_positions($client, $message) {
+    public function un_watch_positions(?array $symbols = null, $params = array()) {
+        return Async\async(self::do_un_watch_positions(...))($symbols, $params);
+    }
+
+    private function do_un_watch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches from the stream channel
+         *
+         * @see https://docs.backpack.exchange/#tag/Streams/Private/Position-update
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols to watch positions for
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $messageHashes = array();
+        $topics = array();
+        if ($symbolsNormalized !== null) {
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $symbol = $symbolsNormalized[$i];
+                $messageHashes[] = 'unsubscribe:positions' . ':' . $symbol;
+                $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
+            }
+        } else {
+            $messageHashes[] = 'unsubscribe:positions';
+            $topics[] = 'account.positionUpdate';
+        }
+        return Async\await($this->watch_private($topics, $messageHashes, $params, true));
+    }
+
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
-        //         $data => array(
-        //             B => '4236.36',
-        //             E => '1754943862040486',
-        //             M => '4235.88650933',
-        //             P => '-0.000473',
-        //             Q => '0.0010',
-        //             T => '1754943862040487',
-        //             b => '4238.479',
-        //             e => 'positionOpened',
-        //             f => '0.02',
-        //             i => 5411399049,
-        //             l => '0',
-        //             m => '0.0125',
-        //             n => '4.23588650933',
-        //             p => '0',
-        //             q => '0.0010',
-        //             s => 'ETH_USDC_PERP'
-        //         ),
-        //         stream => 'account.positionUpdate'
+        //         data: {
+        //             B: '4236.36',
+        //             E: '1754943862040486',
+        //             M: '4235.88650933',
+        //             P: '-0.000473',
+        //             Q: '0.0010',
+        //             T: '1754943862040487',
+        //             b: '4238.479',
+        //             e: 'positionOpened',
+        //             f: '0.02',
+        //             i: 5411399049,
+        //             l: '0',
+        //             m: '0.0125',
+        //             n: '4.23588650933',
+        //             p: '0',
+        //             q: '0.0010',
+        //             s: 'ETH_USDC_PERP'
+        //         },
+        //         stream: 'account.positionUpdate'
         //     }
         //
         $messageHash = 'positions';
         $data = $this->safe_dict($message, 'data', array());
         if ($this->positions === null) {
-            $this->positions = new ArrayCacheBySymbolById ();
+            $this->positions = new ArrayCacheBySymbolById();
         }
         $cache = $this->positions;
         $parsedPosition = $this->parse_ws_position($data);
-        $microseconds = $this->safe_integer($data, 'E');
+        $microseconds = $this->safe_integer($data, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $parsedPosition['timestamp'] = $timestamp;
         $parsedPosition['datetime'] = $this->iso8601($timestamp);
-        $cache->append ($parsedPosition);
-        $symbolSpecificMessageHash = $messageHash . ':' . $parsedPosition['symbol'];
-        $client->resolve (array( $parsedPosition ), $messageHash);
-        $client->resolve (array( $parsedPosition ), $symbolSpecificMessageHash);
+        $cache->append($parsedPosition);
+        $symbolSpecificMessageHash = $messageHash . ':' . $this->safe_string($parsedPosition, 'symbol', '');
+        $client->resolve(array( $parsedPosition ), $messageHash);
+        $client->resolve(array( $parsedPosition ), $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         B => '4236.36',
-        //         E => '1754943862040486',
-        //         M => '4235.88650933',
-        //         P => '-0.000473',
-        //         Q => '0.0010',
-        //         T => '1754943862040487',
-        //         b => '4238.479',
-        //         e => 'positionOpened',
-        //         f => '0.02',
-        //         i => 5411399049,
-        //         l => '0',
-        //         m => '0.0125',
-        //         n => '4.23588650933',
-        //         p => '0',
-        //         q => '0.0010',
-        //         s => 'ETH_USDC_PERP'
+        //         B: '4236.36',
+        //         E: '1754943862040486',
+        //         M: '4235.88650933',
+        //         P: '-0.000473',
+        //         Q: '0.0010',
+        //         T: '1754943862040487',
+        //         b: '4238.479',
+        //         e: 'positionOpened',
+        //         f: '0.02',
+        //         i: 5411399049,
+        //         l: '0',
+        //         m: '0.0125',
+        //         n: '4.23588650933',
+        //         p: '0',
+        //         q: '0.0010',
+        //         s: 'ETH_USDC_PERP'
         //     }
         //
         $id = $this->safe_string($position, 'i');
         $marketId = $this->safe_string($position, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $notional = $this->safe_string($position, 'n');
         $liquidationPrice = $this->safe_string($position, 'l');
         $entryPrice = $this->safe_string($position, 'b');
@@ -1317,14 +1842,15 @@ class backpack extends \ccxt\async\backpack {
         $netQuantity = $this->safe_number($position, 'q');
         $hedged = false;
         $side = 'long';
-        if ($netQuantity < 0) {
-            $side = 'short';
-        }
-        if ($netQuantity === null) {
+        if ($netQuantity !== null) {
+            if (0 > $netQuantity) {
+                $side = 'short';
+            }
+        } else {
             $hedged = null;
             $side = null;
         }
-        $microseconds = $this->safe_integer($position, 'E');
+        $microseconds = $this->safe_integer($position, 'E', 0);
         $timestamp = $this->parse_to_int($microseconds / 1000);
         $maintenanceMarginPercentage = $this->safe_number($position, 'm');
         $initialMarginPercentage = $this->safe_number($position, 'f');
@@ -1356,13 +1882,19 @@ class backpack extends \ccxt\async\backpack {
         ));
     }
 
-    public function handle_message(Client $client, $message) {
-        if (!$this->handle_error_message($client, $message)) {
+    public function handle_message(Client $client, array $message) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         $data = $this->safe_dict($message, 'data');
         $event = $this->safe_string($data, 'e');
-        if ($event === 'ticker') {
+        if (($event === 'stockPrice') || ($event === 'stockIndicativeQuote')) {
+            $this->handle_stock_ticker($client, $message);
+        } elseif ($event === 'balanceUpdate') {
+            $this->handle_balance($client, $message);
+        } elseif (($event === 'rfqAccepted') || ($event === 'rfqCandidate') || ($event === 'rfqAcceptedBinding') || ($event === 'rfqFilled') || ($event === 'rfqCancelled') || ($event === 'quoteAccepted') || ($event === 'quoteCancelled')) {
+            $this->handle_order($client, $message);
+        } elseif (($event === 'ticker') || ($event === 'externalTicker')) {
             $this->handle_ticker($client, $message);
         } elseif ($event === 'bookTicker') {
             $this->handle_bid_ask($client, $message);
@@ -1379,13 +1911,13 @@ class backpack extends \ccxt\async\backpack {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
-        //         id => null,
-        //         $error => {
-        //             $code => 4006,
-        //             $message => 'Invalid stream'
+        //         id: null,
+        //         error: {
+        //             code: 4006,
+        //             message: 'Invalid stream'
         //         }
         //     }
         //
@@ -1393,12 +1925,12 @@ class backpack extends \ccxt\async\backpack {
         $code = $this->safe_integer($error, 'code');
         try {
             if ($code !== null) {
-                $msg = $this->safe_string($error, 'message');
+                $msg = $this->safe_string($error, 'message', '');
                 throw new ExchangeError($this->id . ' ' . $msg);
             }
             return true;
         } catch (Exception $e) {
-            $client->reject ($e);
+            $client->reject($e);
         }
         return true;
     }

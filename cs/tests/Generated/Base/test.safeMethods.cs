@@ -7,12 +7,9 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        public void testSafeMethods()
+        public object helperDefaultInputDict()
         {
-            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
-                { "id", "regirock" },
-            });
-            object inputDict = new Dictionary<string, object>() {
+            return new Dictionary<string, object>() {
                 { "i", 1 },
                 { "f", 0.123 },
                 { "bool", true },
@@ -29,16 +26,128 @@ public partial class BaseTest
                 { "zeroString", "0" },
                 { "undefined", null },
                 { "emptyString", "" },
+                { "randomList", new List<object>() {"Hi", 4} },
                 { "floatNumeric", 0.123 },
                 { "floatString", "0.123" },
                 { "longInt", 123456789012345 },
+                { "tiny", 0.5 },
+                { "largeInt", 1000000000000000 },
             };
-            object inputList = new List<object>() {"Hi", 2};
-            object compareDict = new Dictionary<string, object>() {
+        }
+        public void testSafeString()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
+            object inputDict = helperDefaultInputDict();
+            List<object> inputList = new List<object>() {"Hi", 2};
+            // safeString
+            Assert(isEqual(exchange.safeString(inputDict, "i"), "1"), "safeString failed for integer");
+            Assert(isEqual(exchange.safeString(inputDict, "f"), "0.123"), "safeString failed for float");
+            Assert(isEqual(exchange.safeString(inputDict, "bool"), null), "safeString failed for boolean");
+            Assert(isEqual(exchange.safeString(inputDict, "list"), null), "safeString failed for list");
+            Assert(isEqual(exchange.safeString(inputDict, "dict"), null), "safeString failed for dict");
+            Assert(isEqual(exchange.safeString(inputDict, "str"), "heLlo"), "safeString failed for string");
+            Assert(isEqual(exchange.safeString(inputDict, "strNumber"), "3"), "safeString failed for string number");
+            Assert(isEqual(exchange.safeString(inputDict, "zeroNumeric"), "0"), "safeString failed for zero numeric");
+            Assert(isEqual(exchange.safeString(inputDict, "zeroString"), "0"), "safeString failed for zero string");
+            Assert(isEqual(exchange.safeString(inputDict, "undefined"), null), "safeString failed for undefined");
+            Assert(isEqual(exchange.safeString(inputDict, "emptyString"), null), "safeString failed for empty string");
+            Assert(isEqual(exchange.safeString(inputList, 0), "Hi"), "safeString failed for list element");
+            Assert(isEqual(exchange.safeString(inputDict, "floatNumeric"), "0.123"), "safeString failed for float numeric");
+            Assert(isEqual(exchange.safeString(inputDict, "floatString"), "0.123"), "safeString failed for float string");
+            Assert(isEqual(exchange.safeString(inputDict, "longInt"), "123456789012345"), "safeString failed for long integer");
+            // With defaults
+            Assert(isEqual(exchange.safeString(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"), "safeString failed for nonexistent key with default");
+            // the below fails in other langs
+            // // @ts-expect-error
+            // Assert (exchange.safeString (inputDict, 'nonexistent', 1) === 1, 'safeString failed for nonexistent key with default integer');
+            // // @ts-expect-error
+            // Assert (exchange.safeString (inputDict, 'nonexistent', true) === true, 'safeString failed for nonexistent key with default bool');
+            // // @ts-expect-error
+            // Assert (exchange.safeString (inputDict, 'nonexistent', 0.2) === 0.2 , 'safeString failed for nonexistent key with default float');
+            // safeString2
+            Assert(isEqual(exchange.safeString2(inputDict, "a", "i"), "1"));
+            Assert(isEqual(exchange.safeString2(inputDict, "a", "f"), "0.123"));
+            Assert(isEqual(exchange.safeString2(inputDict, "a", "str"), "heLlo"));
+            Assert(isEqual(exchange.safeString2(inputDict, "a", "strNumber"), "3"));
+            Assert(isEqual(exchange.safeString2(inputList, 2, 0), "Hi"));
+            Assert(isEqual(exchange.safeString2(inputList, 2, "emptyString"), null));
+            // safeStringN
+            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "i"}), "1"));
+            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "f"}), "0.123"));
+            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "str"}), "heLlo"));
+            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "strNumber"}), "3"));
+            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "emptyString"}), null));
+            Assert(isEqual(exchange.safeStringN(inputList, new List<object>() {3, 2, 0}), "Hi"));
+            // With defaults
+            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "nonexistent"}, "MiXed_Case"), "MiXed_Case"));
+            // safeStringLower
+            Assert(isEqual(exchange.safeStringLower(inputDict, "i"), "1"));
+            Assert(isEqual(exchange.safeStringLower(inputDict, "f"), "0.123"));
+            Assert(isEqual(exchange.safeStringLower(inputDict, "str"), "hello"));
+            Assert(isEqual(exchange.safeStringLower(inputDict, "strNumber"), "3"));
+            Assert(isEqual(exchange.safeStringLower(inputDict, "emptyString"), null));
+            Assert(isEqual(exchange.safeStringLower(inputList, 0), "hi"));
+            // With defaults
+            Assert(isEqual(exchange.safeStringLower(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"));
+            // safeStringLower2testSafeString
+            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "i"), "1"));
+            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "f"), "0.123"));
+            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "str"), "hello"));
+            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "strNumber"), "3"));
+            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "emptyString"), null));
+            Assert(isEqual(exchange.safeStringLower2(inputList, 2, 0), "hi"));
+            // With defaults
+            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "nonexistent", "MiXed_Case"), "MiXed_Case"));
+            // safeStringLowerN
+            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "i"}), "1"));
+            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "f"}), "0.123"));
+            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "str"}), "hello"));
+            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "emptyString"}), null));
+            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "strNumber"}), "3"));
+            Assert(isEqual(exchange.safeStringLowerN(inputList, new List<object>() {3, 2, 0}), "hi"));
+            // With defaults
+            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "nonexistent"}, "MiXed_Case"), "MiXed_Case"));
+            // safeStringUpper
+            Assert(isEqual(exchange.safeStringUpper(inputDict, "i"), "1"));
+            Assert(isEqual(exchange.safeStringUpper(inputDict, "f"), "0.123"));
+            Assert(isEqual(exchange.safeStringUpper(inputDict, "str"), "HELLO"));
+            Assert(isEqual(exchange.safeStringUpper(inputDict, "strNumber"), "3"));
+            Assert(isEqual(exchange.safeStringUpper(inputDict, "emptyString"), null));
+            Assert(isEqual(exchange.safeStringUpper(inputList, 0), "HI"));
+            // With defaults
+            Assert(isEqual(exchange.safeStringUpper(inputDict, "nonexistent", "MiXed_Case"), "MiXed_Case"));
+            // safeStringUpper2
+            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "i"), "1"));
+            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "f"), "0.123"));
+            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "str"), "HELLO"));
+            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "emptyString"), null));
+            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "strNumber"), "3"));
+            Assert(isEqual(exchange.safeStringUpper2(inputList, 2, 0), "HI"));
+            // With defaults
+            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "nonexistent", "MiXed_Case"), "MiXed_Case"));
+            // safeStringUpperN
+            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "i"}), "1"));
+            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "f"}), "0.123"));
+            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "str"}), "HELLO"));
+            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "emptyString"}), null));
+            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "strNumber"}), "3"));
+            Assert(isEqual(exchange.safeStringUpperN(inputList, new List<object>() {3, 2, 0}), "HI"));
+            // With defaults
+            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "nonexistent"}, "MiXed_Case"), "MiXed_Case"));
+        }
+        public void testSafeValue()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
+            object inputDict = helperDefaultInputDict();
+            List<object> inputList = new List<object>() {"Hi", 2};
+            Dictionary<string, object> compareDict = new Dictionary<string, object>() {
                 { "a", 1 },
             };
-            object compareList = new List<object>() {1, 2, 3};
-            object factor = 10;
+            List<object> compareList = new List<object>() {1, 2, 3};
             // safeValue
             Assert(isEqual(exchange.safeValue(inputDict, "i"), 1));
             Assert(isEqual(exchange.safeValue(inputDict, "f"), 0.123));
@@ -69,101 +178,68 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeValueN(inputDict, new List<object>() {"a", "b", "str"}), "heLlo"));
             Assert(isEqual(exchange.safeValueN(inputDict, new List<object>() {"a", "b", "strNumber"}), "3"));
             Assert(isEqual(exchange.safeValueN(inputList, new List<object>() {3, 2, 0}), "Hi"));
+        }
+        public void testSafeDict()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
+            object inputDict = helperDefaultInputDict();
+            List<object> inputList = new List<object>() {"Hi", 2};
+            Dictionary<string, object> compareDict = new Dictionary<string, object>() {
+                { "a", 1 },
+            };
             // safeDict
-            dictObject = exchange.safeDict(inputDict, "dict");
+            IDictionary<string, object> dictObject = exchange.safeDict(inputDict, "dict");
             Assert(equals(dictObject, compareDict));
-            object listObject = exchange.safeDict(inputDict, "list");
-            Assert(isEqual(listObject, null));
+            IDictionary<string, object> listObject = exchange.safeDict(inputDict, "list");
+            Assert((listObject == null));
             Assert(isEqual(exchange.safeDict(inputList, 1), null));
             // safeDict2
             dictObject = exchange.safeDict2(inputDict, "a", "dict");
             Assert(equals(dictObject, compareDict));
             listObject = exchange.safeDict2(inputDict, "a", "list");
-            Assert(isEqual(listObject, null));
+            Assert((listObject == null));
             // @ts-expect-error
             Assert(isEqual(exchange.safeDict2(inputList, 2, 1), null));
             // safeDictN
             dictObject = exchange.safeDictN(inputDict, new List<object>() {"a", "b", "dict"});
             Assert(equals(dictObject, compareDict));
             listObject = exchange.safeDictN(inputDict, new List<object>() {"a", "b", "list"});
-            Assert(isEqual(listObject, null));
+            Assert((listObject == null));
             Assert(isEqual(exchange.safeDictN(inputList, new List<object>() {3, 2, 1}), null));
+        }
+        public void testSafeList()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
+            object inputDict = helperDefaultInputDict();
+            List<object> inputList = new List<object>() {"Hi", 2};
             // safeList
-            listObject = exchange.safeList(inputDict, "list");
-            Assert(equals(dictObject, compareDict));
             Assert(isEqual(exchange.safeList(inputDict, "dict"), null));
             Assert(isEqual(exchange.safeList(inputList, 1), null));
-            object arrayOfDicts = exchange.safeList(inputDict, "listOfDicts");
-            Assert(equals(getValue(arrayOfDicts, 0), new Dictionary<string, object>() {
+            List<object> arrayOfDicts = exchange.safeList(inputDict, "listOfDicts");
+            Assert(equals(getValue((IList<object>)(arrayOfDicts), 0), new Dictionary<string, object>() {
                 { "a", 1 },
             }));
             // safeList2
-            listObject = exchange.safeList2(inputDict, "a", "list");
-            Assert(equals(dictObject, compareDict));
             Assert(isEqual(exchange.safeList2(inputDict, "a", "dict"), null));
             // @ts-expect-error
             Assert(isEqual(exchange.safeList2(inputList, 2, 1), null));
             // safeListN
-            listObject = exchange.safeListN(inputDict, new List<object>() {"a", "b", "list"});
-            Assert(equals(dictObject, compareDict));
             Assert(isEqual(exchange.safeListN(inputDict, new List<object>() {"a", "b", "dict"}), null));
             Assert(isEqual(exchange.safeListN(inputList, new List<object>() {3, 2, 1}), null));
-            // safeString
-            Assert(isEqual(exchange.safeString(inputDict, "i"), "1"));
-            Assert(isEqual(exchange.safeString(inputDict, "f"), "0.123"));
-            // Assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
-            Assert(isEqual(exchange.safeString(inputDict, "str"), "heLlo"));
-            Assert(isEqual(exchange.safeString(inputDict, "strNumber"), "3"));
-            Assert(isEqual(exchange.safeString(inputList, 0), "Hi"));
-            // safeString2
-            Assert(isEqual(exchange.safeString2(inputDict, "a", "i"), "1"));
-            Assert(isEqual(exchange.safeString2(inputDict, "a", "f"), "0.123"));
-            Assert(isEqual(exchange.safeString2(inputDict, "a", "str"), "heLlo"));
-            Assert(isEqual(exchange.safeString2(inputDict, "a", "strNumber"), "3"));
-            Assert(isEqual(exchange.safeString2(inputList, 2, 0), "Hi"));
-            // safeStringN
-            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "i"}), "1"));
-            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "f"}), "0.123"));
-            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "str"}), "heLlo"));
-            Assert(isEqual(exchange.safeStringN(inputDict, new List<object>() {"a", "b", "strNumber"}), "3"));
-            Assert(isEqual(exchange.safeStringN(inputList, new List<object>() {3, 2, 0}), "Hi"));
-            // safeStringLower
-            Assert(isEqual(exchange.safeStringLower(inputDict, "i"), "1"));
-            Assert(isEqual(exchange.safeStringLower(inputDict, "f"), "0.123"));
-            Assert(isEqual(exchange.safeStringLower(inputDict, "str"), "hello"));
-            Assert(isEqual(exchange.safeStringLower(inputDict, "strNumber"), "3"));
-            Assert(isEqual(exchange.safeStringLower(inputList, 0), "hi"));
-            // safeStringLower2
-            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "i"), "1"));
-            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "f"), "0.123"));
-            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "str"), "hello"));
-            Assert(isEqual(exchange.safeStringLower2(inputDict, "a", "strNumber"), "3"));
-            Assert(isEqual(exchange.safeStringLower2(inputList, 2, 0), "hi"));
-            // safeStringLowerN
-            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "i"}), "1"));
-            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "f"}), "0.123"));
-            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "str"}), "hello"));
-            Assert(isEqual(exchange.safeStringLowerN(inputDict, new List<object>() {"a", "b", "strNumber"}), "3"));
-            Assert(isEqual(exchange.safeStringLowerN(inputList, new List<object>() {3, 2, 0}), "hi"));
-            // safeStringUpper
-            Assert(isEqual(exchange.safeStringUpper(inputDict, "i"), "1"));
-            Assert(isEqual(exchange.safeStringUpper(inputDict, "f"), "0.123"));
-            Assert(isEqual(exchange.safeStringUpper(inputDict, "str"), "HELLO"));
-            Assert(isEqual(exchange.safeStringUpper(inputDict, "strNumber"), "3"));
-            Assert(isEqual(exchange.safeStringUpper(inputList, 0), "HI"));
-            // safeStringUpper2
-            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "i"), "1"));
-            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "f"), "0.123"));
-            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "str"), "HELLO"));
-            Assert(isEqual(exchange.safeStringUpper2(inputDict, "a", "strNumber"), "3"));
-            Assert(isEqual(exchange.safeStringUpper2(inputList, 2, 0), "HI"));
-            // safeStringUpperN
-            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "i"}), "1"));
-            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "f"}), "0.123"));
-            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "str"}), "HELLO"));
-            Assert(isEqual(exchange.safeStringUpperN(inputDict, new List<object>() {"a", "b", "strNumber"}), "3"));
-            Assert(isEqual(exchange.safeStringUpperN(inputList, new List<object>() {3, 2, 0}), "HI"));
+        }
+        public void testSafeInteger()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
             // safeInteger
+            object inputDict = helperDefaultInputDict();
+            List<object> inputList = new List<object>() {"Hi", 2};
+            int factor = 10;
             Assert(isEqual(exchange.safeInteger(inputDict, "i"), 1));
             Assert(isEqual(exchange.safeInteger(inputDict, "f"), 0));
             Assert(isEqual(exchange.safeInteger(inputDict, "strNumber"), 3));
@@ -190,55 +266,113 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeIntegerProduct(inputList, 1, factor), 20));
             Assert(isEqual(exchange.safeIntegerProduct(inputDict, "longInt", 0.000001), 123456789));
             Assert(isEqual(exchange.safeIntegerProduct(inputDict, "inexistent", 0.000001, 123456789), 123456789));
+            // regression: 0.5 * 0.000001 is 5e-7, the product is rendered in exponential notation and the old parseInt-based truncation returned 5 instead of 0
+            Assert(isEqual(exchange.safeIntegerProduct(inputDict, "tiny", 0.000001), 0));
+            // a product of 1e18 stays within fixed notation (no exponential form) and fits signed int64 range in non-JS target languages
+            Assert(isEqual(exchange.safeIntegerProduct(inputDict, "largeInt", 1000), 1000000000000000000));
             // safeIntegerProduct2
             Assert(isEqual(exchange.safeIntegerProduct2(inputDict, "a", "i", factor), 10));
             Assert(isEqual(exchange.safeIntegerProduct2(inputDict, "a", "f", factor), 1)); // NB the result is 1
             Assert(isEqual(exchange.safeIntegerProduct2(inputDict, "a", "strNumber", factor), 30));
             Assert(isEqual(exchange.safeIntegerProduct2(inputList, 2, 1, factor), 20));
+            Assert(isEqual(exchange.safeIntegerProduct2(inputDict, "a", "tiny", 0.000001), 0));
+            Assert(isEqual(exchange.safeIntegerProduct2(inputDict, "a", "largeInt", 1000), 1000000000000000000));
             // safeIntegerProductN
             Assert(isEqual(exchange.safeIntegerProductN(inputDict, new List<object>() {"a", "b", "i"}, factor), 10));
             Assert(isEqual(exchange.safeIntegerProductN(inputDict, new List<object>() {"a", "b", "f"}, factor), 1)); // NB the result is 1
             Assert(isEqual(exchange.safeIntegerProductN(inputDict, new List<object>() {"a", "b", "strNumber"}, factor), 30));
             Assert(isEqual(exchange.safeIntegerProductN(inputList, new List<object>() {3, 2, 1}, factor), 20));
+            Assert(isEqual(exchange.safeIntegerProductN(inputDict, new List<object>() {"a", "b", "tiny"}, 0.000001), 0));
+            Assert(isEqual(exchange.safeIntegerProductN(inputDict, new List<object>() {"a", "b", "largeInt"}, 1000), 1000000000000000000));
+        }
+        public void testSafeTimestamp()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
+            object inputDict = helperDefaultInputDict();
+            List<object> inputList = new List<object>() {"Hi", 2};
             // safeTimestamp
             Assert(isEqual(exchange.safeTimestamp(inputDict, "i"), 1000));
             Assert(isEqual(exchange.safeTimestamp(inputDict, "f"), 123));
             Assert(isEqual(exchange.safeTimestamp(inputDict, "strNumber"), 3000));
             Assert(isEqual(exchange.safeTimestamp(inputList, 1), 2000));
+            // 1e15 seconds multiplied by 1000 is 1e18 ms, the largest timestamp product every language represents exactly
+            Assert(isEqual(exchange.safeTimestamp(inputDict, "largeInt"), 1000000000000000000));
             // safeTimestamp2
             Assert(isEqual(exchange.safeTimestamp2(inputDict, "a", "i"), 1000));
             Assert(isEqual(exchange.safeTimestamp2(inputDict, "a", "f"), 123));
             Assert(isEqual(exchange.safeTimestamp2(inputDict, "a", "strNumber"), 3000));
             Assert(isEqual(exchange.safeTimestamp2(inputList, 2, 1), 2000));
+            Assert(isEqual(exchange.safeTimestamp2(inputDict, "a", "largeInt"), 1000000000000000000));
             // safeTimestampN
             Assert(isEqual(exchange.safeTimestampN(inputDict, new List<object>() {"a", "b", "i"}), 1000));
             Assert(isEqual(exchange.safeTimestampN(inputDict, new List<object>() {"a", "b", "f"}), 123));
             Assert(isEqual(exchange.safeTimestampN(inputDict, new List<object>() {"a", "b", "strNumber"}), 3000));
             Assert(isEqual(exchange.safeTimestampN(inputList, new List<object>() {3, 2, 1}), 2000));
+            Assert(isEqual(exchange.safeTimestampN(inputDict, new List<object>() {"a", "b", "largeInt"}), 1000000000000000000));
+        }
+        public void testSafeFloat()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
+            object inputDict = helperDefaultInputDict();
+            List<object> inputList = new List<object>() {"Hi", 2};
             // safeFloat
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat(inputDict, "i"), parseFloat(1)));
+            Assert(isEqual(exchange.safeFloat(inputDict, "i"), 1.0));
             Assert(isEqual(exchange.safeFloat(inputDict, "f"), 0.123));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat(inputDict, "strNumber"), parseFloat(3)));
+            Assert(isEqual(exchange.safeFloat(inputDict, "strNumber"), 3.0));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat(inputList, 1), parseFloat(2)));
+            Assert(isEqual(exchange.safeFloat(inputList, 1), 2.0));
             // safeFloat2
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "i"), parseFloat(1)));
+            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "i"), 1.0));
             Assert(isEqual(exchange.safeFloat2(inputDict, "a", "f"), 0.123));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "strNumber"), parseFloat(3)));
+            Assert(isEqual(exchange.safeFloat2(inputDict, "a", "strNumber"), 3.0));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloat2(inputList, 2, 1), parseFloat(2)));
+            Assert(isEqual(exchange.safeFloat2(inputList, 2, 1), 2.0));
             // safeFloatN
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "i"}), parseFloat(1)));
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "i"}), 1.0));
             Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "f"}), 0.123));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "strNumber"}), parseFloat(3)));
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "strNumber"}), 3.0));
             // @ts-expect-error
-            Assert(isEqual(exchange.safeFloatN(inputList, new List<object>() {3, 2, 1}), parseFloat(2)));
+            Assert(isEqual(exchange.safeFloatN(inputList, new List<object>() {3, 2, 1}), 2.0));
+            // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
+            Assert(isEqual(exchange.safeFloat(inputDict, "nonexistent"), null), "safeFloat failed for missing key");
+            Assert(isEqual(exchange.safeFloat(inputDict, "nonexistent", 5), 5), "safeFloat failed for missing key with default");
+            Assert(isEqual(exchange.safeFloat(inputDict, "emptyString"), null), "safeFloat failed for empty string");
+            Assert(isEqual(exchange.safeFloat(inputDict, "str"), null), "safeFloat failed for non-numeric string");
+            Assert(isEqual(exchange.safeFloat(inputDict, "undefined"), null), "safeFloat failed for None value");
+            Assert(isEqual(exchange.safeFloat(null, "i"), null), "safeFloat failed for undefined container");
+            Assert(isEqual(exchange.safeFloat(null, "i", 7), 7), "safeFloat failed for undefined container with default");
+            Assert(isEqual(exchange.safeFloat(inputList, 5), null), "safeFloat failed for out-of-range list index");
+            // safeFloat2 - negative paths
+            Assert(isEqual(exchange.safeFloat2(inputDict, "nonexistent", "nonexistent2"), null), "safeFloat2 failed for missing keys");
+            Assert(isEqual(exchange.safeFloat2(inputDict, "nonexistent", "str"), null), "safeFloat2 failed for missing then non-numeric");
+            Assert(isEqual(exchange.safeFloat2(inputDict, "nonexistent", "emptyString"), null), "safeFloat2 failed for missing then empty string");
+            Assert(isEqual(exchange.safeFloat2(inputDict, "nonexistent", "nonexistent2", 9), 9), "safeFloat2 failed for missing keys with default");
+            Assert(isEqual(exchange.safeFloat2(null, "i", "f"), null), "safeFloat2 failed for undefined container");
+            // safeFloatN - negative paths
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "nonexistent"}), null), "safeFloatN failed for missing keys");
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "emptyString"}), null), "safeFloatN failed for empty string");
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "str"}), null), "safeFloatN failed for non-numeric string");
+            Assert(isEqual(exchange.safeFloatN(inputDict, new List<object>() {"a", "b", "nonexistent"}, 11), 11), "safeFloatN failed for missing keys with default");
+            Assert(isEqual(exchange.safeFloatN(null, new List<object>() {"a", "b", "i"}), null), "safeFloatN failed for undefined container");
+            Assert(isEqual(exchange.safeFloatN(inputList, new List<object>() {5, 6}), null), "safeFloatN failed for out-of-range list indices");
+        }
+        public void testSafeNumber()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
+            object inputDict = helperDefaultInputDict();
+            List<object> inputList = new List<object>() {"Hi", 2};
             // safeNumber
             Assert(isEqual(exchange.safeNumber(inputDict, "i"), exchange.parseNumber(1)));
             Assert(isEqual(exchange.safeNumber(inputDict, "f"), exchange.parseNumber(0.123)));
@@ -258,6 +392,21 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeNumberN(inputDict, new List<object>() {"a", "b", "f"}), exchange.parseNumber(0.123)));
             Assert(isEqual(exchange.safeNumberN(inputDict, new List<object>() {"a", "b", "strNumber"}), exchange.parseNumber(3)));
             Assert(isEqual(exchange.safeNumberN(inputList, new List<object>() {3, 2, 1}), exchange.parseNumber(2)));
+            // safeNumberOmitZero
+            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "zeroNumeric"), null));
+            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "zeroString"), null));
+            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "undefined"), null));
+            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "emptyString"), null));
+            Assert(!isEqual(exchange.safeNumberOmitZero(inputDict, "floatNumeric"), null));
+            Assert(!isEqual(exchange.safeNumberOmitZero(inputDict, "floatString"), null));
+        }
+        public void testSafeBool()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
+            object inputDict = helperDefaultInputDict();
+            List<object> inputList = new List<object>() {"Hi", 2};
             // safeBool
             Assert(isEqual(exchange.safeBool(inputDict, "bool"), true));
             Assert(isEqual(exchange.safeBool(inputList, 1), null));
@@ -267,15 +416,12 @@ public partial class BaseTest
             // safeBoolN
             Assert(isEqual(exchange.safeBoolN(inputDict, new List<object>() {"a", "b", "bool"}), true));
             Assert(isEqual(exchange.safeBoolN(inputList, new List<object>() {3, 2, 1}), null));
-            // safeNumberOmitZero
-            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "zeroNumeric"), null));
-            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "zeroString"), null));
-            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "undefined"), null));
-            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "emptyString"), null));
-            Assert(!isEqual(exchange.safeNumberOmitZero(inputDict, "floatNumeric"), null));
-            Assert(!isEqual(exchange.safeNumberOmitZero(inputDict, "floatString"), null));
-            // tbd Assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
-            // tbd Assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+        }
+        public void testCacheSafeCalls()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleex" },
+            });
             // init array cache tests
             // Test cache types - ArrayCache
             var arrayCache = new ArrayCache(100);
@@ -284,13 +430,13 @@ public partial class BaseTest
                 { "id", "order1" },
                 { "price", 50000 },
             });
-            Assert(isGreaterThan(getArrayLength(arrayCache), 0));
+            Assert(getArrayLength(arrayCache) > 0);
             // Test cache types - ArrayCacheByTimestamp
             var arrayCacheByTimestamp = new ArrayCacheByTimestamp(100);
             arrayCacheByTimestamp.append(new List<object>() {1000, 50000, 1, 2, 3});
             object arrayCacheByTimestampData = exchange.safeValue(arrayCacheByTimestamp, "Data");
-            object cacheByTimestampData = ((bool) isTrue(!isEqual(arrayCacheByTimestampData, null))) ? arrayCacheByTimestampData : arrayCacheByTimestamp;
-            Assert(isGreaterThan(getArrayLength(cacheByTimestampData), 0));
+            object cacheByTimestampData = (arrayCacheByTimestampData != null) ? arrayCacheByTimestampData : arrayCacheByTimestamp;
+            Assert(getArrayLength(cacheByTimestampData) > 0);
             // Test cache types - ArrayCacheBySymbolById
             var arrayCacheBySymbolById = new ArrayCacheBySymbolById(100);
             arrayCacheBySymbolById.append(new Dictionary<string, object>() {
@@ -303,8 +449,8 @@ public partial class BaseTest
             Assert(!isEqual(getValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), null));
             Assert(!isEqual(getValue(getValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), null));
             object arrayCacheBySymbolByIdData = exchange.safeValue(arrayCacheBySymbolById, "Data");
-            object cacheBySymbolByIdData = ((bool) isTrue(!isEqual(arrayCacheBySymbolByIdData, null))) ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
-            Assert(isGreaterThan(getArrayLength(cacheBySymbolByIdData), 0));
+            object cacheBySymbolByIdData = (arrayCacheBySymbolByIdData != null) ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
+            Assert(getArrayLength(cacheBySymbolByIdData) > 0);
             // Test cache types - ArrayCacheBySymbolBySide
             var arrayCacheBySymbolBySide = new ArrayCacheBySymbolBySide();
             arrayCacheBySymbolBySide.append(new Dictionary<string, object>() {
@@ -316,49 +462,62 @@ public partial class BaseTest
             object arrayCacheBySymbolBySideHashmap = arrayCacheBySymbolBySide.hashmap;
             Assert(!isEqual(getValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), null));
             object arrayCacheBySymbolBySideData = exchange.safeValue(arrayCacheBySymbolBySide, "Data");
-            object cacheBySymbolBySideData = ((bool) isTrue(!isEqual(arrayCacheBySymbolBySideData, null))) ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
-            Assert(isGreaterThan(getArrayLength(cacheBySymbolBySideData), 0));
+            object cacheBySymbolBySideData = (arrayCacheBySymbolBySideData != null) ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
+            Assert(getArrayLength(cacheBySymbolBySideData) > 0);
             // Test map[string]map[string]interface{} (ArrayCache.hashmap)
             // Use direct property access for object attributes
             object arrayCacheHashmapDirect = arrayCache.hashmap;
             object nestedMap = arrayCacheHashmapDirect;
             Assert(isEqual(exchange.safeValue(nestedMap, "NONEXISTENT"), null));
             // Test map[string]*ArrayCache (Trades structure)
-            object tradesMap = new Dictionary<string, object>() {
+            Dictionary<string, object> tradesMap = new Dictionary<string, object>() {
                 { "BTC/USDT", arrayCache },
                 { "ETH/USDT", arrayCacheBySymbolById },
             };
             object stored = exchange.safeValue(tradesMap, "BTC/USDT");
-            Assert(!isEqual(stored, null));
+            Assert((stored != null));
             // Use direct property access for hashmap (object attribute)
             object retrievedArrayCacheHashmap = ((stored as ArrayCache).hashmap);
-            Assert(!isEqual(retrievedArrayCacheHashmap, null));
+            Assert((retrievedArrayCacheHashmap != null));
             object retrievedArrayCacheBySymbolById = exchange.safeValue(tradesMap, "ETH/USDT");
-            Assert(!isEqual(retrievedArrayCacheBySymbolById, null));
+            Assert((retrievedArrayCacheBySymbolById != null));
             // Use direct property access for hashmap (object attribute)
             object retrievedArrayCacheBySymbolByIdHashmap = ((retrievedArrayCacheBySymbolById as ArrayCacheBySymbolById).hashmap);
-            Assert(!isEqual(retrievedArrayCacheBySymbolByIdHashmap, null));
+            Assert((retrievedArrayCacheBySymbolByIdHashmap != null));
             Assert(isEqual(exchange.safeValue(tradesMap, "NONEXISTENT"), null));
             // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
-            object ohlcvInnerMap = new Dictionary<string, object>() {
+            Dictionary<string, object> ohlcvInnerMap = new Dictionary<string, object>() {
                 { "1m", arrayCacheByTimestamp },
                 { "5m", new ArrayCacheByTimestamp(100) },
             };
             object retrievedArrayCacheByTimestamp = exchange.safeValue(ohlcvInnerMap, "1m");
-            Assert(!isEqual(retrievedArrayCacheByTimestamp, null));
+            Assert((retrievedArrayCacheByTimestamp != null));
             // Use direct property access for object attributes
             object retrievedArrayCacheByTimestampHashmap = ((retrievedArrayCacheByTimestamp as ArrayCacheByTimestamp).hashmap);
-            Assert(!isEqual(retrievedArrayCacheByTimestampHashmap, null));
+            Assert((retrievedArrayCacheByTimestampHashmap != null));
             Assert(!isEqual(exchange.safeValue(ohlcvInnerMap, "5m"), null));
             Assert(isEqual(exchange.safeValue(ohlcvInnerMap, "NONEXISTENT"), null));
             // Test map[string]*ArrayCacheBySymbolBySide
-            object cacheBySideMap = new Dictionary<string, object>() {
+            Dictionary<string, object> cacheBySideMap = new Dictionary<string, object>() {
                 { "BTC/USDT", arrayCacheBySymbolBySide },
             };
             object retrievedArrayCacheBySymbolBySide = exchange.safeValue(cacheBySideMap, "BTC/USDT");
-            Assert(!isEqual(retrievedArrayCacheBySymbolBySide, null));
+            Assert((retrievedArrayCacheBySymbolBySide != null));
             object retrievedArrayCacheBySymbolBySideHashmap = ((retrievedArrayCacheBySymbolBySide as ArrayCacheBySymbolBySide).hashmap);
-            Assert(!isEqual(retrievedArrayCacheBySymbolBySideHashmap, null));
+            Assert((retrievedArrayCacheBySymbolBySideHashmap != null));
             Assert(isEqual(exchange.safeValue(cacheBySideMap, "NONEXISTENT"), null));
+        }
+        public void testSafeMethods()
+        {
+            testSafeString();
+            testSafeValue();
+            testSafeDict();
+            testSafeList();
+            testSafeInteger();
+            testSafeTimestamp();
+            testSafeFloat();
+            testSafeNumber();
+            testSafeBool();
+            testCacheSafeCalls();
         }
 }

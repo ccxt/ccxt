@@ -5,33 +5,105 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetApiServerTime (params?: {}): Promise<implicitReturnType>;
-    publicGetApiPairs (params?: {}): Promise<implicitReturnType>;
-    publicGetApiPriceIncrements (params?: {}): Promise<implicitReturnType>;
-    publicGetApiSummaries (params?: {}): Promise<implicitReturnType>;
-    publicGetApiTickerPair (params?: {}): Promise<implicitReturnType>;
-    publicGetApiTickerAll (params?: {}): Promise<implicitReturnType>;
-    publicGetApiTradesPair (params?: {}): Promise<implicitReturnType>;
-    publicGetApiDepthPair (params?: {}): Promise<implicitReturnType>;
-    publicGetTradingviewHistoryV2 (params?: {}): Promise<implicitReturnType>;
-    privatePostGetInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostTransHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostTrade (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostGetOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawFee (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawCoin (params?: {}): Promise<implicitReturnType>;
-    privatePostListDownline (params?: {}): Promise<implicitReturnType>;
-    privatePostCheckDownline (params?: {}): Promise<implicitReturnType>;
-    privatePostCreateVoucher (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetApiServerTime (params = {}): Promise<Dict> {
+        return this.request ('api/server_time', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
 
-export default Exchange
+    publicGetApiPairs (params = {}): Promise<List> {
+        return this.request ('api/pairs', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetApiPriceIncrements (params = {}): Promise<Dict> {
+        return this.request ('api/price_increments', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetApiSummaries (params = {}): Promise<Dict> {
+        return this.request ('api/summaries', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetApiTickerPair (params = {}): Promise<Dict> {
+        return this.request ('api/ticker/{pair}', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetApiTickerAll (params = {}): Promise<Dict> {
+        return this.request ('api/ticker_all', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetApiTradesPair (params = {}): Promise<List> {
+        return this.request ('api/trades/{pair}', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetApiDepthPair (params = {}): Promise<Dict> {
+        return this.request ('api/depth/{pair}', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    publicGetTradingviewHistoryV2 (params = {}): Promise<List> {
+        return this.request ('tradingview/history_v2', [ 'public' ], 'GET', params, { 'cost': 5 });
+    }
+
+    privatePostGetInfo (params = {}): Promise<Dict> {
+        return this.request ('getInfo', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostTransHistory (params = {}): Promise<Dict> {
+        return this.request ('transHistory', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostTrade (params = {}): Promise<Dict> {
+        return this.request ('trade', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTradeHistory (params = {}): Promise<Dict> {
+        return this.request ('tradeHistory', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('openOrders', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('orderHistory', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostGetOrder (params = {}): Promise<Dict> {
+        return this.request ('getOrder', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostGetOrderByClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('getOrderByClientOrderId', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('cancelOrder', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostCancelByClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('cancelByClientOrderId', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostWithdrawFee (params = {}): Promise<Dict> {
+        return this.request ('withdrawFee', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostWithdrawCoin (params = {}): Promise<Dict> {
+        return this.request ('withdrawCoin', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostListDownline (params = {}): Promise<Dict> {
+        return this.request ('listDownline', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostCheckDownline (params = {}): Promise<Dict> {
+        return this.request ('checkDownline', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostCreateVoucher (params = {}): Promise<Dict> {
+        return this.request ('createVoucher', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+}
+
+export default Exchange;

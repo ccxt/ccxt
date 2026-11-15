@@ -3,7 +3,6 @@ import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
-
 function helperTestInitThrottler () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -26,16 +25,16 @@ function helperTestInitThrottler () {
     // todo: add initial tockenbtucket test
 }
 
-function helperTestSandboxState (exchange, expectEnabled = true) {
+function helperTestSandboxState (exchange: any, expectEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
     const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');
     if (expectEnabled) {
-        assert (isSandboxModeEnabled);
+        assert (isSandboxModeEnabled === true);
         assert (exchange.urls['api']['public'] === 'https://testnet.org');
         assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
     } else {
-        assert (!isSandboxModeEnabled);
+        assert (isSandboxModeEnabled !== true);
         assert (exchange.urls['api']['public'] === 'https://example.com');
         assert (exchange.urls['test']['public'] === 'https://testnet.org');
     }
@@ -72,6 +71,16 @@ function helperTestInitSandbox () {
     helperTestSandboxState (exchange4, true);
     exchange4.setSandboxMode (false);
     helperTestSandboxState (exchange4, false);
+    //
+    // CASE C: passed 'sandbox' within userConfig
+    //
+    opts['options']['sandbox'] = false;
+    // @ts-expect-error
+    opts['sandbox'] = true;
+    const exchange5 = new ccxt.Exchange (opts);
+    helperTestSandboxState (exchange5, true);
+    exchange5.setSandboxMode (false);
+    helperTestSandboxState (exchange5, false);
 }
 
 function helperTestInitMarket () {
@@ -83,7 +92,7 @@ function helperTestInitMarket () {
             'BTC/USD': sampleMarket,
         },
     });
-    assert (exchange2.markets['BTC/USD'] !== undefined);
+    assert ((exchange2.markets !== undefined) && (exchange2.markets['BTC/USD'] !== undefined));
 }
 
 function helperTestProperties () {
@@ -104,25 +113,18 @@ function helperTestProperties () {
     // options
     //
     assert (exchange.options !== undefined);
-    // const defaultNetworkCodeReplacements = [
-    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    // ];
-    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 
     //
-    // credentials
+    // credentials: the Go port declares them as plain strings, so unset is '' there
     //
-    assert (testSharedMethods.exchangeProp (exchange, 'apiKey') === undefined, 'apiKey should be empty string');
-    assert (exchange.secret === undefined, 'secret should be empty string');
-    assert (exchange.uid === undefined, 'uid should be empty string');
+    assert ((testSharedMethods.exchangeProp (exchange, 'apiKey') === undefined) || (testSharedMethods.exchangeProp (exchange, 'apiKey') === ''), 'apiKey should be empty string');
+    assert ((exchange.secret === undefined) || (exchange.secret === ''), 'secret should be empty string');
+    assert ((exchange.uid === undefined) || (exchange.uid === ''), 'uid should be empty string');
     assert (exchange.login === undefined, 'login should be empty string');
-    assert (exchange.password === undefined, 'password should be empty string');
+    assert ((exchange.password === undefined) || (exchange.password === ''), 'password should be empty string');
     assert (exchange.twofa === undefined, 'twofa should be undefined');
-    assert (testSharedMethods.exchangeProp (exchange, 'privateKey') === undefined, 'privateKey should be empty string');
-    assert (testSharedMethods.exchangeProp (exchange, 'walletAddress') === undefined, 'walletAddress should be empty string');
+    assert ((testSharedMethods.exchangeProp (exchange, 'privateKey') === undefined) || (testSharedMethods.exchangeProp (exchange, 'privateKey') === ''), 'privateKey should be empty string');
+    assert ((testSharedMethods.exchangeProp (exchange, 'walletAddress') === undefined) || (testSharedMethods.exchangeProp (exchange, 'walletAddress') === ''), 'walletAddress should be empty string');
     assert (exchange.token === undefined, 'token should be empty string');
     const requiredCredentials = {
         'apiKey': true,
@@ -194,9 +196,9 @@ function helperTestProperties () {
     assert (testSharedMethods.exchangeProp (exchange, 'enableRateLimit') === true, 'enableRateLimit should be true');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimiterAlgorithm') === 'leakyBucket', 'rateLimiterAlgorithm should be "leakyBucket"');
     assert (testSharedMethods.exchangeProp (exchange, 'rateLimit') === 2000, 'rateLimit should be 2000');
-    assert (exchange.certified === false, 'certified should be false');
-    assert (exchange.pro === false, 'pro should be false');
-    assert (exchange.alias === false, 'alias should be false');
+    assert (!exchange.certified, 'certified should be false');
+    assert (!exchange.pro, 'pro should be false');
+    assert (!exchange.alias, 'alias should be false');
     const httpExceptionKeys = [ '400', '401', '403', '404', '405', '407', '408', '409', '410', '418', '422', '429', '451', '500', '501', '502', '503', '504', '511', '520', '521', '522', '525', '526', '530' ];
     // php errors with below, bcz integer key cast
     // testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (testSharedMethods.exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
@@ -255,10 +257,9 @@ function helperTestProperties () {
     };
     testSharedMethods.assertDeepEqual (exchange, {}, 'status', exchange.status, status);
     assert (exchange.timeout === 10000, 'timeout should be 10000');
-    assert (exchange.verbose === false, 'verbose should be false');
+    assert (!exchange.verbose, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-    // assert (exchange.requiresEddsa === false);
-    assert (!testSharedMethods.exchangeProp (exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
+    assert (testSharedMethods.exchangeProp (exchange, 'reloadingMarkets') !== true, 'reloadingMarkets should be false');
     assert (testSharedMethods.exchangeProp (exchange, 'marketsLoading') === undefined, 'marketsLoading should be undefined');
     // undefined or false
     assert (exchange.version === undefined, 'version should be undefined');
@@ -272,16 +273,16 @@ function helperTestProperties () {
     // instance dynamic cache
     //
     // todo: remove initialization from GO
-    testSharedMethods.assertDeepEqual (exchange, {}, 'balance', exchange.balance, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'bidsasks', exchange.bidsasks, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'orderbooks', exchange.orderbooks, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'tickers', exchange.tickers, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'balance', exchange.balance, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'bidsasks', exchange.bidsasks, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'orderbooks', exchange.orderbooks, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'tickers', exchange.tickers, exchange.createSafeDictionary (true));
     assert (exchange.liquidations === undefined, 'liquidations should be undefined');
-    assert (exchange.orders === undefined, 'orders should be undefined');
-    testSharedMethods.assertDeepEqual (exchange, {}, 'trades', exchange.trades, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'transactions', exchange.transactions, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'ohlcvs', exchange.ohlcvs, {});
     assert (testSharedMethods.exchangeProp (exchange, 'myLiquidations') === undefined);
+    assert (exchange.orders === undefined, 'orders should be undefined');
+    testSharedMethods.assertDeepEqual (exchange, {}, 'trades', exchange.trades, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'transactions', exchange.transactions, exchange.createSafeDictionary ());
+    testSharedMethods.assertDeepEqual (exchange, {}, 'ohlcvs', exchange.ohlcvs, exchange.createSafeDictionary (true));
     assert (testSharedMethods.exchangeProp (exchange, 'myTrades') === undefined);
     assert (exchange.positions === undefined, 'positions should be undefined');
 
@@ -289,7 +290,7 @@ function helperTestProperties () {
     // common props
     //
     assert (exchange.markets === undefined, 'markets should be undefined');
-    assert (exchange.symbols === undefined, 'symbols should be undefined');
+    assert (exchange.symbols.length === 0, 'symbols should be an empty array');
     assert (exchange.markets_by_id === undefined, 'markets_by_id should be undefined');
     assert (exchange.ids === undefined, 'ids should be undefined');
     testSharedMethods.assertDeepEqual (exchange, {}, 'currencies', exchange.currencies, {});
@@ -301,6 +302,9 @@ function helperTestProperties () {
     assert (testSharedMethods.exchangeProp (exchange, 'accountsById') === undefined, 'accountsById should be undefined');
     // @SKIP_END_GO
     testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', testSharedMethods.exchangeProp (exchange, 'commonCurrencies'), { 'XBT': 'BTC', 'BCHSV': 'BSV' });
+    // fetch history
+    const fetchHistoryCache = exchange.getFetchCache ();
+    assert (fetchHistoryCache.length === 0, 'fetchHistoryCache should be an empty array');
 }
 
 function testAfterConstructor () {

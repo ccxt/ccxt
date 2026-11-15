@@ -9,8 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\bequant as hitbtc;
 
 class bequant extends hitbtc {
-
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bequant',
             'name' => 'Bequant',
@@ -25,7 +24,7 @@ class bequant extends hitbtc {
                 'option' => null,
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
+                'logo' => 'https://github.com/user-attachments/assets/01e199a6-5c65-4b03-83ab-7f9827c140f9',
                 'api' => array(
                     // v3
                     'public' => 'https://api.bequant.io/api/3',

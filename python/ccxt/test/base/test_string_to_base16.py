@@ -13,7 +13,6 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 import ccxt.async_support as ccxt  # noqa: F402
-from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_string_to_base16():
     exchange = ccxt.Exchange({

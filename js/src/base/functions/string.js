@@ -5,18 +5,9 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-// unCamelCase has to work with the following edge cases
-//
-//     parseOHLCVs               > parse_ohlcvs
-//     safeString2               > safe_string_2
-//     safeStringN               > safe_string_n
-//     convertOHLCVToTradingView > convert_ohlcv_to_trading_view
-//     fetchL2OrderBook          > fetch_l2_order_book
-//     stringToBase64            > string_to_base64
-//     base64ToString            > base64_to_string
-//     parseHTTPResponse         > parse_http_response
-//     hasFetchOHLCV             > has_fetch_ohlcv
-//
+// unCamelCase must handle digits and acronyms: parseOHLCVs > parse_ohlcvs, safeString2 > safe_string_2,
+// safeStringN > safe_string_n, fetchL2OrderBook > fetch_l2_order_book, stringToBase64 > string_to_base64,
+// base64ToString > base64_to_string, convertOHLCVToTradingView > convert_ohlcv_to_trading_view, parseHTTPResponse > parse_http_response
 // @ts-nocheck
 const unCamelCase = (s) => {
     const exceptions = {
@@ -28,6 +19,9 @@ const unCamelCase = (s) => {
     return s.match(/[A-Z]/) ? s.replace(/[a-z0-9][A-Z]/g, (x) => x[0] + '_' + x[1]).replace(/[A-Z0-9][A-Z0-9][a-z][^$]/g, (x) => x[0] + '_' + x[1] + x[2] + x[3]).replace(/[a-z][0-9]$/g, (x) => x[0] + '_' + x[1]).toLowerCase() : s;
 };
 const capitalize = (s) => {
+    if (s === undefined) {
+        return '';
+    }
     return s.length ? (s.charAt(0).toUpperCase() + s.slice(1)) : s;
 };
 const strip = (s) => s.replace(/^\s+|\s+$/g, '');

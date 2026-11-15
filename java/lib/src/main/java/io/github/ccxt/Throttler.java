@@ -1,11 +1,9 @@
 package io.github.ccxt;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Rate limiter for CCXT exchanges.
@@ -13,7 +11,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * Thread-safe, designed to be called from CompletableFuture async chains.
  *
  * Architecture matches all other CCXT languages (JS, Python, C#, Go, PHP):
- * single async loop + FIFO queue + lock-protected state.
+ * single async loop + FIFO channel; the loop thread is the only owner of the limiter
+ * state, so callers hand an element over instead of taking a lock.
  */
 public class Throttler {
 
@@ -37,9 +36,10 @@ public class Throttler {
         }
     }
 
-    private final LinkedList<QueueElement> queue = new LinkedList<>();
-    private final ReentrantLock lock = new ReentrantLock();
-    private boolean running = false;
+    // Channel hand-off: a caller offers an element and gets its future back; the owner thread
+    // takes them in order, paces them and completes the futures. Everything below the channel
+    // (tokens, timestamps, config) is touched only by that thread.
+    private final java.util.concurrent.BlockingQueue<QueueElement> channel = new java.util.concurrent.LinkedBlockingQueue<>();
 
     // Config
     private double refillRate;
@@ -86,6 +86,8 @@ public class Throttler {
                 if (mw > 0) this.maxWeight = mw;
             }
         }
+        // the loop thread owns the state above; Thread.start publishes the config written here
+        Thread.ofVirtual().name("ccxt-throttler").start(this::loop);
     }
 
     /**
@@ -94,19 +96,7 @@ public class Throttler {
      */
     public CompletableFuture<Void> throttle(double cost) {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        QueueElement element = new QueueElement(cost, future);
-
-        lock.lock();
-        try {
-            queue.add(element);
-            if (!running) {
-                running = true;
-                Thread.ofVirtual().start(this::loop);
-            }
-        } finally {
-            lock.unlock();
-        }
-
+        this.channel.offer(new QueueElement(cost, future));
         return future;
     }
 
@@ -129,117 +119,92 @@ public class Throttler {
         long lastTimestamp = milliseconds();
 
         while (true) {
-            List<CompletableFuture<Void>> toComplete = new ArrayList<>();
-            long sleepMs = 0;
-
-            lock.lock();
+            QueueElement element;
             try {
-                if (queue.isEmpty()) {
-                    running = false;
-                    return;
-                }
-
-                // Refill tokens based on elapsed time
-                long now = milliseconds();
-                long elapsed = now - lastTimestamp;
-                lastTimestamp = now;
-                if (elapsed > 0) {
-                    double newTokens = this.tokens + (this.refillRate * elapsed);
-                    this.tokens = Math.min(newTokens, this.capacity);
-                }
-
-                // Batch: complete all affordable requests
-                while (!queue.isEmpty() && this.tokens >= 0) {
-                    QueueElement el = queue.poll();
-                    this.tokens -= el.cost;
-                    toComplete.add(el.future);
-                }
-
-                // If queue still has items but no tokens, compute exact wait time
-                if (!queue.isEmpty() && this.tokens < 0) {
-                    double deficit = -this.tokens;
-                    sleepMs = (long) Math.ceil(deficit / this.refillRate);
-                    if (sleepMs < 1) sleepMs = 1;
-                }
-            } finally {
-                lock.unlock();
+                element = this.channel.take();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
             }
 
-            // Complete futures outside the lock to reduce hold time
-            for (var f : toComplete) {
-                f.complete(null);
+            // Refill tokens based on elapsed time
+            long now = milliseconds();
+            long elapsed = now - lastTimestamp;
+            lastTimestamp = now;
+            if (elapsed > 0) {
+                double newTokens = this.tokens + (this.refillRate * elapsed);
+                this.tokens = Math.min(newTokens, this.capacity);
             }
 
-            if (sleepMs > 0) {
+            // The head of the channel is served as soon as the bucket is not overdrawn — a
+            // zero-token bucket still serves the first request — and its cost is charged after.
+            while (this.tokens < 0) {
+                double deficit = -this.tokens;
+                long sleepMs = (long) Math.ceil(deficit / this.refillRate);
+                if (sleepMs < 1) sleepMs = 1;
                 try {
                     Thread.sleep(sleepMs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     return;
                 }
+                long after = milliseconds();
+                long waited = after - lastTimestamp;
+                lastTimestamp = after;
+                if (waited > 0) {
+                    double newTokens = this.tokens + (this.refillRate * waited);
+                    this.tokens = Math.min(newTokens, this.capacity);
+                }
             }
+
+            this.tokens -= element.cost;
+            element.future.complete(null);
         }
     }
 
     private void rollingWindowLoop() {
         while (true) {
-            List<CompletableFuture<Void>> toComplete = new ArrayList<>();
-            long sleepMs = 0;
-
-            lock.lock();
+            QueueElement element;
             try {
-                if (queue.isEmpty()) {
-                    running = false;
-                    return;
-                }
+                element = this.channel.take();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
 
-                long now = milliseconds();
-
+            long now = milliseconds();
+            while (true) {
                 // Remove expired timestamps
-                long cutoff = now - (long) windowSize;
-                timestamps.removeIf(t -> t.timestamp <= cutoff);
-                double totalCost = timestamps.stream().mapToDouble(t -> t.cost).sum();
-
-                // Batch: complete all requests that fit within the window weight
-                while (!queue.isEmpty()) {
-                    QueueElement first = queue.peek();
-                    if (totalCost + first.cost <= maxWeight) {
-                        queue.poll();
-                        timestamps.add(new TimestampedCost(now, first.cost));
-                        totalCost += first.cost;
-                        toComplete.add(first.future);
-                    } else {
-                        break;
-                    }
+                final long cutoff = now - (long) this.windowSize;
+                this.timestamps.removeIf(t -> t.timestamp <= cutoff);
+                double totalCost = 0.0;
+                for (TimestampedCost entry : this.timestamps) {
+                    totalCost += entry.cost;
                 }
 
-                // If queue still has items, compute exact wait until oldest entry expires
-                if (!queue.isEmpty()) {
-                    if (!timestamps.isEmpty()) {
-                        sleepMs = (timestamps.get(0).timestamp + (long) windowSize) - now;
-                        if (sleepMs < 1) sleepMs = 1;
-                    } else if (toComplete.isEmpty()) {
-                        // Inner loop made no progress AND no history to wait on — prevents
-                        // 100% CPU spin when head cost exceeds maxWeight (e.g. maxWeight=0).
-                        sleepMs = Math.max(1, (long) (delay * 1000));
-                    }
+                // Serve the head as soon as it fits within the window weight
+                if (totalCost + element.cost <= this.maxWeight) {
+                    this.timestamps.add(new TimestampedCost(now, element.cost));
+                    element.future.complete(null);
+                    break;
                 }
-            } finally {
-                lock.unlock();
-            }
 
-            // Complete futures outside the lock
-            for (var f : toComplete) {
-                f.complete(null);
-            }
-
-            if (sleepMs > 0) {
+                // Otherwise wait until the oldest entry expires; with no history at all, poll at
+                // the configured delay instead of spinning (a cost above maxWeight never fits).
+                long sleepMs;
+                if (!this.timestamps.isEmpty()) {
+                    sleepMs = (this.timestamps.get(0).timestamp + (long) this.windowSize) - now;
+                } else {
+                    sleepMs = Math.max(1, (long) (this.delay * 1000));
+                }
+                if (sleepMs < 1) sleepMs = 1;
                 try {
                     Thread.sleep(sleepMs);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     return;
                 }
+                now = milliseconds();
             }
         }
     }

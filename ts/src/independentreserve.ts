@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress } from './base/types.js';
-import { BadRequest } from './base/errors.js';
+import type { Balances, Currency, Dict, Int, int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress, Endpoint } from './base/types.js';
+import { BadRequest, ExchangeError } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import { BadRequest } from './base/errors.js';
  * @augments Exchange
  */
 export default class independentreserve extends Exchange {
-    describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
@@ -129,51 +129,58 @@ export default class independentreserve extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'GetValidPrimaryCurrencyCodes',
-                        'GetValidSecondaryCurrencyCodes',
-                        'GetValidLimitOrderTypes',
-                        'GetValidMarketOrderTypes',
-                        'GetValidOrderTypes',
-                        'GetValidTransactionTypes',
-                        'GetMarketSummary',
-                        'GetOrderBook',
-                        'GetAllOrders',
-                        'GetTradeHistorySummary',
-                        'GetRecentTrades',
-                        'GetFxRates',
-                        'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees', // deprecated - replaced by GetCryptoWithdrawalFees2 (docs removed)
-                        'GetCryptoWithdrawalFees2',
-                        'GetNetworks',
-                        'GetPrimaryCurrencyConfig2',
-                    ],
+                    'get': {
+                        'GetValidPrimaryCurrencyCodes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidSecondaryCurrencyCodes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidLimitOrderTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidMarketOrderTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidOrderTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetValidTransactionTypes': { 'cost': 1 } as Endpoint<List>,
+                        'GetMarketSummary': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOrderBook': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAllOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTradeHistorySummary': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetRecentTrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetFxRates': { 'cost': 1 } as Endpoint<List>,
+                        'GetOrderMinimumVolumes': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDepositFees': { 'cost': 1 } as Endpoint<List>,
+                        'GetFiatWithdrawalFees': { 'cost': 1 } as Endpoint<List>,
+                        'GetCryptoWithdrawalFees': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetCryptoWithdrawalFees2': { 'cost': 1 } as Endpoint<List>,
+                        'GetNetworks': { 'cost': 1 } as Endpoint<List>,
+                        'GetPrimaryCurrencyConfig2': { 'cost': 1 } as Endpoint<List>,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'GetOpenOrders',
-                        'GetClosedOrders',
-                        'GetClosedFilledOrders',
-                        'GetOrderDetails',
-                        'GetAccounts',
-                        'GetTransactions',
-                        'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress', // deprecated - replaced by GetDigitalCurrencyDepositAddress2 (docs removed)
-                        'GetDigitalCurrencyDepositAddress2',
-                        'GetDigitalCurrencyDepositAddresses', // deprecated - replaced by GetDigitalCurrencyDepositAddresses2 (docs removed)
-                        'GetDigitalCurrencyDepositAddresses2',
-                        'GetTrades',
-                        'GetBrokerageFees',
-                        'GetDigitalCurrencyWithdrawal',
-                        'PlaceLimitOrder',
-                        'PlaceMarketOrder',
-                        'CancelOrder',
-                        'SynchDigitalCurrencyDepositAddressWithBlockchain',
-                        'RequestFiatWithdrawal',
-                        'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency', // deprecated - replaced by WithdrawCrypto (docs removed)
-                        'WithdrawCrypto',
-                    ],
+                    'post': {
+                        'GetOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetClosedOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetClosedFilledOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetOrderDetails': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetAccounts': { 'cost': 1 } as Endpoint<List>,
+                        'GetTransactions': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetFiatBankAccounts': { 'cost': 1 } as Endpoint<List>,
+                        'GetDigitalCurrencyDepositAddress': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDigitalCurrencyDepositAddress2': { 'cost': 1 } as Endpoint<List>,
+                        'GetDigitalCurrencyDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDigitalCurrencyDepositAddresses2': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTrades': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetTradesByOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetBrokerageFees': { 'cost': 1 } as Endpoint<List>,
+                        'GetDigitalCurrencyWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetFiatWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetDepositLimits': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetWithdrawalLimits': { 'cost': 1 } as Endpoint<Dict>,
+                        'PlaceLimitOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'PlaceMarketOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'CancelOrders': { 'cost': 1 } as Endpoint<Dict>,
+                        'SynchDigitalCurrencyDepositAddressWithBlockchain': { 'cost': 1 } as Endpoint<Dict>,
+                        'RequestFiatWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'WithdrawFiatCurrency': { 'cost': 1 } as Endpoint<Dict>,
+                        'WithdrawDigitalCurrency': { 'cost': 1 } as Endpoint<Dict>,
+                        'WithdrawCrypto': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'fees': {
@@ -296,7 +303,7 @@ export default class independentreserve extends Exchange {
                 },
                 'networks': {
                     'BTC': 'Bitcoin',
-                    'ETH': 'Ethereum',
+                    'ERC20': 'Ethereum',
                     'BCH': 'BitcoinCash',
                     'LTC': 'Litecoin',
                     'XRP': 'XrpLedger',
@@ -308,7 +315,7 @@ export default class independentreserve extends Exchange {
                     'DOT': 'Polkadot',
                     'ADA': 'Cardano',
                     'SOL': 'Solana',
-                    'TRX': 'Tron',
+                    'TRC20': 'Tron',
                 },
             },
         });
@@ -321,13 +328,14 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes (params);
         //     ['Xbt', 'Eth', 'Usdt', ...]
         const quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes (params);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         const limitsPromise = this.publicGetGetOrderMinimumVolumes (params);
-        const [ baseCurrencies, quoteCurrencies, limits ] = await Promise.all ([ baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise ]);
+        const responses: List = await Promise.all ([ baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise ]);
+        const limits = this.safeValue (responses, 2);
         //
         //     {
         //         "Xbt": 0.0001,
@@ -336,14 +344,19 @@ export default class independentreserve extends Exchange {
         //         "Xrp": 1.0,
         //     }
         //
-        const result = [];
-        for (let i = 0; i < baseCurrencies.length; i++) {
-            const baseId = baseCurrencies[i];
+        const result: List = [];
+        const baseCurrencyIds: List = this.toArray (this.safeValue (responses, 0));
+        const quoteCurrencyIds: List = this.toArray (this.safeValue (responses, 1));
+        for (let i = 0; i < baseCurrencyIds.length; i++) {
+            const baseId = this.safeString (baseCurrencyIds, i, '');
             const base = this.safeCurrencyCode (baseId);
             const minAmount = this.safeNumber (limits, baseId);
-            for (let j = 0; j < quoteCurrencies.length; j++) {
-                const quoteId = quoteCurrencies[j];
+            for (let j = 0; j < quoteCurrencyIds.length; j++) {
+                const quoteId = this.safeString (quoteCurrencyIds, j, '');
                 const quote = this.safeCurrencyCode (quoteId);
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const id = baseId + '/' + quoteId;
                 result.push ({
                     'id': id,
@@ -392,23 +405,26 @@ export default class independentreserve extends Exchange {
                         },
                     },
                     'created': undefined,
-                    'info': id,
+                    'info': { 'primaryCurrencyCode': baseId, 'secondaryCurrencyCode': quoteId },
                 });
             }
         }
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+        const accounts: List = this.toArray (response);
+        for (let i = 0; i < accounts.length; i++) {
+            const balance = this.safeDict (accounts, i);
             const currencyId = this.safeString (balance, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'AvailableBalance');
             account['total'] = this.safeString (balance, 'TotalBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -420,10 +436,12 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostGetAccounts (params);
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     /**
@@ -433,10 +451,12 @@ export default class independentreserve extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'primaryCurrencyCode': market['baseId'],
@@ -447,7 +467,7 @@ export default class independentreserve extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -464,12 +484,12 @@ export default class independentreserve extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'CreatedTimestampUtc'));
         const baseId = this.safeString (ticker, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (ticker, 'SecondaryCurrencyCode');
-        let defaultMarketId = undefined;
+        let defaultMarketId: Str = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             defaultMarketId = baseId + '/' + quoteId;
         }
-        market = this.safeMarket (defaultMarketId, market, '/');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (defaultMarketId, market, '/');
+        const symbol = marketResolved['symbol'];
         const last = this.safeString (ticker, 'LastPrice');
         return this.safeTicker ({
             'symbol': symbol,
@@ -492,7 +512,7 @@ export default class independentreserve extends Exchange {
             'baseVolume': this.safeString (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -503,8 +523,10 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'primaryCurrencyCode': market['baseId'],
@@ -527,7 +549,7 @@ export default class independentreserve extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrder
         //
@@ -577,22 +599,24 @@ export default class independentreserve extends Exchange {
         //        "VolumeFilled": 0,
         //        "VolumeOrdered": 0.358
         //    }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const baseId = this.safeString (order, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (order, 'SecondaryCurrencyCode');
-        let base = undefined;
-        let quote = undefined;
+        let base: Str = undefined;
+        let quote: Str = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             base = this.safeCurrencyCode (baseId);
             quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         } else if (market !== undefined) {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
+            symbol = this.safeString (market, 'symbol');
+            base = this.safeString (market, 'base');
+            quote = this.safeString (market, 'quote');
         }
         let orderType = this.safeString2 (order, 'Type', 'OrderType');
-        let side = undefined;
+        let side: Str = undefined;
         if (orderType !== undefined) {
             if (orderType.indexOf ('Bid') >= 0) {
                 side = 'buy';
@@ -608,7 +632,7 @@ export default class independentreserve extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
         const filled = this.safeString (order, 'VolumeFilled');
         const feeRate = this.safeString (order, 'FeePercent');
-        let feeCost = undefined;
+        let feeCost: Str = undefined;
         if (feeRate !== undefined && filled !== undefined) {
             feeCost = Precise.stringMul (feeRate, filled);
         }
@@ -641,7 +665,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'Open': 'open',
             'PartiallyFilled': 'open',
@@ -655,7 +679,7 @@ export default class independentreserve extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'Gtc': 'GTC',
             'Moc': 'PO',
@@ -674,12 +698,14 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostGetOrderDetails (this.extend ({
             'orderGuid': id,
         }, params));
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -696,23 +722,23 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {};
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
-        }
+        const limitResolved = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetOpenOrders (this.extend (request, params));
-        const data = this.safeList (response, 'Data', []);
-        return this.parseOrders (data, market, since, limit);
+        const data: Dict[] = this.safeList (response, 'Data', []);
+        return this.parseOrders (data, market, since, limitResolved);
     }
 
     /**
@@ -725,23 +751,23 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {};
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
-        }
+        const limitResolved = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetClosedOrders (this.extend (request, params));
-        const data = this.safeList (response, 'Data', []);
-        return this.parseOrders (data, market, since, limit);
+        const data: Dict[] = this.safeList (response, 'Data', []);
+        return this.parseOrders (data, market, since, limitResolved);
     }
 
     /**
@@ -754,26 +780,30 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 50, params = {}) {
-        await this.loadMarkets ();
-        const pageIndex = this.safeInteger (params, 'pageIndex', 1);
-        if (limit === undefined) {
-            limit = 50;
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 50, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
         }
-        const request = {
+        const pageIndex = this.safeInteger (params, 'pageIndex', 1);
+        let limitResolved: Int = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
+        }
+        const request: Dict = {
             'pageIndex': pageIndex,
-            'pageSize': limit,
+            'pageSize': limitResolved,
         };
         const response = await this.privatePostGetTrades (this.extend (request, params));
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        return this.parseTrades (response['Data'], market, since, limit);
+        const data: Dict[] = this.safeList (response, 'Data', []);
+        return this.parseTrades (data, market, since, limitResolved);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
-        const timestamp = this.parse8601 (trade['TradeTimestampUtc']);
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        const timestamp = this.parse8601 (this.safeString (trade, 'TradeTimestampUtc'));
         const id = this.safeString (trade, 'TradeGuid');
         const orderId = this.safeString (trade, 'OrderGuid');
         const priceString = this.safeString2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
@@ -783,7 +813,7 @@ export default class independentreserve extends Exchange {
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const baseId = this.safeString (trade, 'PrimaryCurrencyCode');
         const quoteId = this.safeString (trade, 'SecondaryCurrencyCode');
-        let marketId = undefined;
+        let marketId: Str = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             marketId = baseId + '/' + quoteId;
         }
@@ -823,8 +853,10 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'primaryCurrencyCode': market['baseId'],
@@ -832,7 +864,8 @@ export default class independentreserve extends Exchange {
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
         const response = await this.publicGetGetRecentTrades (this.extend (request, params));
-        return this.parseTrades (response['Trades'], market, since, limit);
+        const trades: Dict[] = this.safeList (response, 'Trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     /**
@@ -842,8 +875,10 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostGetBrokerageFees (params);
         //
         //     [
@@ -855,23 +890,27 @@ export default class independentreserve extends Exchange {
         //     ]
         //
         const fees: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const fee = response[i];
+        const rows: List = this.toArray (response);
+        for (let i = 0; i < rows.length; i++) {
+            const fee = rows[i];
             const currencyId = this.safeString (fee, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const tradingFee = this.safeNumber (fee, 'Fee');
-            fees[code] = {
-                'info': fee,
-                'fee': tradingFee,
-            };
+            if (code !== undefined) {
+                fees[code] = {
+                    'info': fee,
+                    'fee': tradingFee,
+                };
+            }
         }
         const result: Dict = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market (symbol);
-            const fee = this.safeValue (fees, market['base'], {});
+            const fee = this.safeDict (fees, market['base'], {});
             result[symbol] = {
-                'info': this.safeValue (fee, 'info'),
+                'info': this.safeDict (fee, 'info'),
                 'symbol': symbol,
                 'maker': this.safeNumber (fee, 'fee'),
                 'taker': this.safeNumber (fee, 'fee'),
@@ -894,17 +933,19 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let orderType = this.capitalize (type);
         orderType += (side === 'sell') ? 'Offer' : 'Bid';
-        const request = {
+        const request: Dict = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         };
-        let response = undefined;
+        let response: Dict;
         request['volume'] = amount;
         if (type === 'limit') {
             request['price'] = price;
@@ -914,7 +955,7 @@ export default class independentreserve extends Exchange {
         }
         return this.safeOrder ({
             'info': response,
-            'id': response['OrderGuid'],
+            'id': this.safeString (response, 'OrderGuid'),
         }, market);
     }
 
@@ -928,8 +969,10 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'orderGuid': id,
         };
@@ -961,8 +1004,10 @@ export default class independentreserve extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'primaryCurrencyCode': currency['id'],
@@ -979,7 +1024,7 @@ export default class independentreserve extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        Tag: '3307446684',
@@ -1007,31 +1052,33 @@ export default class independentreserve extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {object} [params.comment] withdrawal comment, should not exceed 500 characters
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        await this.loadMarkets ();
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'primaryCurrencyCode': currency['id'],
             'withdrawalAddress': address,
             'amount': this.currencyToPrecision (code, amount),
         };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destinationTag'] = tagWithdrawTag;
         }
-        let networkCode = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
             throw new BadRequest (this.id + ' withdraw () does not accept params["networkCode"]');
         }
-        const response = await this.privatePostWithdrawDigitalCurrency (this.extend (request, params));
+        const response = await this.privatePostWithdrawDigitalCurrency (this.extend (request, paramsNetworkCode));
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1052,7 +1099,7 @@ export default class independentreserve extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1105,39 +1152,54 @@ export default class independentreserve extends Exchange {
         } as Transaction;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
-        if (api === 'public') {
-            if (Object.keys (params).length) {
+    override nonce (): int {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return this.milliseconds ();
+    }
+
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + path;
+        if (apiName === 'public') {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            const nonce = this.nonce ();
+            // independentreserve requires an increasing nonce
+            const rawNonce = this.incrementingNonce ();
+            const nonce = this.parseToInt (rawNonce);
             const auth = [
                 url,
                 'apiKey=' + this.apiKey,
                 'nonce=' + nonce.toString (),
             ];
-            const keys = Object.keys (params);
+            const paramsDict = this.extend ({}, params);
+            const keys = Object.keys (paramsDict);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                const value = params[key].toString ();
+                const value = this.safeString (paramsDict, key, '');
                 auth.push (key + '=' + value);
             }
             const message = auth.join (',');
             const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256);
-            const query = {};
+            const query: Dict = {};
             query['apiKey'] = this.apiKey;
             query['nonce'] = nonce;
             query['signature'] = signature.toUpperCase ();
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                query[key] = params[key];
+                query[key] = paramsDict[key];
             }
-            body = this.json (query);
-            headers = { 'Content-Type': 'application/json' };
+            const signedBody: Str = this.json (query);
+            const signedHeaders: Dict = { 'Content-Type': 'application/json' };
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headers: Dict = {};
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': headers };
     }
 }

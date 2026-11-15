@@ -20,14 +20,14 @@ class extended extends extended$1["default"] {
             'name': 'Extended',
             'countries': ['SG'],
             'version': 'v2',
-            'rateLimit': 600,
+            'rateLimit': 600, // Default Tier 1,000 requests/minute ≈ 1.67 request per second
             'precisionMode': number.TICK_SIZE,
             'certified': false,
             'pro': true,
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': false, // venue retired spot trading; SPOT rows are still parsed, see parseMarket
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -163,86 +163,104 @@ class extended extends extended$1["default"] {
             },
             'hostname': 'extended.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo': 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api': {
                     'rest': 'https://api.starknet.{hostname}',
                 },
                 'test': {
                     'rest': 'https://api.starknet.sepolia.{hostname}',
                 },
-                'www': 'https://app.{hostname}',
-                'doc': 'https://api.docs.{hostname}',
-                'fees': 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
+                'www': 'https://app.extended.exchange',
+                'doc': 'https://api.docs.extended.exchange',
+                'fees': 'https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates',
                 'referral': '',
             },
             'api': {
                 'v1': {
                     'public': {
-                        'get': [
-                            'info/markets',
-                            'info/assets',
-                            'info/assets/{asset}/price',
-                            'info/markets/{market}/stats',
-                            'info/markets/{market}/orderbook',
-                            'info/markets/{market}/trades',
-                            'info/candles/{market}/{candleType}',
-                            'info/{market}/funding',
-                            'info/{market}/open-interests',
-                            'info/builder/dashboard',
-                        ],
+                        'get': {
+                            'info/markets': { 'cost': 1 },
+                            'info/assets': { 'cost': 1 },
+                            'info/assets/{asset}/price': { 'cost': 1 },
+                            'info/markets/{market}/stats': { 'cost': 1 },
+                            'info/markets/{market}/orderbook': { 'cost': 1 },
+                            'info/markets/{market}/trades': { 'cost': 1 },
+                            'info/candles/{market}/{candleType}': { 'cost': 1 },
+                            'info/{market}/funding': { 'cost': 1 },
+                            'info/{market}/open-interests': { 'cost': 1 },
+                            'info/builder/dashboard': { 'cost': 1 },
+                            'interest/info/rate-curves': { 'cost': 1 },
+                            'interest/info/latest-rate-curves': { 'cost': 1 },
+                        },
                     },
                     'private': {
-                        'get': [
-                            'user/accounts',
-                            'user/account/info',
-                            'user/balance',
-                            'user/spot/balances',
-                            'user/assetOperations',
-                            'user/positions',
-                            'user/positions/history',
-                            'user/orders',
-                            'user/orders/history',
-                            'user/orders/{id}',
-                            'user/orders/external/{externalId}',
-                            'user/trades',
-                            'user/funding/history',
-                            'user/rebates/stats',
-                            'user/leverage',
-                            'user/fees',
-                            'user/bridge/config',
-                            'user/bridge/quote',
-                            'user/affiliate',
-                            'user/referrals/status',
-                            'user/referrals/links',
-                            'user/referrals/dashboard',
-                            'user/rewards/earned',
-                            'user/rewards/leaderboard/stats',
-                            'portfolio/charts/equities',
-                            'portfolio/charts/pnl',
-                            'vault/public/performance',
-                            'vault/public/summary',
-                            'builder/trades',
-                        ],
-                        'post': [
-                            'user/order',
-                            'user/order/massCancel',
-                            'user/deadmanswitch',
-                            'user/bridge/quote',
-                            'user/withdrawal',
-                            'user/transfer',
-                            'user/referrals/use',
-                            'user/referrals',
-                        ],
-                        'put': [
-                            'user/referrals',
-                        ],
-                        'patch': [
-                            'user/leverage',
-                        ],
-                        'delete': [
-                            'user/order/{id}',
-                            'user/order',
-                        ],
+                        'get': {
+                            'user/accounts': { 'cost': 1 },
+                            'user/account/info': { 'cost': 1 },
+                            'user/balance': { 'cost': 1 },
+                            'user/spot/balances': { 'cost': 1 },
+                            'user/assetOperations': { 'cost': 1 },
+                            'user/positions': { 'cost': 1 },
+                            'user/positions/history': { 'cost': 1 },
+                            'user/orders': { 'cost': 1 },
+                            'user/orders/history': { 'cost': 1 },
+                            'user/orders/{id}': { 'cost': 1 },
+                            'user/orders/external/{externalId}': { 'cost': 1 },
+                            'user/trades': { 'cost': 1 },
+                            'user/funding/history': { 'cost': 1 },
+                            'user/rebates/stats': { 'cost': 1 },
+                            'user/leverage': { 'cost': 1 },
+                            'user/fees': { 'cost': 1 },
+                            'user/bridge/config': { 'cost': 1 },
+                            'user/bridge/quote': { 'cost': 1 },
+                            'user/affiliate': { 'cost': 1 },
+                            'user/referrals/status': { 'cost': 1 },
+                            'user/referrals/links': { 'cost': 1 },
+                            'user/referrals/dashboard': { 'cost': 1 },
+                            'user/rewards/earned': { 'cost': 1 },
+                            'user/rewards/leaderboard/stats': { 'cost': 1 },
+                            'portfolio/charts/equities': { 'cost': 1 },
+                            'portfolio/charts/pnl': { 'cost': 1 },
+                            'portfolio/charts/pnl/percentage': { 'cost': 1 },
+                            'portfolio/charts/pnl/cumulative': { 'cost': 1 },
+                            'portfolio/charts/pnl/cumulative/percentage': { 'cost': 1 },
+                            'portfolio/charts/vault-equities': { 'cost': 1 },
+                            'portfolio/charts/max-drawdown': { 'cost': 1 },
+                            'portfolio/charts/funding': { 'cost': 1 },
+                            'portfolio/accounts/summary': { 'cost': 1 },
+                            'portfolio/accounts/health': { 'cost': 1 },
+                            'portfolio/accounts/performance': { 'cost': 1 },
+                            'portfolio/funding/stats': { 'cost': 1 },
+                            'portfolio/funding/history': { 'cost': 1 },
+                            'vault/public/performance': { 'cost': 1 },
+                            'vault/public/summary': { 'cost': 1 },
+                            'builder/trades': { 'cost': 1 },
+                            'interest/key-metrics': { 'cost': 1 },
+                            'interest/daily-metrics': { 'cost': 1 },
+                            'interest/payment-chart': { 'cost': 1 },
+                            'interest/payments': { 'cost': 1 },
+                        },
+                        'post': {
+                            'user/order': { 'cost': 1 },
+                            'user/order/rfq': { 'cost': 1 },
+                            'user/order/massCancel': { 'cost': 1 },
+                            'user/deadmanswitch': { 'cost': 1 },
+                            'user/bridge/quote': { 'cost': 1 },
+                            'user/withdrawal': { 'cost': 1 },
+                            'user/transfer': { 'cost': 1 },
+                            'user/referrals/use': { 'cost': 1 },
+                            'user/referrals': { 'cost': 1 },
+                        },
+                        'put': {
+                            'user/referrals': { 'cost': 1 },
+                        },
+                        'patch': {
+                            'user/leverage': { 'cost': 1 },
+                        },
+                        'delete': {
+                            'user/order/{id}': { 'cost': 1 },
+                            'user/order': { 'cost': 1 },
+                        },
                     },
                 },
             },
@@ -257,69 +275,69 @@ class extended extends extended$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    '1000': errors.InvalidOrder,
-                    '1001': errors.InvalidOrder,
-                    '1002': errors.InvalidOrder,
-                    '1003': errors.InvalidOrder,
-                    '1004': errors.InvalidOrder,
-                    '1005': errors.InvalidOrder,
-                    '1006': errors.ExchangeError,
-                    '1008': errors.InvalidOrder,
-                    '1009': errors.InvalidOrder,
-                    '1010': errors.ExchangeError,
-                    '1011': errors.InvalidOrder,
-                    '1012': errors.InvalidOrder,
-                    '1013': errors.InvalidOrder,
-                    '1014': errors.InvalidOrder,
-                    '1049': errors.InvalidOrder,
-                    '1050': errors.InvalidOrder,
-                    '10501': errors.InvalidOrder,
-                    '1052': errors.InvalidOrder,
-                    '1053': errors.InvalidOrder,
-                    '1100': errors.InvalidOrder,
-                    '1101': errors.InvalidOrder,
-                    '1102': errors.InvalidOrder,
-                    '1120': errors.InvalidOrder,
-                    '1121': errors.InvalidOrder,
-                    '1122': errors.InvalidOrder,
-                    '1123': errors.InvalidOrder,
-                    '1124': errors.InvalidOrder,
-                    '1125': errors.InvalidOrder,
-                    '1126': errors.InvalidOrder,
-                    '1127': errors.InvalidOrder,
-                    '1128': errors.InvalidOrder,
-                    '1129': errors.InvalidOrder,
-                    '1130': errors.InvalidOrder,
-                    '1131': errors.InvalidOrder,
-                    '1132': errors.InvalidOrder,
-                    '1133': errors.InvalidOrder,
-                    '1134': errors.InvalidOrder,
-                    '1135': errors.InvalidOrder,
-                    '1136': errors.InvalidOrder,
-                    '1137': errors.InvalidOrder,
-                    '1138': errors.InvalidOrder,
-                    '1139': errors.InvalidOrder,
-                    '1140': errors.InsufficientFunds,
-                    '1141': errors.InvalidOrder,
-                    '1142': errors.InvalidOrder,
-                    '1143': errors.InvalidOrder,
-                    '1144': errors.InvalidOrder,
-                    '1145': errors.InvalidOrder,
-                    '1146': errors.InvalidOrder,
-                    '1147': errors.InvalidOrder,
-                    '1148': errors.InvalidOrder,
-                    '1500': errors.InvalidOrder,
-                    '1600': errors.BadRequest,
-                    '1601': errors.BadRequest,
-                    '1602': errors.BadRequest,
-                    '1604': errors.BadRequest,
-                    '1605': errors.BadRequest,
-                    '1607': errors.BadRequest,
-                    '1608': errors.BadRequest,
-                    '1650': errors.BadRequest,
-                    '1700': errors.BadRequest,
-                    '1701': errors.BadRequest,
-                    '1703': errors.BadRequest,
+                    '1000': errors.InvalidOrder, // Asset not found.
+                    '1001': errors.InvalidOrder, // Market not found.
+                    '1002': errors.InvalidOrder, // Market is disabled.
+                    '1003': errors.InvalidOrder, // Market group not found.
+                    '1004': errors.InvalidOrder, // Account not found.
+                    '1005': errors.InvalidOrder, // Not supported interval.
+                    '1006': errors.ExchangeError, // Application error.
+                    '1008': errors.InvalidOrder, // Client not found.
+                    '1009': errors.InvalidOrder, // Action is not allowed.
+                    '1010': errors.ExchangeError, // Maintenance mode.
+                    '1011': errors.InvalidOrder, // Post only mode.
+                    '1012': errors.InvalidOrder, // Reduce only mode.
+                    '1013': errors.InvalidOrder, // Percentage should be between 0 and 1.
+                    '1014': errors.InvalidOrder, // Market is in reduce only mode, non-reduce only orders are not allowed.
+                    '1049': errors.InvalidOrder, // Leverage below min leverage.
+                    '1050': errors.InvalidOrder, // Leverage exceeds max leverage.
+                    '10501': errors.InvalidOrder, // Max position value exceeded for new leverage.
+                    '1052': errors.InvalidOrder, // Insufficient margin for new leverage.
+                    '1053': errors.InvalidOrder, // Leverage has invalid precision.
+                    '1100': errors.InvalidOrder, // Invalid Starknet public key.
+                    '1101': errors.InvalidOrder, // Invalid Starknet signature.
+                    '1102': errors.InvalidOrder, // Invalid Starknet vault.
+                    '1120': errors.InvalidOrder, // Order quantity less than min trade size, based on market-specific trading rules.
+                    '1121': errors.InvalidOrder, // Invalid quantity due to the wrong size increment, based on market-specific Minimum Change in Trade Size trading rule.
+                    '1122': errors.InvalidOrder, // Order value exceeds max order value, based on market-specific trading rules.
+                    '1123': errors.InvalidOrder, // Invalid quantity precision, currently equals to market-specific Minimum Change in Trade Size.
+                    '1124': errors.InvalidOrder, // Invalid price due to wrong price movement, based on market-specific Minimum Price Change trading rule.
+                    '1125': errors.InvalidOrder, // Invalid price precision, currently equals to market-specific Minimum Price Change.
+                    '1126': errors.InvalidOrder, // Max open orders number exceeded, currently 200 orders per market.
+                    '1127': errors.InvalidOrder, // Max position value exceeded, based on the Margin schedule.
+                    '1128': errors.InvalidOrder, // Trading fees are invalid. Refer to Order management section for details.
+                    '1129': errors.InvalidOrder, // Invalid quantity for position TP/SL.
+                    '1130': errors.InvalidOrder, // Order price is missing.
+                    '1131': errors.InvalidOrder, // TP/SL order trigger is missing.
+                    '1132': errors.InvalidOrder, // Order type is not allowed.
+                    '1133': errors.InvalidOrder, // Invalid order parameters.
+                    '1134': errors.InvalidOrder, // Duplicate Order.
+                    '1135': errors.InvalidOrder, // Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
+                    '1136': errors.InvalidOrder, // Reduce-only order size exceeds open position size.
+                    '1137': errors.InvalidOrder, // Position is missing for a reduce-only order.
+                    '1138': errors.InvalidOrder, // Position is the same side as a reduce-only order.
+                    '1139': errors.InvalidOrder, // Market order must have time in force IOC.
+                    '1140': errors.InsufficientFunds, // New order cost exceeds available balance.
+                    '1141': errors.InvalidOrder, // Invalid price value.
+                    '1142': errors.InvalidOrder, // Edit order not found.
+                    '1143': errors.InvalidOrder, // Conditional order trigger is missing.
+                    '1144': errors.InvalidOrder, // Conditional market order can't be Post-only.
+                    '1145': errors.InvalidOrder, // Non reduce-only orders are not allowed.
+                    '1146': errors.InvalidOrder, // Twap order must have time in force GTT.
+                    '1147': errors.InvalidOrder, // Open loss exceeds equity.
+                    '1148': errors.InvalidOrder, // TP/SL open loss exceeds equity.
+                    '1500': errors.InvalidOrder, // Account not selected.
+                    '1600': errors.BadRequest, // Withdrawal amount must be positive.
+                    '1601': errors.BadRequest, // Withdrawal description is too long.
+                    '1602': errors.BadRequest, // Withdrawal request does not match settlement.
+                    '1604': errors.BadRequest, // Withdrawal expiration time is below the 14 days minimum.
+                    '1605': errors.BadRequest, // Withdrawal asset is not valid.
+                    '1607': errors.BadRequest, // Withdrawals blocked for the account. Please contact the team on Discord to unblock the withdrawals.
+                    '1608': errors.BadRequest, // The withdrawal address does not match the account address.
+                    '1650': errors.BadRequest, // Vault transfer amount is incorrect.
+                    '1700': errors.BadRequest, // Referral code already exist.
+                    '1701': errors.BadRequest, // Referral code is not valid.
+                    '1703': errors.BadRequest, // Referral program is not enabled.
                     '1704': errors.BadRequest, // Referral code already applied.
                 },
                 'broad': {},
@@ -347,7 +365,7 @@ class extended extends extended$1["default"] {
         const keys = Object.keys(input);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const item = input[key];
+            const item = this.safeDict(input, key, {});
             const numericIdString = this.safeString(item, 'numericId');
             if (numericIdString === undefined) {
                 continue;
@@ -515,7 +533,7 @@ class extended extends extended$1["default"] {
         //
         const tradingConfig = this.safeDict(market, 'tradingConfig', {});
         const marketId = this.safeString(market, 'name');
-        let baseId = this.safeString(market, 'assetName');
+        let baseId = this.safeString(market, 'assetName', '');
         if (baseId.indexOf('SPOT') >= 0) {
             baseId = baseId.replace('SPOT', '');
         }
@@ -524,6 +542,9 @@ class extended extends extended$1["default"] {
         let quote = this.safeCurrencyCode(quoteId);
         if (quoteId === 'USD') {
             quote = 'USDC';
+        }
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
         }
         const status = this.safeString(market, 'status');
         const active = (status === 'ACTIVE');
@@ -541,6 +562,9 @@ class extended extends extended$1["default"] {
         let contractSize = undefined;
         let linear = undefined;
         let inverse = undefined;
+        // SPOT rows are still parsed on purpose even though has['spot'] is false - that flag
+        // only advertises the capability and gates the unified spot tests, it does not filter
+        // markets, so accounts still holding spot balances keep resolving their symbols
         if (type === 'spot') {
             isSpot = true;
         }
@@ -675,7 +699,7 @@ class extended extends extended$1["default"] {
             code = 'USDC';
         }
         const name = this.safeString(currency, 'name');
-        const precision = this.safeInteger(currency, 'precision');
+        const precision = this.safeInteger(currency, 'precision', 0);
         const isActive = this.safeBool(currency, 'isActive');
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -698,7 +722,7 @@ class extended extends extended$1["default"] {
      * @see https://api.docs.extended.exchange/#get-market-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -753,16 +777,16 @@ class extended extends extended$1["default"] {
      * @see https://api.docs.extended.exchange/#get-markets
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const request = {};
-        if (symbols !== undefined) {
+        if (symbolsNormalized !== undefined) {
             const marketIds = [];
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market(symbols[i]);
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const market = this.market(symbolsNormalized[i]);
                 marketIds.push(market['id']);
             }
             request['market'] = marketIds;
@@ -788,15 +812,17 @@ class extended extends extended$1["default"] {
         const data = this.safeList(response, 'data', []);
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
-            const marketData = data[i];
+            const marketData = this.safeDict(data, i);
             const marketId = this.safeString(marketData, 'name');
             const market = this.safeMarket(marketId);
             const stats = this.safeDict(marketData, 'marketStats', {});
             const ticker = this.parseTicker(stats, market);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                tickers[symbol] = ticker;
+            }
         }
-        return this.filterByArrayTickers(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -869,7 +895,7 @@ class extended extends extended$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -916,7 +942,7 @@ class extended extends extended$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -954,14 +980,13 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 100);
         }
         let market = undefined;
         const request = {};
@@ -972,7 +997,7 @@ class extended extends extended$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetUserTrades(this.extend(params, request));
+        const response = await this.v1PrivateGetUserTrades(this.extend(paramsPaginate, request));
         //
         //     {
         //         "status": "OK",
@@ -1005,7 +1030,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1023,14 +1048,13 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 100);
         }
         let market = undefined;
         const request = {};
@@ -1044,7 +1068,7 @@ class extended extends extended$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetUserFundingHistory(this.extend(params, request));
+        const response = await this.v1PrivateGetUserFundingHistory(this.extend(paramsPaginate, request));
         //
         //     {
         //         "status": "OK",
@@ -1075,7 +1099,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1100,12 +1124,12 @@ class extended extends extended$1["default"] {
         //     }
         //
         const marketId = this.safeString(history, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(history, 'paidTime');
         return {
             'info': history,
-            'symbol': market['symbol'],
-            'code': market['settle'],
+            'symbol': marketResolved['symbol'],
+            'code': marketResolved['settle'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'id': this.safeString(history, 'id'),
@@ -1116,9 +1140,9 @@ class extended extends extended$1["default"] {
     parseFundingHistories(histories, market = undefined, since = undefined, limit = undefined) {
         const result = [];
         for (let i = 0; i < histories.length; i++) {
-            result.push(this.parseFundingHistory(histories[i], market));
+            result.push(this.parseFundingHistory(this.safeDict(histories, i, {}), market));
         }
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        const symbol = (market === undefined) ? undefined : this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -1154,7 +1178,7 @@ class extended extends extended$1["default"] {
         //     }
         //
         const marketId = this.safeString2(trade, 'm', 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(trade, 'T', 'createdTime');
         const priceString = this.safeString2(trade, 'p', 'price');
         const amountString = this.safeString2(trade, 'q', 'qty');
@@ -1163,7 +1187,7 @@ class extended extends extended$1["default"] {
         const feeCost = this.safeString(trade, 'fee');
         const fee = (feeCost === undefined) ? undefined : {
             'cost': feeCost,
-            'currency': (market === undefined) ? undefined : market['settle'],
+            'currency': (marketResolved === undefined) ? undefined : marketResolved['settle'],
         };
         const isTaker = this.safeBool(trade, 'isTaker');
         let takerOrMaker = undefined;
@@ -1175,7 +1199,7 @@ class extended extends extended$1["default"] {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': this.safeString(trade, 'orderId'),
             'type': undefined,
             'side': side,
@@ -1184,7 +1208,7 @@ class extended extends extended$1["default"] {
             'amount': amountString,
             'cost': this.safeString(trade, 'value'),
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1218,7 +1242,7 @@ class extended extends extended$1["default"] {
             }
         }
         const until = this.safeInteger(params, 'until');
-        params = this.omit(params, ['candleType', 'price', 'until']);
+        const paramsOmitted = this.omit(params, ['candleType', 'price', 'until']);
         const request = {
             'market': market['id'],
             'candleType': candleType,
@@ -1228,7 +1252,7 @@ class extended extends extended$1["default"] {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.v1PublicGetInfoCandlesMarketCandleType(this.extend(request, params));
+        const response = await this.v1PublicGetInfoCandlesMarketCandleType(this.extend(request, paramsOmitted));
         //
         //     {
         //       "status": "OK",
@@ -1280,36 +1304,34 @@ class extended extends extended$1["default"] {
      * @param {int} [params.endTime] exchange-specific end timestamp in ms of the latest funding rate to fetch
      * @param {int} [params.cursor] offset of the result set
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, params, 'cursor', 'cursor', undefined, 10000);
+            return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000);
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        if (limit === undefined) {
-            limit = 100;
-        }
-        const until = this.safeInteger(params, 'until', this.milliseconds());
-        const endTime = this.safeInteger(params, 'endTime', until);
-        params = this.omit(params, ['endTime', 'until']);
-        if (since === undefined) {
-            since = endTime - (limit * 60 * 60 * 1000);
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const limitResolved = (limit === undefined) ? 100 : limit;
+        const until = this.safeInteger(paramsPaginate, 'until', this.milliseconds());
+        const endTime = this.safeInteger(paramsPaginate, 'endTime', until);
+        const paramsOmitted = this.omit(paramsPaginate, ['endTime', 'until']);
+        let sinceResolved = since;
+        if ((endTime !== undefined) && (since === undefined)) {
+            sinceResolved = endTime - (limitResolved * 60 * 60 * 1000);
         }
         const request = {
             'market': market['id'],
-            'startTime': since,
+            'startTime': sinceResolved,
             'endTime': endTime,
-            'limit': limit,
+            'limit': limitResolved,
         };
-        const response = await this.v1PublicGetInfoMarketFunding(this.extend(request, params));
+        const response = await this.v1PublicGetInfoMarketFunding(this.extend(request, paramsOmitted));
         //
         //     {
         //       "status": "OK",
@@ -1332,14 +1354,14 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
             result.push(this.parseFundingRateHistory(entry, market));
         }
         const sorted = this.sortBy(result, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbolValue, sinceResolved, limitResolved);
     }
     parseFundingRateHistory(info, market = undefined) {
         //
@@ -1350,11 +1372,11 @@ class extended extends extended$1["default"] {
         //     }
         //
         const marketId = this.safeString(info, 'm');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(info, 'T');
         return {
             'info': info,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'fundingRate': this.safeNumber(info, 'f'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -1371,7 +1393,7 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum amount of open interest structures to retrieve
      * @param {object} [params] exchange specific parameters
      * @param {int} [params.until] timestamp in ms of the latest open interest record to fetch
-     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1380,23 +1402,22 @@ class extended extends extended$1["default"] {
         if (!this.inArray(interval, ['PT1H', 'P1D'])) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterestHistory() supports 1h and 1d timeframes only');
         }
-        if (limit === undefined) {
-            limit = 100;
-        }
+        const limitResolved = (limit === undefined) ? 100 : limit;
         const until = this.safeInteger(params, 'until', this.milliseconds());
         const endTime = this.safeInteger(params, 'endTime', until);
-        params = this.omit(params, ['endTime', 'until']);
-        if (since === undefined) {
-            since = endTime - (limit * this.parseTimeframe(timeframe) * 1000);
+        const paramsOmitted = this.omit(params, ['endTime', 'until']);
+        let sinceResolved = since;
+        if ((endTime !== undefined) && (since === undefined)) {
+            sinceResolved = endTime - (limitResolved * this.parseTimeframe(timeframe) * 1000);
         }
         const request = {
             'market': market['id'],
             'interval': interval,
-            'startTime': since,
+            'startTime': sinceResolved,
             'endTime': endTime,
-            'limit': limit,
+            'limit': limitResolved,
         };
-        const response = await this.v1PublicGetInfoMarketOpenInterests(this.extend(request, params));
+        const response = await this.v1PublicGetInfoMarketOpenInterests(this.extend(request, paramsOmitted));
         //
         //     {
         //       "status": "OK",
@@ -1410,7 +1431,7 @@ class extended extends extended$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseOpenInterestsHistory(data, market, since, limit);
+        return this.parseOpenInterestsHistory(data, market, sinceResolved, limitResolved);
     }
     parseOpenInterest(interest, market = undefined) {
         //
@@ -1422,7 +1443,7 @@ class extended extends extended$1["default"] {
         //
         const timestamp = this.safeInteger(interest, 't');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'I'),
             'openInterestValue': this.safeNumber(interest, 'i'),
             'baseVolume': this.safeNumber(interest, 'I'),
@@ -1473,9 +1494,9 @@ class extended extends extended$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i, {});
@@ -1484,7 +1505,9 @@ class extended extends extended$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'availableToWithdraw');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1494,7 +1517,7 @@ class extended extends extended$1["default"] {
      * @description fetch the current authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-account-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [account structure]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object} an [account structure]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccount(params = {}) {
         const response = await this.v1PrivateGetUserAccountInfo(params);
@@ -1525,7 +1548,7 @@ class extended extends extended$1["default"] {
      * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
      * @see https://api.docs.extended.exchange/#get-sub-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccounts(params = {}) {
         const response = await this.v1PrivateGetUserAccounts(params);
@@ -1579,14 +1602,13 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchLedger', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchLedger', code, since, limit, params, 'cursor', 'cursor', undefined, 50);
+            return await this.fetchPaginatedCallCursor('fetchLedger', code, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 50);
         }
         let currency = undefined;
         if (code !== undefined) {
@@ -1596,14 +1618,14 @@ class extended extends extended$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetUserAssetOperations(this.extend(request, params));
+        const response = await this.v1PrivateGetUserAssetOperations(this.extend(request, paramsPaginate));
         const data = this.safeList(response, 'data', []);
         const pagination = this.safeDict(response, 'pagination', {});
         const cursor = this.safeString(pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1670,14 +1692,13 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of transaction structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchTransactions', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTransactions', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchTransactions', code, since, limit, params, 'cursor', 'cursor', undefined, 50);
+            return await this.fetchPaginatedCallCursor('fetchTransactions', code, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 50);
         }
         let currency = undefined;
         if (code !== undefined) {
@@ -1687,7 +1708,7 @@ class extended extends extended$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetUserAssetOperations(this.extend(request, params));
+        const response = await this.v1PrivateGetUserAssetOperations(this.extend(request, paramsPaginate));
         //
         //     {
         //         "status": "OK",
@@ -1716,7 +1737,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1734,7 +1755,7 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of deposit structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactions(code, since, limit, this.extend({ 'type': 'DEPOSIT' }, params));
@@ -1749,7 +1770,7 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of withdrawal structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactions(code, since, limit, this.extend({ 'type': 'WITHDRAWAL' }, params));
@@ -1762,17 +1783,18 @@ class extended extends extended$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the Starknet address to withdraw to
-     * @param {string} tag unused
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chainId] only STRK is supported
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         this.checkRequiredCredentials();
         await this.loadMarkets();
         const currency = this.currency(code);
-        const chainId = this.safeStringUpper2(params, 'chainId', 'network', 'STRK');
+        const chainId = this.safeStringUpper2(paramsWithdrawTag, 'chainId', 'network', 'STRK');
         if (chainId !== 'STRK') {
             throw new errors.BadRequest(this.id + ' withdraw() only supports Starknet withdrawals with chainId STRK');
         }
@@ -1782,7 +1804,7 @@ class extended extends extended$1["default"] {
         const account = await this.fetchExtendedAccount();
         const amountString = this.currencyToPrecision(code, amount);
         const accountId = this.safeString(account, 'accountId');
-        const settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, params);
+        const settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, paramsWithdrawTag);
         const request = {
             'accountId': accountId,
             'amount': amountString,
@@ -1790,8 +1812,8 @@ class extended extends extended$1["default"] {
             'asset': currency['id'],
             'settlement': settlement,
         };
-        params = this.omit(params, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution']);
-        const response = await this.v1PrivatePostUserWithdrawal(this.extend(request, params));
+        const paramsOmitted = this.omit(paramsWithdrawTag, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution']);
+        const response = await this.v1PrivatePostUserWithdrawal(this.extend(request, paramsOmitted));
         //
         //     {
         //         "status": "OK",
@@ -1832,14 +1854,13 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of transfer structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', undefined, 50);
+            return await this.fetchPaginatedCallCursor('fetchTransfers', code, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 50);
         }
         let currency = undefined;
         if (code !== undefined) {
@@ -1851,14 +1872,14 @@ class extended extends extended$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetUserAssetOperations(this.extend(request, params));
+        const response = await this.v1PrivateGetUserAssetOperations(this.extend(request, paramsPaginate));
         const data = this.safeList(response, 'data', []);
         const pagination = this.safeDict(response, 'pagination', {});
         const cursor = this.safeString(pagination, 'cursor');
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1879,36 +1900,33 @@ class extended extends extended$1["default"] {
      * @param {string} params.toVault destination account L2 vault
      * @param {string} params.toL2Key destination account L2 public key
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         this.checkRequiredCredentials();
         await this.loadMarkets();
         const currency = this.currency(code);
         const account = await this.fetchExtendedAccount();
-        const currentAccountId = this.safeString(account, 'accountId');
-        if (fromAccount === undefined) {
-            fromAccount = currentAccountId;
-        }
-        else if (fromAccount !== currentAccountId) {
+        const currentAccountId = this.safeString(account, 'accountId', '');
+        if ((fromAccount !== undefined) && (fromAccount !== currentAccountId)) {
             throw new errors.BadRequest(this.id + ' transfer() can only transfer from the authenticated account');
         }
         const toVault = this.safeString2(params, 'toVault', 'receiverPositionId');
         const toL2Key = this.safeString2(params, 'toL2Key', 'receiverPublicKey');
-        if ((toAccount === undefined) || (toVault === undefined) || (toL2Key === undefined)) {
+        if ((toVault === undefined) || (toL2Key === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]');
         }
         const amountString = this.currencyToPrecision(code, amount);
         const settlement = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, params);
         const request = {
-            'fromAccount': fromAccount,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'amount': amountString,
             'transferredAsset': currency['id'],
             'settlement': settlement,
         };
-        params = this.omit(params, ['fromVault', 'senderPositionId', 'fromL2Key', 'senderPublicKey', 'toVault', 'receiverPositionId', 'toL2Key', 'receiverPublicKey', 'settlementExpiration', 'nonce', 'assetId', 'collateralId', 'resolution']);
-        const response = await this.v1PrivatePostUserTransfer(this.extend(request, params));
+        const paramsOmitted = this.omit(params, ['fromVault', 'senderPositionId', 'fromL2Key', 'senderPublicKey', 'toVault', 'receiverPositionId', 'toL2Key', 'receiverPublicKey', 'settlementExpiration', 'nonce', 'assetId', 'collateralId', 'resolution']);
+        const response = await this.v1PrivatePostUserTransfer(this.extend(request, paramsOmitted));
         //
         //     {
         //         "status": "OK",
@@ -1932,7 +1950,7 @@ class extended extends extended$1["default"] {
             'datetime': this.iso8601(now),
             'currency': currency['code'],
             'amount': this.parseNumber(amountString),
-            'fromAccount': fromAccount,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'status': status,
         };
@@ -1981,7 +1999,7 @@ class extended extends extended$1["default"] {
             return this.safeString(currencyByNumericId, 'code');
         }
         if (currency !== undefined) {
-            return currency['code'];
+            return this.safeString(currency, 'code');
         }
         let code = this.safeCurrencyCode(assetId);
         if (code === 'USD') {
@@ -2035,7 +2053,7 @@ class extended extends extended$1["default"] {
             };
         }
         const transactionType = this.parseTransactionType(this.safeString(transaction, 'type'));
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'));
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
@@ -2125,7 +2143,9 @@ class extended extends extended$1["default"] {
             const fee = this.safeDict(data, i, {});
             const parsed = this.parseTradingFee(fee);
             const symbol = this.safeString(parsed, 'symbol');
-            result[symbol] = parsed;
+            if (symbol !== undefined) {
+                result[symbol] = parsed;
+            }
         }
         return result;
     }
@@ -2139,10 +2159,10 @@ class extended extends extended$1["default"] {
         //     }
         //
         const marketId = this.safeString(fee, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         return {
             'info': fee,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'maker': this.safeNumber(fee, 'makerFeeRate'),
             'taker': this.safeNumber(fee, 'takerFeeRate'),
             'percentage': true,
@@ -2156,7 +2176,7 @@ class extended extends extended$1["default"] {
      * @see https://api.docs.extended.exchange/#get-leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
         await this.loadMarkets();
@@ -2177,7 +2197,7 @@ class extended extends extended$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(this.safeDict(data, 0), market);
+        return this.parseLeverage(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -2217,11 +2237,11 @@ class extended extends extended$1["default"] {
         //     }
         //
         const marketId = this.safeString(leverage, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const leverageValue = this.safeNumber(leverage, 'leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -2234,7 +2254,7 @@ class extended extends extended$1["default"] {
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -2284,7 +2304,7 @@ class extended extends extended$1["default"] {
      * @see https://api.docs.extended.exchange/#get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
         const positions = await this.fetchPositions([symbol], params);
@@ -2300,24 +2320,24 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of position structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        let symbolsList = symbols;
         if (typeof symbols === 'string') {
-            symbols = [symbols];
+            symbolsList = [symbols];
         }
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchPositionsHistory', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchPositionsHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchPositionsHistory', symbols, since, limit, params, 'cursor', 'cursor', undefined, 10000);
+            return await this.fetchPaginatedCallCursor('fetchPositionsHistory', symbolsList, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000);
         }
         const request = {};
-        if (symbols !== undefined) {
-            const marketIds = this.marketIds(symbols);
+        if (symbolsList !== undefined) {
+            const marketIds = this.marketIds(symbolsList);
             request['market'] = marketIds;
         }
-        const response = await this.v1PrivateGetUserPositionsHistory(this.extend(request, params));
+        const response = await this.v1PrivateGetUserPositionsHistory(this.extend(request, paramsPaginate));
         //
         //     {
         //         "status": "OK",
@@ -2350,13 +2370,13 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
             result.push(entry);
         }
-        const positions = this.parsePositions(result, symbols);
+        const positions = this.parsePositions(result, symbolsList);
         return this.filterBySinceLimit(positions, since, limit, 'timestamp');
     }
     parsePosition(position, market = undefined) {
@@ -2386,16 +2406,16 @@ class extended extends extended$1["default"] {
         //     }
         //
         const marketId = this.safeString(position, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(position, 'createdAt', 'createdTime');
         let lastUpdateTimestamp = this.safeInteger2(position, 'updatedAt', 'updatedTime');
         lastUpdateTimestamp = this.safeInteger(position, 'closedTime', lastUpdateTimestamp);
         const side = this.safeStringLower(position, 'side');
-        const margin = this.safeString(position, 'margin');
+        const margin = this.safeNumber(position, 'margin');
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': lastUpdateTimestamp,
@@ -2403,44 +2423,43 @@ class extended extends extended$1["default"] {
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeString(position, 'openPrice'),
-            'notional': this.safeString(position, 'value'),
-            'leverage': this.safeString(position, 'leverage'),
-            'unrealizedPnl': this.safeString(position, 'unrealisedPnl'),
-            'realizedPnl': this.safeString(position, 'realisedPnl'),
-            'contracts': this.safeString(position, 'size'),
-            'contractSize': this.safeString(market, 'contractSize'),
+            'entryPrice': this.safeNumber(position, 'openPrice'),
+            'notional': this.safeNumber(position, 'value'),
+            'leverage': this.safeNumber(position, 'leverage'),
+            'unrealizedPnl': this.safeNumber(position, 'unrealisedPnl'),
+            'realizedPnl': this.safeNumber(position, 'realisedPnl'),
+            'contracts': this.safeNumber(position, 'size'),
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeString(position, 'liquidationPrice'),
-            'markPrice': this.safeString(position, 'markPrice'),
-            'lastPrice': this.safeString(position, 'exitPrice'),
+            'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
+            'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': this.safeNumber(position, 'exitPrice'),
             'collateral': margin,
             'marginMode': undefined,
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
-            'stopLossPrice': this.safeString(position, 'slTriggerPrice'),
-            'takeProfitPrice': this.safeString(position, 'tpTriggerPrice'),
+            'stopLossPrice': this.safeNumber(position, 'slTriggerPrice'),
+            'takeProfitPrice': this.safeNumber(position, 'tpTriggerPrice'),
         });
     }
     getExtendedStarkAmount(amount, resolution, roundUp = false) {
         const resolutionString = this.numberToString(resolution);
         const precise = Precise["default"].stringMul(amount, resolutionString);
-        let result = this.decimalToPrecision(precise, number.TRUNCATE, 0, number.DECIMAL_PLACES, number.NO_PADDING);
+        const result = this.decimalToPrecision(precise, number.TRUNCATE, 0, number.DECIMAL_PLACES, number.NO_PADDING);
         if (roundUp && Precise["default"].stringGt(precise, result)) {
-            result = Precise["default"].stringAdd(result, '1');
+            return Precise["default"].stringAdd(result, '1');
         }
         return result;
     }
     async fetchExtendedAccount(params = {}) {
-        let account = this.safeDict(this.options, 'account');
-        if (account !== undefined) {
-            return account;
+        const cachedAccount = this.safeDict(this.options, 'account');
+        if (cachedAccount !== undefined) {
+            return this.safeDict(this.options, 'account', {});
         }
         const accountData = await this.fetchAccount(params);
-        account = accountData['info'];
-        this.options['account'] = account;
-        return account;
+        this.options['account'] = this.safeDict(accountData, 'info', {});
+        return this.safeDict(this.options, 'account', {});
     }
     createOrderSettlementData(isBuy, amountString, priceString, params = {}) {
         const totalFee = this.safeString(params, 'totalFee');
@@ -2478,8 +2497,8 @@ class extended extends extended$1["default"] {
         };
         const msgHash = this.getExtendedOrderMsgHash(settlement);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
-        const r = this.getExtendedSignatureHex(sig[0]);
-        const s = this.getExtendedSignatureHex(sig[1]);
+        const r = this.getExtendedSignatureHex(this.safeString(sig, 0, '0'));
+        const s = this.getExtendedSignatureHex(this.safeString(sig, 1, '0'));
         settlement['r'] = r;
         settlement['s'] = s;
         return settlement;
@@ -2492,7 +2511,7 @@ class extended extends extended$1["default"] {
         const recipient = this.safeString(params, 'recipient', address);
         const currencyInfo = this.safeDict(currency, 'info', {});
         const collateralId = this.safeString(params, 'collateralId', this.safeString2(currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeInteger(params, 'resolution', this.safeValue2(currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger(params, 'resolution', this.safeInteger2(currencyInfo, 'starkexResolution', 'l1Resolution'));
         const starkKey = this.safeString(account, 'l2Key');
         if ((positionId === undefined) || (collateralId === undefined) || (resolution === undefined) || (starkKey === undefined)) {
             throw new errors.BadRequest(this.id + ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
@@ -2511,8 +2530,8 @@ class extended extends extended$1["default"] {
         const msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex(sig[0]),
-            's': this.getExtendedSignatureHex(sig[1]),
+            'r': this.getExtendedSignatureHex(this.safeString(sig, 0, '0')),
+            's': this.getExtendedSignatureHex(this.safeString(sig, 1, '0')),
         };
         return settlement;
     }
@@ -2524,7 +2543,7 @@ class extended extends extended$1["default"] {
         const fromL2Key = this.safeString2(params, 'fromL2Key', 'senderPublicKey', this.safeString(account, 'l2Key'));
         const currencyInfo = this.safeDict(currency, 'info', {});
         const collateralId = this.safeString2(params, 'assetId', 'collateralId', this.safeString2(currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeInteger(params, 'resolution', this.safeValue2(currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger(params, 'resolution', this.safeInteger2(currencyInfo, 'starkexResolution', 'l1Resolution'));
         if ((fromVault === undefined) || (fromL2Key === undefined) || (collateralId === undefined) || (resolution === undefined)) {
             throw new errors.BadRequest(this.id + ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
         }
@@ -2542,17 +2561,23 @@ class extended extends extended$1["default"] {
         const msgHash = this.getExtendedTransferMsgHash(settlement);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex(sig[0]),
-            's': this.getExtendedSignatureHex(sig[1]),
+            'r': this.getExtendedSignatureHex(this.safeString(sig, 0, '0')),
+            's': this.getExtendedSignatureHex(this.safeString(sig, 1, '0')),
         };
         return settlement;
     }
     async createExtendedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const uppercaseSide = side.toUpperCase();
-        if (market['spot'] && uppercaseType !== 'LIMIT') {
+        if ((this.safeBool(market, 'spot', false)) && uppercaseType !== 'LIMIT') {
             throw new errors.BadRequest(this.id + ' createOrder() supports limit orders for spot markets only');
         }
         if (!this.inArray(uppercaseType, ['LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL'])) {
@@ -2572,22 +2597,28 @@ class extended extends extended$1["default"] {
         const fee = this.safeString(params, 'fee', '0.0005');
         let builderFeeRate = undefined;
         let builderId = undefined;
-        if (this.isSandboxModeEnabled) {
-            builderFeeRate = this.safeString2(params, 'builderFeeRate', 'defaultBuilderFeeRate');
-            builderId = this.safeString2(params, 'builderId', 'defaultBuilderId');
-            params = this.omit(params, ['builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId']);
-        }
-        else {
-            [builderFeeRate, params] = this.handleOptionAndParams(params, 'createOrder', 'builderFeeRate', '0.0001');
-            [builderId, params] = this.handleOptionAndParams(params, 'createOrder', 'builderId');
+        let paramsBuilder = params;
+        const builderEnabled = this.safeBool(this.options, 'builderFee', false);
+        if (builderEnabled) {
+            if (this.isSandboxModeEnabled) {
+                builderFeeRate = this.safeString2(params, 'builderFeeRate', 'defaultBuilderFeeRate');
+                builderId = this.safeString2(params, 'builderId', 'defaultBuilderId');
+                paramsBuilder = this.omit(params, ['builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId']);
+            }
+            else {
+                let paramsBuilderFeeRate = undefined;
+                [builderFeeRate, paramsBuilderFeeRate] = this.handleOptionStringAndParams(params, 'createOrder', 'builderFeeRate', '0.0001');
+                [builderId, paramsBuilder] = this.handleOptionStringAndParams(paramsBuilderFeeRate, 'createOrder', 'builderId');
+            }
         }
         let totalFee = fee;
         if (builderFeeRate !== undefined) {
             totalFee = Precise["default"].stringAdd(fee, builderFeeRate);
         }
         const now = this.milliseconds();
-        const expiryEpochMillis = this.safeInteger(params, 'expiryEpochMillis', now + 3600000);
-        const settlementExpiration = this.safeInteger(params, 'settlementExpiration', this.parseToInt((expiryEpochMillis + 999) / 1000) + 1209600);
+        const expiryEpochMillis = this.safeInteger(paramsBuilder, 'expiryEpochMillis', now + 3600000);
+        const settlementDefault = (expiryEpochMillis !== undefined) ? this.parseToInt((expiryEpochMillis + 999) / 1000) + 1209600 : undefined;
+        const settlementExpiration = this.safeInteger(paramsBuilder, 'settlementExpiration', settlementDefault);
         const nonce = this.numberToString(this.nonce());
         const account = await this.fetchExtendedAccount();
         const starkKey = this.safeString(account, 'l2Key');
@@ -2613,7 +2644,7 @@ class extended extends extended$1["default"] {
             'collateralPosition': collateralPosition,
         };
         const isBuy = (uppercaseSide === 'BUY');
-        const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id', this.uuid());
+        const clientOrderId = this.safeString2(paramsBuilder, 'clientOrderId', 'client_id', this.uuid());
         const request = {
             'id': clientOrderId,
             'market': market['id'],
@@ -2635,7 +2666,7 @@ class extended extends extended$1["default"] {
         if (builderId !== undefined) {
             request['builderId'] = builderId;
         }
-        const cancelId = this.safeString2(params, 'cancelId', 'previousOrderId');
+        const cancelId = this.safeString2(paramsBuilder, 'cancelId', 'previousOrderId');
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
@@ -2645,13 +2676,13 @@ class extended extends extended$1["default"] {
             'starkKey': starkKey,
             'collateralPosition': collateralPosition,
         };
-        let triggerPriceStr = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLossTriggerPrice = this.safeString(params, 'stopLossPrice');
-        const takeProfitTriggerPrice = this.safeString(params, 'takeProfitPrice');
+        let triggerPriceStr = this.safeString2(paramsBuilder, 'triggerPrice', 'stopPrice');
+        const stopLossTriggerPrice = this.safeString(paramsBuilder, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeString(paramsBuilder, 'takeProfitPrice');
         const isStopLossOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitOrder = takeProfitTriggerPrice !== undefined;
-        const stopLoss = this.safeDict(params, 'stopLoss');
-        const takeProfit = this.safeDict(params, 'takeProfit');
+        const stopLoss = this.safeDict(paramsBuilder, 'stopLoss');
+        const takeProfit = this.safeDict(paramsBuilder, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         if (hasStopLoss || hasTakeProfit) {
@@ -2705,7 +2736,7 @@ class extended extends extended$1["default"] {
         }
         else {
             if (triggerPriceStr !== undefined) {
-                const triggerDirection = this.safeStringUpper(params, 'triggerDirection');
+                const triggerDirection = this.safeStringUpper(paramsBuilder, 'triggerDirection');
                 if (triggerDirection === undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' createOrder() requires triggerDirection for trigger order');
                 }
@@ -2717,7 +2748,12 @@ class extended extends extended$1["default"] {
                 request['trigger'] = trigger;
             }
             else if (isStopLossOrder || isTakeProfitOrder) {
-                triggerPriceStr = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                if (isStopLossOrder) {
+                    triggerPriceStr = stopLossTriggerPrice;
+                }
+                else {
+                    triggerPriceStr = takeProfitTriggerPrice;
+                }
                 const trigger = {
                     'triggerPrice': this.priceToPrecision(symbol, triggerPriceStr),
                 };
@@ -2731,9 +2767,9 @@ class extended extends extended$1["default"] {
                 request['trigger'] = trigger;
             }
         }
-        params = this.omit(params, ['clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit']);
+        const paramsOmitted = this.omit(paramsBuilder, ['clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit']);
         return {
-            'request': this.extend(request, params),
+            'request': this.extend(request, paramsOmitted),
             'market': market,
             'timestamp': now,
             'clientOrderId': clientOrderId,
@@ -2770,7 +2806,7 @@ class extended extends extended$1["default"] {
      * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
      * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
      * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredCredentials();
@@ -2787,7 +2823,7 @@ class extended extends extended$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        const market = extendedOrderRequest['market'];
+        const market = this.market(symbol);
         const now = this.safeInteger(extendedOrderRequest, 'timestamp');
         data['timestamp'] = now;
         data['status'] = 'NEW';
@@ -2805,24 +2841,26 @@ class extended extends extended$1["default"] {
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (id === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an id argument');
         }
+        let amountValue = amount;
+        let priceValue = price;
         let expiryEpochMillis = this.safeInteger(params, 'expiryEpochMillis');
         let postOnly = this.safeBool(params, 'postOnly');
         let reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         let cancelId = this.safeString2(params, 'cancelId', 'previousOrderId');
-        if ((amount === undefined) || (price === undefined) || (expiryEpochMillis === undefined) || (postOnly === undefined) || (reduceOnly === undefined) || (cancelId === undefined)) {
+        if ((amountValue === undefined) || (priceValue === undefined) || (expiryEpochMillis === undefined) || (postOnly === undefined) || (reduceOnly === undefined) || (cancelId === undefined)) {
             const response = await this.v1PrivateGetUserOrdersId({ 'id': id });
             const order = this.safeDict(response, 'data', {});
-            if (amount === undefined) {
-                amount = this.safeNumber(order, 'qty');
+            if (amountValue === undefined) {
+                amountValue = this.safeNumber(order, 'qty');
             }
-            if (price === undefined) {
-                price = this.safeNumber(order, 'price');
+            if (priceValue === undefined) {
+                priceValue = this.safeNumber(order, 'price');
             }
             if (expiryEpochMillis === undefined) {
                 expiryEpochMillis = this.safeInteger(order, 'expireTime');
@@ -2837,21 +2875,21 @@ class extended extends extended$1["default"] {
                 cancelId = this.safeString(order, 'externalId');
             }
         }
-        if (amount === undefined) {
+        if (amountValue === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an amount argument or an existing order with qty');
         }
-        if (price === undefined) {
+        if (priceValue === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a price argument or an existing order with price');
         }
-        params = this.extend({
+        const paramsExtended = this.extend({
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
         }, params);
-        const requestParams = this.extend(params, {
+        const requestParams = this.extend(paramsExtended, {
             'cancelId': cancelId,
             'expiryEpochMillis': expiryEpochMillis,
         });
-        const extendedOrderRequest = await this.createExtendedOrderRequest(symbol, type, side, amount, price, requestParams);
+        const extendedOrderRequest = await this.createExtendedOrderRequest(symbol, type, side, amountValue, priceValue, requestParams);
         const request = this.safeDict(extendedOrderRequest, 'request', {});
         const editResponse = await this.v1PrivatePostUserOrder(request);
         //
@@ -2864,7 +2902,7 @@ class extended extends extended$1["default"] {
         //     }
         //
         const responseData = this.safeDict(editResponse, 'data', {});
-        const market = extendedOrderRequest['market'];
+        const market = this.market(symbol);
         const now = this.safeInteger(extendedOrderRequest, 'timestamp');
         responseData['timestamp'] = now;
         responseData['status'] = 'NEW';
@@ -2885,17 +2923,20 @@ class extended extends extended$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         let market = undefined;
+        let orderSymbol = symbol;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            orderSymbol = symbolMarket['symbol'];
         }
         let response = undefined;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
-        params = this.omit(params, ['clientOrderId', 'client_id']);
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'client_id']);
         if (clientOrderId !== undefined) {
             const request = {
                 'externalId': clientOrderId,
             };
-            response = await this.v1PrivateDeleteUserOrder(this.extend(request, params));
+            response = await this.v1PrivateDeleteUserOrder(this.extend(request, paramsOmitted));
         }
         else {
             if (id === undefined) {
@@ -2904,7 +2945,7 @@ class extended extends extended$1["default"] {
             const request = {
                 'id': id,
             };
-            response = await this.v1PrivateDeleteUserOrderId(this.extend(request, params));
+            response = await this.v1PrivateDeleteUserOrderId(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -2912,7 +2953,6 @@ class extended extends extended$1["default"] {
         //     }
         //
         const orderId = (clientOrderId === undefined) ? id : undefined;
-        const orderSymbol = (market === undefined) ? symbol : market['symbol'];
         return this.safeOrder({
             'info': response,
             'id': orderId,
@@ -2939,7 +2979,7 @@ class extended extends extended$1["default"] {
         await this.loadMarkets();
         let clientOrderIds = this.safeListN(params, ['clientOrderIds', 'client_order_ids', 'externalOrderIds', 'external_order_ids']);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
-        params = this.omit(params, ['clientOrderIds', 'client_order_ids', 'clientOrderId', 'client_id', 'externalOrderIds', 'external_order_ids', 'orderIds', 'order_ids', 'markets', 'cancelAll', 'cancel_all']);
+        const paramsOmitted = this.omit(params, ['clientOrderIds', 'client_order_ids', 'clientOrderId', 'client_id', 'externalOrderIds', 'external_order_ids', 'orderIds', 'order_ids', 'markets', 'cancelAll', 'cancel_all']);
         const request = {};
         const hasOrderIds = ids !== undefined;
         if (hasOrderIds) {
@@ -2952,7 +2992,7 @@ class extended extends extended$1["default"] {
             clientOrderIds = [clientOrderId];
         }
         const hasClientOrderIds = clientOrderIds !== undefined;
-        if (hasClientOrderIds) {
+        if (clientOrderIds !== undefined) {
             const clientOrderIdsLength = clientOrderIds.length;
             if (clientOrderIdsLength > 0) {
                 request['externalOrderIds'] = clientOrderIds;
@@ -2961,7 +3001,7 @@ class extended extends extended$1["default"] {
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires an ids argument or clientOrderIds parameter');
         }
-        await this.v1PrivatePostUserOrderMassCancel(this.extend(request, params));
+        await this.v1PrivatePostUserOrderMassCancel(this.extend(request, paramsOmitted));
         //
         //     {
         //         "status": "OK",
@@ -3012,7 +3052,11 @@ class extended extends extended$1["default"] {
         const request = {
             'countdownTime': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
         };
-        return await this.v1PrivatePostUserDeadmanswitch(this.extend(request, params));
+        const response = await this.v1PrivatePostUserDeadmanswitch(this.extend(request, params));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return { 'info': response };
     }
     /**
      * @method
@@ -3024,7 +3068,7 @@ class extended extends extended$1["default"] {
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] user-defined order id, fetches by external id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -3035,12 +3079,12 @@ class extended extends extended$1["default"] {
         let response = undefined;
         let order = undefined;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
-        params = this.omit(params, ['clientOrderId', 'client_id']);
+        const paramsOmitted = this.omit(params, ['clientOrderId', 'client_id']);
         if (clientOrderId !== undefined) {
             const request = {
                 'externalId': clientOrderId,
             };
-            response = await this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, params));
+            response = await this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted));
             const data = this.safeList(response, 'data', []);
             order = this.safeDict(data, 0, {});
         }
@@ -3051,7 +3095,7 @@ class extended extends extended$1["default"] {
             const request = {
                 'id': id,
             };
-            response = await this.v1PrivateGetUserOrdersId(this.extend(request, params));
+            response = await this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted));
             order = this.safeDict(response, 'data', {});
         }
         return this.parseOrder(order, market);
@@ -3065,7 +3109,7 @@ class extended extends extended$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3117,14 +3161,13 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 100);
         }
         let market = undefined;
         const request = {};
@@ -3135,7 +3178,7 @@ class extended extends extended$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetUserOrdersHistory(this.extend(params, request));
+        const response = await this.v1PrivateGetUserOrdersHistory(this.extend(paramsPaginate, request));
         //
         //     {
         //       "status": "OK",
@@ -3173,7 +3216,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -3192,7 +3235,7 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders(symbol, since, undefined, params);
@@ -3209,7 +3252,7 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders(symbol, since, undefined, params);
@@ -3271,7 +3314,7 @@ class extended extends extended$1["default"] {
         //     }
         //
         const marketId = this.safeString(order, 'market');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger2(order, 'createdTime', 'timestamp');
         const lastUpdateTimestamp = this.safeInteger(order, 'updatedTime');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
@@ -3285,7 +3328,7 @@ class extended extends extended$1["default"] {
         const stopLoss = this.safeDict(order, 'stopLoss', {});
         const fee = {
             'cost': feeCost,
-            'currency': (market === undefined) ? undefined : market['settle'],
+            'currency': (marketResolved === undefined) ? undefined : marketResolved['settle'],
         };
         return this.safeOrder({
             'info': order,
@@ -3295,7 +3338,7 @@ class extended extends extended$1["default"] {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': this.safeBool(order, 'postOnly'),
@@ -3313,7 +3356,7 @@ class extended extends extended$1["default"] {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     getExtendedStringToFelt(value) {
         return this.convertToBigInt(this.stringToBase16(value));
@@ -3328,18 +3371,13 @@ class extended extends extended$1["default"] {
         return value;
     }
     getExtendedDecimalToBase16(value) {
-        let decimalString = '';
-        if (typeof value === 'string') {
-            decimalString = value;
-        }
-        else {
-            decimalString = this.numberToString(value);
-        }
+        let decimalString = value;
         const hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
         let result = '';
         while (Precise["default"].stringGt(decimalString, '0')) {
             const remainder = this.parseToInt(Precise["default"].stringMod(decimalString, '16'));
-            result = hexChars[remainder] + result;
+            const hexChar = this.safeString(hexChars, remainder, '');
+            result = hexChar + result;
             decimalString = Precise["default"].stringDiv(decimalString, '16', 0);
         }
         if (result === '') {
@@ -3348,22 +3386,19 @@ class extended extends extended$1["default"] {
         return result;
     }
     getExtendedSignatureHex(signature) {
-        if (typeof signature === 'string') {
-            if (signature.indexOf('0x') === 0) {
-                return signature;
-            }
-            return '0x' + this.getExtendedDecimalToBase16(signature);
+        if (signature.indexOf('0x') === 0) {
+            return signature;
         }
-        const signatureString = this.numberToString(signature);
-        if (signatureString.indexOf('0x') === 0) {
-            return signatureString;
-        }
-        return '0x' + this.getExtendedDecimalToBase16(signatureString);
+        return '0x' + this.getExtendedDecimalToBase16(signature);
     }
     getExtendedDomainHash() {
         const domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName('"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'));
-        const isTestnet = this.urls['api']['rest'].indexOf('sepolia') >= 0;
-        const defaultChainId = isTestnet ? 'SN_SEPOLIA' : 'SN_MAIN';
+        const restUrl = this.safeString(this.urls['api'], 'rest', '');
+        const isTestnet = restUrl.indexOf('sepolia') >= 0;
+        let defaultChainId = 'SN_MAIN';
+        if (isTestnet) {
+            defaultChainId = 'SN_SEPOLIA';
+        }
         const chainId = this.safeString(this.options, 'chainId', defaultChainId);
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements([
             domainTypeHash,
@@ -3377,16 +3412,16 @@ class extended extends extended$1["default"] {
         const orderTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName('"Order"("position_id":"felt","base_asset_id":"AssetId","base_amount":"i64","quote_asset_id":"AssetId","quote_amount":"i64","fee_asset_id":"AssetId","fee_amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'));
         const domainHash = this.getExtendedDomainHash();
         // Order fields
-        const positionId = this.convertToBigInt(this.safeString(settlement, 'collateralPosition'));
-        const baseAssetId = this.safeString(settlement, 'baseAssetId');
-        const baseAmount = this.convertToBigInt(this.safeString(settlement, 'baseAmount'));
-        const quoteAssetId = this.safeString(settlement, 'quoteAssetId');
-        const quoteAmount = this.convertToBigInt(this.safeString(settlement, 'quoteAmount'));
-        const feeAssetId = this.safeString(settlement, 'feeAssetId');
-        const feeAmount = this.convertToBigInt(this.safeString(settlement, 'feeAmount'));
-        const expiration = this.convertToBigInt(this.safeString2(settlement, 'expiration', 'expirationTimestamp'));
-        const salt = this.convertToBigInt(this.safeString2(settlement, 'salt', 'nonce'));
-        const starkKey = this.convertToBigInt(this.safeString(settlement, 'starkKey'));
+        const positionId = this.convertToBigInt(this.safeString(settlement, 'collateralPosition', '0'));
+        const baseAssetId = this.safeString(settlement, 'baseAssetId', '0');
+        const baseAmount = this.convertToBigInt(this.safeString(settlement, 'baseAmount', '0'));
+        const quoteAssetId = this.safeString(settlement, 'quoteAssetId', '0');
+        const quoteAmount = this.convertToBigInt(this.safeString(settlement, 'quoteAmount', '0'));
+        const feeAssetId = this.safeString(settlement, 'feeAssetId', '0');
+        const feeAmount = this.convertToBigInt(this.safeString(settlement, 'feeAmount', '0'));
+        const expiration = this.convertToBigInt(this.safeString2(settlement, 'expiration', 'expirationTimestamp', '0'));
+        const salt = this.convertToBigInt(this.safeString2(settlement, 'salt', 'nonce', '0'));
+        const starkKey = this.convertToBigInt(this.safeString(settlement, 'starkKey', '0'));
         // Order struct hash
         const orderHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements([
             orderTypeHash,
@@ -3414,12 +3449,12 @@ class extended extends extended$1["default"] {
         const expiration = this.safeDict(settlement, 'expiration', {});
         const withdrawalHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements([
             withdrawalTypeHash,
-            this.convertToBigInt(this.safeString(settlement, 'recipient')),
-            this.convertToBigInt(this.safeString(settlement, 'positionId')),
-            this.convertToBigInt(this.safeString(settlement, 'collateralId')),
-            this.convertToBigInt(this.safeString(settlement, 'amount')),
-            this.convertToBigInt(this.safeString(expiration, 'seconds')),
-            this.convertToBigInt(this.safeString(settlement, 'salt')),
+            this.convertToBigInt(this.safeString(settlement, 'recipient', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'positionId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'collateralId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'amount', '0')),
+            this.convertToBigInt(this.safeString(expiration, 'seconds', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'salt', '0')),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements([
             this.getExtendedStringToFelt('StarkNet Message'),
@@ -3431,15 +3466,15 @@ class extended extends extended$1["default"] {
     getExtendedTransferMsgHash(settlement) {
         const transferTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName('"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'));
         const domainHash = this.getExtendedDomainHash();
-        const senderPublicKey = this.convertToBigInt(this.safeString(settlement, 'senderPublicKey'));
+        const senderPublicKey = this.convertToBigInt(this.safeString(settlement, 'senderPublicKey', '0'));
         const transferHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements([
             transferTypeHash,
-            this.convertToBigInt(this.safeString(settlement, 'senderPositionId')),
-            this.convertToBigInt(this.safeString(settlement, 'receiverPositionId')),
-            this.convertToBigInt(this.safeString(settlement, 'assetId')),
-            this.convertToBigInt(this.safeString(settlement, 'amount')),
-            this.convertToBigInt(this.safeString(settlement, 'expirationTimestamp')),
-            this.convertToBigInt(this.safeString(settlement, 'nonce')),
+            this.convertToBigInt(this.safeString(settlement, 'senderPositionId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'receiverPositionId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'assetId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'amount', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'expirationTimestamp', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'nonce', '0')),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements([
             this.getExtendedStringToFelt('StarkNet Message'),
@@ -3448,8 +3483,8 @@ class extended extends extended$1["default"] {
             transferHash,
         ]);
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
@@ -3466,31 +3501,35 @@ class extended extends extended$1["default"] {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const version = this.safeString(api, 0);
-        const accessibility = this.safeString(api, 1);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
+        const accessibility = api[1];
         const endpoint = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const queryPost = (path === 'user/deadmanswitch');
-        let url = this.implodeHostname(this.urls['api']['rest']);
+        const baseApiUrl = this.safeString(this.urls['api'], 'rest');
+        if (baseApiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
         if (accessibility === 'private') {
             // this.checkRequiredCredentials ();
             if (this.apiKey === undefined) {
                 throw new errors.AuthenticationError(this.id + ' sign() requires an apiKey for private endpoints');
             }
-            headers = {
+            requestHeaders = {
                 'X-Api-Key': this.apiKey,
             };
             if (((method === 'POST') || (method === 'PATCH')) && !queryPost) {
-                body = this.json(query);
-                headers['Content-Type'] = 'application/json';
+                requestBody = this.json(query);
+                requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        url = url + '/api/' + version + endpoint;
-        if ((method === 'GET' || method === 'DELETE' || queryPost) && Object.keys(query).length) {
+        let url = this.implodeHostname(baseApiUrl) + '/api/' + api[0] + endpoint;
+        if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys(query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat(query);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }
 

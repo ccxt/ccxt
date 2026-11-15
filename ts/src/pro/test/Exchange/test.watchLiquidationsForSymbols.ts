@@ -1,15 +1,15 @@
 import assert from 'assert';
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import { NetworkError } from '../../../base/errors.js';
+import { Liquidation } from '../../../base/types.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
-
 
 async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedProperties: object, symbol: string) {
 
     const method = 'watchLiquidationsForSymbols';
 
     // we have to skip some exchanges here due to the frequency of trading
-    const skippedExchanges = [];
+    const skippedExchanges: string[] = [];
 
     if (exchange.inArray (exchange.id, skippedExchanges)) {
         const m1 = (exchange.id + ' ' + method + '() test skipped');
@@ -17,13 +17,13 @@ async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedPrope
         return false;
     }
 
-    if (!exchange.has[method]) {
+    if (exchange.has[method] === undefined || exchange.has[method] === false) {
         const m2 = (exchange.id + ' does not support ' + method + '() method');
         console.log (m2);
         return false;
     }
 
-    let response = undefined;
+    let response: Liquidation[] | undefined = undefined;
 
     let now = Date.now ();
     const ends = now + 10000;

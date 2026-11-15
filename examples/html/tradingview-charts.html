@@ -9,7 +9,7 @@
         document.addEventListener ("DOMContentLoaded", async function () {
 
             try {
-                const exchange = new ccxt.coinbasepro ({ enableRateLimit: true });
+                const exchange = new ccxt.coinbaseexchange ({ enableRateLimit: true });
                 const symbol = 'ETH/BTC';
                 const timeframe = '1d';
                 const since = undefined;

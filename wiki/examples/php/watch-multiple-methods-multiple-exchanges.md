@@ -1,8 +1,5 @@
-- [Watch Multiple Methods Multiple Exchanges](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 include dirname(dirname(dirname(dirname(__FILE__)))). '/ccxt.php';
@@ -43,5 +40,5 @@ function runAsync (...$args) {
 runAsync($wrapper_func, ...[$binance_exchange, 'SOL/USDT', 'watchTrades']);
 runAsync($wrapper_func, ...[$okx_exchange, 'ETH/USDT', 'watchTrades']);
 
- 
+
 ```

@@ -5,40 +5,133 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetHealth (params?: {}): Promise<implicitReturnType>;
-    publicGetConstants (params?: {}): Promise<implicitReturnType>;
-    publicGetKit (params?: {}): Promise<implicitReturnType>;
-    publicGetTiers (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderbooks (params?: {}): Promise<implicitReturnType>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetChart (params?: {}): Promise<implicitReturnType>;
-    publicGetCharts (params?: {}): Promise<implicitReturnType>;
-    publicGetMinicharts (params?: {}): Promise<implicitReturnType>;
-    publicGetOraclePrices (params?: {}): Promise<implicitReturnType>;
-    publicGetQuickTrade (params?: {}): Promise<implicitReturnType>;
-    publicGetUdfConfig (params?: {}): Promise<implicitReturnType>;
-    publicGetUdfHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetUdfSymbols (params?: {}): Promise<implicitReturnType>;
-    privateGetUser (params?: {}): Promise<implicitReturnType>;
-    privateGetUserBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetUserDeposits (params?: {}): Promise<implicitReturnType>;
-    privateGetUserWithdrawals (params?: {}): Promise<implicitReturnType>;
-    privateGetUserWithdrawalFee (params?: {}): Promise<implicitReturnType>;
-    privateGetUserTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostUserWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrderAll (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetHealth (params = {}): Promise<Dict> {
+        return this.request ('health', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetConstants (params = {}): Promise<Dict> {
+        return this.request ('constants', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetKit (params = {}): Promise<Dict> {
+        return this.request ('kit', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTiers (params = {}): Promise<Dict> {
+        return this.request ('tiers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTicker (params = {}): Promise<Dict> {
+        return this.request ('ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTickers (params = {}): Promise<Dict> {
+        return this.request ('tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOrderbook (params = {}): Promise<Dict> {
+        return this.request ('orderbook', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOrderbooks (params = {}): Promise<Dict> {
+        return this.request ('orderbooks', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTrades (params = {}): Promise<Dict> {
+        return this.request ('trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetChart (params = {}): Promise<List> {
+        return this.request ('chart', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCharts (params = {}): Promise<Dict> {
+        return this.request ('charts', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMinicharts (params = {}): Promise<Dict> {
+        return this.request ('minicharts', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOraclePrices (params = {}): Promise<Dict> {
+        return this.request ('oracle/prices', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetQuickTrade (params = {}): Promise<Dict> {
+        return this.request ('quick-trade', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetUdfConfig (params = {}): Promise<Dict> {
+        return this.request ('udf/config', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetUdfHistory (params = {}): Promise<Dict> {
+        return this.request ('udf/history', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetUdfSymbols (params = {}): Promise<Dict> {
+        return this.request ('udf/symbols', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUser (params = {}): Promise<Dict> {
+        return this.request ('user', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserBalance (params = {}): Promise<Dict> {
+        return this.request ('user/balance', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserDeposits (params = {}): Promise<Dict> {
+        return this.request ('user/deposits', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserWithdrawals (params = {}): Promise<Dict> {
+        return this.request ('user/withdrawals', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserWithdrawalFee (params = {}): Promise<Dict> {
+        return this.request ('user/withdrawal/fee', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetSubaccounts (params = {}): Promise<Dict> {
+        return this.request ('subaccounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserTrades (params = {}): Promise<Dict> {
+        return this.request ('user/trades', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostUserWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('user/withdrawal', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSubaccountTransfer (params = {}): Promise<Dict> {
+        return this.request ('subaccount/transfer', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privateDeleteOrderAll (params = {}): Promise<List> {
+        return this.request ('order/all', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

@@ -27,3 +27,4 @@ from ccxt.test.exchange.base.test_status import test_status # noqa E402
 from ccxt.test.exchange.base.test_ticker import test_ticker # noqa E402
 from ccxt.test.exchange.base.test_trade import test_trade # noqa E402
 from ccxt.test.exchange.base.test_trading_fee import test_trading_fee # noqa E402
+from ccxt.test.exchange.base.test_transfer import test_transfer # noqa E402

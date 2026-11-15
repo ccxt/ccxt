@@ -42,7 +42,7 @@ public class ImplicitApi {
                 + "  bid=" + ticker.bid + "  ask=" + ticker.ask);
 
         // fetchTrades returns List<Trade> directly
-        List<Trade> trades = exchange.fetchTrades(symbol, null, 3L, null);
+        List<Trade> trades = exchange.fetchTrades(symbol, null, 3L, null).join();
         System.out.println("\nRecent trades:");
         for (Trade t : trades) {
             System.out.printf("  %s  %-4s  price=%-12.2f  amount=%.6f%n",
@@ -50,7 +50,7 @@ public class ImplicitApi {
         }
 
         // fetchOrderBook returns OrderBook directly
-        OrderBook ob = exchange.fetchOrderBook(symbol, 5L, null);
+        OrderBook ob = exchange.fetchOrderBook(symbol, 5L, null).join();
         System.out.println("\nOrder book (top 5):");
         System.out.println("  Bids:");
         for (List<Double> bid : ob.bids) {
@@ -88,7 +88,7 @@ public class ImplicitApi {
         System.out.println("  top bid: " + bids.get(0));
 
         // Binance publicGetExchangeInfo — server info
-        Object rawInfo = exchange.publicGetExchangeInfo(null).join();
+        Object rawInfo = exchange.publicGetExchangeInfo().join();
         Map<String, Object> infoMap = (Map<String, Object>) rawInfo;
         System.out.println("\npublicGetExchangeInfo:");
         System.out.println("  timezone:    " + infoMap.get("timezone"));

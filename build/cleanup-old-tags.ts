@@ -3,16 +3,27 @@ import { execSync } from 'child_process';
 import log  from 'ololog';
 import ccxt from '../ts/ccxt.js';
 import { isMainEntry } from './transpile.js';
+import { fetchReleasedTags } from './utils/released-tags.js';
 const { values }   = Object
 import assert from 'assert';
 
 const { groupBy } = ccxt;
 log.noLocate();
-function cleanupOldTags () {
 
-    const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (t => {
+async function cleanupOldTags () {
 
-        const [major, minor, patch] = t.replace ('v', '').split ('.').map (Number)
+    const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).filter (t => {
+        // version tags only - plain releases (4.5.70) and go module tags (go/v4.5.70);
+        // anything else is not ours to prune and must not crash the release pipeline
+        const isVersionTag = /^(go\/)?v?\d+\.\d+\.\d+$/.test (t)
+        if (!isVersionTag) {
+            log.yellow ('Skipping non-version tag', t)
+        }
+        return isVersionTag
+    }).map (t => {
+
+        // go module tags prune on the same schedule as the release they duplicate
+        const [major, minor, patch] = t.replace (/^go\//, '').replace ('v', '').split ('.').map (Number)
 
         assert (major < 100)
         assert (minor < 100)
@@ -56,6 +67,26 @@ function cleanupOldTags () {
         }
     }
 
+    // Never orphan a GitHub release: deleting a tag a release points at does not delete the
+    // release, GitHub demotes it to an untagged draft, and CHANGELOG.md is regenerated from
+    // the releases every run. If the list is unavailable or incomplete we skip the whole
+    // cleanup rather than risk it - pruning tags is housekeeping, an orphaned release is not
+    // recoverable by a later run.
+    let releasedTags: Set<string>;
+    try {
+        releasedTags = await fetchReleasedTags ();
+        log.dim ('Found', releasedTags.size, 'tags backing a GitHub release')
+    } catch (e) {
+        log.bright.red ('Could not list GitHub releases, skipping tag cleanup:', (e as Error).message)
+        return;
+    }
+    const protectedTags = tagsToDelete.filter (tag => releasedTags.has (tag))
+    if (protectedTags.length) {
+        log.green ('Preserving', protectedTags.length, 'tags that back a GitHub release')
+        log.unlimited.green (protectedTags)
+    }
+    tagsToDelete = tagsToDelete.filter (tag => !releasedTags.has (tag))
+
     log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
     log.unlimited.bright.red (tagsToDelete)
     log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
@@ -84,7 +115,10 @@ if (isMainEntry(import.meta.url)) {
 
     // if called directly like `node module`
 
-    cleanupOldTags ()
+    cleanupOldTags ().catch ((e: Error) => {
+        log.bright.red (e.message)
+        process.exitCode = 1;
+    })
 
 } else {
 

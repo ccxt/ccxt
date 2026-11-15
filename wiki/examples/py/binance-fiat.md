@@ -1,8 +1,5 @@
-- [Binance Fiat](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -24,5 +21,5 @@ fiat_markets = [market for market in exchange.markets.values() if ((market['base
 
 for market in fiat_markets:
     print(market['symbol'])
- 
+
 ```

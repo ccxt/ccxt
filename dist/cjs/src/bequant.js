@@ -2,17 +2,17 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var hitbtc = require('./hitbtc.js');
+var bequant$1 = require('./abstract/bequant.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class bequant extends hitbtc["default"] {
+class bequant extends bequant$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bequant',
             'name': 'Bequant',
             'pro': true,
-            'countries': ['MT'],
+            'countries': ['MT'], // Malta
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -22,7 +22,7 @@ class bequant extends hitbtc["default"] {
                 'option': undefined,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
+                'logo': 'https://github.com/user-attachments/assets/01e199a6-5c65-4b03-83ab-7f9827c140f9',
                 'api': {
                     // v3
                     'public': 'https://api.bequant.io/api/3',

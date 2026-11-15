@@ -1,8 +1,6 @@
-- [Watch Vs Fetch](./examples/js/)
-
-
- ```javascript
- // see this issue for details
+```javascript
+// @NO_AUTO_TRANSPILE
+// see this issue for details
 // https://github.com/ccxt/ccxt/issues/6659
 'use strict';
 import ccxt from '../../js/ccxt.js';
@@ -27,5 +25,5 @@ async function runRest() {
 }
 runWs();
 runRest();
- 
+
 ```

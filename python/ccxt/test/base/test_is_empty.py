@@ -13,7 +13,6 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 import ccxt.async_support as ccxt  # noqa: F402
-from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_is_empty():
     exchange = ccxt.Exchange({
@@ -23,16 +22,16 @@ def test_is_empty():
     assert exchange.is_empty(None), 'null should be empty'
     assert exchange.is_empty({}), 'empty object should be empty'
     assert exchange.is_empty([]), 'empty array should be empty'
-    assert exchange.is_empty({
+    assert not exchange.is_empty({
     'foo': 1,
-}) is False, 'non-empty object should not be empty'
-    assert exchange.is_empty([1, 2]) is False, 'non-empty array should not be empty'
+}), 'non-empty object should not be empty'
+    assert not exchange.is_empty([1, 2]), 'non-empty array should not be empty'
     # below are scalars, so they are not checked.
     # @ts-expect-error
-    assert exchange.is_empty('') is False, 'empty string should return false'
+    assert not exchange.is_empty(''), 'empty string should return false'
     # @ts-expect-error
-    assert exchange.is_empty(0) is False, 'zero should return false'
+    assert not exchange.is_empty(0), 'zero should return false'
     # @ts-expect-error
-    assert exchange.is_empty(False) is False, 'false should return false'
+    assert not exchange.is_empty(False), 'false should return false'
     # @ts-expect-error
-    assert exchange.is_empty('non-empty string') is False, 'non-empty string should not be empty'
+    assert not exchange.is_empty('non-empty string'), 'non-empty string should not be empty'

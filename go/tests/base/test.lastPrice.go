@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestLastPrice(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":      map[string]any{},
 		"symbol":    "ETH/BTC",
 		"timestamp": 1502962946216,
@@ -14,7 +14,7 @@ func TestLastPrice(exchange ccxt.ICoreExchange, skippedProperties any, method an
 		"price":     exchange.ParseNumber("1.234"),
 		"side":      "buy",
 	}
-	var emptyAllowedFor any = []any{"timestamp", "datetime", "side", "price"} // binance sometimes provides empty prices for old pairs
+	var emptyAllowedFor []any = []any{"timestamp", "datetime", "side", "price"} // binance sometimes provides empty prices for old pairs
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry)
 	//

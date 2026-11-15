@@ -42,12 +42,40 @@
 * [fetchConvertQuote](#fetchconvertquote)
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTrade](#fetchconverttrade)
+* [transfer](#transfer)
 * [closePosition](#closeposition)
 * [fetchPositions](#fetchpositions)
 * [fetchPosition](#fetchposition)
 * [fetchTradingFees](#fetchtradingfees)
 * [fetchPortfolioDetails](#fetchportfoliodetails)
 * [fetchDepositAddresses](#fetchdepositaddresses)
+
+<a name="coinbase" id="coinbase"></a>
+
+### coinbase{docsify-ignore}
+This is the retail Coinbase.com exchange class, covering the Advanced Trade API - the successor
+of the former Coinbase Pro after the Pro/retail unification. Use this class for regular Coinbase.com accounts
+and API keys created at coinbase.com. For the institutional Coinbase Exchange API (exchange.coinbase.com,
+application-gated credentials) see the separate coinbaseexchange class, and for Coinbase International
+derivatives see coinbaseinternational. Historical Coinbase Pro trading data lives in the retail account and
+is accessible through this class.
+
+Instantiation with CDP (Cloud Developer Platform) keys, the current key format, see https://github.com/ccxt/ccxt/issues/23771:
+
+    const exchange = new ccxt.coinbase ({
+        'apiKey': 'organizations/{org_id}/apiKeys/{key_id}', // the full "name" field from the CDP key file
+        'secret': '-----BEGIN EC PRIVATE KEY-----\n...\n-----END EC PRIVATE KEY-----\n', // the "privateKey" field, keep the newlines
+    });
+
+No password/passphrase is used - that field belonged to the old Coinbase Pro keys. If the secret travels
+through an env var or json config, literal backslash-n sequences instead of real newlines will break the
+signature - pass the PEM exactly as issued.
+
+
+```javascript
+coinbase.coinbase ()
+```
+
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -70,7 +98,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-coinbase.fetchTime ([params])
+coinbase.fetchTime (params?)
 ```
 
 
@@ -95,7 +123,7 @@ fetch all the accounts associated with a profile
 
 
 ```javascript
-coinbase.fetchAccounts ([params])
+coinbase.fetchAccounts (params?)
 ```
 
 
@@ -115,7 +143,7 @@ fetch all the portfolios
 
 
 ```javascript
-coinbase.fetchPortfolios ([params])
+coinbase.fetchPortfolios (params?)
 ```
 
 
@@ -136,7 +164,7 @@ create a currency deposit address
 
 
 ```javascript
-coinbase.createDepositAddress (code[, params])
+coinbase.createDepositAddress (code, params?)
 ```
 
 
@@ -164,7 +192,7 @@ Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use
 
 
 ```javascript
-coinbase.fetchWithdrawals (code[, since, limit, params])
+coinbase.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -192,7 +220,7 @@ Fetch all fiat deposits made to an account. Won't return crypto deposits or stak
 
 
 ```javascript
-coinbase.fetchDeposits (code[, since, limit, params])
+coinbase.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -215,7 +243,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-coinbase.fetchDepositsWithdrawals ([code, since, limit, params])
+coinbase.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -242,7 +270,7 @@ retrieves data on all markets for coinbase
 
 
 ```javascript
-coinbase.fetchMarkets ([params])
+coinbase.fetchMarkets (params?)
 ```
 
 
@@ -266,7 +294,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-coinbase.fetchCurrencies ([params])
+coinbase.fetchCurrencies (params?)
 ```
 
 
@@ -293,7 +321,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-coinbase.fetchTickers (symbols[, params])
+coinbase.fetchTickers (symbols, params?)
 ```
 
 
@@ -320,7 +348,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-coinbase.fetchTicker (symbol[, params])
+coinbase.fetchTicker (symbol, params?)
 ```
 
 
@@ -336,7 +364,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 - https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts
 - https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary
+- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-balance-summary
 
 
 | Param | Type | Required | Description |
@@ -348,7 +376,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-coinbase.fetchBalance ([params])
+coinbase.fetchBalance (params?)
 ```
 
 
@@ -372,7 +400,7 @@ Fetch the history of changes, i.e. actions done by the user or operations that a
 
 
 ```javascript
-coinbase.fetchLedger ([code, since, limit, params])
+coinbase.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -394,7 +422,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-coinbase.createMarketBuyOrderWithCost (symbol, cost[, params])
+coinbase.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -435,7 +463,7 @@ create a trade order
 
 
 ```javascript
-coinbase.createOrder (symbol, type, side, amount[, price, params])
+coinbase.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -452,12 +480,12 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by coinbase cancelOrder() |
+| symbol | <code>string</code> | Yes | not used by cancelOrder() |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coinbase.cancelOrder (id, symbol[, params])
+coinbase.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -474,12 +502,12 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by coinbase cancelOrders() |
+| symbol | <code>string</code> | Yes | not used by cancelOrders() |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coinbase.cancelOrders (ids, symbol[, params])
+coinbase.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -506,7 +534,7 @@ edit a trade order
 
 
 ```javascript
-coinbase.editOrder (id, symbol, type, side, amount[, price, params])
+coinbase.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -528,7 +556,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-coinbase.fetchOrder (id, symbol[, params])
+coinbase.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -553,7 +581,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-coinbase.fetchOrders (symbol[, since, limit, params])
+coinbase.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -578,7 +606,7 @@ fetches information on all currently open orders
 
 
 ```javascript
-coinbase.fetchOpenOrders (symbol[, since, limit, params])
+coinbase.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -603,7 +631,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-coinbase.fetchClosedOrders (symbol[, since, limit, params])
+coinbase.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -626,7 +654,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-coinbase.fetchCanceledOrders (symbol[, since, limit, params])
+coinbase.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -657,7 +685,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-coinbase.fetchOHLCV (symbol, timeframe[, since, limit, params])
+coinbase.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -685,7 +713,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-coinbase.fetchTrades (symbol[, since, limit, params])
+coinbase.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -710,7 +738,7 @@ fetch all trades made by the user
 
 
 ```javascript
-coinbase.fetchMyTrades (symbol[, since, limit, params])
+coinbase.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -720,7 +748,7 @@ coinbase.fetchMyTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -737,7 +765,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-coinbase.fetchOrderBook (symbol[, limit, params])
+coinbase.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -758,7 +786,7 @@ fetches the bid and ask price and volume for multiple markets
 
 
 ```javascript
-coinbase.fetchBidsAsks ([symbols, params])
+coinbase.fetchBidsAsks (symbols?, params?)
 ```
 
 
@@ -777,14 +805,14 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | No | an optional tag for the withdrawal |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.network | <code>string</code> | No | the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc. |
 | params.travel_rule_data | <code>object</code> | No | some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule |
 
 
 ```javascript
-coinbase.withdraw (code, amount, address[, tag, params])
+coinbase.withdraw (code, amount, address, params?)
 ```
 
 
@@ -805,7 +833,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-coinbase.fetchDepositAddress (code[, params])
+coinbase.fetchDepositAddress (code, params?)
 ```
 
 
@@ -829,7 +857,7 @@ make a deposit
 
 
 ```javascript
-coinbase.deposit (code, amount, id[, params])
+coinbase.deposit (code, amount, id, params?)
 ```
 
 
@@ -852,7 +880,7 @@ fetch information on a deposit, fiat only, for crypto transactions use fetchLedg
 
 
 ```javascript
-coinbase.fetchDeposit (id[, code, params])
+coinbase.fetchDeposit (id, code?, params?)
 ```
 
 
@@ -872,7 +900,7 @@ fetch the deposit id for a fiat currency associated with this account
 
 
 ```javascript
-coinbase.fetchDepositMethodIds ([params])
+coinbase.fetchDepositMethodIds (params?)
 ```
 
 
@@ -893,7 +921,7 @@ fetch the deposit id for a fiat currency associated with this account
 
 
 ```javascript
-coinbase.fetchDepositMethodId (id[, params])
+coinbase.fetchDepositMethodId (id, params?)
 ```
 
 
@@ -919,7 +947,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-coinbase.fetchConvertQuote (fromCode, toCode[, amount, params])
+coinbase.fetchConvertQuote (fromCode, toCode, amount?, params?)
 ```
 
 
@@ -943,7 +971,7 @@ convert from one currency to another
 
 
 ```javascript
-coinbase.createConvertTrade (id, fromCode, toCode[, amount, params])
+coinbase.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
@@ -966,7 +994,31 @@ fetch the data for a conversion trade
 
 
 ```javascript
-coinbase.fetchConvertTrade (id, code[, params])
+coinbase.fetchConvertTrade (id, code, params?)
+```
+
+
+<a name="transfer" id="transfer"></a>
+
+### transfer{docsify-ignore}
+transfer currency internally between portfolios of the same account
+
+**Kind**: instance method of [<code>coinbase</code>](#coinbase)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | the portfolio uuid to transfer funds from |
+| toAccount | <code>string</code> | Yes | the portfolio uuid to transfer funds to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+coinbase.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -984,13 +1036,13 @@ coinbase.fetchConvertTrade (id, code[, params])
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by coinbase |
-| params | <code>object</code> | No | extra parameters specific to the coinbase api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | Yes | *mandatory* the client order id of the position to close |
 | params.size | <code>float</code> | No | the size of the position to close, optional |
 
 
 ```javascript
-coinbase.closePosition (symbol[, side, params])
+coinbase.closePosition (symbol, side?, params?)
 ```
 
 
@@ -1002,21 +1054,16 @@ fetch all open positions
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**
-
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions
-
+**See**: https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/list-futures-positions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.portfolio | <code>string</code> | No | the portfolio UUID to fetch positions for |
 
 
 ```javascript
-coinbase.fetchPositions ([symbols, params])
+coinbase.fetchPositions (symbols?, params?)
 ```
 
 
@@ -1028,22 +1075,16 @@ fetch data on a single open contract trade position
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**
-
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position
-- https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position
-
+**See**: https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/futures/get-futures-position  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in, default is undefined |
+| symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.product_id | <code>string</code> | No | *futures only* the product id of the position to fetch, required for futures markets only |
-| params.portfolio | <code>string</code> | No | *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only |
 
 
 ```javascript
-coinbase.fetchPosition (symbol[, params])
+coinbase.fetchPosition (symbol, params?)
 ```
 
 
@@ -1064,7 +1105,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-coinbase.fetchTradingFees ([params])
+coinbase.fetchTradingFees (params?)
 ```
 
 
@@ -1085,7 +1126,7 @@ Fetch details for a specific portfolio by UUID
 
 
 ```javascript
-coinbase.fetchPortfolioDetails (portfolioUuid[, params])
+coinbase.fetchPortfolioDetails (portfolioUuid, params?)
 ```
 
 
@@ -1107,6 +1148,6 @@ fetch deposit addresses for multiple currencies (when available)
 
 
 ```javascript
-coinbase.fetchDepositAddresses ([codes, params])
+coinbase.fetchDepositAddresses (codes?, params?)
 ```
 

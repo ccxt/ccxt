@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitflyer.js';
 import { ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -22,19 +22,19 @@ export default class bitflyer extends Exchange {
             'name': 'bitFlyer',
             'countries': ['JP'],
             'version': 'v1',
-            'rateLimit': 1000,
-            'hostname': 'bitflyer.com',
+            'rateLimit': 1000, // their nonce-timestamp is in seconds...
+            'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
-                'future': undefined,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
                 'option': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
-                'cancelAllOrders': undefined,
+                'cancelAllOrders': undefined, // https://lightning.bitflyer.com/docs?lang=en#cancel-all-orders
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchAllGreeks': false,
@@ -90,49 +90,50 @@ export default class bitflyer extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'getmarkets/usa',
-                        'getmarkets/eu',
-                        'getmarkets',
-                        'getboard',
-                        'getticker',
-                        'getexecutions',
-                        'gethealth',
-                        'getboardstate',
-                        'getchats',
-                        'getfundingrate',
-                    ],
+                    'get': {
+                        'getmarkets/usa': { 'cost': 1 },
+                        'getmarkets/eu': { 'cost': 1 },
+                        'getmarkets': { 'cost': 1 },
+                        'getboard': { 'cost': 1 },
+                        'getticker': { 'cost': 1 },
+                        'getexecutions': { 'cost': 1 },
+                        'gethealth': { 'cost': 1 },
+                        'getboardstate': { 'cost': 1 },
+                        'getchats': { 'cost': 1 },
+                        'getfundingrate': { 'cost': 1 },
+                        'getfundingratehistory': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'getpermissions',
-                        'getbalance',
-                        'getbalancehistory',
-                        'getcollateral',
-                        'getcollateralhistory',
-                        'getcollateralaccounts',
-                        'getaddresses',
-                        'getcoinins',
-                        'getcoinouts',
-                        'getbankaccounts',
-                        'getdeposits',
-                        'getwithdrawals',
-                        'getchildorders',
-                        'getparentorders',
-                        'getparentorder',
-                        'getexecutions',
-                        'getpositions',
-                        'gettradingcommission',
-                    ],
-                    'post': [
-                        'sendcoin',
-                        'withdraw',
-                        'sendchildorder',
-                        'cancelchildorder',
-                        'sendparentorder',
-                        'cancelparentorder',
-                        'cancelallchildorders',
-                    ],
+                    'get': {
+                        'getpermissions': { 'cost': 1 },
+                        'getbalance': { 'cost': 1 },
+                        'getbalancehistory': { 'cost': 1 },
+                        'getcollateral': { 'cost': 1 },
+                        'getcollateralhistory': { 'cost': 1 },
+                        'getcollateralaccounts': { 'cost': 1 },
+                        'getaddresses': { 'cost': 1 },
+                        'getcoinins': { 'cost': 1 },
+                        'getcoinouts': { 'cost': 1 },
+                        'getbankaccounts': { 'cost': 1 },
+                        'getdeposits': { 'cost': 1 },
+                        'getwithdrawals': { 'cost': 1 },
+                        'getchildorders': { 'cost': 1 },
+                        'getparentorders': { 'cost': 1 },
+                        'getparentorder': { 'cost': 1 },
+                        'getexecutions': { 'cost': 1 },
+                        'getpositions': { 'cost': 1 },
+                        'gettradingcommission': { 'cost': 1 },
+                    },
+                    'post': {
+                        'sendcoin': { 'cost': 1 },
+                        'withdraw': { 'cost': 1 },
+                        'sendchildorder': { 'cost': 1 },
+                        'cancelchildorder': { 'cost': 1 },
+                        'sendparentorder': { 'cost': 1 },
+                        'cancelparentorder': { 'cost': 1 },
+                        'cancelallchildorders': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -160,7 +161,7 @@ export default class bitflyer extends Exchange {
                             'GTD': true, // todo implement
                         },
                         'hedged': false,
-                        'trailing': false,
+                        'trailing': false, // todo recheck
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
@@ -228,7 +229,7 @@ export default class bitflyer extends Exchange {
     parseExpiryDate(expiry) {
         const day = expiry.slice(0, 2);
         const monthName = expiry.slice(2, 5);
-        const year = expiry.slice(5, 9);
+        const expiryYear = expiry.slice(5, 9);
         const months = {
             'JAN': '01',
             'FEB': '02',
@@ -244,7 +245,10 @@ export default class bitflyer extends Exchange {
             'DEC': '12',
         };
         const month = this.safeString(months, monthName);
-        return this.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z');
+        if (month === undefined) {
+            return undefined;
+        }
+        return this.parse8601(expiryYear + '-' + month + '-' + day + 'T00:00:00Z');
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         // Bitflyer has a different type of conflict in markets, because
@@ -292,8 +296,8 @@ export default class bitflyer extends Exchange {
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        let markets = this.arrayConcat(jp_markets, us_markets);
-        markets = this.arrayConcat(markets, eu_markets);
+        let markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
+        markets = this.arrayConcat(markets, this.toArray(eu_markets));
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -336,15 +340,24 @@ export default class bitflyer extends Exchange {
                     quoteId = currencyIds.slice(-3);
                     const splitId = id.split(currencyIds);
                     const expiryDate = this.safeString(splitId, 1);
+                    if (expiryDate === undefined) {
+                        continue;
+                    }
                     expiry = this.parseExpiryDate(expiryDate);
+                }
+                if (expiry === undefined) {
+                    continue;
                 }
                 type = 'future';
             }
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let symbol = base + '/' + quote;
-            let taker = this.fees['trading']['taker'];
-            let maker = this.fees['trading']['maker'];
+            let taker = this.safeNumber(this.fees['trading'], 'taker');
+            let maker = this.safeNumber(this.fees['trading'], 'maker');
             const contract = swap || future;
             if (contract) {
                 maker = 0.0;
@@ -409,16 +422,18 @@ export default class bitflyer extends Exchange {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict(response, i);
             const currencyId = this.safeString(balance, 'currency_code');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['total'] = this.safeString(balance, 'amount');
             account['free'] = this.safeString(balance, 'available');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -431,7 +446,9 @@ export default class bitflyer extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetGetbalance(params);
         //
         //     [
@@ -452,7 +469,7 @@ export default class bitflyer extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method
@@ -462,10 +479,12 @@ export default class bitflyer extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -510,7 +529,9 @@ export default class bitflyer extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -553,10 +574,7 @@ export default class bitflyer extends Exchange {
         }
         let order = undefined;
         if (side !== undefined) {
-            const idInner = side + '_child_order_acceptance_id';
-            if (idInner in trade) {
-                order = trade[idInner];
-            }
+            order = this.safeString(trade, side + '_child_order_acceptance_id');
         }
         if (order === undefined) {
             order = this.safeString(trade, 'child_order_acceptance_id');
@@ -565,13 +583,13 @@ export default class bitflyer extends Exchange {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'size');
         const id = this.safeString(trade, 'id');
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         return this.safeTrade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': order,
             'type': undefined,
             'side': side,
@@ -580,7 +598,7 @@ export default class bitflyer extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -594,7 +612,9 @@ export default class bitflyer extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -628,7 +648,9 @@ export default class bitflyer extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -663,7 +685,9 @@ export default class bitflyer extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'product_code': this.marketId(symbol),
             'child_order_type': type.toUpperCase(),
@@ -693,7 +717,9 @@ export default class bitflyer extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'product_code': this.marketId(symbol),
             'child_order_acceptance_id': id,
@@ -776,18 +802,19 @@ export default class bitflyer extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
             'count': limit,
         };
         const response = await this.privateGetGetchildorders(this.extend(request, params));
-        let orders = this.parseOrders(response, market, since, limit);
         if (symbol !== undefined) {
-            orders = this.filterBy(orders, 'symbol', symbol);
+            return this.filterBy(this.parseOrders(response, market, since, limit), 'symbol', symbol);
         }
-        return orders;
+        return this.parseOrders(response, market, since, limit);
     }
     /**
      * @method
@@ -839,8 +866,9 @@ export default class bitflyer extends Exchange {
         }
         const orders = await this.fetchOrders(symbol);
         const ordersById = this.indexBy(orders, 'id');
-        if (id in ordersById) {
-            return ordersById[id];
+        const found = this.safeDict(ordersById, id);
+        if (found !== undefined) {
+            return found;
         }
         throw new OrderNotFound(this.id + ' No order found with id ' + id);
     }
@@ -859,7 +887,9 @@ export default class bitflyer extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -897,7 +927,9 @@ export default class bitflyer extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchPositions() requires a `symbols` argument, exactly one symbol in an array');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'product_code': this.marketIds(symbols),
         };
@@ -930,13 +962,15 @@ export default class bitflyer extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (code !== 'JPY' && code !== 'USD' && code !== 'EUR') {
             throw new ExchangeError(this.id + ' allows withdrawing JPY, USD, EUR only, ' + code + ' is not supported');
         }
@@ -966,7 +1000,9 @@ export default class bitflyer extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -1004,7 +1040,9 @@ export default class bitflyer extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -1137,7 +1175,9 @@ export default class bitflyer extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_code': market['id'],
@@ -1181,38 +1221,47 @@ export default class bitflyer extends Exchange {
             'interval': undefined,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let bodySigned = undefined;
+        let headersSigned = undefined;
         let request = '/' + this.version + '/';
-        if (api === 'private') {
+        if (apiName === 'private') {
             request += 'me/';
         }
         request += path;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
-                request += '?' + this.urlencode(params);
+            const query = this.urlencode(params);
+            if (query !== '') {
+                request += '?' + query;
             }
         }
-        const baseUrl = this.implodeHostname(this.urls['api']['rest']);
-        const url = baseUrl + request;
-        if (api === 'private') {
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = this.implodeHostname(apiUrl) + request;
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
-            const content = [nonce, method, request];
-            let auth = content.join('');
-            if (Object.keys(params).length) {
+            let auth = nonce + method + request;
+            if (Object.keys(params).length > 0) {
                 if (method !== 'GET') {
-                    body = this.json(params);
+                    const body = this.json(params);
+                    bodySigned = body;
                     auth += body;
                 }
             }
-            headers = {
+            headersSigned = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
                 'ACCESS-SIGN': this.hmac(this.encode(auth), this.encode(this.secret), sha256),
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
@@ -1221,7 +1270,7 @@ export default class bitflyer extends Exchange {
         const feedback = this.id + ' ' + body;
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         const errorMessage = this.safeString(response, 'error_message');
-        const statusCode = this.safeInteger(response, 'status');
+        const statusCode = this.safeString(response, 'status');
         if (errorMessage !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], statusCode, feedback);
             throw new ExchangeError(feedback);

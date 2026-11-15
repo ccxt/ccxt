@@ -5,82 +5,329 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetOpenapiV1Ping (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiV1Time (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiV1UserIp (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1Ticker24hr (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1TickerPrice (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1TickerBookTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiV1ExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1Depth (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1Klines (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1Trades (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiV1Pairs (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenapiQuoteV1AvgPrice (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1CheckSysStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiWalletV1ConfigGetall (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiWalletV1DepositAddress (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiWalletV1DepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiWalletV1WithdrawHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiWalletV1WithdrawAddressWhitelist (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1Account (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1ApiKeys (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1OpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1AssetTradeFee (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1Order (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1HistoryOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1MyTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1CapitalDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1CapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV3PaymentRequestGetPaymentRequest (params?: {}): Promise<implicitReturnType>;
-    privateGetMerchantApiV1GetInvoices (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiAccountV3CryptoAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiTransferV3TransfersId (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1SubAccountList (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1SubAccountAsset (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1SubAccountTransferUniversalTransferHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1SubAccountTransferSubHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1SubAccountApikeyIpRestriction (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1SubAccountWalletDepositAddress (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1SubAccountWalletDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1FundCollectGetFundRecord (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiV1AssetTransactionHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiWalletV1WithdrawApply (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1OrderTest (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1Order (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1CapitalWithdrawApply (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1CapitalDepositApply (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV3PaymentRequestPaymentRequests (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV3PaymentRequestDeletePaymentRequest (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV3PaymentRequestPaymentRequestReminder (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
-    privatePostMerchantApiV1Invoices (params?: {}): Promise<implicitReturnType>;
-    privatePostMerchantApiV1InvoicesCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiConvertV1GetSupportedTradingPairs (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiConvertV1GetQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiConvertV1AccpetQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiConvertV1QueryOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiFiatV1SupportChannel (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiFiatV1CashOut (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiFiatV1History (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiMigrationV4Sellorder (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiMigrationV4ValidateField (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiTransferV3Transfers (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1SubAccountCreate (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1SubAccountTransferUniversalTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1SubAccountTransferSubToMaster (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1SubAccountApikeyAddIpRestriction (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenapiV1FundCollectCollectFromSubAccount (params?: {}): Promise<implicitReturnType>;
-    privatePutOpenapiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOpenapiV1Order (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOpenapiV1OpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOpenapiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetOpenapiV1Ping (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/ping', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetOpenapiV1Time (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/time', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenapiV1UserIp (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/user/ip', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenapiQuoteV1Ticker24hr (params = {}): Promise<Dict | List> {
+        return this.request ('openapi/quote/v1/ticker/24hr', [ 'public' ], 'GET', params, { 'cost': 1, 'noSymbolAndNoSymbols': 40, 'byNumberOfSymbols': [ [ 101, 40 ], [ 21, 20 ], [ 0, 1 ] ] });
+    }
+
+    publicGetOpenapiQuoteV1TickerPrice (params = {}): Promise<Dict> {
+        return this.request ('openapi/quote/v1/ticker/price', [ 'public' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    publicGetOpenapiQuoteV1TickerBookTicker (params = {}): Promise<List> {
+        return this.request ('openapi/quote/v1/ticker/bookTicker', [ 'public' ], 'GET', params, { 'cost': 1, 'noSymbol': 2 });
+    }
+
+    publicGetOpenapiV1ExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/exchangeInfo', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    publicGetOpenapiQuoteV1Depth (params = {}): Promise<Dict> {
+        return this.request ('openapi/quote/v1/depth', [ 'public' ], 'GET', params, { 'cost': 1, 'byLimit': [ [ 101, 5 ], [ 0, 1 ] ] });
+    }
+
+    publicGetOpenapiQuoteV1Klines (params = {}): Promise<List> {
+        return this.request ('openapi/quote/v1/klines', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenapiQuoteV1Trades (params = {}): Promise<List> {
+        return this.request ('openapi/quote/v1/trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenapiV1Pairs (params = {}): Promise<List> {
+        return this.request ('openapi/v1/pairs', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOpenapiQuoteV1AvgPrice (params = {}): Promise<Dict> {
+        return this.request ('openapi/quote/v1/avgPrice', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV1CheckSysStatus (params = {}): Promise<List> {
+        return this.request ('openapi/v1/check-sys-status', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiWalletV1ConfigGetall (params = {}): Promise<List> {
+        return this.request ('openapi/wallet/v1/config/getall', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetOpenapiWalletV1DepositAddress (params = {}): Promise<Dict> {
+        return this.request ('openapi/wallet/v1/deposit/address', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetOpenapiWalletV1DepositHistory (params = {}): Promise<List> {
+        return this.request ('openapi/wallet/v1/deposit/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiWalletV1WithdrawHistory (params = {}): Promise<List> {
+        return this.request ('openapi/wallet/v1/withdraw/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiWalletV1WithdrawAddressWhitelist (params = {}): Promise<List> {
+        return this.request ('openapi/wallet/v1/withdraw/address-whitelist', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV1Account (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/account', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetOpenapiV1ApiKeys (params = {}): Promise<List> {
+        return this.request ('openapi/v1/api-keys', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV1OpenOrders (params = {}): Promise<List> {
+        return this.request ('openapi/v1/openOrders', [ 'private' ], 'GET', params, { 'cost': 3, 'noSymbol': 40 });
+    }
+
+    privateGetOpenapiV1AssetTradeFee (params = {}): Promise<List> {
+        return this.request ('openapi/v1/asset/tradeFee', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV1Order (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/order', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    privateGetOpenapiV1HistoryOrders (params = {}): Promise<List> {
+        return this.request ('openapi/v1/historyOrders', [ 'private' ], 'GET', params, { 'cost': 10, 'noSymbol': 40 });
+    }
+
+    privateGetOpenapiV1MyTrades (params = {}): Promise<List> {
+        return this.request ('openapi/v1/myTrades', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetOpenapiV1CapitalDepositHistory (params = {}): Promise<List> {
+        return this.request ('openapi/v1/capital/deposit/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV1CapitalWithdrawHistory (params = {}): Promise<List> {
+        return this.request ('openapi/v1/capital/withdraw/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV3PaymentRequestGetPaymentRequest (params = {}): Promise<Dict> {
+        return this.request ('openapi/v3/payment-request/get-payment-request', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetMerchantApiV1GetInvoices (params = {}): Promise<Dict> {
+        return this.request ('merchant-api/v1/get-invoices', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiAccountV3CryptoAccounts (params = {}): Promise<Dict> {
+        return this.request ('openapi/account/v3/crypto-accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiTransferV3TransfersId (params = {}): Promise<Dict> {
+        return this.request ('openapi/transfer/v3/transfers/{id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV1SubAccountList (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/list', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetOpenapiV1SubAccountAsset (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/asset', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetOpenapiV1SubAccountTransferUniversalTransferHistory (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/transfer/universal-transfer-history', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetOpenapiV1SubAccountTransferSubHistory (params = {}): Promise<List> {
+        return this.request ('openapi/v1/sub-account/transfer/sub-history', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetOpenapiV1SubAccountApikeyIpRestriction (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/apikey/ip-restriction', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    privateGetOpenapiV1SubAccountWalletDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/wallet/deposit/address', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV1SubAccountWalletDepositHistory (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/wallet/deposit/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV1FundCollectGetFundRecord (params = {}): Promise<List> {
+        return this.request ('openapi/v1/fund-collect/get-fund-record', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenapiV1AssetTransactionHistory (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/asset/transaction/history', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privatePostOpenapiWalletV1WithdrawApply (params = {}): Promise<Dict> {
+        return this.request ('openapi/wallet/v1/withdraw/apply', [ 'private' ], 'POST', params, { 'cost': 600 });
+    }
+
+    privatePostOpenapiV1OrderTest (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/order/test', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiV1Order (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiV1OrderCancelReplace (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/order/cancelReplace', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiV1CapitalWithdrawApply (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/capital/withdraw/apply', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiV1CapitalDepositApply (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/capital/deposit/apply', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiV3PaymentRequestPaymentRequests (params = {}): Promise<Dict> {
+        return this.request ('openapi/v3/payment-request/payment-requests', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiV3PaymentRequestDeletePaymentRequest (params = {}): Promise<Dict> {
+        return this.request ('openapi/v3/payment-request/delete-payment-request', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiV3PaymentRequestPaymentRequestReminder (params = {}): Promise<string> {
+        return this.request ('openapi/v3/payment-request/payment-request-reminder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiV1UserDataStream (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/userDataStream', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostMerchantApiV1Invoices (params = {}): Promise<Dict> {
+        return this.request ('merchant-api/v1/invoices', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostMerchantApiV1InvoicesCancel (params = {}): Promise<Dict> {
+        return this.request ('merchant-api/v1/invoices-cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiConvertV1GetSupportedTradingPairs (params = {}): Promise<Dict> {
+        return this.request ('openapi/convert/v1/get-supported-trading-pairs', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiConvertV1GetQuote (params = {}): Promise<Dict> {
+        return this.request ('openapi/convert/v1/get-quote', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiConvertV1AcceptQuote (params = {}): Promise<Dict> {
+        return this.request ('openapi/convert/v1/accept-quote', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiConvertV1QueryOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('openapi/convert/v1/query-order-history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiOtcTradeV1GetSupportedTradingPairs (params = {}): Promise<Dict> {
+        return this.request ('openapi/otc-trade/v1/get-supported-trading-pairs', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiOtcTradeV1CreateRfq (params = {}): Promise<Dict> {
+        return this.request ('openapi/otc-trade/v1/create-rfq', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiOtcTradeV1AcceptRfq (params = {}): Promise<Dict> {
+        return this.request ('openapi/otc-trade/v1/accept-rfq', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiOtcTradeV1ManualSettle (params = {}): Promise<Dict> {
+        return this.request ('openapi/otc-trade/v1/manual-settle', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiOtcTradeV1QueryOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('openapi/otc-trade/v1/query-order-history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiFiatV1SupportChannel (params = {}): Promise<Dict> {
+        return this.request ('openapi/fiat/v1/support-channel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiFiatV1CashOut (params = {}): Promise<Dict> {
+        return this.request ('openapi/fiat/v1/cash-out', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiFiatV1History (params = {}): Promise<Dict> {
+        return this.request ('openapi/fiat/v1/history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiFiatV2History (params = {}): Promise<Dict> {
+        return this.request ('openapi/fiat/v2/history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiFiatV1CancelQrCode (params = {}): Promise<Dict> {
+        return this.request ('openapi/fiat/v1/cancel_qr_code', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiMigrationV4Sellorder (params = {}): Promise<Dict> {
+        return this.request ('openapi/migration/v4/sellorder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiMigrationV4ValidateField (params = {}): Promise<Dict> {
+        return this.request ('openapi/migration/v4/validate-field', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiTransferV3Transfers (params = {}): Promise<Dict> {
+        return this.request ('openapi/transfer/v3/transfers', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiTransferV4Transfers (params = {}): Promise<Dict> {
+        return this.request ('openapi/transfer/v4/transfers', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOpenapiV1SubAccountCreate (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/create', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    privatePostOpenapiV1SubAccountTransferUniversalTransfer (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/transfer/universal-transfer', [ 'private' ], 'POST', params, { 'cost': 100 });
+    }
+
+    privatePostOpenapiV1SubAccountTransferSubToMaster (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/transfer/sub-to-master', [ 'private' ], 'POST', params, { 'cost': 100 });
+    }
+
+    privatePostOpenapiV1SubAccountApikeyAddIpRestriction (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/apikey/add-ip-restriction', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    privatePostOpenapiV1SubAccountApikeyDeleteIpRestriction (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/sub-account/apikey/delete-ip-restriction', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    privatePostOpenapiV1FundCollectCollectFromSubAccount (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/fund-collect/collect-from-sub-account', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePutOpenapiV1UserDataStream (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/userDataStream', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privateDeleteOpenapiV1Order (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/order', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteOpenapiV1OpenOrders (params = {}): Promise<List> {
+        return this.request ('openapi/v1/openOrders', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteOpenapiV1UserDataStream (params = {}): Promise<Dict> {
+        return this.request ('openapi/v1/userDataStream', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

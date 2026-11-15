@@ -1,0 +1,116 @@
+{
+    "exchange": "bitvavo",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "spot ticker",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "url": "wss://ws.bitvavo.com/v2",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "subscriptions": {
+                            "ticker24h": [
+                                "BTC-EUR"
+                            ]
+                        }
+                    },
+                    {
+                        "event": "ticker24h",
+                        "data": [
+                            {
+                                "market": "BTC-EUR",
+                                "timestamp": 1786614374241,
+                                "open": "55460",
+                                "high": "55786",
+                                "low": "54812",
+                                "last": "55198",
+                                "bid": "55198",
+                                "bidSize": "0.09002802",
+                                "ask": "55199",
+                                "askSize": "0.44358626",
+                                "volume": "323.92364868",
+                                "volumeQuote": "17907505.51"
+                            }
+                        ]
+                    },
+                    {
+                        "event": "ticker24h",
+                        "data": [
+                            {
+                                "market": "BTC-EUR",
+                                "timestamp": 1786614374241,
+                                "open": "55460",
+                                "high": "55786",
+                                "low": "54812",
+                                "last": "55198",
+                                "bid": "55198",
+                                "bidSize": "0.09002802",
+                                "ask": "55199",
+                                "askSize": "0.44358626",
+                                "volume": "323.92364868",
+                                "volumeQuote": "17907505.51"
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "action": "subscribe",
+                        "channels": [
+                            {
+                                "name": "ticker24h",
+                                "markets": [
+                                    "BTC-EUR"
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/EUR",
+                        "timestamp": 1786614374241,
+                        "datetime": "2026-08-13T09:46:14.241Z",
+                        "high": 55786,
+                        "low": 54812,
+                        "bid": 55198,
+                        "bidVolume": 0.09002802,
+                        "ask": 55199,
+                        "askVolume": 0.44358626,
+                        "vwap": 55283.10632142389,
+                        "open": 55460,
+                        "close": 55198,
+                        "last": 55198,
+                        "previousClose": null,
+                        "change": -262,
+                        "percentage": -0.4724125495852866,
+                        "average": 55329,
+                        "baseVolume": 323.92364868,
+                        "quoteVolume": 17907505.51,
+                        "info": {
+                            "market": "BTC-EUR",
+                            "timestamp": 1786614374241,
+                            "open": "55460",
+                            "high": "55786",
+                            "low": "54812",
+                            "last": "55198",
+                            "bid": "55198",
+                            "bidSize": "0.09002802",
+                            "ask": "55199",
+                            "askSize": "0.44358626",
+                            "volume": "323.92364868",
+                            "volumeQuote": "17907505.51"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ]
+    }
+}

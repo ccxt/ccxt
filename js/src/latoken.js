@@ -5,10 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import Precise from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class latoken
@@ -19,7 +20,7 @@ export default class latoken extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'latoken',
             'name': 'Latoken',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'version': 'v2',
             'rateLimit': 1000,
             'has': {
@@ -50,6 +51,7 @@ export default class latoken extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -139,64 +141,68 @@ export default class latoken extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'book/{currency}/{quote}': 1,
-                        'chart/week': 1,
-                        'chart/week/{currency}/{quote}': 1,
-                        'currency': 1,
-                        'currency/available': 1,
-                        'currency/quotes': 1,
-                        'currency/{currency}': 1,
-                        'pair': 1,
-                        'pair/available': 1,
-                        'ticker': 1,
-                        'ticker/{base}/{quote}': 1,
-                        'time': 1,
-                        'trade/history/{currency}/{quote}': 1,
-                        'trade/fee/{currency}/{quote}': 1,
-                        'trade/feeLevels': 1,
-                        'transaction/bindings': 1,
+                        'book/{currency}/{quote}': { 'cost': 1 },
+                        'chart/week': { 'cost': 1 },
+                        'chart/week/{currency}/{quote}': { 'cost': 1 },
+                        'currency': { 'cost': 1 },
+                        'currency/available': { 'cost': 1 },
+                        'currency/quotes': { 'cost': 1 },
+                        'currency/{currency}': { 'cost': 1 },
+                        'pair': { 'cost': 1 },
+                        'pair/available': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'ticker/{base}/{quote}': { 'cost': 1 },
+                        'time': { 'cost': 1 },
+                        'trade/history/{currency}/{quote}': { 'cost': 1 },
+                        'trade/fee/{currency}/{quote}': { 'cost': 1 },
+                        'trade/feeLevels': { 'cost': 1 },
+                        'transaction/bindings': { 'cost': 1 },
                     },
                 },
                 'private': {
                     'get': {
-                        'auth/account': 1,
-                        'auth/account/currency/{currency}/{type}': 1,
-                        'auth/order': 1,
-                        'auth/order/getOrder/{id}': 1,
-                        'auth/order/pair/{currency}/{quote}': 1,
-                        'auth/order/pair/{currency}/{quote}/active': 1,
-                        'auth/stopOrder': 1,
-                        'auth/stopOrder/getOrder/{id}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}': 1,
-                        'auth/stopOrder/pair/{currency}/{quote}/active': 1,
-                        'auth/trade': 1,
-                        'auth/trade/pair/{currency}/{quote}': 1,
-                        'auth/trade/fee/{currency}/{quote}': 1,
-                        'auth/transaction': 1,
-                        'auth/transaction/bindings': 1,
-                        'auth/transaction/bindings/{currency}': 1,
-                        'auth/transaction/{id}': 1,
-                        'auth/transfer': 1,
+                        'auth/account': { 'cost': 1 },
+                        'auth/account/currency/{currency}/{type}': { 'cost': 1 },
+                        'auth/account/filtered': { 'cost': 1 },
+                        'auth/order': { 'cost': 1 },
+                        'auth/order/active': { 'cost': 1 },
+                        'auth/order/getOrder/{id}': { 'cost': 1 },
+                        'auth/order/pair/{currency}/{quote}': { 'cost': 1 },
+                        'auth/order/pair/{currency}/{quote}/active': { 'cost': 1 },
+                        'auth/stopOrder': { 'cost': 1 },
+                        'auth/stopOrder/getOrder/{id}': { 'cost': 1 },
+                        'auth/stopOrder/pair/{currency}/{quote}': { 'cost': 1 },
+                        'auth/stopOrder/pair/{currency}/{quote}/active': { 'cost': 1 },
+                        'auth/trade': { 'cost': 1 },
+                        'auth/trade/pair/{currency}/{quote}': { 'cost': 1 },
+                        'auth/trade/fee/{currency}/{quote}': { 'cost': 1 },
+                        'auth/transaction': { 'cost': 1 },
+                        'auth/transaction/bindings': { 'cost': 1 },
+                        'auth/transaction/bindings/{currency}': { 'cost': 1 },
+                        'auth/transaction/{id}': { 'cost': 1 },
+                        'auth/transfer': { 'cost': 1 },
                     },
                     'post': {
-                        'auth/order/cancel': 1,
-                        'auth/order/cancelAll': 1,
-                        'auth/order/cancelAll/{currency}/{quote}': 1,
-                        'auth/order/place': 1,
-                        'auth/spot/deposit': 1,
-                        'auth/spot/withdraw': 1,
-                        'auth/stopOrder/cancel': 1,
-                        'auth/stopOrder/cancelAll': 1,
-                        'auth/stopOrder/cancelAll/{currency}/{quote}': 1,
-                        'auth/stopOrder/place': 1,
-                        'auth/transaction/depositAddress': 1,
-                        'auth/transaction/withdraw': 1,
-                        'auth/transaction/withdraw/cancel': 1,
-                        'auth/transaction/withdraw/confirm': 1,
-                        'auth/transaction/withdraw/resendCode': 1,
-                        'auth/transfer/email': 1,
-                        'auth/transfer/id': 1,
-                        'auth/transfer/phone': 1,
+                        'auth/order/cancel': { 'cost': 1 },
+                        'auth/order/cancelAll': { 'cost': 1 },
+                        'auth/order/cancelAll/{currency}/{quote}': { 'cost': 1 },
+                        'auth/order/cancelBulk': { 'cost': 1 },
+                        'auth/order/place': { 'cost': 1 },
+                        'auth/order/placeBulk': { 'cost': 1 },
+                        'auth/spot/deposit': { 'cost': 1 },
+                        'auth/spot/withdraw': { 'cost': 1 },
+                        'auth/stopOrder/cancel': { 'cost': 1 },
+                        'auth/stopOrder/cancelAll': { 'cost': 1 },
+                        'auth/stopOrder/cancelAll/{currency}/{quote}': { 'cost': 1 },
+                        'auth/stopOrder/place': { 'cost': 1 },
+                        'auth/transaction/depositAddress': { 'cost': 1 },
+                        'auth/transaction/withdraw': { 'cost': 1 },
+                        'auth/transaction/withdraw/cancel': { 'cost': 1 },
+                        'auth/transaction/withdraw/confirm': { 'cost': 1 },
+                        'auth/transaction/withdraw/resendCode': { 'cost': 1 },
+                        'auth/transfer/email': { 'cost': 1 },
+                        'auth/transfer/id': { 'cost': 1 },
+                        'auth/transfer/phone': { 'cost': 1 },
                     },
                 },
             },
@@ -230,37 +236,39 @@ export default class latoken extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'INTERNAL_ERROR': ExchangeError,
-                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
-                    'NOT_AUTHORIZED': AuthenticationError,
-                    'FORBIDDEN': PermissionDenied,
-                    'BAD_REQUEST': BadRequest,
-                    'NOT_FOUND': ExchangeError,
-                    'ACCESS_DENIED': PermissionDenied,
-                    'REQUEST_REJECTED': ExchangeError,
-                    'HTTP_MEDIA_TYPE_NOT_SUPPORTED': BadRequest,
-                    'MEDIA_TYPE_NOT_ACCEPTABLE': BadRequest,
-                    'METHOD_ARGUMENT_NOT_VALID': BadRequest,
-                    'VALIDATION_ERROR': BadRequest,
-                    'ACCOUNT_EXPIRED': AccountSuspended,
-                    'BAD_CREDENTIALS': AuthenticationError,
-                    'COOKIE_THEFT': AuthenticationError,
-                    'CREDENTIALS_EXPIRED': AccountSuspended,
-                    'INSUFFICIENT_AUTHENTICATION': AuthenticationError,
-                    'UNKNOWN_LOCATION': AuthenticationError,
-                    'TOO_MANY_REQUESTS': RateLimitExceeded,
-                    'INSUFFICIENT_FUNDS': InsufficientFunds,
-                    'ORDER_VALIDATION': InvalidOrder,
+                    'INTERNAL_ERROR': ExchangeError, // internal server error. You can contact our support to solve this problem. {"message":"Internal Server Error","error":"INTERNAL_ERROR","status":"FAILURE"}
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable, // requested information currently not available. You can contact our support to solve this problem or retry later.
+                    'NOT_AUTHORIZED': AuthenticationError, // user's query not authorized. Check if you are logged in.
+                    'UNAUTHORIZED': AuthenticationError, // {"result":false,"message":"user must be authenticated","error":"UNAUTHORIZED","status":"FAILURE"}
+                    'FORBIDDEN': PermissionDenied, // you don't have enough access rights.
+                    'BAD_REQUEST': BadRequest, // some bad request, for example bad fields values or something else. Read response message for more information.
+                    'NOT_FOUND': ExchangeError, // entity not found. Read message for more information.
+                    'ACCESS_DENIED': PermissionDenied, // access is denied. Probably you don't have enough access rights, you contact our support.
+                    'REQUEST_REJECTED': ExchangeError, // user's request rejected for some reasons. Check error message.
+                    'HTTP_MEDIA_TYPE_NOT_SUPPORTED': BadRequest, // http media type not supported.
+                    'MEDIA_TYPE_NOT_ACCEPTABLE': BadRequest, // media type not acceptable
+                    'METHOD_ARGUMENT_NOT_VALID': BadRequest, // one of method argument is invalid. Check argument types and error message for more information.
+                    'VALIDATION_ERROR': BadRequest, // check errors field to get reasons.
+                    'ACCOUNT_EXPIRED': AccountSuspended, // restore your account or create a new one.
+                    'BAD_CREDENTIALS': AuthenticationError, // invalid username or password.
+                    'COOKIE_THEFT': AuthenticationError, // cookie has been stolen. Let's try reset your cookies.
+                    'CREDENTIALS_EXPIRED': AccountSuspended, // credentials expired.
+                    'INSUFFICIENT_AUTHENTICATION': AuthenticationError, // for example, 2FA required.
+                    'UNKNOWN_LOCATION': AuthenticationError, // user logged from unusual location, email confirmation required.
+                    'TOO_MANY_REQUESTS': RateLimitExceeded, // too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
+                    'INSUFFICIENT_FUNDS': InsufficientFunds, // {"message":"not enough balance on the spot account for currency (USDT), need (20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
+                    'ORDER_VALIDATION': InvalidOrder, // {"message":"Quantity (0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
                     'BAD_TICKS': InvalidOrder, // {"status":"FAILURE","message":"Quantity (1.4) does not match quantity tick (10)","error":"BAD_TICKS","errors":null,"result":false}
                 },
                 'broad': {
-                    'invalid API key, signature or digest': AuthenticationError,
-                    'The API key was revoked': AuthenticationError,
-                    'request expired or bad': InvalidNonce,
-                    'For input string': BadRequest,
-                    'Unable to resolve currency by tag': BadSymbol,
-                    "Can't find currency with tag": BadSymbol,
-                    'Unable to place order because pair is in inactive state': BadSymbol,
+                    'invalid API key, signature or digest': AuthenticationError, // {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'Invalid API key specified': AuthenticationError, // {"result":false,"message":"Invalid API key specified","error":"NOT_FOUND","status":"FAILURE"}
+                    'The API key was revoked': AuthenticationError, // {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
+                    'request expired or bad': InvalidNonce, // {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
+                    'For input string': BadRequest, // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
+                    'Unable to resolve currency by tag': BadSymbol, // {"message":"Unable to resolve currency by tag (undefined)","error":"NOT_FOUND","status":"FAILURE"}
+                    "Can't find currency with tag": BadSymbol, // {"status":"FAILURE","message":"Can't find currency with tag = undefined","error":"NOT_FOUND","errors":null,"result":false}
+                    'Unable to place order because pair is in inactive state': BadSymbol, // {"message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
                     'API keys are not available for': AccountSuspended, // {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
             },
@@ -275,10 +283,37 @@ export default class latoken extends Exchange {
                     'ACCOUNT_TYPE_WALLET': 'wallet',
                     'ACCOUNT_TYPE_SPOT': 'spot',
                 },
+                'networks': {
+                    // the venue names a token chain "<CHAIN>_TOKEN" and the native
+                    // chain by its own ticker, so only the former needs a mapping
+                    'BEP20': 'BSC_TOKEN',
+                    'TRC20': 'TRON',
+                    'ADA': 'ADA_TOKEN',
+                    'ALGO': 'ALGO_TOKEN',
+                    'ARBITRUM': 'ARB_TOKEN',
+                    'AVAXC': 'AVAXC_TOKEN',
+                    'BASE': 'BASE_TOKEN',
+                    'CELO': 'CELO_TOKEN',
+                    'EOS': 'EOS_TOKEN',
+                    'FTM': 'FTM_TOKEN',
+                    'MATIC': 'MATIC_TOKEN',
+                    'OP': 'OP_TOKEN',
+                    'QTUM': 'QTUM_TOKEN',
+                    'SOL': 'SOL_TOKEN',
+                    'TON': 'TON_TOKEN',
+                    'VET': 'VECHAIN_TOKEN',
+                    'WAVES': 'WAVES_TOKEN',
+                    'XDC': 'XDC_TOKEN',
+                    'XLM': 'XLM_TOKEN',
+                    'XRP': 'XRP_TOKEN',
+                },
+                'networksById': {
+                    'BSC': 'BEP20', // second provider id for the same chain
+                },
                 'fetchTradingFee': {
                     'method': 'fetchPrivateTradingFee', // or 'fetchPublicTradingFee'
                 },
-                'timeDifference': 0,
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': true, // controls the adjustment logic upon instantiation
             },
             'features': {
@@ -289,11 +324,11 @@ export default class latoken extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': true,
+                            'IOC': true, // todo: for non-trigger orders
                             'FOK': true,
                             'PO': false,
                             'GTD': false,
@@ -302,7 +337,7 @@ export default class latoken extends Exchange {
                         'selfTradePrevention': false,
                         'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'iceberg': false,
                     },
@@ -310,7 +345,7 @@ export default class latoken extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'untilDays': undefined,
                         'symbolRequired': false,
                     },
@@ -323,15 +358,23 @@ export default class latoken extends Exchange {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': true,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
+                        'daysBack': 100000, // todo
                         'daysBackCanceled': 1,
                         'untilDays': undefined,
                         'trigger': true,
@@ -352,7 +395,11 @@ export default class latoken extends Exchange {
         });
     }
     nonce() {
-        return this.milliseconds() - this.options['timeDifference'];
+        const timeDifference = this.safeInteger(this.options, 'timeDifference');
+        if (timeDifference === undefined) {
+            throw new ExchangeError(this.id + ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return this.milliseconds() - timeDifference;
     }
     /**
      * @method
@@ -407,8 +454,9 @@ export default class latoken extends Exchange {
         const currencies = this.safeDict(this.options, 'cachedCurrencies', {});
         const currenciesById = this.indexBy(currencies, 'id');
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray(response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = this.safeValue(rawMarkets, i);
             const id = this.safeString(market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString(market, 'baseCurrency');
@@ -420,6 +468,9 @@ export default class latoken extends Exchange {
             if (baseCurrencyInfo !== undefined && quoteCurrencyInfo !== undefined) {
                 const base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, 'tag'));
                 const quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, 'tag'));
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const lowercaseQuote = quote.toLowerCase();
                 const capitalizedQuote = this.capitalize(lowercaseQuote);
                 const status = this.safeString(market, 'status');
@@ -438,7 +489,7 @@ export default class latoken extends Exchange {
                     'swap': false,
                     'future': false,
                     'option': false,
-                    'active': (status === 'PAIR_STATUS_ACTIVE'),
+                    'active': (status === 'PAIR_STATUS_ACTIVE'), // assuming true
                     'contract': false,
                     'linear': undefined,
                     'inverse': undefined,
@@ -480,10 +531,14 @@ export default class latoken extends Exchange {
      * @method
      * @name latoken#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+     * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         const response = await this.publicGetCurrency(params);
         //
         //     [
@@ -517,7 +572,41 @@ export default class latoken extends Exchange {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        const bindingsResponse = await this.publicGetTransactionBindings();
+        const bindingsById = this.indexBy(bindingsResponse, 'id');
+        const rawCurrencies = this.toArray(response);
+        const merged = [];
+        for (let i = 0; i < rawCurrencies.length; i++) {
+            const rawCurrency = this.safeValue(rawCurrencies, i);
+            const bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, 'id'));
+            const bindings = this.safeList(bindingEntry, 'bindings');
+            let mergedCurrency = rawCurrency;
+            if (bindings !== undefined) {
+                mergedCurrency = this.extend(rawCurrency, { 'bindings': bindings });
+            }
+            merged.push(mergedCurrency);
+        }
+        return this.parseCurrencies(merged);
     }
     parseCurrency(currency) {
         const id = this.safeString(currency, 'id');
@@ -525,6 +614,42 @@ export default class latoken extends Exchange {
         const code = this.safeCurrencyCode(tag);
         const currencyType = this.safeString(currency, 'type');
         const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
+        const bindings = this.safeList(currency, 'bindings', []);
+        const networks = {};
+        for (let i = 0; i < bindings.length; i++) {
+            const binding = bindings[i];
+            const networkId = this.safeString(binding, 'providerName');
+            const networkCode = this.networkIdToCode(networkId, code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if ((networkCode !== undefined) && !(networkCode in networks)) {
+                networks[networkCode] = {
+                    'info': binding,
+                    'id': this.safeString(binding, 'id'),
+                    'network': networkCode,
+                    'active': undefined,
+                    // the public endpoint serves one entry per chain without saying
+                    // whether it is bound for deposits, withdrawals or both
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber(binding, 'fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(binding, 'minAmount'),
+                            // maxAmount is "0" on 1990 of the 1996 bindings and contradicts its
+                            // own minimum on the rest, so the venue does not keep it as a real cap
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+        }
         return this.safeCurrencyStructure({
             'id': id,
             'code': code,
@@ -534,7 +659,7 @@ export default class latoken extends Exchange {
             'active': this.safeString(currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
             'deposit': undefined,
             'withdraw': undefined,
-            'fee': this.safeNumber(currency, 'fee'),
+            'fee': undefined,
             'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals'))),
             'limits': {
                 'amount': {
@@ -546,7 +671,7 @@ export default class latoken extends Exchange {
                     'max': undefined,
                 },
             },
-            'networks': {},
+            'networks': networks,
         });
     }
     /**
@@ -558,8 +683,13 @@ export default class latoken extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
-        const response = await this.privateGetAuthAccount(params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString(params, 'type', defaultType);
+        const paramsOmitted = this.omit(params, 'type');
+        const response = await this.privateGetAuthAccount(paramsOmitted);
         //
         //     [
         //         {
@@ -587,30 +717,28 @@ export default class latoken extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        let maxTimestamp = undefined;
-        const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
-        const types = this.safeValue(this.options, 'types', {});
+        const types = this.safeDict(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
-        const balances = this.safeValue(balancesByType, accountType, []);
+        const balances = this.safeList(balancesByType, accountType, []);
+        const firstBalance = this.safeDict(balances, 0);
+        let maxTimestamp = this.safeInteger(firstBalance, 'timestamp');
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'currency');
             const timestamp = this.safeInteger(balance, 'timestamp');
             if (timestamp !== undefined) {
-                if (maxTimestamp === undefined) {
+                if ((maxTimestamp === undefined) || (timestamp > maxTimestamp)) {
                     maxTimestamp = timestamp;
-                }
-                else {
-                    maxTimestamp = Math.max(maxTimestamp, timestamp);
                 }
             }
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'blocked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601(maxTimestamp);
@@ -624,10 +752,12 @@ export default class latoken extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['baseId'],
@@ -653,12 +783,39 @@ export default class latoken extends Exchange {
         //         "totalBid":"112216.9029791"
         //     }
         //
-        return this.parseOrderBook(response, symbol, undefined, 'bid', 'ask', 'price', 'quantity');
+        // latoken's rest book is an absolute snapshot - price, quantity, cost,
+        // accumulated - with no signed fields, unlike their websocket stream
+        // which carries signed quantityChange deltas. during venue incidents a
+        // signed internal aggregate leaks into the rest quantity and a deleted
+        // level shows up with a zero or negative quantity for long stretches,
+        // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        // for over half an hour - such a level is a deleted level their
+        // aggregation failed to drop, so it is removed here
+        const rawAsks = this.safeList(response, 'ask', []);
+        const rawBids = this.safeList(response, 'bid', []);
+        const asks = [];
+        const bids = [];
+        for (let i = 0; i < rawAsks.length; i++) {
+            const askEntry = rawAsks[i];
+            const askQuantity = this.safeString(askEntry, 'quantity');
+            if (Precise.stringGt(askQuantity, '0')) {
+                asks.push(askEntry);
+            }
+        }
+        for (let i = 0; i < rawBids.length; i++) {
+            const bidEntry = rawBids[i];
+            const bidQuantity = this.safeString(bidEntry, 'quantity');
+            if (Precise.stringGt(bidQuantity, '0')) {
+                bids.push(bidEntry);
+            }
+        }
+        const filtered = { 'ask': asks, 'bid': bids };
+        return this.parseOrderBook(filtered, symbol, undefined, 'bid', 'ask', 'price', 'quantity');
     }
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -673,14 +830,28 @@ export default class latoken extends Exchange {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
-        const marketId = this.safeString(ticker, 'symbol');
+        // the "symbol" field carries the currency tags, which differ from the
+        // unified symbol whenever commonCurrencies renames a code, so resolve
+        // the market from the currency ids like parseTrade and parseOrder do
+        const baseId = this.safeString(ticker, 'baseCurrency');
+        const quoteId = this.safeString(ticker, 'quoteCurrency');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        let symbol = undefined;
+        let marketResolved = market;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                marketResolved = this.market(symbol);
+            }
+        }
         const last = this.safeString(ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero(ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
         return this.safeTicker({
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'low': undefined,
@@ -700,7 +871,7 @@ export default class latoken extends Exchange {
             'baseVolume': this.safeString(ticker, 'amount24h'),
             'quoteVolume': this.safeString(ticker, 'volume24h'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -712,7 +883,9 @@ export default class latoken extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'base': market['baseId'],
@@ -721,7 +894,7 @@ export default class latoken extends Exchange {
         const response = await this.publicGetTickerBaseQuote(this.extend(request, params));
         //
         //    {
-        //        "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "symbol": "BTC/USDT",
         //        "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //        "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //        "volume24h": "165723597.189022176000000000",
@@ -736,7 +909,7 @@ export default class latoken extends Exchange {
         //        "bestBidQuantity": "0.6520232",
         //        "bestAsk": "25779.17",
         //        "bestAskQuantity": "0.4956043",
-        //        "updateTimestamp": "1693965231406"
+        //        "updateTimestamp": 1693965231406
         //    }
         //
         return this.parseTicker(response, market);
@@ -751,12 +924,14 @@ export default class latoken extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTicker(params);
         //
         //    [
         //        {
-        //            "symbol": "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "symbol": "BTC/USDT",
         //            "baseCurrency": "92151d82-df98-4d88-9a4d-284fa9eca49f",
         //            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
         //            "volume24h": "165723597.189022176000000000",
@@ -771,7 +946,7 @@ export default class latoken extends Exchange {
         //            "bestBidQuantity": "0.6520232",
         //            "bestAsk": "25779.17",
         //            "bestAskQuantity": "0.4956043",
-        //            "updateTimestamp": "1693965231406"
+        //            "updateTimestamp": 1693965231406
         //        }
         //    ]
         //
@@ -815,7 +990,7 @@ export default class latoken extends Exchange {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
         const costString = this.safeString(trade, 'cost');
-        const makerBuyer = this.safeValue(trade, 'makerBuyer');
+        const makerBuyer = this.safeBool(trade, 'makerBuyer', false);
         let side = this.safeString(trade, 'direction');
         if (side === undefined) {
             side = makerBuyer ? 'sell' : 'buy';
@@ -829,14 +1004,19 @@ export default class latoken extends Exchange {
             }
         }
         const isBuy = (side === 'buy');
-        const takerOrMaker = (makerBuyer && isBuy) ? 'maker' : 'taker';
+        const isMaker = makerBuyer && isBuy;
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString(trade, 'baseCurrency');
         const quoteId = this.safeString(trade, 'quoteCurrency');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        const symbol = base + '/' + quote;
-        if (symbol in this.markets) {
-            market = this.market(symbol);
+        let symbol = undefined;
+        let marketResolved = market;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
+                marketResolved = this.market(symbol);
+            }
         }
         const id = this.safeString(trade, 'id');
         const orderId = this.safeString(trade, 'order');
@@ -862,7 +1042,7 @@ export default class latoken extends Exchange {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -876,7 +1056,9 @@ export default class latoken extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['baseId'],
@@ -908,22 +1090,24 @@ export default class latoken extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        const options = this.safeValue(this.options, 'fetchTradingFee', {});
+        const options = this.safeDict(this.options, 'fetchTradingFee', {});
         const defaultMethod = this.safeString(options, 'method', 'fetchPrivateTradingFee');
         const method = this.safeString(params, 'method', defaultMethod);
-        params = this.omit(params, 'method');
+        const paramsOmitted = this.omit(params, 'method');
         if (method === 'fetchPrivateTradingFee') {
-            return await this.fetchPrivateTradingFee(symbol, params);
+            return await this.fetchPrivateTradingFee(symbol, paramsOmitted);
         }
         else if (method === 'fetchPublicTradingFee') {
-            return await this.fetchPublicTradingFee(symbol, params);
+            return await this.fetchPublicTradingFee(symbol, paramsOmitted);
         }
         else {
             throw new NotSupported(this.id + ' not support this method');
         }
     }
     async fetchPublicTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['baseId'],
@@ -948,7 +1132,9 @@ export default class latoken extends Exchange {
         };
     }
     async fetchPrivateTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['baseId'],
@@ -985,7 +1171,9 @@ export default class latoken extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'currency': market['baseId'],
         // 'quote': market['quoteId'],
@@ -996,7 +1184,7 @@ export default class latoken extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response = undefined;
+        let response = [];
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
@@ -1102,9 +1290,11 @@ export default class latoken extends Exchange {
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if (symbol in this.markets) {
-                market = this.market(symbol);
-            }
+        }
+        const symbolKnown = (symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets);
+        let marketResolved = market;
+        if (symbolKnown) {
+            marketResolved = this.market(symbol);
         }
         const orderSide = this.safeString(order, 'side');
         let side = undefined;
@@ -1152,7 +1342,7 @@ export default class latoken extends Exchange {
             'remaining': undefined,
             'fee': undefined,
             'trades': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -1171,21 +1361,23 @@ export default class latoken extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
-        let response = undefined;
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, 'stop');
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        let response;
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         const market = this.market(symbol);
         const request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (isTrigger) {
-            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, params));
+        if (isTrigger === true) {
+            response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateGetAuthOrderPairCurrencyQuoteActive(this.extend(request, params));
+            response = await this.privateGetAuthOrderPairCurrencyQuoteActive(this.extend(request, paramsOmitted));
         }
         //
         //     [
@@ -1227,7 +1419,9 @@ export default class latoken extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'currency': market['baseId'],
         // 'quote': market['quoteId'],
@@ -1235,29 +1429,29 @@ export default class latoken extends Exchange {
         // 'limit': limit, // default '100'
         };
         let market = undefined;
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
-                response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, params));
+            if (isTrigger === true) {
+                response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privateGetAuthOrderPairCurrencyQuote(this.extend(request, params));
+                response = await this.privateGetAuthOrderPairCurrencyQuote(this.extend(request, paramsOmitted));
             }
         }
         else {
-            if (isTrigger) {
-                response = await this.privateGetAuthStopOrder(this.extend(request, params));
+            if (isTrigger === true) {
+                response = await this.privateGetAuthStopOrder(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privateGetAuthOrder(this.extend(request, params));
+                response = await this.privateGetAuthOrder(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -1297,18 +1491,20 @@ export default class latoken extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
-        let response = undefined;
-        if (isTrigger) {
-            response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, params));
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
+        let response;
+        if (isTrigger === true) {
+            response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privateGetAuthOrderGetOrderId(this.extend(request, params));
+            response = await this.privateGetAuthOrderGetOrderId(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -1352,16 +1548,19 @@ export default class latoken extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
+        this.checkRequiredArgument('createOrder', side, 'side');
         const request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
-            'side': side.toUpperCase(),
-            'condition': 'GTC',
-            'type': uppercaseType,
-            'clientOrderId': this.uuid(),
+            'side': side.toUpperCase(), // "BUY", "BID", "SELL", "ASK"
+            'condition': 'GTC', // "GTC", "GOOD_TILL_CANCELLED", "IOC", "IMMEDIATE_OR_CANCEL", "FOK", "FILL_OR_KILL"
+            'type': uppercaseType, // "LIMIT", "MARKET"
+            'clientOrderId': this.uuid(), // 50 characters max
             // 'price': this.priceToPrecision (symbol, price),
             // 'quantity': this.amountToPrecision (symbol, amount),
             'quantity': this.amountToPrecision(symbol, amount),
@@ -1371,14 +1570,14 @@ export default class latoken extends Exchange {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        params = this.omit(params, ['triggerPrice', 'stopPrice']);
-        let response = undefined;
+        const paramsOmitted = this.omit(params, ['triggerPrice', 'stopPrice']);
+        let response;
         if (triggerPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
-            response = await this.privatePostAuthStopOrderPlace(this.extend(request, params));
+            response = await this.privatePostAuthStopOrderPlace(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privatePostAuthOrderPlace(this.extend(request, params));
+            response = await this.privatePostAuthOrderPlace(this.extend(request, paramsOmitted));
         }
         //
         //    {
@@ -1401,24 +1600,26 @@ export default class latoken extends Exchange {
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
      * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
      * @param {string} id order id
-     * @param {string} symbol not used by latoken cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if cancelling a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
-        let response = undefined;
-        if (isTrigger) {
-            response = await this.privatePostAuthStopOrderCancel(this.extend(request, params));
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
+        let response;
+        if (isTrigger === true) {
+            response = await this.privatePostAuthStopOrderCancel(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.privatePostAuthOrderCancel(this.extend(request, params));
+            response = await this.privatePostAuthOrderCancel(this.extend(request, paramsOmitted));
         }
         //
         //     {
@@ -1437,38 +1638,40 @@ export default class latoken extends Exchange {
      * @description cancel all open orders in a market
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if cancelling trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'currency': market['baseId'],
         // 'quote': market['quoteId'],
         };
         let market = undefined;
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
-        params = this.omit(params, ['stop', 'trigger']);
-        let response = undefined;
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['currency'] = market['baseId'];
             request['quote'] = market['quoteId'];
-            if (isTrigger) {
-                response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, params));
+            if (isTrigger === true) {
+                response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostAuthOrderCancelAllCurrencyQuote(this.extend(request, params));
+                response = await this.privatePostAuthOrderCancelAllCurrencyQuote(this.extend(request, paramsOmitted));
             }
         }
         else {
-            if (isTrigger) {
-                response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, params));
+            if (isTrigger === true) {
+                response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, paramsOmitted));
             }
             else {
-                response = await this.privatePostAuthOrderCancelAll(this.extend(request, params));
+                response = await this.privatePostAuthOrderCancelAll(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -1496,7 +1699,9 @@ export default class latoken extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'page': '1',
         // 'size': 100,
@@ -1628,7 +1833,9 @@ export default class latoken extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const response = await this.privateGetAuthTransfer(params);
         //
@@ -1680,14 +1887,16 @@ export default class latoken extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': this.currencyToPrecision(code, amount),
         };
-        let response = undefined;
+        let response;
         if (toAccount.indexOf('@') >= 0) {
             response = await this.privatePostAuthTransferEmail(this.extend(request, params));
         }
@@ -1769,35 +1978,42 @@ export default class latoken extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const request = '/' + this.version + '/' + this.implodeParams(path, params);
         let requestString = request;
         const query = this.omit(params, this.extractParams(path));
         const urlencodedQuery = this.urlencode(query);
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (urlencodedQuery !== '') {
                 requestString += '?' + urlencodedQuery;
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const auth = method + request + urlencodedQuery;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
-            headers = {
+            requestHeaders = {
                 'X-LA-APIKEY': this.apiKey,
                 'X-LA-SIGNATURE': signature,
                 'X-LA-DIGEST': 'HMAC-SHA512', // HMAC-SHA384, HMAC-SHA512, optional
             };
             if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-                body = this.json(query);
+                requestHeaders['Content-Type'] = 'application/json';
+                requestBody = this.json(query);
             }
         }
-        const url = this.urls['api']['rest'] + requestString;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + requestString;
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         //
@@ -1812,9 +2028,8 @@ export default class latoken extends Exchange {
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
         }
-        const error = this.safeValue(response, 'error');
-        const errorMessage = this.safeString(error, 'message');
-        if ((error !== undefined) || (errorMessage !== undefined)) {
+        const error = this.safeString(response, 'error');
+        if (error !== undefined) {
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             throw new ExchangeError(feedback); // unknown message

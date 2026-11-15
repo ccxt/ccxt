@@ -1,8 +1,5 @@
-- [Kucoin Fetch All Deposit Addresses](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -89,5 +86,5 @@ foreach ($codes as $code) {
 
 
 print_r($results);
- 
+
 ```

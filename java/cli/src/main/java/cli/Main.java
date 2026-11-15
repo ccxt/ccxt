@@ -22,6 +22,8 @@ import io.github.ccxt.errors.AuthenticationError;
 
 // import io.github.ccxt.wrappers.Binance;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
+import io.github.ccxt.Helpers;
 import io.github.ccxt.MetaData;
 import io.github.ccxt.Version;
 
@@ -55,7 +57,7 @@ public class Main {
     public static String exchangesPath = FileSystems.getDefault().getPath("").toAbsolutePath() + "../../../../.." + "/exchanges.json";
 
 
-    public static void InitOptions(Exchange instance, String[] args) {
+    public static void InitOptions(BaseExchange instance, String[] args) {
 
         if (args.length > 0) {
             for (String arg : args) {
@@ -108,7 +110,7 @@ public class Main {
     }
 
 
-    public static void setCredentials(Exchange instance) throws IllegalArgumentException, IllegalAccessException, IOException {
+    public static void setCredentials(BaseExchange instance) throws IllegalArgumentException, IllegalAccessException, IOException {
         var basePath = FileSystems.getDefault().getPath("").toAbsolutePath().toString();
         var prefix = (basePath.endsWith("cli")) ? "/../../" : "/../";
         var keysJsonPath = basePath + prefix + "keys.json";
@@ -136,11 +138,9 @@ public class Main {
 
         for (Map.Entry<String, Boolean> entry : credentials.entrySet()) {
             String key = entry.getKey();
-            Boolean required = entry.getValue();
-
-            if (!Boolean.TRUE.equals(required)) {
-                continue;
-            }
+            // attempt every declared credential, not only required ones: some exchanges (e.g.
+            // polymarket) mark all credentials optional and validate at call time, but still need
+            // them set from keys.json / env to function
 
             String instanceIdKey = instance.id;
             String credentialValue = null;
@@ -168,7 +168,7 @@ public class Main {
         }
     }
 
-    private static void setProperty(Exchange instance, String key, String value)
+    private static void setProperty(BaseExchange instance, String key, String value)
             throws IllegalArgumentException, IllegalAccessException {
 
         Class<?> clazz = instance.getClass();
@@ -192,55 +192,10 @@ public class Main {
         }
     }
 
+    // every exchange method has one typed signature: resolve it by name, omitted trailing args padded
     public static Object callDynamic(Object instance, String methodName, Object... args) {
-        Class<?> clazz = instance.getClass();
-
         try {
-            Class<?>[] paramTypes = Arrays.stream(args)
-                                        .map(a -> a == null ? null : a.getClass())
-                                        .toArray(Class<?>[]::new);
-
-            try {
-                Method m = clazz.getMethod(methodName, paramTypes);
-                return m.invoke(instance, args);
-            } catch (NoSuchMethodException ignore) {
-                // Try matching a varargs method
-            }
-
-            // Try varargs method: (Object, Object[])
-            for (Method m : clazz.getMethods()) {
-                if (!m.getName().equals(methodName)) continue;
-
-                if (m.isVarArgs()) {
-                    Class<?>[] types = m.getParameterTypes();
-
-                    int fixedCount = types.length - 1;
-
-                    if (args.length < fixedCount) continue;
-
-                    Object[] invokeArgs = new Object[types.length];
-
-                    for (int i = 0; i < fixedCount; i++) {
-                        invokeArgs[i] = args[i];
-                    }
-
-                    // Build the varargs array
-                    Class<?> varType = types[fixedCount].getComponentType();
-                    int varCount = args.length - fixedCount;
-
-                    Object varArray = Array.newInstance(varType, varCount);
-                    for (int i = 0; i < varCount; i++) {
-                        Array.set(varArray, i, args[fixedCount + i]);
-                    }
-
-                    invokeArgs[fixedCount] = varArray;
-
-                    return m.invoke(instance, invokeArgs);
-                }
-            }
-
-            throw new NoSuchMethodException("Method " + methodName + " not found");
-
+            return Helpers.callDynamically(instance, methodName, args);
         } catch (Exception e) {
             throw new RuntimeException("Error calling method: " + methodName, e);
         }
@@ -276,14 +231,22 @@ public class Main {
         System.out.println("[java][" + Version.VERSION +"] CCXT CLI");
         // System.out.println("User Directory: " + userDirectory);
 
-        args = new String[] {
-                "binance",
-                "watchTrades",
-                "BTC/USDT"
-        };
+        // -p / --prediction forces the prediction namespace for ids that exist in both
+        // (e.g. hyperliquid); prediction-only ids resolve there automatically as a fallback.
+        // strip the flag so it is not mistaken for a positional method argument
+        var forcePrediction = false;
+        ArrayList<String> positionalArgs = new ArrayList<String>();
+        for (String arg : args) {
+            if (arg.equals("-p") || arg.equals("--prediction")) {
+                forcePrediction = true;
+            } else {
+                positionalArgs.add(arg);
+            }
+        }
+        args = positionalArgs.toArray(new String[0]);
 
         if (args.length < 2) {
-            System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] <exchange-id> [arg1 arg2 ...]");
+            System.out.println("Usage: java -cp <classpath> cli.Main [--verbose] [--sandbox] [-p|--prediction] <exchange-id> [arg1 arg2 ...]");
             return;
         }
 
@@ -296,7 +259,7 @@ public class Main {
 
         var isProExchange = MetaData.ProExchanges.contains(exchangeName);
 
-        var instance = Exchange.dynamicallyCreateInstance(exchangeName,  null, isProExchange);
+        var instance = Exchange.dynamicallyCreateInstance(exchangeName,  null, isProExchange, forcePrediction);
 
         var callExpressionString = instance.id + "." + methodName + "(" + java.util.Arrays.toString(params) + ")";
         System.out.println(callExpressionString);
@@ -308,7 +271,7 @@ public class Main {
             if (Main.verbose) {
                 instance.verbose = true;
             }
-            instance.loadMarkets().get();
+            instance.loadMarkets(false, new java.util.HashMap<String, Object>()).get();
 
             while (true) {
                 var f = callDynamic(instance, methodName, params);

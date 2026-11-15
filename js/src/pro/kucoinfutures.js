@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import kucoin from './kucoin.js';
+import kucoin from '../abstract/pro/kucoinfutures.js';
 import { BadRequest } from '../base/errors.js';
 // ---------------------------------------------------------------------------
 export default class kucoinfutures extends kucoin {
@@ -63,7 +63,9 @@ export default class kucoinfutures extends kucoin {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
         const request = {

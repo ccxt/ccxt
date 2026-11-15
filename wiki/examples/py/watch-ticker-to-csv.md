@@ -1,10 +1,11 @@
-- [Watch Ticker To Csv](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
 
- ```python
- # -*- coding: utf-8 -*-
-
-from asyncio import gather, run
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import ccxt.pro
 from pprint import pprint
 
@@ -39,7 +40,7 @@ async def watch_tickers_continuously(exchange_id, overrides, symbols):
 async def main():
     exchanges = {
         'binance': {'options': {'defaultType': 'future'}},
-        'huobipro': {}
+        'htx': {}
     }
     symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT', 'XRP/USDT', 'BCH/USDT']
     coroutines = [watch_tickers_continuously(exchange_id, exchanges[exchange_id], symbols) for exchange_id in exchanges.keys()]
@@ -47,5 +48,5 @@ async def main():
 
 
 run(main())
- 
+
 ```

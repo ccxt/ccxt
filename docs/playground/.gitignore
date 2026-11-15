@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# env
+.env.local
+.env*.local
+
+# language runtimes — entirely provisioned by scripts/setup-runtimes.sh
+runtime/
+
+# misc
+.DS_Store
+*.log

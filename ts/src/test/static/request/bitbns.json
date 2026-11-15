@@ -13,7 +13,7 @@
                     1699457638000,
                     5
                 ],
-                "output": "{\"page\":0,\"since\":\"2023-11-08T15:33:58.000Z\"}"
+                "output": { "page": 0, "since": "2023-11-08T15:33:58.000Z" }
             }
         ],
         "fetchOpenOrders": [
@@ -24,7 +24,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"symbol\":\"LTC_USDT\",\"page\":0,\"side\":\"usdtListOpenOrders\"}"
+                "output": { "symbol": "LTC_USDT", "page": 0, "side": "usdtListOpenOrders" }
             }
         ],
         "fetchBalance": [
@@ -37,7 +37,7 @@
                         "type": "spot"
                     }
                 ],
-                "output": "{\"type\":\"spot\"}"
+                "output": { "type": "spot" }
             },
             {
                 "description": "Fetch swap Balance",
@@ -48,7 +48,7 @@
                         "type": "swap"
                     }
                 ],
-                "output": "{\"type\":\"swap\"}"
+                "output": { "type": "swap" }
             }
         ],
         "fetchDepositAddress": [
@@ -59,7 +59,7 @@
                 "input": [
                     "USDT"
                 ],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchTrades": [

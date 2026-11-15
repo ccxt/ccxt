@@ -1,8 +1,5 @@
-- [One Exchange Many Streams](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 include './ccxt.php';
 
 $id = 'aax';
@@ -30,5 +27,5 @@ $loop = function($exchange, $symbol) {
 foreach ($symbols as $symbol) {
     \React\Async\coroutine($loop, $exchange, $symbol);
 }
- 
+
 ```

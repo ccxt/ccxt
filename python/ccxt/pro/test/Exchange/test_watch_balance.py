@@ -20,7 +20,7 @@ async def test_watch_balance(exchange, skipped_properties, code):
     now = exchange.milliseconds()
     ends = now + 15000
     while now < ends:
-        response = None
+        response = {}
         success = True
         try:
             response = await exchange.watch_balance()
@@ -30,7 +30,7 @@ async def test_watch_balance(exchange, skipped_properties, code):
             now = exchange.milliseconds()
             # continue;
             success = False
-        if success is False:
+        if not success:
             continue
         test_balance(exchange, skipped_properties, method, response)
         now = exchange.milliseconds()

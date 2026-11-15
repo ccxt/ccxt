@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
-import okx from './okx.js';
+import okx from './abstract/myokx.js';
 // ---------------------------------------------------------------------------
 export default class myokx extends okx {
     describe() {
@@ -35,7 +35,7 @@ export default class myokx extends okx {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
             },
@@ -47,6 +47,12 @@ export default class myokx extends okx {
                 'future': {
                     'linear': undefined,
                     'inverse': undefined,
+                },
+            },
+            'options': {
+                'mica': true,
+                'fetchMarkets': {
+                    'types': ['spot', 'swap'],
                 },
             },
         });

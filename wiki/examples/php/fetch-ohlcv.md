@@ -1,8 +1,5 @@
-- [Fetch Ohlcv](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     // eslint-disable-next-line import/no-named-as-default-member
     return Async\async(function () {
@@ -41,5 +37,5 @@ function example() {
 
 
 \React\Async\await(example());
- 
+
 ```

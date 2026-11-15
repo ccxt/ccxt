@@ -1,8 +1,5 @@
-- [Proxy Usage](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // 1) ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/README?id=proxy
 // 2) in python, uncomment the below:
 // if sys.platform == 'win32':
@@ -73,5 +69,5 @@ function example_web_sockets() {
 
 // await example_proxyUrl ();
 \React\Async\await(example_http_proxy());
- 
+
 ```

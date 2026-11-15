@@ -5,61 +5,221 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetAssets (params?: {}): Promise<implicitReturnType>;
-    publicGetIndices (params?: {}): Promise<implicitReturnType>;
-    publicGetProducts (params?: {}): Promise<implicitReturnType>;
-    publicGetProductsSymbol (params?: {}): Promise<implicitReturnType>;
-    publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetTickersSymbol (params?: {}): Promise<implicitReturnType>;
-    publicGetL2orderbookSymbol (params?: {}): Promise<implicitReturnType>;
-    publicGetTradesSymbol (params?: {}): Promise<implicitReturnType>;
-    publicGetStats (params?: {}): Promise<implicitReturnType>;
-    publicGetHistoryCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetHistorySparklines (params?: {}): Promise<implicitReturnType>;
-    publicGetSettings (params?: {}): Promise<implicitReturnType>;
-    privateGetOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersOrderId (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersClientOrderIdClientOid (params?: {}): Promise<implicitReturnType>;
-    privateGetProductsProductIdOrdersLeverage (params?: {}): Promise<implicitReturnType>;
-    privateGetPositionsMargined (params?: {}): Promise<implicitReturnType>;
-    privateGetPositions (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetFills (params?: {}): Promise<implicitReturnType>;
-    privateGetFillsHistoryDownloadCsv (params?: {}): Promise<implicitReturnType>;
-    privateGetWalletBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetWalletTransactions (params?: {}): Promise<implicitReturnType>;
-    privateGetWalletTransactionsDownload (params?: {}): Promise<implicitReturnType>;
-    privateGetWalletsSubAccountsTransferHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersTradingPreferences (params?: {}): Promise<implicitReturnType>;
-    privateGetSubAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetProfile (params?: {}): Promise<implicitReturnType>;
-    privateGetHeartbeat (params?: {}): Promise<implicitReturnType>;
-    privateGetDepositsAddress (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersBracket (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersBatch (params?: {}): Promise<implicitReturnType>;
-    privatePostProductsProductIdOrdersLeverage (params?: {}): Promise<implicitReturnType>;
-    privatePostPositionsChangeMargin (params?: {}): Promise<implicitReturnType>;
-    privatePostPositionsCloseAll (params?: {}): Promise<implicitReturnType>;
-    privatePostWalletsSubAccountBalanceTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostHeartbeatCreate (params?: {}): Promise<implicitReturnType>;
-    privatePostHeartbeat (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersCancelAfter (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersLeverage (params?: {}): Promise<implicitReturnType>;
-    privatePutOrders (params?: {}): Promise<implicitReturnType>;
-    privatePutOrdersBracket (params?: {}): Promise<implicitReturnType>;
-    privatePutOrdersBatch (params?: {}): Promise<implicitReturnType>;
-    privatePutPositionsAutoTopup (params?: {}): Promise<implicitReturnType>;
-    privatePutUsersUpdateMmp (params?: {}): Promise<implicitReturnType>;
-    privatePutUsersResetMmp (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersAll (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersBatch (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetAssets (params = {}): Promise<Dict> {
+        return this.request ('assets', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetIndices (params = {}): Promise<Dict> {
+        return this.request ('indices', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetProducts (params = {}): Promise<Dict> {
+        return this.request ('products', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetProductsSymbol (params = {}): Promise<Dict> {
+        return this.request ('products/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTickers (params = {}): Promise<Dict> {
+        return this.request ('tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTickersSymbol (params = {}): Promise<Dict> {
+        return this.request ('tickers/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetL2orderbookSymbol (params = {}): Promise<Dict> {
+        return this.request ('l2orderbook/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTradesSymbol (params = {}): Promise<Dict> {
+        return this.request ('trades/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetStats (params = {}): Promise<List> {
+        return this.request ('stats', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetHistoryCandles (params = {}): Promise<Dict> {
+        return this.request ('history/candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetHistorySparklines (params = {}): Promise<Dict> {
+        return this.request ('history/sparklines', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetSettings (params = {}): Promise<Dict> {
+        return this.request ('settings', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersOrderId (params = {}): Promise<Dict> {
+        return this.request ('orders/{order_id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersClientOrderIdClientOid (params = {}): Promise<Dict> {
+        return this.request ('orders/client_order_id/{client_oid}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetProductsProductIdOrdersLeverage (params = {}): Promise<Dict> {
+        return this.request ('products/{product_id}/orders/leverage', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPositionsMargined (params = {}): Promise<Dict> {
+        return this.request ('positions/margined', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetPositions (params = {}): Promise<Dict> {
+        return this.request ('positions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ('orders/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFills (params = {}): Promise<Dict> {
+        return this.request ('fills', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetFillsHistoryDownloadCsv (params = {}): Promise<Dict> {
+        return this.request ('fills/history/download/csv', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletBalances (params = {}): Promise<Dict> {
+        return this.request ('wallet/balances', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletTransactions (params = {}): Promise<Dict> {
+        return this.request ('wallet/transactions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletTransactionsDownload (params = {}): Promise<Dict> {
+        return this.request ('wallet/transactions/download', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWalletsSubAccountsTransferHistory (params = {}): Promise<Dict> {
+        return this.request ('wallets/sub_accounts_transfer_history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUsersTradingPreferences (params = {}): Promise<Dict> {
+        return this.request ('users/trading_preferences', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetSubAccounts (params = {}): Promise<Dict> {
+        return this.request ('sub_accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetProfile (params = {}): Promise<Dict> {
+        return this.request ('profile', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetRateLimitsQuota (params = {}): Promise<Dict> {
+        return this.request ('rate_limits/quota', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetHeartbeat (params = {}): Promise<Dict> {
+        return this.request ('heartbeat', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetDepositsAddress (params = {}): Promise<Dict> {
+        return this.request ('deposits/address', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrdersBracket (params = {}): Promise<Dict> {
+        return this.request ('orders/bracket', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrdersBatch (params = {}): Promise<Dict> {
+        return this.request ('orders/batch', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostProductsProductIdOrdersLeverage (params = {}): Promise<Dict> {
+        return this.request ('products/{product_id}/orders/leverage', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPositionsChangeMargin (params = {}): Promise<Dict> {
+        return this.request ('positions/change_margin', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPositionsCloseAll (params = {}): Promise<Dict> {
+        return this.request ('positions/close_all', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWalletsSubAccountBalanceTransfer (params = {}): Promise<Dict> {
+        return this.request ('wallets/sub_account_balance_transfer', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostHeartbeatCreate (params = {}): Promise<Dict> {
+        return this.request ('heartbeat/create', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostHeartbeat (params = {}): Promise<Dict> {
+        return this.request ('heartbeat', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrdersCancelAfter (params = {}): Promise<Dict> {
+        return this.request ('orders/cancel_after', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrdersLeverage (params = {}): Promise<Dict> {
+        return this.request ('orders/leverage', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePutOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutOrdersBracket (params = {}): Promise<Dict> {
+        return this.request ('orders/bracket', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutOrdersBatch (params = {}): Promise<Dict> {
+        return this.request ('orders/batch', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutPositionsAutoTopup (params = {}): Promise<Dict> {
+        return this.request ('positions/auto_topup', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutUsersUpdateMmp (params = {}): Promise<Dict> {
+        return this.request ('users/update_mmp', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutUsersResetMmp (params = {}): Promise<Dict> {
+        return this.request ('users/reset_mmp', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutUsersMarginMode (params = {}): Promise<Dict> {
+        return this.request ('users/margin_mode', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privatePutUsersTradingPreferences (params = {}): Promise<Dict> {
+        return this.request ('users/trading_preferences', [ 'private' ], 'PUT', params, { 'cost': 1 });
+    }
+
+    privateDeleteOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteOrdersAll (params = {}): Promise<Dict> {
+        return this.request ('orders/all', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteOrdersBatch (params = {}): Promise<Dict> {
+        return this.request ('orders/batch', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

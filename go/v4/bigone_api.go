@@ -7,166 +7,207 @@
 
 package ccxt
 
-func (this *BigoneCore) PublicGetPing(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPing", args...)
+// PublicGetPing returns a channel that yields a JSON object.
+func (this *Bigone) PublicGetPing(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ping", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PublicGetAssetPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetPairs", args...)
+// PublicGetAssetPairs returns a channel that yields a JSON object.
+func (this *Bigone) PublicGetAssetPairs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "asset_pairs", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PublicGetAssetPairsAssetPairNameDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameDepth", args...)
+// PublicGetAssetPairsAssetPairNameDepth returns a channel that yields a JSON object.
+func (this *Bigone) PublicGetAssetPairsAssetPairNameDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "asset_pairs/{asset_pair_name}/depth", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PublicGetAssetPairsAssetPairNameTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTrades", args...)
+// PublicGetAssetPairsAssetPairNameTrades returns a channel that yields a JSON object.
+func (this *Bigone) PublicGetAssetPairsAssetPairNameTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "asset_pairs/{asset_pair_name}/trades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PublicGetAssetPairsAssetPairNameTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTicker", args...)
+// PublicGetAssetPairsAssetPairNameTicker returns a channel that yields a JSON object.
+func (this *Bigone) PublicGetAssetPairsAssetPairNameTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "asset_pairs/{asset_pair_name}/ticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PublicGetAssetPairsAssetPairNameCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameCandles", args...)
+// PublicGetAssetPairsAssetPairNameCandles returns a channel that yields a JSON object.
+func (this *Bigone) PublicGetAssetPairsAssetPairNameCandles(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "asset_pairs/{asset_pair_name}/candles", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PublicGetAssetPairsTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAssetPairsTickers", args...)
+// PublicGetAssetPairsTickers returns a channel that yields a JSON object.
+func (this *Bigone) PublicGetAssetPairsTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "asset_pairs/tickers", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivateGetAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccounts", args...)
+// PrivateGetAccounts returns a channel that yields a JSON object.
+func (this *Bigone) PrivateGetAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "accounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivateGetFundAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetFundAccounts", args...)
+// PrivateGetFundAccounts returns a channel that yields a JSON object.
+func (this *Bigone) PrivateGetFundAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "fund/accounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivateGetAssetsAssetSymbolAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAssetsAssetSymbolAddress", args...)
+// PrivateGetAssetsAssetSymbolAddress returns a channel that yields a JSON object.
+func (this *Bigone) PrivateGetAssetsAssetSymbolAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "assets/{asset_symbol}/address", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivateGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrders", args...)
+// PrivateGetOrders returns a channel that yields a JSON object.
+func (this *Bigone) PrivateGetOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivateGetOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersId", args...)
+// PrivateGetOrdersId returns a channel that yields a JSON object.
+func (this *Bigone) PrivateGetOrdersId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/{id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivateGetOrdersMulti(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrdersMulti", args...)
+// PrivateGetOrdersMulti returns a channel that yields a JSON object.
+func (this *Bigone) PrivateGetOrdersMulti(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/multi", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivateGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTrades", args...)
+// PrivateGetTrades returns a channel that yields a JSON object.
+func (this *Bigone) PrivateGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivateGetWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWithdrawals", args...)
+// PrivateGetWithdrawals returns a channel that yields a JSON object.
+func (this *Bigone) PrivateGetWithdrawals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdrawals", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivateGetDeposits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDeposits", args...)
+// PrivateGetDeposits returns a channel that yields a JSON object.
+func (this *Bigone) PrivateGetDeposits(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "deposits", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivatePostOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrders", args...)
+// PrivatePostOrders returns a channel that yields a JSON object.
+func (this *Bigone) PrivatePostOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivatePostOrdersIdCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersIdCancel", args...)
+// PrivatePostOrdersIdCancel returns a channel that yields a JSON object.
+func (this *Bigone) PrivatePostOrdersIdCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/{id}/cancel", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivatePostOrdersCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersCancel", args...)
+// PrivatePostOrdersCancel returns a channel that yields a JSON object.
+func (this *Bigone) PrivatePostOrdersCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/cancel", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivatePostWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawals", args...)
+// PrivatePostWithdrawals returns a channel that yields a JSON object.
+func (this *Bigone) PrivatePostWithdrawals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdrawals", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) PrivatePostTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTransfer", args...)
+// PrivatePostTransfer returns a channel that yields a JSON object.
+func (this *Bigone) PrivatePostTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transfer", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPublicGetSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetSymbols", args...)
+// ContractPublicGetSymbols returns a channel that yields a JSON array.
+func (this *Bigone) ContractPublicGetSymbols(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "symbols", []string{"contractPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPublicGetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetInstruments", args...)
+// ContractPublicGetInstruments returns a channel that yields a JSON array.
+func (this *Bigone) ContractPublicGetInstruments(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "instruments", []string{"contractPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPublicGetDepthSymbolSnapshot(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetDepthSymbolSnapshot", args...)
+// ContractPublicGetDepthSymbolSnapshot returns a channel that yields a JSON object.
+func (this *Bigone) ContractPublicGetDepthSymbolSnapshot(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "depth@{symbol}/snapshot", []string{"contractPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPublicGetInstrumentsDifference(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetInstrumentsDifference", args...)
+// ContractPublicGetInstrumentsDifference returns a channel that yields a JSON object.
+func (this *Bigone) ContractPublicGetInstrumentsDifference(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "instruments/difference", []string{"contractPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPublicGetInstrumentsPrices(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPublicGetInstrumentsPrices", args...)
+// ContractPublicGetInstrumentsPrices returns a channel that yields a JSON object.
+func (this *Bigone) ContractPublicGetInstrumentsPrices(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "instruments/prices", []string{"contractPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateGetAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetAccounts", args...)
+// ContractPrivateGetAccounts returns a channel that yields a JSON array.
+func (this *Bigone) ContractPrivateGetAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "accounts", []string{"contractPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateGetOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetOrdersId", args...)
+// ContractPrivateGetOrdersId returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivateGetOrdersId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/{id}", []string{"contractPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetOrders", args...)
+// ContractPrivateGetOrders returns a channel that yields a JSON array.
+func (this *Bigone) ContractPrivateGetOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "orders", []string{"contractPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateGetOrdersOpening(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetOrdersOpening", args...)
+// ContractPrivateGetOrdersOpening returns a channel that yields a JSON array.
+func (this *Bigone) ContractPrivateGetOrdersOpening(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "orders/opening", []string{"contractPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateGetOrdersCount(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetOrdersCount", args...)
+// ContractPrivateGetOrdersCount returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivateGetOrdersCount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/count", []string{"contractPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateGetOrdersOpeningCount(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetOrdersOpeningCount", args...)
+// ContractPrivateGetOrdersOpeningCount returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivateGetOrdersOpeningCount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/opening/count", []string{"contractPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetTrades", args...)
+// ContractPrivateGetTrades returns a channel that yields a JSON array.
+func (this *Bigone) ContractPrivateGetTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trades", []string{"contractPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateGetTradesCount(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetTradesCount", args...)
+// ContractPrivateGetTradesCount returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivateGetTradesCount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trades/count", []string{"contractPrivate"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivatePostOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostOrders", args...)
+// ContractPrivatePostOrders returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivatePostOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders", []string{"contractPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivatePostOrdersBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostOrdersBatch", args...)
+// ContractPrivatePostOrdersBatch returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivatePostOrdersBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/batch", []string{"contractPrivate"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivatePutPositionsSymbolMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePutPositionsSymbolMargin", args...)
+// ContractPrivatePutPositionsSymbolMargin returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivatePutPositionsSymbolMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "positions/{symbol}/margin", []string{"contractPrivate"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivatePutPositionsSymbolRiskLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePutPositionsSymbolRiskLimit", args...)
+// ContractPrivatePutPositionsSymbolRiskLimit returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivatePutPositionsSymbolRiskLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "positions/{symbol}/risk-limit", []string{"contractPrivate"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateDeleteOrdersId(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateDeleteOrdersId", args...)
+// ContractPrivateDeleteOrdersId returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivateDeleteOrdersId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/{id}", []string{"contractPrivate"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) ContractPrivateDeleteOrdersBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateDeleteOrdersBatch", args...)
+// ContractPrivateDeleteOrdersBatch returns a channel that yields a JSON object.
+func (this *Bigone) ContractPrivateDeleteOrdersBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders/batch", []string{"contractPrivate"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BigoneCore) WebExchangeGetV3Assets(args ...any) <-chan any {
-	return this.callEndpointAsync("webExchangeGetV3Assets", args...)
+// WebExchangeGetV3Assets returns a channel that yields a JSON object.
+func (this *Bigone) WebExchangeGetV3Assets(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v3/assets", []string{"webExchange"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }

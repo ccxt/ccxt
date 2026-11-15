@@ -2,12 +2,132 @@ using Newtonsoft.Json;
 using ccxt;
 namespace ccxt.pro;
 
-public class BaseCache : SlimConcurrentList<object>
+public abstract class BaseCache : SlimConcurrentList<object>
 {
+    public abstract Int64? getLimit(object symbol, object limit);
+
+    public abstract void append(object item);
+
+    // typed entry points for receivers only known as object; a null or non-cache receiver
+    // throws NullReferenceException, as the reflective callDynamically lookup did
+    public static Int64? getLimitOf(object cache, object symbol, object limit)
+    {
+        if (cache is BaseCache typed)
+        {
+            return typed.getLimit(symbol, limit);
+        }
+        throw new NullReferenceException();
+    }
+
+    public static void appendTo(object cache, object item)
+    {
+        if (cache is BaseCache typed)
+        {
+            typed.append(item);
+            return;
+        }
+        throw new NullReferenceException();
+    }
+
     // Add any custom properties or methods
     public int? maxSize;
 
-    protected readonly object lockObject = new object();
+    // ---- caller -> owner hand-off / owner -> caller publication -------------------
+    // Items and counters are written only on the ws receive loop of the client that
+    // owns the cache. A caller thread reads the published window and records how far
+    // it has consumed; the loop honours that watermark on its next append. Every field
+    // below has exactly one writer, so no lock is needed to keep them consistent.
+    protected readonly struct Window
+    {
+        public readonly int count;
+        public readonly long seq;
+
+        public Window(int count, long seq)
+        {
+            this.count = count;
+            this.seq = seq;
+        }
+    }
+
+    private Dictionary<string, long> consumedSeq = new Dictionary<string, long>();
+    private long consumedAllSeq;
+    private Dictionary<string, long> honouredSeq = new Dictionary<string, long>();
+    protected long honouredAllSeq;
+    private Dictionary<string, long> seqBySymbol = new Dictionary<string, long>();
+    protected long seqAll;
+    protected Dictionary<string, Window> countsView = new Dictionary<string, Window>();
+    protected Window allView = new Window(0, 0);
+
+    // caller side: the only writer of consumedSeq / consumedAllSeq
+    protected void publishConsume(string symbol, long seq)
+    {
+        var next = new Dictionary<string, long>(this.consumedSeq);
+        next[symbol] = seq;
+        this.consumedSeq = next;
+    }
+
+    protected void publishConsumeAll(long seq)
+    {
+        this.consumedAllSeq = seq;
+    }
+
+    // owner side: true exactly once per caller watermark
+    protected bool shouldResetSymbol(string symbol)
+    {
+        long wanted;
+        if (!this.consumedSeq.TryGetValue(symbol, out wanted))
+        {
+            return false;
+        }
+        long honoured;
+        this.honouredSeq.TryGetValue(symbol, out honoured);
+        if (wanted <= honoured)
+        {
+            return false;
+        }
+        this.honouredSeq[symbol] = wanted;
+        return true;
+    }
+
+    protected bool shouldResetAll()
+    {
+        if (this.consumedAllSeq <= this.honouredAllSeq)
+        {
+            return false;
+        }
+        this.honouredAllSeq = this.consumedAllSeq;
+        return true;
+    }
+
+    protected long bumpSeq(string symbol)
+    {
+        long next;
+        this.seqBySymbol.TryGetValue(symbol, out next);
+        next += 1;
+        this.seqBySymbol[symbol] = next;
+        this.seqAll += 1;
+        return next;
+    }
+
+    protected long seqOf(string symbol)
+    {
+        long seq;
+        this.seqBySymbol.TryGetValue(symbol, out seq);
+        return seq;
+    }
+
+    // owner side: freeze the consumed window for callers
+    protected virtual void publishCounts()
+    {
+        this.allView = new Window(0, this.seqAll);
+    }
+
+    // owner side: freeze the item list for callers
+    protected void publishItems()
+    {
+        this.Publish();
+    }
+
 
     // public int? length;
     public BaseCache(object maxCapacity = null) : base()
@@ -17,66 +137,169 @@ public class BaseCache : SlimConcurrentList<object>
 
     }
 
-    public void clear()
+    // ts/src/base/ws/Cache.ts guards eviction with `if (this.maxSize && ...)`, a
+    // JS truthiness test, so a maxSize of 0 (or undefined) means "unbounded".
+    // maxSize can legitimately be 0 when a cache is copy-constructed by .filter().
+    protected bool isBounded
     {
-        // this.Count = 0;
-        lock (this.lockObject)
+        get { return (this.maxSize != null) && (this.maxSize != 0); }
+    }
+
+    // Mirrors the TS `for (const prop in item) reference[prop] = item[prop]`
+    // update path: the *stored* object is mutated in place so that any external
+    // reference handed out earlier (and the hashmap entry pointing at it) stays
+    // live, instead of being silently rebound to a new object.
+    // Returns false when the two values cannot be merged field-wise, so callers
+    // can fall back to replacing the slot.
+    protected static bool mergeInto(object reference, object item)
+    {
+        if (object.ReferenceEquals(reference, item))
         {
-            this.Clear();
+            return true;
         }
+        if (reference == null || item == null)
+        {
+            return false;
+        }
+        var referenceDict = reference as IDictionary<string, object>;
+        var itemDict = item as IDictionary<string, object>;
+        if (referenceDict != null && itemDict != null && !referenceDict.IsReadOnly)
+        {
+            foreach (var pair in itemDict)
+            {
+                referenceDict[pair.Key] = pair.Value;
+            }
+            return true;
+        }
+        // OHLCV rows are lists, so "every prop of item" means every index of item.
+        // Incoming length wins (a shorter candle must drop the previous tail).
+        // Price / amount / OHLCV slots are stored as Double, so OrderBy's
+        // Double.CompareTo never sees a mixed Int64.
+        var referenceList = reference as IList<object>;
+        var itemList = item as IList<object>;
+        if (referenceList != null && itemList != null && !referenceList.IsReadOnly)
+        {
+            var itemCount = itemList.Count;
+            for (var i = 0; i < itemCount; i++)
+            {
+                if (i < referenceList.Count)
+                {
+                    referenceList[i] = itemList[i];
+                }
+                else
+                {
+                    referenceList.Add(itemList[i]);
+                }
+            }
+            while (referenceList.Count > itemCount)
+            {
+                referenceList.RemoveAt(referenceList.Count - 1);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public virtual void clear()
+    {
+        this.Clear();
+        this.publishItems();
+        this.publishCounts();
     }
 }
 
 public class ArrayCache : BaseCache
 {
     // Add any custom properties or methods
+    // NOTE: this is the single hashmap of the whole family. ArrayCacheBySymbolById
+    // and ArrayCacheBySymbolBySide deliberately do NOT redeclare it - a shadowing
+    // field would leave this base one permanently empty, which is exactly what the
+    // generated exchange code reads through `(stored as ArrayCache).hashmap`
+    // (pro/kraken, pro/bitmex, pro/woofipro, pro/coinbaseexchange, pro/upbit).
     public Dictionary<string, object> hashmap = new Dictionary<string, object>();
+    // true when the subclass counts DISTINCT ids/sides per symbol through
+    // seenUpdatesBySymbol rather than every append. getLimit does not read it:
+    // newUpdatesBySymbol carries the resolved count either way.
     protected bool nestedNewUpdatesBySymbol;
-    protected Dictionary<string, object> newUpdatesBySymbol = new Dictionary<string, object>();
-    protected Dictionary<string, object> clearUpdatesBySymbol = new Dictionary<string, object>();
+    // symbol -> number of updates since the last getLimit() read, always an int.
+    // ArrayCacheBySymbolById / ...BySide keep their distinct id/side sets in
+    // seenUpdatesBySymbol and write the set size back here, so getLimit never has
+    // to type-pun a HashSet out of this map.
+    protected Dictionary<string, int> newUpdatesBySymbol = new Dictionary<string, int>();
+    // symbol -> the distinct ids (ById) or sides (BySide) seen in the current
+    // window; empty for the plain ArrayCache, which counts every append.
+    protected Dictionary<string, HashSet<object>> seenUpdatesBySymbol = new Dictionary<string, HashSet<object>>();
+    // the same, but cleared only by the GLOBAL getLimit scope - the two poll
+    // scopes are independent, so each needs its own memory of what it has seen
+    protected Dictionary<string, HashSet<object>> seenUpdatesAll = new Dictionary<string, HashSet<object>>();
     protected int allNewUpdates;
-    protected bool clearAllUpdates;
     public ArrayCache(object maxSixe = null) : base(maxSixe)
     {
 
     }
 
-    public object getLimit(object symbol2, object limit2)
+    // Dropping the rows without dropping the bookkeeping leaves the hashmap
+    // pointing at objects that are no longer in the list, so the next append of a
+    // known key takes the "update" branch, mutates an orphan and never re-adds the
+    // row - the item silently disappears. Reset the whole cache state together.
+    public override void clear()
     {
-        lock (this.lockObject)
-        {
-            return _getLimit(symbol2, limit2);
-        }
+        this.Clear();
+        this.hashmap.Clear();
+        this.newUpdatesBySymbol.Clear();
+        this.seenUpdatesBySymbol.Clear();
+        this.seenUpdatesAll.Clear();
+        this.allNewUpdates = 0;
+        this.publishItems();
+        this.publishCounts();
     }
 
-    private object _getLimit(object symbol2, object limit2)
+    // owner side: freeze the per-symbol windows for callers
+    protected override void publishCounts()
+    {
+        var view = new Dictionary<string, Window>(this.newUpdatesBySymbol.Count);
+        foreach (var pair in this.newUpdatesBySymbol)
+        {
+            view[pair.Key] = new Window(pair.Value, this.seqOf(pair.Key));
+        }
+        this.countsView = view;
+        this.allView = new Window(this.allNewUpdates, this.seqAll);
+    }
+
+    // Int64? (not object/int): the generated `limitVar` shadows receive this through
+    // callDynamically and are declared Int64? -- every path must hand back an Int64 box or null,
+    // and ToInt64Arg normalises the incoming object without turning a null limit into 0.
+    public override Int64? getLimit(object symbol2, object limit2)
+    {
+        return _getLimit(symbol2, limit2);
+    }
+
+    private Int64? _getLimit(object symbol2, object limit2)
     {
         // var limit = (int)limit2;
         int? newUpdatesValue = null;
 
         if (symbol2 == null)
         {
-            newUpdatesValue = this.allNewUpdates;
-            this.clearAllUpdates = true;
+            var all = this.allView;
+            newUpdatesValue = all.count;
+            this.publishConsumeAll(all.seq);
         }
         else
         {
             var symbol = symbol2.ToString();
-            var tempNewUpdates = this.newUpdatesBySymbol[symbol];
-            if (tempNewUpdates != null && !this.nestedNewUpdatesBySymbol)
+            Window window;
+            // an absent key reads as "nothing new", exactly like the previous map miss
+            if (this.countsView.TryGetValue(symbol, out window))
             {
-                newUpdatesValue = Convert.ToInt32(tempNewUpdates);
+                newUpdatesValue = window.count;
             }
-            if ((tempNewUpdates != null) && this.nestedNewUpdatesBySymbol)
-            {
-                newUpdatesValue = ((HashSet<object>)tempNewUpdates).Count;
-            }
-            this.clearUpdatesBySymbol[symbol] = true;
+            this.publishConsume(symbol, window.seq);
         }
 
         if (newUpdatesValue == null)
         {
-            return limit2;
+            return ccxt.BaseExchange.ToInt64Arg(limit2);
         }
         else if (limit2 != null)
         {
@@ -88,47 +311,46 @@ public class ArrayCache : BaseCache
         }
     }
 
-    public void append(object item)
+    public override void append(object item)
     {
-        lock (this.lockObject)
-        {
-            _append(item);
-        }
+        _append(item);
     }
 
     private void _append(object item)
     {
-        if (this.maxSize != null && this.maxSize != 0 && this.Count == this.maxSize)
+        // `while (Count >= maxSize)` rather than `== maxSize` so an oversized cache
+        // heals itself instead of latching into unbounded growth
+        while (this.isBounded && (this.Count >= this.maxSize))
         {
             this.RemoveAt(0);
         }
         this.Add(item);
-        if (this.clearAllUpdates)
+        if (this.shouldResetAll())
         {
-            this.clearAllUpdates = false;
-            this.clearUpdatesBySymbol = new Dictionary<string, object>();
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets and counts belong to the symbol consumers
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol = new Dictionary<string, object>();
+            this.seenUpdatesAll = new Dictionary<string, HashSet<object>>();
         }
 
         var itemSymbol = Exchange.SafeString(item, "symbol");
-        var clearUpdateBySymbol = (this.clearUpdatesBySymbol.ContainsKey(itemSymbol)) ? this.clearUpdatesBySymbol[itemSymbol] : null;
-        if (clearUpdateBySymbol != null)
+        if (this.shouldResetSymbol(itemSymbol))
         {
-            this.clearUpdatesBySymbol[itemSymbol] = false;
             this.newUpdatesBySymbol[itemSymbol] = 0;
         }
-        var defaultValue = (this.newUpdatesBySymbol.ContainsKey(itemSymbol)) ? (int)this.newUpdatesBySymbol[itemSymbol] : 0;
+        int previousUpdates = 0;
+        var defaultValue = (this.newUpdatesBySymbol.TryGetValue(itemSymbol, out previousUpdates)) ? previousUpdates : 0;
         this.newUpdatesBySymbol[itemSymbol] = defaultValue + 1;
         this.allNewUpdates = this.allNewUpdates + 1;
+        this.bumpSeq(itemSymbol);
+        this.publishItems();
+        this.publishCounts();
     }
 
     public string SerializeToJson()
     {
-        lock (lockObject)
-        {
-            return JsonConvert.SerializeObject(this);
-        }
+        // serialize the publication, not the live list the owner is appending to
+        return JsonConvert.SerializeObject(this.Published);
     }
 }
 
@@ -140,199 +362,295 @@ public class ArrayCacheByTimestamp : BaseCache
 
     public int newUpdates = 0;
 
-    public bool clearUpdates = false;
 
     public ArrayCacheByTimestamp(object maxSixe = null) : base(maxSixe)
     {
     }
 
-    public int getLimit(object symbol, object limit2)
+    public override void clear()
     {
-        lock (this.lockObject)
-        {
-            return _getLimit(symbol, limit2);
-        }
+        this.Clear();
+        this.hashmap.Clear();
+        this.sizeTracker.Clear();
+        this.newUpdates = 0;
+        this.publishItems();
+        this.publishCounts();
     }
 
-    private int _getLimit(object symbol, object limit2)
+    // owner side: freeze the consumed candle window for callers
+    protected override void publishCounts()
     {
-        this.clearUpdates = true;
+        this.allView = new Window(this.newUpdates, this.seqAll);
+    }
+
+    // Int64? for the same reason as ArrayCache.getLimit: callDynamically feeds the generated
+    // Int64? `limitVar` shadows, so every path hands back an Int64 box or null.
+    public override Int64? getLimit(object symbol, object limit2)
+    {
+        return _getLimit(symbol, limit2);
+    }
+
+    private Int64? _getLimit(object symbol, object limit2)
+    {
+        this.publishConsumeAll(this.seqAll);
         if (limit2 == null)
         {
-            return this.newUpdates;
+            return this.allView.count;
         }
-        var limit = (int)limit2;
-        return Math.Min(this.newUpdates, limit);
+        // the caller's `limit` is a boxed core argument, now narrowed to Int64 -- an
+        // unbox-cast binds by exact type and throws InvalidCastException on Int64.
+        var limit = Convert.ToInt32(limit2);
+        return Math.Min(this.allView.count, limit);
     }
 
-    public void append(object item)
+    public override void append(object item)
     {
-        lock (this.lockObject)
-        {
-            _append(item);
-        }
+        _append(item);
     }
     private void _append(object item)
     {
         var firstValue = Exchange.SafeString(item, 0);
-        if (firstValue != null && (this.hashmap.ContainsKey(firstValue)))
+        object reference = null;
+        if (this.hashmap.TryGetValue(firstValue, out reference))
         {
-            var prevRef = this.hashmap[firstValue];
-            var index = this.IndexOf(prevRef);
-            this.hashmap[firstValue] = item; // check this out
-            this[index] = item;
-
+            // TS mutates the candle that is already cached so that consumers holding
+            // a reference to it observe the update; only fall back to swapping the
+            // slot when the row cannot be merged field-wise. The position is kept
+            // either way, and the hashmap keeps pointing at the live object.
+            if (!mergeInto(reference, item))
+            {
+                var index = this.IndexOf(reference);
+                if (index >= 0)
+                {
+                    this[index] = item;
+                }
+                else
+                {
+                    this.Add(item);
+                }
+                this.hashmap[firstValue] = item;
+            }
         }
         else
         {
-            this.hashmap[firstValue.ToString()] = item;
-            if (this.maxSize != null && this.maxSize != 0 && (this.Count == this.maxSize))
+            this.hashmap[firstValue] = item;
+            // this used to read this[0] and drop the hashmap key without ever
+            // removing the row, so the OHLCV cache grew without bound: Count
+            // overshot maxSize once and the `== maxSize` test never matched again.
+            while (this.isBounded && (this.Count >= this.maxSize))
             {
                 var deletedReference = this[0];
-                var deletedFirstValue = Exchange.SafeValue(deletedReference, 0);
-                this.hashmap.Remove(deletedFirstValue.ToString());
+                this.RemoveAt(0);
+                this.hashmap.Remove(Exchange.SafeString(deletedReference, 0));
             }
             this.Add(item);
         }
 
-        if (this.clearUpdates)
+        if (this.shouldResetAll())
         {
-            this.clearUpdates = false;
             this.sizeTracker.Clear();
         }
         this.sizeTracker.Add(firstValue);
         this.newUpdates = this.sizeTracker.Count;
+        this.bumpSeq("timestamp");
+        this.publishItems();
+        this.publishCounts();
     }
 }
 
 
 public class ArrayCacheBySymbolById : ArrayCache
 {
-    public Dictionary<string, object> hashmap = new Dictionary<string, object>();
+    public string keyField = "symbol"; // first nesting level (overridden by ArrayCacheByOutcomeById)
     // public Deque<int> index = new Queue<int>();
     public ArrayCacheBySymbolById(object maxSixe = null) : base(maxSixe)
     {
         this.nestedNewUpdatesBySymbol = true;
     }
 
-    public void append(object item)
+    public override void append(object item)
     {
-        lock (this.lockObject)
-        {
-            _append(item);
-        }
+        _append(item);
     }
 
     private void _append(object item)
     {
-        var itemSymbol = Exchange.SafeString(item, "symbol");
+        var itemSymbol = Exchange.SafeString(item, this.keyField);
         var itemId = Exchange.SafeString(item, "id");
-        var byId = (this.hashmap.ContainsKey(itemSymbol)) ? this.hashmap[itemSymbol] as Dictionary<string, object> : new Dictionary<string, object>();
-        this.hashmap[itemSymbol] = byId;
-        if (byId.ContainsKey(itemId))
+        object byIdValue = null;
+        var byId = (this.hashmap.TryGetValue(itemSymbol, out byIdValue)) ? byIdValue as Dictionary<string, object> : null;
+        if (byId == null)
         {
-            var reference = byId[itemId];
-            if (reference != item)
+            byId = new Dictionary<string, object>();
+        }
+        this.hashmap[itemSymbol] = byId;
+        object reference = null;
+        if (byId.TryGetValue(itemId, out reference))
+        {
+            // copy the incoming fields onto the *stored* order rather than rebinding
+            // a local, so the object in the list and in the hashmap is the one that
+            // actually gets updated
+            if (mergeInto(reference, item))
             {
-                reference = item;
+                item = reference;
             }
-            item = reference;
-            // index = new Queue<int>(index.Where(x => x != (int)reference));
-            // this.index.Remove
-            var value = this.Find(x => Exchange.SafeString(x, "id") == itemId);
-            var indexInt = this.IndexOf(value);
-            this.RemoveAt(indexInt);
-            // this.index.Remove(indexInt);
+            else
+            {
+                byId[itemId] = item;
+            }
+            // match on both the key field (e.g. symbol) and id - different symbols can
+            // share an order id (binance uses per-symbol id sequences), and matching on
+            // id alone would remove the wrong row, see ccxt/ccxt#26092
+            var indexInt = this.FindIndex(x => (Exchange.SafeString(x, "id") == itemId) && (Exchange.SafeString(x, this.keyField) == itemSymbol));
+            // move the order to the end of the array
+            if (indexInt >= 0)
+            {
+                this.RemoveAt(indexInt);
+            }
         }
         else
         {
             byId[itemId] = item;
         }
 
-        if (this.maxSize != null && (this.Count == this.maxSize))
+        while (this.isBounded && (this.Count >= this.maxSize))
         {
             var first = this[0];
             this.RemoveAt(0);
-            var deletedSymbol = Exchange.SafeString(first, "symbol");
+            var deletedSymbol = Exchange.SafeString(first, this.keyField);
             var deletedId = Exchange.SafeString(first, "id");
-            var secondHashMap = (this.hashmap[deletedSymbol] as Dictionary<string, object>);
-            if (secondHashMap != null)
+            object deletedBucketValue = null;
+            if (this.hashmap.TryGetValue(deletedSymbol, out deletedBucketValue))
             {
-                secondHashMap.Remove(deletedId);
+                var secondHashMap = deletedBucketValue as Dictionary<string, object>;
+                if (secondHashMap != null)
+                {
+                    secondHashMap.Remove(deletedId);
+                    // drop the outer entry too once its last id is gone, otherwise the
+                    // symbol keys accumulate forever on a long lived orders stream
+                    if (secondHashMap.Count == 0)
+                    {
+                        this.hashmap.Remove(deletedSymbol);
+                    }
+                }
+            }
+            // the evicted id also leaves both seen scopes so single-scope pollers
+            // stay bounded - the counts mean distinct ids within the retained window
+            HashSet<object> evictedSymbolSeen = null;
+            if (this.seenUpdatesBySymbol.TryGetValue(deletedSymbol, out evictedSymbolSeen) && evictedSymbolSeen.Remove(deletedId))
+            {
+                this.newUpdatesBySymbol[deletedSymbol] = this.newUpdatesBySymbol[deletedSymbol] - 1;
+                if (evictedSymbolSeen.Count == 0)
+                {
+                    this.seenUpdatesBySymbol.Remove(deletedSymbol);
+                }
+            }
+            HashSet<object> evictedAllSeen = null;
+            if (this.seenUpdatesAll.TryGetValue(deletedSymbol, out evictedAllSeen) && evictedAllSeen.Remove(deletedId))
+            {
+                this.allNewUpdates = this.allNewUpdates - 1;
+                if (evictedAllSeen.Count == 0)
+                {
+                    this.seenUpdatesAll.Remove(deletedSymbol);
+                }
             }
         }
         this.Add(item);
 
-        if (this.clearAllUpdates)
+        if (this.shouldResetAll())
         {
-            this.clearAllUpdates = false;
-            this.clearUpdatesBySymbol = new Dictionary<string, object>();
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets and counts belong to the symbol consumers
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol = new Dictionary<string, object>();
+            this.seenUpdatesAll = new Dictionary<string, HashSet<object>>();
         }
 
-        var newUpdatesBySymbolValue = (this.newUpdatesBySymbol.ContainsKey(itemSymbol)) ? this.newUpdatesBySymbol[itemSymbol] : null;
-        if (newUpdatesBySymbolValue == null)
+        HashSet<object> idSet = null;
+        if (!this.seenUpdatesBySymbol.TryGetValue(itemSymbol, out idSet))
         {
-            this.newUpdatesBySymbol[itemSymbol] = new HashSet<object>();
+            idSet = new HashSet<object>();
+            this.seenUpdatesBySymbol[itemSymbol] = idSet;
         }
 
-        var clearUpdatesBySymbolValue = (this.clearUpdatesBySymbol.ContainsKey(itemSymbol)) ? this.clearUpdatesBySymbol[itemSymbol] : null;
-        if (clearUpdatesBySymbolValue != null)
+        if (this.shouldResetSymbol(itemSymbol))
         {
-            this.clearUpdatesBySymbol[itemSymbol] = false;
-            (this.newUpdatesBySymbol[itemSymbol] as HashSet<object>).Clear();
+            idSet.Clear();
         }
 
         // in case an exchange updates the same order id twice
-        var idSet = this.newUpdatesBySymbol[itemSymbol] as HashSet<object>;
-        var beforeLength = idSet.Count;
         idSet.Add(itemId);
-        var afterLength = idSet.Count;
+        this.newUpdatesBySymbol[itemSymbol] = idSet.Count;
+        // the global scope keeps its own seen sets: the symbol-scoped poll clears
+        // the symbol set, and deriving the global count from that set double-counts
+        // an id that updates again after a symbol poll
+        HashSet<object> allIdSet = null;
+        if (!this.seenUpdatesAll.TryGetValue(itemSymbol, out allIdSet))
+        {
+            allIdSet = new HashSet<object>();
+            this.seenUpdatesAll[itemSymbol] = allIdSet;
+        }
+        var beforeAllLength = allIdSet.Count;
+        allIdSet.Add(itemId);
+        var afterAllLength = allIdSet.Count;
         var defaultAllNewUpdates = this.allNewUpdates;
-        this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
+        this.allNewUpdates = defaultAllNewUpdates + (afterAllLength - beforeAllLength);
+        this.bumpSeq(itemSymbol);
+        this.publishItems();
+        this.publishCounts();
+    }
+}
+
+public class ArrayCacheByOutcomeById : ArrayCacheBySymbolById
+{
+    public ArrayCacheByOutcomeById(object maxSixe = null) : base(maxSixe)
+    {
+        this.keyField = "outcome";
     }
 }
 
 public class ArrayCacheBySymbolBySide : ArrayCache
 {
-    // tbd incomplete
-    public Dictionary<string, object> hashmap = new Dictionary<string, object>();
+    // NOTE: no eviction here on purpose - the TS ArrayCacheBySymbolBySide takes no
+    // maxSize at all and never trims. The parameter is kept only so the 55 existing
+    // call sites keep compiling; it is intentionally not enforced.
     public ArrayCacheBySymbolBySide(int? maxSixe = null) : base(maxSixe)
     {
         this.nestedNewUpdatesBySymbol = true;
     }
 
-    public void append(object item)
+    public override void append(object item)
     {
-        lock (this.lockObject)
-        {
-            _append(item);
-        }
+        _append(item);
     }
 
     private void _append(object item)
     {
         var itemSymbol = Exchange.SafeString(item, "symbol");
         var itemSide = Exchange.SafeString(item, "side");
-        if (!this.hashmap.ContainsKey(itemSymbol))
+        object bySideValue = null;
+        var bySide = (this.hashmap.TryGetValue(itemSymbol, out bySideValue)) ? bySideValue as Dictionary<string, object> : null;
+        if (bySide == null)
         {
-            this.hashmap[itemSymbol] = new Dictionary<string, object>();
+            bySide = new Dictionary<string, object>();
         }
-        var bySide = this.hashmap[itemSymbol] as Dictionary<string, object>;
-        if (bySide.ContainsKey(itemSide))
+        this.hashmap[itemSymbol] = bySide;
+        object reference = null;
+        if (bySide.TryGetValue(itemSide, out reference))
         {
-            var reference = bySide[itemSide];
-            if (reference != item)
+            if (mergeInto(reference, item))
             {
-                reference = item;
+                item = reference;
             }
-            item = reference;
-            var value = this.Find(x => Exchange.SafeString(x, "symbol") == itemSymbol && Exchange.SafeString(x, "side") == itemSide);
-            var indexInt = this.IndexOf(value);
+            else
+            {
+                bySide[itemSide] = item;
+            }
+            var indexInt = this.FindIndex(x => Exchange.SafeString(x, "symbol") == itemSymbol && Exchange.SafeString(x, "side") == itemSide);
             // move to the end
-            this.RemoveAt(indexInt);
-
+            if (indexInt >= 0)
+            {
+                this.RemoveAt(indexInt);
+            }
         }
         else
         {
@@ -340,33 +658,43 @@ public class ArrayCacheBySymbolBySide : ArrayCache
         }
         this.Add(item);
 
-        if (this.clearAllUpdates)
+        if (this.shouldResetAll())
         {
-            this.clearAllUpdates = false;
-            this.clearUpdatesBySymbol = new Dictionary<string, object>();
+            // the global poll consumes only the global scope: the symbol-scoped
+            // seen sets and counts belong to the symbol consumers
             this.allNewUpdates = 0;
-            this.newUpdatesBySymbol = new Dictionary<string, object>();
+            this.seenUpdatesAll = new Dictionary<string, HashSet<object>>();
         }
 
-        var newUpdatesBySymbolValue = (this.newUpdatesBySymbol.ContainsKey(itemSymbol)) ? this.newUpdatesBySymbol[itemSymbol] : null;
-        if (newUpdatesBySymbolValue == null)
+        HashSet<object> sideSet = null;
+        if (!this.seenUpdatesBySymbol.TryGetValue(itemSymbol, out sideSet))
         {
-            this.newUpdatesBySymbol[itemSymbol] = new HashSet<object>();
+            sideSet = new HashSet<object>();
+            this.seenUpdatesBySymbol[itemSymbol] = sideSet;
         }
 
-        var clearUpdatesBySymbolValue = (this.clearUpdatesBySymbol.ContainsKey(itemSymbol)) ? this.clearUpdatesBySymbol[itemSymbol] : null;
-        if (clearUpdatesBySymbolValue != null)
+        if (this.shouldResetSymbol(itemSymbol))
         {
-            this.clearUpdatesBySymbol[itemSymbol] = false;
-            (this.newUpdatesBySymbol[itemSymbol] as HashSet<object>).Clear();
+            sideSet.Clear();
         }
 
-        var sideSet = this.newUpdatesBySymbol[itemSymbol] as HashSet<object>;
-        var beforeLength = sideSet.Count;
         sideSet.Add(itemSide);
-        var afterLength = sideSet.Count;
+        this.newUpdatesBySymbol[itemSymbol] = sideSet.Count;
+        // independent global-scope memory, see ArrayCacheBySymbolById.append
+        HashSet<object> allSideSet = null;
+        if (!this.seenUpdatesAll.TryGetValue(itemSymbol, out allSideSet))
+        {
+            allSideSet = new HashSet<object>();
+            this.seenUpdatesAll[itemSymbol] = allSideSet;
+        }
+        var beforeAllLength = allSideSet.Count;
+        allSideSet.Add(itemSide);
+        var afterAllLength = allSideSet.Count;
         var defaultAllNewUpdates = this.allNewUpdates;
-        this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
+        this.allNewUpdates = defaultAllNewUpdates + (afterAllLength - beforeAllLength);
+        this.bumpSeq(itemSymbol);
+        this.publishItems();
+        this.publishCounts();
     }
 }
 // }

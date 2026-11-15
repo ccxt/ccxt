@@ -6,7 +6,8 @@
 
 //  ---------------------------------------------------------------------------
 import independentreserveRest from '../independentreserve.js';
-import { NotSupported, ChecksumError } from '../base/errors.js';
+import { NotSupported, ChecksumError, ExchangeError } from '../base/errors.js';
+import { ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from '../base/functions/number.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class independentreserve extends independentreserveRest {
@@ -49,11 +50,19 @@ export default class independentreserve extends independentreserveRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
-        const messageHash = 'trades:' + symbol;
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError(this.id + ' watchTrades() has no websocket url');
+        }
+        const baseId = this.safeString(market, 'base', '');
+        const quoteId = this.safeString(market, 'quote', '');
+        const url = wsUrl + '?subscribe=ticker-' + baseId + '-' + quoteId;
+        const messageHash = 'trades:' + symbolValue;
         const trades = await this.watch(url, messageHash, undefined, messageHash);
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
@@ -76,7 +85,7 @@ export default class independentreserve extends independentreserveRest {
         //        "Event": "Trade"
         //    }
         //
-        const data = this.safeValue(message, 'Data', {});
+        const data = this.safeDict(message, 'Data', {});
         const marketId = this.safeString(data, 'Pair');
         const symbol = this.safeSymbol(marketId, undefined, '-');
         const messageHash = 'trades:' + symbol;
@@ -89,7 +98,7 @@ export default class independentreserve extends independentreserveRest {
         const trade = this.parseWsTrade(data);
         stored.append(trade);
         this.trades[symbol] = stored;
-        client.resolve(this.trades[symbol], messageHash);
+        client.resolve(stored, messageHash);
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -129,18 +138,24 @@ export default class independentreserve extends independentreserveRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        if (limit === undefined) {
-            limit = 100;
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        const limitString = this.numberToString(limit);
-        const url = this.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote'];
-        const messageHash = 'orderbook:' + symbol + ':' + limitString;
+        const market = this.market(symbol);
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const limitResolved = (limit === undefined) ? 100 : limit;
+        const limitString = this.numberToString(limitResolved);
+        const wsUrl = this.safeString(this.urls['api'], 'ws');
+        if (wsUrl === undefined) {
+            throw new ExchangeError(this.id + ' watchOrderBook() has no websocket url');
+        }
+        const baseId = this.safeString(market, 'base', '');
+        const quoteId = this.safeString(market, 'quote', '');
+        const url = wsUrl + '/orderbook/' + limitString + '?subscribe=' + baseId + '-' + quoteId;
+        const messageHash = 'orderbook:' + symbolValue + ':' + limitString;
         const subscription = {
             'receivedSnapshot': false,
         };
@@ -172,16 +187,22 @@ export default class independentreserve extends independentreserveRest {
         //
         const event = this.safeString(message, 'Event');
         const channel = this.safeString(message, 'Channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split('/');
-        const depth = this.safeString(parts, 1);
+        const depth = this.safeString(parts, 1, '');
         const baseId = this.safeString(parts, 2);
         const quoteId = this.safeString(parts, 3);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return;
+        }
         const symbol = base + '/' + quote;
         const orderBook = this.safeDict(message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
-        const subscription = this.safeValue(client.subscriptions, messageHash, {});
+        const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const receivedSnapshot = this.safeBool(subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger(message, 'Time');
         // let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -192,7 +213,11 @@ export default class independentreserve extends independentreserveRest {
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             orderbook.reset(snapshot);
-            subscription['receivedSnapshot'] = true;
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            client.subscriptions[messageHash] = this.extend(subscription, {
+                'receivedSnapshot': true,
+            });
         }
         else {
             const asks = this.safeList(orderBook, 'Offers', []);
@@ -203,7 +228,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['datetime'] = this.iso8601(timestamp);
         }
         const checksum = this.handleOption('watchOrderBook', 'checksum', true);
-        if (checksum && receivedSnapshot) {
+        if ((checksum) && (receivedSnapshot)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
@@ -211,15 +236,15 @@ export default class independentreserve extends independentreserveRest {
             let payload = '';
             for (let i = 0; i < 10; i++) {
                 if (i < bidsLength) {
-                    payload = payload + this.valueToChecksum(storedBids[i][0]) + this.valueToChecksum(storedBids[i][1]);
+                    payload = payload + this.valueToChecksum(this.safeNumber(storedBids[i], 0)) + this.valueToChecksum(this.safeNumber(storedBids[i], 1));
                 }
             }
             for (let i = 0; i < 10; i++) {
                 if (i < asksLength) {
-                    payload = payload + this.valueToChecksum(storedAsks[i][0]) + this.valueToChecksum(storedAsks[i][1]);
+                    payload = payload + this.valueToChecksum(this.safeNumber(storedAsks[i], 0)) + this.valueToChecksum(this.safeNumber(storedAsks[i], 1));
                 }
             }
-            const calculatedChecksum = this.crc32(payload, true);
+            const calculatedChecksum = this.crc32(payload, false);
             const responseChecksum = this.safeInteger(orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
                 const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
@@ -234,7 +259,10 @@ export default class independentreserve extends independentreserveRest {
         }
     }
     valueToChecksum(value) {
-        let result = value.toFixed(8);
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        let result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
         result = result.replace('.', '');
         // remove leading zeros
         result = this.parseNumber(result);

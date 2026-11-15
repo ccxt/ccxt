@@ -10,8 +10,6 @@ namespace ccxt\pro;
 
 class Exchange extends \ccxt\async\Exchange {
 
-    use ClientTrait;
-
     public static $exchanges = array();
 }
 
@@ -19,11 +17,8 @@ class Exchange extends \ccxt\async\Exchange {
 // todo: fix the conflict of ccxt.exchanges vs ccxtpro.exchanges
 
 Exchange::$exchanges = array(
-    'aftermath',
     'alpaca',
     'apex',
-    'arkham',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -35,8 +30,6 @@ Exchange::$exchanges = array(
     'bitfinex',
     'bitget',
     'bithumb',
-    'bitmart',
-    'bitmex',
     'bitopro',
     'bitrue',
     'bitstamp',
@@ -47,30 +40,27 @@ Exchange::$exchanges = array(
     'bullish',
     'bybit',
     'bybiteu',
-    'bydfi',
+    'bybitid',
     'cex',
     'coinbase',
-    'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
-    'coinex',
     'coinone',
     'cryptocom',
     'deepcoin',
     'deribit',
     'derive',
     'dydx',
-    'exmo',
     'extended',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',
     'hitbtc',
     'hollaex',
     'htx',
-    'huobi',
     'hyperliquid',
     'independentreserve',
     'kraken',
@@ -82,7 +72,9 @@ Exchange::$exchanges = array(
     'luno',
     'mexc',
     'modetrade',
+    'mudrex',
     'myokx',
+    'nado',
     'ndax',
     'okx',
     'okxus',
@@ -92,6 +84,7 @@ Exchange::$exchanges = array(
     'paradex',
     'phemex',
     'poloniex',
+    'polymarket',
     'toobit',
     'upbit',
     'weex',

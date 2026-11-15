@@ -1,10 +1,10 @@
-- [Async Binance Futures Vs Spot](./examples/py/)
+```python
+# -*- coding: utf-8 -*-
 
+from importlib import import_module
+from importlib.util import find_spec
 
- ```python
- # -*- coding: utf-8 -*-
-
-import asyncio
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 from pprint import pprint
@@ -40,12 +40,12 @@ async def run():
     symbol = 'BTC/USDT'
     everything = {
         'spot': await load(exchange, symbol, 'spot'),
-        'future': await load(exchange, symbol, 'future'),
+        'swap': await load(exchange, symbol, 'swap'),
     }
     await exchange.close()
     return everything
 
 
-asyncio.run(run())
- 
+run(run())
+
 ```

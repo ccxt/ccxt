@@ -21,6 +21,9 @@ function test_watch_orders($exchange, $skipped_properties, $symbol) {
             $success = true;
             try {
                 $response = \React\Async\await($exchange->watch_orders($symbol));
+                if ($response === null) {
+                    throw new Exception($exchange->id . ' watch returned undefined response');
+                }
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
@@ -29,7 +32,10 @@ function test_watch_orders($exchange, $skipped_properties, $symbol) {
                 // continue;
                 $success = false;
             }
-            if ($success === true) {
+            if ($success) {
+                if ($response === null) {
+                    throw new Exception($exchange->id . ' watch returned undefined response');
+                }
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
                 $now = $exchange->milliseconds();
                 for ($i = 0; $i < count($response); $i++) {

@@ -24,7 +24,7 @@ public final class Encode {
     // base16 / hex
     // ----------------------------
 
-    public static Object base16ToBinary(Object str2) {
+    public static byte[] base16ToBinary(Object str2) {
         String s = (String) str2;
         return convertHexStringToByteArray(s);
     }
@@ -44,7 +44,7 @@ public final class Encode {
         return out;
     }
 
-    public static Object remove0xPrefix(Object str2) {
+    public static String remove0xPrefix(Object str2) {
         String s = (String) str2;
         if (s.startsWith("0x")) return s.substring(2);
         return s;
@@ -69,17 +69,6 @@ public final class Encode {
     public static String binaryToBase64(byte[] buff) { return BinaryToBase64(buff); }
     public static String BinaryToBase64(byte[] buff) {
         return Base64.getEncoder().encodeToString(buff);
-    }
-
-    public static byte[] stringToBinary(String buff) { return StringToBinary(buff); }
-    public static byte[] StringToBinary(String buff) {
-        return buff.getBytes(StandardCharsets.UTF_8);
-    }
-
-    public static String Base64ToBase64Url(String base64, boolean stripPadding) {
-        String base64Url = base64.replace('+', '-').replace('/', '_');
-        if (stripPadding) base64Url = trimRight(base64Url, '=');
-        return base64Url;
     }
 
     private static String trimRight(String s, char ch) {
@@ -157,7 +146,7 @@ public final class Encode {
     // binary concat
     // ----------------------------
 
-    public static Object binaryConcat(Object... parts) {
+    public static byte[] binaryConcat(Object... parts) {
         ArrayList<Byte> out = new ArrayList<>();
         for (Object part : parts) {
             if (part instanceof String s) {
@@ -174,7 +163,7 @@ public final class Encode {
         return res;
     }
 
-    public static Object binaryConcatArray(Object arrays2) {
+    public static byte[] binaryConcatArray(Object arrays2) {
         List<Object> arrays = (List<Object>) arrays2;
 
         int total = 0;
@@ -246,27 +235,6 @@ public final class Encode {
     public static String intToBase16(Object number) {
         long n = Long.parseLong(String.valueOf(number));
         return Long.toHexString(n);
-    }
-
-    // ----------------------------
-    // encode/decode (stubs, like C#)
-    // ----------------------------
-
-    public static String encode(Object data) {
-        return (String) data;
-    }
-
-    public static String decode(Object data) {
-        return (String) data;
-    }
-
-    // ----------------------------
-    // msgpack stub
-    // ----------------------------
-
-    public static Object packb(Object data) {
-        // MiniMessagePack not available here; make it explicit.
-        throw new UnsupportedOperationException("packb: MessagePack encoder not available in this runtime.");
     }
 
     // ----------------------------

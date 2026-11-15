@@ -1,8 +1,5 @@
-- [Many Exchanges Many Accounts](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
@@ -76,5 +73,5 @@ $loop = function($exchange_id, $config) {
 foreach ($exchanges as $exchange) {
     \React\Async\coroutine($loop, $exchange[0], $exchange[1]);
 }
- 
+
 ```

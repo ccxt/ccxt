@@ -61,7 +61,7 @@ class blockchaincom extends blockchaincom$1["default"] {
     async watchBalance(params = {}) {
         await this.authenticate(params);
         const messageHash = 'balance';
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         const subscribe = {
             'action': 'subscribe',
             'channel': 'balances',
@@ -103,19 +103,27 @@ class blockchaincom extends blockchaincom$1["default"] {
         if (event === 'subscribed') {
             return;
         }
-        const result = { 'info': message };
-        const balances = this.safeValue(message, 'balances', []);
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        this.balance['info'] = message;
+        const balances = this.safeList(message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
+            const entry = this.safeDict(balances, i);
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['total'] = this.safeString(entry, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         const messageHash = 'balance';
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
     /**
@@ -131,11 +139,13 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
-        const messageHash = 'ohlcv:' + symbol;
+        const messageHash = 'ohlcv:' + symbolValue;
         let request = {
             'action': 'subscribe',
             'channel': 'prices',
@@ -143,12 +153,13 @@ class blockchaincom extends blockchaincom$1["default"] {
             'granularity': this.parseNumber(interval),
         };
         request = this.deepExtend(request, params);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         const ohlcv = await this.watch(url, messageHash, request, messageHash, request);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -172,18 +183,17 @@ class blockchaincom extends blockchaincom$1["default"] {
         //
         const event = this.safeString(message, 'event');
         if (event === 'rejected') {
-            const jsonMessage = this.json(message);
-            throw new errors.ExchangeError(this.id + ' ' + jsonMessage);
+            throw new errors.ExchangeError(this.id + ' ' + this.json(message));
         }
         else if (event === 'updated') {
             const marketId = this.safeString(message, 'symbol');
             const symbol = this.safeSymbol(marketId, undefined, '-');
             const messageHash = 'ohlcv:' + symbol;
-            const request = this.safeValue(client.subscriptions, messageHash);
-            const timeframeId = this.safeNumber(request, 'granularity');
+            const request = this.safeDict(client.subscriptions, messageHash);
+            const timeframeId = this.safeString(request, 'granularity');
             const timeframe = this.findTimeframe(timeframeId);
-            const ohlcv = this.safeValue(message, 'price', []);
-            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            const ohlcv = this.safeList(message, 'price', []);
+            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -207,11 +217,13 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const url = this.urls['api']['ws'];
-        const messageHash = 'ticker:' + symbol;
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const url = this.safeString(this.urls['api'], 'ws', '');
+        const messageHash = 'ticker:' + symbolValue;
         let request = {
             'action': 'subscribe',
             'channel': 'ticker',
@@ -252,7 +264,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         const event = this.safeString(message, 'event');
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let ticker = undefined;
         if (event === 'subscribed') {
             return;
@@ -261,7 +273,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             ticker = this.parseTicker(message, market);
         }
         else if (event === 'updated') {
-            const lastTicker = this.safeValue(this.tickers, symbol);
+            const lastTicker = this.safeDict(this.tickers, symbol);
             ticker = this.parseWsUpdatedTicker(message, lastTicker, market);
         }
         const messageHash = 'ticker:' + symbol;
@@ -301,7 +313,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             'average': undefined,
             'baseVolume': this.safeString(lastTicker, 'baseVolume'),
             'quoteVolume': undefined,
-            'info': this.extend(this.safeValue(lastTicker, 'info', {}), ticker),
+            'info': this.extend(this.safeDict(lastTicker, 'info', {}), ticker),
         }, market);
     }
     /**
@@ -316,11 +328,13 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const url = this.urls['api']['ws'];
-        const messageHash = 'trades:' + symbol;
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const url = this.safeString(this.urls['api'], 'ws', '');
+        const messageHash = 'trades:' + symbolValue;
         let request = {
             'action': 'subscribe',
             'channel': 'trades',
@@ -369,7 +383,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         const parsed = this.parseWsTrade(message, market);
         stored.append(parsed);
         this.trades[symbol] = stored;
-        client.resolve(this.trades[symbol], messageHash);
+        client.resolve(stored, messageHash);
     }
     parseWsTrade(trade, market = undefined) {
         //
@@ -415,13 +429,16 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         const message = {
             'action': 'subscribe',
             'channel': 'trading',
@@ -429,10 +446,11 @@ class blockchaincom extends blockchaincom$1["default"] {
         const messageHash = 'orders';
         const request = this.deepExtend(message, params);
         const orders = await this.watch(url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     handleOrders(client, message) {
         //
@@ -510,11 +528,11 @@ class blockchaincom extends blockchaincom$1["default"] {
         //
         const event = this.safeString(message, 'event');
         const messageHash = 'orders';
-        const cachedOrders = this.orders;
-        if (cachedOrders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
+        const cachedOrders = this.orders;
         if (event === 'subscribed') {
             return;
         }
@@ -522,7 +540,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             throw new errors.ExchangeError(this.id + ' ' + this.json(message));
         }
         else if (event === 'snapshot') {
-            const orders = this.safeValue(message, 'orders', []);
+            const orders = this.safeList(message, 'orders', []);
             for (let i = 0; i < orders.length; i++) {
                 const order = orders[i];
                 const parsedOrder = this.parseWsOrder(order);
@@ -571,7 +589,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         const datetime = this.safeString(order, 'transactTime');
         const status = this.safeString(order, 'ordStatus');
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const tradeId = this.safeString(order, 'tradeId');
         const trades = [];
         if (tradeId !== '0') {
@@ -583,8 +601,8 @@ class blockchaincom extends blockchaincom$1["default"] {
             'datetime': datetime,
             'timestamp': this.parse8601(datetime),
             'status': this.parseWsOrderStatus(status),
-            'symbol': this.safeSymbol(marketId, market),
-            'type': this.safeString(order, 'ordType'),
+            'symbol': this.safeSymbol(marketId, marketResolved),
+            'type': this.safeString(order, 'ordType'), // limit, market, stop, stopLimit, trailingStop, fillOrKill
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': this.safeString(order, 'execInst') === 'ALO',
             'side': this.safeString(order, 'side'),
@@ -598,12 +616,12 @@ class blockchaincom extends blockchaincom$1["default"] {
             'fee': {
                 'rate': undefined,
                 'cost': this.safeNumber(order, 'fee'),
-                'currency': this.safeString(market, 'quote'),
+                'currency': this.safeString(marketResolved, 'quote'),
             },
             'info': order,
             'lastTradeTimestamp': undefined,
             'average': this.safeString(order, 'avgPx'),
-        }, market);
+        }, marketResolved);
     }
     parseWsOrderStatus(status) {
         const statuses = {
@@ -626,21 +644,23 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         const type = this.safeString(params, 'type', 'l2');
-        params = this.omit(params, 'type');
+        const paramsOmitted = this.omit(params, 'type');
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const subscribe = {
             'action': 'subscribe',
             'channel': type,
             'symbol': market['id'],
         };
-        const request = this.deepExtend(subscribe, params);
+        const request = this.deepExtend(subscribe, paramsOmitted);
         const orderbook = await this.watch(url, messageHash, request, messageHash);
         return orderbook.limit();
     }
@@ -679,17 +699,17 @@ class blockchaincom extends blockchaincom$1["default"] {
         //         "timestamp": "2022-08-08T22:03:19.014680Z"
         //     }
         //
-        const event = this.safeString(message, 'event');
+        const event = this.safeString(message, 'event', '');
         if (event === 'subscribed') {
             return;
         }
-        const type = this.safeString(message, 'channel');
+        const type = this.safeString(message, 'channel', '');
         const marketId = this.safeString(message, 'symbol');
         const symbol = this.safeSymbol(marketId);
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const datetime = this.safeString(message, 'timestamp');
         const timestamp = this.parse8601(datetime);
-        if (this.safeValue(this.orderbooks, symbol) === undefined) {
+        if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.countedOrderBook();
         }
         const orderbook = this.orderbooks[symbol];
@@ -721,22 +741,30 @@ class blockchaincom extends blockchaincom$1["default"] {
     }
     handleMessage(client, message) {
         const channel = this.safeString(message, 'channel');
-        const handlers = {
-            'ticker': this.handleTicker,
-            'trades': this.handleTrades,
-            'prices': this.handleOHLCV,
-            'l2': this.handleOrderBook,
-            'l3': this.handleOrderBook,
-            'auth': this.handleAuthenticationMessage,
-            'balances': this.handleBalance,
-            'trading': this.handleOrders,
-        };
-        const handler = this.safeValue(handlers, channel);
-        if (handler !== undefined) {
-            handler.call(this, client, message);
-            return;
+        if (channel === 'ticker') {
+            this.handleTicker(client, message);
         }
-        throw new errors.NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
+        else if (channel === 'trades') {
+            this.handleTrades(client, message);
+        }
+        else if (channel === 'prices') {
+            this.handleOHLCV(client, message);
+        }
+        else if (channel === 'l2' || channel === 'l3') {
+            this.handleOrderBook(client, message);
+        }
+        else if (channel === 'auth') {
+            this.handleAuthenticationMessage(client, message);
+        }
+        else if (channel === 'balances') {
+            this.handleBalance(client, message);
+        }
+        else if (channel === 'trading') {
+            this.handleOrders(client, message);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' received an unsupported message: ' + this.json(message));
+        }
     }
     handleAuthenticationMessage(client, message) {
         //
@@ -757,7 +785,7 @@ class blockchaincom extends blockchaincom$1["default"] {
         }
     }
     async authenticate(params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws', '');
         const client = this.client(url);
         const messageHash = 'authenticated';
         const future = client.reusableFuture(messageHash);
@@ -769,7 +797,7 @@ class blockchaincom extends blockchaincom$1["default"] {
                 'channel': 'auth',
                 'token': this.secret,
             };
-            return this.watch(url, messageHash, this.extend(request, params), messageHash);
+            return await this.watch(url, messageHash, this.extend(request, params), messageHash);
         }
         return await future;
     }

@@ -1,0 +1,136 @@
+{
+    "exchange": "modetrade",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "ws ticker carries the envelope timestamp",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "url": "wss://ws-evm.orderly.org/ws/stream/12345",
+                "messages": [
+                    {
+                        "id": "1",
+                        "event": "subscribe",
+                        "success": true,
+                        "ts": 1792519298227
+                    },
+                    {
+                        "event": "ping",
+                        "ts": 1792519300000
+                    },
+                    {
+                        "topic": "PERP_BTC_USDC@ticker",
+                        "ts": 1792519302000,
+                        "data": {
+                            "symbol": "PERP_BTC_USDC",
+                            "open": 81946.7,
+                            "close": 82650,
+                            "high": 83300,
+                            "low": 81088.7,
+                            "volume": 181.20316,
+                            "amount": 14873003.577006,
+                            "count": 14393
+                        }
+                    },
+                    {
+                        "topic": "PERP_BTC_USDC@ticker",
+                        "ts": 1792519304000,
+                        "data": {
+                            "symbol": "PERP_BTC_USDC",
+                            "open": 81977.6,
+                            "close": 82650,
+                            "high": 83300,
+                            "low": 81088.7,
+                            "volume": 181.19811,
+                            "amount": 14872590.716725,
+                            "count": 14394
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": 1,
+                        "event": "subscribe",
+                        "topic": "PERP_BTC_USDC@ticker"
+                    },
+                    {
+                        "event": "pong"
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1792519302000,
+                        "datetime": "2026-10-20T18:01:42.000Z",
+                        "high": 83300,
+                        "low": 81088.7,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 82079.16228947663,
+                        "open": 81946.7,
+                        "close": 82650,
+                        "last": 82650,
+                        "previousClose": null,
+                        "change": 703.3,
+                        "percentage": 0.8582407833384382,
+                        "average": 82298.3,
+                        "baseVolume": 181.20316,
+                        "quoteVolume": 14873003.577006,
+                        "info": {
+                            "symbol": "PERP_BTC_USDC",
+                            "open": 81946.7,
+                            "close": 82650,
+                            "high": 83300,
+                            "low": 81088.7,
+                            "volume": 181.20316,
+                            "amount": 14873003.577006,
+                            "count": 14393,
+                            "timestamp": 1792519302000
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    {
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1792519304000,
+                        "datetime": "2026-10-20T18:01:44.000Z",
+                        "high": 83300,
+                        "low": 81088.7,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 82079.17133752113,
+                        "open": 81977.6,
+                        "close": 82650,
+                        "last": 82650,
+                        "previousClose": null,
+                        "change": 672.4,
+                        "percentage": 0.8202240612069638,
+                        "average": 82313.8,
+                        "baseVolume": 181.19811,
+                        "quoteVolume": 14872590.716725,
+                        "info": {
+                            "symbol": "PERP_BTC_USDC",
+                            "open": 81977.6,
+                            "close": 82650,
+                            "high": 83300,
+                            "low": 81088.7,
+                            "volume": 181.19811,
+                            "amount": 14872590.716725,
+                            "count": 14394,
+                            "timestamp": 1792519304000
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ]
+    }
+}

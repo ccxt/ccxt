@@ -36,12 +36,22 @@
 * [setLeverage](#setleverage)
 * [withdraw](#withdraw)
 * [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchOpenInterests](#fetchopeninterests)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchLedger](#fetchledger)
+* [fetchDeposits](#fetchdeposits)
+* [fetchWithdrawals](#fetchwithdrawals)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [transfer](#transfer)
 * [createSubAccount](#createsubaccount)
+* [bindAgentWallet](#bindagentwallet)
+* [createApiKey](#createapikey)
+* [revokeApiKey](#revokeapikey)
+* [fetchApiKeys](#fetchapikeys)
+* [approveBuilderCode](#approvebuildercode)
+* [fetchBuilderApprovals](#fetchbuilderapprovals)
+* [revokeBuilderCode](#revokebuildercode)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
 * [cancelOrdersWs](#cancelordersws)
@@ -67,8 +77,9 @@
 retrieves data on all markets for pacifica
 
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
-**Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -76,7 +87,7 @@ retrieves data on all markets for pacifica
 
 
 ```javascript
-pacifica.fetchMarkets ([params])
+pacifica.fetchMarkets (params?)
 ```
 
 
@@ -96,7 +107,7 @@ retrieves data on all swap markets for pacifica
 
 
 ```javascript
-pacifica.fetchSwapMarkets ([params])
+pacifica.fetchSwapMarkets (params?)
 ```
 
 
@@ -117,7 +128,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-pacifica.fetchBalance ([params])
+pacifica.fetchBalance (params?)
 ```
 
 
@@ -129,6 +140,7 @@ fetch the set leverage for a market
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -138,7 +150,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-pacifica.fetchLeverage (symbol[, params])
+pacifica.fetchLeverage (symbol, params?)
 ```
 
 
@@ -159,7 +171,7 @@ fetch account's market settings. Settings are cached for walletAddress. To refre
 
 
 ```javascript
-pacifica.fetchAccountSettings ([params])
+pacifica.fetchAccountSettings (params?)
 ```
 
 
@@ -171,6 +183,7 @@ fetches the margin mode of the trading pair
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -180,7 +193,7 @@ fetches the margin mode of the trading pair
 
 
 ```javascript
-pacifica.fetchMarginMode (symbol[, params])
+pacifica.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -190,7 +203,7 @@ pacifica.fetchMarginMode (symbol[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-orderbook  
 
@@ -203,7 +216,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-pacifica.fetchOrderBook (symbol[, limit, params])
+pacifica.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -215,6 +228,7 @@ retrieves data on all swap markets for pacifica
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -223,7 +237,7 @@ retrieves data on all swap markets for pacifica
 
 
 ```javascript
-pacifica.fetchFundingRates ([symbols, params])
+pacifica.fetchFundingRates (symbols?, params?)
 ```
 
 
@@ -240,7 +254,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d' |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M' |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -249,7 +263,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-pacifica.fetchOHLCV (symbol, timeframe[, since, limit, params])
+pacifica.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -272,7 +286,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-pacifica.fetchTrades (symbol[, since, limit, params])
+pacifica.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -299,7 +313,7 @@ fetch all trades made by the user
 
 
 ```javascript
-pacifica.fetchMyTrades ([symbol, since, limit, params])
+pacifica.fetchMyTrades (symbol?, since?, limit?, params?)
 ```
 
 
@@ -332,12 +346,13 @@ create a trade order
 | params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at (optional provide takeProfitCloid) |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book) |
 | params.reduceOnly | <code>boolean</code> | No | Ensures that the executed order does not flip the opened position. |
+| params.slippage | <code>string</code> | No | the slippage for market orders in percent, defaults to options.defaultSlippage (0.5) |
 | params.clientOrderId | <code>string</code> | No | client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479) |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
 
 ```javascript
-pacifica.createOrder (symbol, type, side, amount[, price, params])
+pacifica.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -358,7 +373,7 @@ create a list of trade orders. It is supports only limit orders and have a rando
 
 
 ```javascript
-pacifica.createOrders (orders[, params])
+pacifica.createOrders (orders, params?)
 ```
 
 
@@ -382,7 +397,7 @@ cancel multiple orders
 
 
 ```javascript
-pacifica.cancelOrders (ids[, symbol, params])
+pacifica.cancelOrders (ids, symbol?, params?)
 ```
 
 
@@ -398,14 +413,14 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | (optional) unified market symbol of the market to cancel orders in. |
+| symbol | <code>string</code> | No | (optional) unified market symbol of the market to cancel orders in. |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.excludeReduceOnly | <code>boolean</code> | No | whether to exclude reduce-only orders |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
 
 ```javascript
-pacifica.cancelAllOrders (symbol[, params])
+pacifica.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -434,7 +449,7 @@ cancels an open order
 
 
 ```javascript
-pacifica.cancelOrder (id, symbol[, params])
+pacifica.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -462,7 +477,7 @@ edit a trade order
 
 
 ```javascript
-pacifica.editOrder (id, symbol, type, side, amount, price[, params])
+pacifica.editOrder (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -487,7 +502,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-pacifica.fetchFundingRateHistory (symbol[, since, limit, params])
+pacifica.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -508,7 +523,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-pacifica.fetchTickers ([symbols, params])
+pacifica.fetchTickers (symbols?, params?)
 ```
 
 
@@ -520,6 +535,7 @@ fetch all unfilled currently closed orders
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -531,7 +547,7 @@ fetch all unfilled currently closed orders
 
 
 ```javascript
-pacifica.fetchClosedOrders (symbol[, since, limit, params])
+pacifica.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -543,6 +559,7 @@ fetch all canceled orders
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -554,7 +571,7 @@ fetch all canceled orders
 
 
 ```javascript
-pacifica.fetchCanceledOrders (symbol[, since, limit, params])
+pacifica.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -566,6 +583,7 @@ fetch all closed and canceled orders
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -577,7 +595,7 @@ fetch all closed and canceled orders
 
 
 ```javascript
-pacifica.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+pacifica.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -601,7 +619,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-pacifica.fetchOpenOrders (symbol[, since, limit, params])
+pacifica.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -627,7 +645,7 @@ fetch all orders
 
 
 ```javascript
-pacifica.fetchOrders (symbol[, since, limit, params])
+pacifica.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -649,7 +667,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-pacifica.fetchOrder (id, symbol[, params])
+pacifica.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -671,7 +689,7 @@ fetch data on an open position
 
 
 ```javascript
-pacifica.fetchPosition (symbol[, params])
+pacifica.fetchPosition (symbol, params?)
 ```
 
 
@@ -693,7 +711,7 @@ fetch all open positions
 
 
 ```javascript
-pacifica.fetchPositions ([symbols, params])
+pacifica.fetchPositions (symbols?, params?)
 ```
 
 
@@ -716,7 +734,7 @@ set margin mode (symbol)
 
 
 ```javascript
-pacifica.setMarginMode (marginMode, symbol[, params])
+pacifica.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -739,7 +757,7 @@ set the level of leverage for a market
 
 
 ```javascript
-pacifica.setLeverage (leverage, symbol[, params])
+pacifica.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -757,14 +775,14 @@ make a withdrawal (only support native USDC)
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
-| address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
+| address | <code>string</code> | Yes | validated but not sent, funds go to the account wallet |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
 
 ```javascript
-pacifica.withdraw (code, amount, address, tag[, params])
+pacifica.withdraw (code, amount, address, params?)
 ```
 
 
@@ -786,7 +804,28 @@ fetch the trading fees for a market
 
 
 ```javascript
-pacifica.fetchTradingFee (symbol[, params])
+pacifica.fetchTradingFee (symbol, params?)
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets, the account fee level applies to every market
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchTradingFees (params?)
 ```
 
 
@@ -798,6 +837,7 @@ Retrieves the open interest for a list of symbols
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -806,7 +846,7 @@ Retrieves the open interest for a list of symbols
 
 
 ```javascript
-pacifica.fetchOpenInterests ([symbols, params])
+pacifica.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -818,6 +858,7 @@ retrieves the open interest of a contract trading pair
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - an [open interest structure](https://docs.ccxt.com/?id=open-interest-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -826,7 +867,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-pacifica.fetchOpenInterest (symbol[, params])
+pacifica.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -852,7 +893,55 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-pacifica.fetchLedger ([code, since, limit, params])
+pacifica.fetchLedger (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchDeposits" id="fetchdeposits"></a>
+
+### fetchDeposits{docsify-ignore}
+fetch all USDC deposits made to an account, spot asset deposits are not included
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
+| limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchDeposits (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | will default to walletAddress if not provided |
+
+
+```javascript
+pacifica.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -864,6 +953,7 @@ fetch the history of funding payments paid and received on this account
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -877,7 +967,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-pacifica.fetchFundingHistory ([symbol, since, limit, params])
+pacifica.fetchFundingHistory (symbol?, since?, limit?, params?)
 ```
 
 
@@ -895,25 +985,26 @@ transfer currency internally between wallets on the same account
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | amount to transfer |
-| fromAccount | <code>string</code> | Yes | account to transfer from *spot, swap* |
-| toAccount | <code>string</code> | Yes | account to transfer to *swap, spot or address* |
+| fromAccount | <code>string</code> | Yes | not used, funds are always sent from the account wallet, the origin address |
+| toAccount | <code>string</code> | Yes | the address of the subaccount or main account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
 
 ```javascript
-pacifica.transfer (code, amount, fromAccount, toAccount[, params])
+pacifica.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
 <a name="createSubAccount" id="createsubaccount"></a>
 
 ### createSubAccount{docsify-ignore}
-creates a sub-account under the main account
+creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
 
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
 **Returns**: <code>object</code> - a response object
 
+**See**: https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -925,7 +1016,149 @@ creates a sub-account under the main account
 
 
 ```javascript
-pacifica.createSubAccount (name[, params])
+pacifica.createSubAccount (name, params?)
+```
+
+
+<a name="bindAgentWallet" id="bindagentwallet"></a>
+
+### bindAgentWallet{docsify-ignore}
+binds an agent wallet that can sign trading actions for the account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+**See**: https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| agentAddress | <code>string</code> | Yes | the public key of the agent wallet |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.bindAgentWallet (agentAddress, params?)
+```
+
+
+<a name="createApiKey" id="createapikey"></a>
+
+### createApiKey{docsify-ignore}
+creates an api key for the account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.createApiKey (params?)
+```
+
+
+<a name="revokeApiKey" id="revokeapikey"></a>
+
+### revokeApiKey{docsify-ignore}
+revokes an api key of the account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| apiKey | <code>string</code> | Yes | the api key to revoke |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.revokeApiKey (apiKey, params?)
+```
+
+
+<a name="fetchApiKeys" id="fetchapikeys"></a>
+
+### fetchApiKeys{docsify-ignore}
+fetches the api keys of the account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.fetchApiKeys (params?)
+```
+
+
+<a name="approveBuilderCode" id="approvebuildercode"></a>
+
+### approveBuilderCode{docsify-ignore}
+approves a builder code to charge fees on the account orders
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+**See**: https://docs.pacifica.fi/programs/builder-program  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| builderCode | <code>string</code> | Yes | the builder code to approve |
+| maxFeeRate | <code>string</code> | Yes | the maximum fee rate the builder may charge |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.approveBuilderCode (builderCode, maxFeeRate, params?)
+```
+
+
+<a name="fetchBuilderApprovals" id="fetchbuilderapprovals"></a>
+
+### fetchBuilderApprovals{docsify-ignore}
+fetches the builder codes approved by an account
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>Array&lt;object&gt;</code> - the api result
+
+**See**: https://docs.pacifica.fi/programs/builder-program  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| address | <code>string</code> | the account address |
+
+
+```javascript
+pacifica.fetchBuilderApprovals (address)
+```
+
+
+<a name="revokeBuilderCode" id="revokebuildercode"></a>
+
+### revokeBuilderCode{docsify-ignore}
+revokes a previously approved builder code
+
+**Kind**: instance method of [<code>pacifica</code>](#pacifica)  
+**Returns**: <code>object</code> - the api result
+
+**See**: https://docs.pacifica.fi/programs/builder-program  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| builderCode | <code>string</code> | Yes | the builder code to revoke |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+pacifica.revokeBuilderCode (builderCode, params?)
 ```
 
 
@@ -963,7 +1196,7 @@ create a trade order
 
 
 ```javascript
-pacifica.createOrderWs (symbol, type, side, amount[, price, params])
+pacifica.createOrderWs (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -993,7 +1226,7 @@ edit a trade order
 
 
 ```javascript
-pacifica.editOrderWs (id, symbol, type, side, amount, price[, params])
+pacifica.editOrderWs (id, symbol, type, side, amount, price, params?)
 ```
 
 
@@ -1023,7 +1256,7 @@ cancel multiple orders
 
 
 ```javascript
-pacifica.cancelOrdersWs (ids[, symbol, params])
+pacifica.cancelOrdersWs (ids, symbol?, params?)
 ```
 
 
@@ -1050,7 +1283,7 @@ cancels an open order
 
 
 ```javascript
-pacifica.cancelOrderWs (id, symbol[, params])
+pacifica.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -1075,7 +1308,7 @@ cancel all open orders in a market
 
 
 ```javascript
-pacifica.cancelAllOrdersWs (symbol[, params])
+pacifica.cancelAllOrdersWs (symbol, params?)
 ```
 
 
@@ -1085,7 +1318,7 @@ pacifica.cancelAllOrdersWs (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/orderbook  
 
@@ -1098,7 +1331,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-pacifica.watchOrderBook (symbol[, limit, params])
+pacifica.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1108,7 +1341,7 @@ pacifica.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>pacifica</code>](#pacifica)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.pacifica.fi/api-documentation/api/websocket/subscriptions/orderbook  
 
@@ -1120,7 +1353,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-pacifica.unWatchOrderBook (symbol[, params])
+pacifica.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1141,7 +1374,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-pacifica.watchTicker (symbol[, params])
+pacifica.watchTicker (symbol, params?)
 ```
 
 
@@ -1162,7 +1395,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-pacifica.watchTickers (symbols[, params])
+pacifica.watchTickers (symbols, params?)
 ```
 
 
@@ -1183,7 +1416,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-pacifica.unWatchTickers (symbols[, params])
+pacifica.unWatchTickers (symbols, params?)
 ```
 
 
@@ -1207,7 +1440,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-pacifica.watchMyTrades (symbol[, since, limit, params])
+pacifica.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1229,7 +1462,7 @@ unWatches information on multiple trades made by the user
 
 
 ```javascript
-pacifica.unWatchMyTrades (symbol[, params])
+pacifica.unWatchMyTrades (symbol, params?)
 ```
 
 
@@ -1252,7 +1485,7 @@ watches information on multiple trades made in a market
 
 
 ```javascript
-pacifica.watchTrades (symbol[, since, limit, params])
+pacifica.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1273,7 +1506,7 @@ unWatches information on multiple trades made in a market
 
 
 ```javascript
-pacifica.unWatchTrades (symbol[, params])
+pacifica.unWatchTrades (symbol, params?)
 ```
 
 
@@ -1297,7 +1530,7 @@ watches historical candlestick data containing the open, high, low, close price,
 
 
 ```javascript
-pacifica.watchOHLCV (symbol, timeframe[, since, limit, params])
+pacifica.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1319,7 +1552,7 @@ watches historical candlestick data containing the open, high, low, close price,
 
 
 ```javascript
-pacifica.unWatchOHLCV (symbol, timeframe[, params])
+pacifica.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -1343,7 +1576,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-pacifica.watchOrders (symbol[, since, limit, params])
+pacifica.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1365,6 +1598,6 @@ unWatches information on multiple orders made by the user
 
 
 ```javascript
-pacifica.unWatchOrders (symbol[, params])
+pacifica.unWatchOrders (symbol, params?)
 ```
 

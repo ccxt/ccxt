@@ -7,90 +7,122 @@
 
 package ccxt
 
-func (this *IndodaxCore) PublicGetApiServerTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiServerTime", args...)
+// PublicGetApiServerTime returns a channel that yields a JSON object.
+func (this *Indodax) PublicGetApiServerTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/server_time", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(5)})
 }
 
-func (this *IndodaxCore) PublicGetApiPairs(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiPairs", args...)
+// PublicGetApiPairs returns a channel that yields a JSON array.
+func (this *Indodax) PublicGetApiPairs(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/pairs", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(5)})
 }
 
-func (this *IndodaxCore) PublicGetApiPriceIncrements(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiPriceIncrements", args...)
+// PublicGetApiPriceIncrements returns a channel that yields a JSON object.
+func (this *Indodax) PublicGetApiPriceIncrements(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/price_increments", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(5)})
 }
 
-func (this *IndodaxCore) PublicGetApiSummaries(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiSummaries", args...)
+// PublicGetApiSummaries returns a channel that yields a JSON object.
+func (this *Indodax) PublicGetApiSummaries(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/summaries", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(5)})
 }
 
-func (this *IndodaxCore) PublicGetApiTickerPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiTickerPair", args...)
+// PublicGetApiTickerPair returns a channel that yields a JSON object.
+func (this *Indodax) PublicGetApiTickerPair(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/ticker/{pair}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(5)})
 }
 
-func (this *IndodaxCore) PublicGetApiTickerAll(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiTickerAll", args...)
+// PublicGetApiTickerAll returns a channel that yields a JSON object.
+func (this *Indodax) PublicGetApiTickerAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/ticker_all", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(5)})
 }
 
-func (this *IndodaxCore) PublicGetApiTradesPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiTradesPair", args...)
+// PublicGetApiTradesPair returns a channel that yields a JSON array.
+func (this *Indodax) PublicGetApiTradesPair(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/trades/{pair}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(5)})
 }
 
-func (this *IndodaxCore) PublicGetApiDepthPair(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiDepthPair", args...)
+// PublicGetApiDepthPair returns a channel that yields a JSON object.
+func (this *Indodax) PublicGetApiDepthPair(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/depth/{pair}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(5)})
 }
 
-func (this *IndodaxCore) PublicGetTradingviewHistoryV2(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradingviewHistoryV2", args...)
+// PublicGetTradingviewHistoryV2 returns a channel that yields a JSON array.
+func (this *Indodax) PublicGetTradingviewHistoryV2(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "tradingview/history_v2", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(5)})
 }
 
-func (this *IndodaxCore) PrivatePostGetInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetInfo", args...)
+// PrivatePostGetInfo returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostGetInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getInfo", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostTransHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTransHistory", args...)
+// PrivatePostTransHistory returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostTransHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transHistory", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTrade", args...)
+// PrivatePostTrade returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndodaxCore) PrivatePostTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeHistory", args...)
+// PrivatePostTradeHistory returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostTradeHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tradeHistory", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenOrders", args...)
+// PrivatePostOpenOrders returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "openOrders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderHistory", args...)
+// PrivatePostOrderHistory returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderHistory", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostGetOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetOrder", args...)
+// PrivatePostGetOrder returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostGetOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelOrder", args...)
+// PrivatePostGetOrderByClientOrderId returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostGetOrderByClientOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getOrderByClientOrderId", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostWithdrawFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawFee", args...)
+// PrivatePostCancelOrder returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostWithdrawCoin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawCoin", args...)
+// PrivatePostCancelByClientOrderId returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostCancelByClientOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelByClientOrderId", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostListDownline(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostListDownline", args...)
+// PrivatePostWithdrawFee returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostWithdrawFee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdrawFee", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostCheckDownline(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCheckDownline", args...)
+// PrivatePostWithdrawCoin returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostWithdrawCoin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdrawCoin", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }
 
-func (this *IndodaxCore) PrivatePostCreateVoucher(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCreateVoucher", args...)
+// PrivatePostListDownline returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostListDownline(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "listDownline", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostCheckDownline returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostCheckDownline(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "checkDownline", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
+}
+
+// PrivatePostCreateVoucher returns a channel that yields a JSON object.
+func (this *Indodax) PrivatePostCreateVoucher(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "createVoucher", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(4)})
 }

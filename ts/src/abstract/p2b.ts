@@ -5,29 +5,81 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    publicGetMarket (params?: {}): Promise<implicitReturnType>;
-    publicGetTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetBook (params?: {}): Promise<implicitReturnType>;
-    publicGetHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetDepthResult (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketKline (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountBalances (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderNew (params?: {}): Promise<implicitReturnType>;
-    privatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountMarketOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountMarketDealHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountExecutedHistory (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetMarkets (params = {}): Promise<Dict> {
+        return this.request ('markets', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetMarket (params = {}): Promise<Dict> {
+        return this.request ('market', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTickers (params = {}): Promise<Dict> {
+        return this.request ('tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTicker (params = {}): Promise<Dict> {
+        return this.request ('ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetBook (params = {}): Promise<Dict> {
+        return this.request ('book', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetHistory (params = {}): Promise<Dict> {
+        return this.request ('history', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDepthResult (params = {}): Promise<Dict> {
+        return this.request ('depth/result', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketKline (params = {}): Promise<Dict> {
+        return this.request ('market/kline', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostAccountBalances (params = {}): Promise<Dict> {
+        return this.request ('account/balances', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAccountBalance (params = {}): Promise<Dict> {
+        return this.request ('account/balance', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderNew (params = {}): Promise<Dict> {
+        return this.request ('order/new', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderCancel (params = {}): Promise<Dict> {
+        return this.request ('order/cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAccountMarketOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('account/market_order_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAccountMarketDealHistory (params = {}): Promise<Dict> {
+        return this.request ('account/market_deal_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAccountOrder (params = {}): Promise<Dict> {
+        return this.request ('account/order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAccountOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('account/order_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAccountExecutedHistory (params = {}): Promise<Dict> {
+        return this.request ('account/executed_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

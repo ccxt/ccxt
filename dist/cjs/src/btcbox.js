@@ -2,12 +2,12 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
+var legacy_js = require('@noble/hashes/legacy.js');
 var btcbox$1 = require('./abstract/btcbox.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -74,6 +74,7 @@ class btcbox extends btcbox$1["default"] {
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
@@ -127,35 +128,35 @@ class btcbox extends btcbox$1["default"] {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'depth',
-                        'orders',
-                        'ticker',
-                        'tickers',
-                    ],
+                    'get': {
+                        'depth': { 'cost': 1 },
+                        'orders': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'balance',
-                        'trade_add',
-                        'trade_cancel',
-                        'trade_list',
-                        'trade_view',
-                        'wallet',
-                    ],
+                    'post': {
+                        'balance': { 'cost': 1 },
+                        'order_history': { 'cost': 1 },
+                        'trade_add': { 'cost': 1 },
+                        'trade_cancel': { 'cost': 1 },
+                        'trade_list': { 'cost': 1 },
+                        'trade_view': { 'cost': 1 },
+                        'wallet': { 'cost': 1 },
+                    },
                 },
                 'webApi': {
-                    'get': [
-                        'ajax/coin/coinInfo',
-                    ],
+                    'get': {
+                        'ajax/coin/coinInfo': { 'cost': 1 },
+                    },
                 },
             },
             'options': {
                 'fetchMarkets': {
-                    'webApiEnable': true,
+                    'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 3,
                 },
-                'amountPrecision': '0.0001', // exchange has only few pairs and all of them
             },
             'features': {
                 'spot': {
@@ -223,12 +224,12 @@ class btcbox extends btcbox$1["default"] {
                 '104': errors.AuthenticationError,
                 '105': errors.PermissionDenied,
                 '106': errors.InvalidNonce,
-                '107': errors.InvalidOrder,
+                '107': errors.InvalidOrder, // price should be an integer
                 '200': errors.InsufficientFunds,
-                '201': errors.InvalidOrder,
-                '202': errors.InvalidOrder,
+                '201': errors.InvalidOrder, // amount too small
+                '202': errors.InvalidOrder, // price should be [0 : 1000000]
                 '203': errors.OrderNotFound,
-                '401': errors.OrderNotFound,
+                '401': errors.OrderNotFound, // cancel canceled, closed or non-existent order
                 '402': errors.DDoSProtection,
             },
         });
@@ -251,11 +252,11 @@ class btcbox extends btcbox$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const symbolParts = marketId.split('_');
-            const baseCurr = this.safeString(symbolParts, 0);
-            const quote = this.safeString(symbolParts, 1);
+            const baseCurr = this.safeString(symbolParts, 0, '');
+            const quote = this.safeString(symbolParts, 1, '');
             const quoteId = quote.toLowerCase();
             const id = baseCurr.toLowerCase();
-            const res = response1[marketId];
+            const res = this.safeDict(response1, marketId, {});
             const symbol = baseCurr + '/' + quote;
             const fee = (id === 'BTC') ? this.parseNumber('0.0005') : this.parseNumber('0.0010');
             const details = this.safeDict(result2Data, id, {});
@@ -320,8 +321,11 @@ class btcbox extends btcbox$1["default"] {
         const base = this.safeCurrencyCode(baseId);
         const quoteId = this.safeString(market, 'quote');
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure({
             'id': this.safeString(market, 'symbol'),
             'uppercaseId': undefined,
             'symbol': symbol,
@@ -370,7 +374,7 @@ class btcbox extends btcbox$1["default"] {
             'active': undefined,
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         const result = { 'info': response };
@@ -378,7 +382,7 @@ class btcbox extends btcbox$1["default"] {
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currency(code);
-            const currencyId = currency['id'];
+            const currencyId = this.safeString(currency, 'id', '');
             const free = currencyId + '_balance';
             if (free in response) {
                 const account = this.account();
@@ -399,7 +403,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostBalance(params);
         return this.parseBalance(response);
     }
@@ -411,10 +417,12 @@ class btcbox extends btcbox$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         const numSymbols = this.symbols.length;
@@ -460,7 +468,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         const numSymbols = this.symbols.length;
@@ -479,7 +489,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTickers(params);
         return this.parseTickers(response, symbols);
     }
@@ -489,14 +501,14 @@ class btcbox extends btcbox$1["default"] {
         //
         //      {
         //          "date":"0",
-        //          "price":3,
+        //          "price":4,
         //          "amount":0.1,
         //          "tid":"1",
         //          "type":"buy"
         //      }
         //
         const timestamp = this.safeTimestamp(trade, 'date');
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const id = this.safeString(trade, 'tid');
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'amount');
@@ -508,7 +520,7 @@ class btcbox extends btcbox$1["default"] {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
@@ -516,7 +528,7 @@ class btcbox extends btcbox$1["default"] {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -530,7 +542,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         const numSymbols = this.symbols.length;
@@ -565,7 +579,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'amount': amount,
@@ -577,7 +593,7 @@ class btcbox extends btcbox$1["default"] {
         //
         //     {
         //         "result":true,
-        //         "id":"11"
+        //         "id":"12"
         //     }
         //
         return this.parseOrder(response, market);
@@ -593,12 +609,12 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
-        // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        const market = this.market(symbol);
+        // a special case for btcbox – default symbol is BTC/JPY
+        const symbolResolved = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market(symbolResolved);
         const request = {
             'id': id,
             'coin': market['baseId'],
@@ -612,12 +628,15 @@ class btcbox extends btcbox$1["default"] {
     parseOrderStatus(status) {
         const statuses = {
             // TODO: complete list
-            'part': 'open',
-            'all': 'closed',
+            'part': 'open', // partially or not at all executed
+            'all': 'closed', // fully executed
             'cancelled': 'canceled',
-            'closed': 'closed',
+            'closed': 'closed', // never encountered, seems to be bug in the doc
             'no': 'closed', // not clarified in the docs...
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
@@ -637,7 +656,7 @@ class btcbox extends btcbox$1["default"] {
         const datetimeString = this.safeString(order, 'datetime');
         let timestamp = undefined;
         if (datetimeString !== undefined) {
-            timestamp = this.parse8601(order['datetime'] + '+09:00'); // Tokyo time
+            timestamp = this.parse8601(datetimeString + '+09:00'); // Tokyo time
         }
         const amount = this.safeString(order, 'amount_original');
         const remaining = this.safeString(order, 'amount_outstanding');
@@ -651,7 +670,7 @@ class btcbox extends btcbox$1["default"] {
             }
         }
         const trades = undefined; // todo: this.parseTrades (order['trades']);
-        market = this.safeMarket(undefined, market);
+        const marketResolved = this.safeMarket(undefined, market);
         const side = this.safeString(order, 'type');
         return this.safeOrder({
             'id': id,
@@ -667,7 +686,7 @@ class btcbox extends btcbox$1["default"] {
             'timeInForce': undefined,
             'postOnly': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'price': price,
             'triggerPrice': undefined,
             'cost': undefined,
@@ -675,7 +694,7 @@ class btcbox extends btcbox$1["default"] {
             'fee': undefined,
             'info': order,
             'average': undefined,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -688,12 +707,12 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
-        // a special case for btcbox – default symbol is BTC/JPY
-        if (symbol === undefined) {
-            symbol = 'BTC/JPY';
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        const market = this.market(symbol);
+        // a special case for btcbox – default symbol is BTC/JPY
+        const symbolResolved = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market(symbolResolved);
         const request = this.extend({
             'id': id,
             'coin': market['baseId'],
@@ -714,11 +733,14 @@ class btcbox extends btcbox$1["default"] {
         return this.parseOrder(response, market);
     }
     async fetchOrdersByType(type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // a special case for btcbox – default symbol is BTC/JPY
-        const market = this.market(symbol);
+        const symbolResolved = (symbol === undefined) ? 'BTC/JPY' : symbol;
+        const market = this.market(symbolResolved);
         const request = {
-            'type': type,
+            'type': type, // 'open' or 'all'
             'coin': market['baseId'],
         };
         const response = await this.privatePostTradeList(this.extend(request, params));
@@ -734,15 +756,13 @@ class btcbox extends btcbox$1["default"] {
         //      },
         // ]
         //
-        const orders = this.parseOrders(response, market, since, limit);
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        const extra = {};
         if (type === 'open') {
-            for (let i = 0; i < orders.length; i++) {
-                orders[i]['status'] = 'open';
-            }
+            extra['status'] = 'open';
         }
-        return orders;
+        return this.parseOrders(response, market, since, limit, extra);
     }
     /**
      * @method
@@ -775,59 +795,65 @@ class btcbox extends btcbox$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + path;
-        if (api === 'public') {
-            if (Object.keys(params).length) {
-                url += '?' + this.urlencode(params);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + path;
+        if (apiName === 'public') {
+            if (Object.keys(params).length > 0) {
+                url = apiUrl + '/' + this.version + '/' + path + '?' + this.urlencode(params);
             }
         }
-        else if (api === 'webApi') {
-            url = this.urls['www'] + '/' + path;
+        else if (apiName === 'webApi') {
+            url = this.safeString(this.urls, 'www', '') + '/' + path;
         }
         else {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            const nonce = this.numberToString(this.nonce());
             const query = this.extend({
                 'key': this.apiKey,
                 'nonce': nonce,
             }, params);
             const request = this.urlencode(query);
-            const secret = this.hash(this.encode(this.secret), md5.md5);
-            query['signature'] = this.hmac(this.encode(request), this.encode(secret), sha256.sha256);
-            body = this.urlencode(query);
-            headers = {
+            const secret = this.hash(this.encode(this.secret), legacy_js.md5);
+            query['signature'] = this.hmac(this.encode(request), this.encode(secret), sha2_js.sha256);
+            const signedBody = this.urlencode(query);
+            const signedHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if (httpCode >= 400) {
+        if (code >= 400) {
             return undefined; // resort to defaultErrorHandler
         }
-        const result = this.safeValue(response, 'result');
-        if (result === undefined || result === true) {
+        const result = this.safeBool(response, 'result');
+        if (result === undefined || result) {
             return undefined; // either public API (no error codes expected) or success
         }
-        const code = this.safeValue(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const feedback = this.id + ' ' + body;
-        this.throwExactlyMatchedException(this.exceptions, code, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
         throw new errors.ExchangeError(feedback); // unknown message
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
-        let response = await this.fetch2(path, api, method, params, headers, body, config);
+    async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
+        let response = await this.fetch2(path, api, method, params, config);
         if (typeof response === 'string') {
             // sometimes the exchange returns whitespace prepended to json
-            response = this.strip(response);
-            if (!this.isJsonEncodedObject(response)) {
-                throw new errors.ExchangeError(this.id + ' ' + response);
+            const strippedResponse = this.strip(response);
+            if (!this.isJsonEncodedObject(strippedResponse)) {
+                throw new errors.ExchangeError(this.id + ' ' + strippedResponse);
             }
-            response = JSON.parse(response);
+            response = JSON.parse(strippedResponse);
         }
         return response;
     }

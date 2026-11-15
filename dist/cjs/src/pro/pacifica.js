@@ -17,7 +17,7 @@ class pacifica extends pacifica$1["default"] {
                 'cancelOrdersWs': true,
                 'cancelAllOrdersWs': true,
                 'createOrderWs': true,
-                'createOrdersWs': true,
+                'createOrdersWs': false,
                 'editOrderWs': true,
                 'watchBalance': false,
                 'watchMyTrades': true,
@@ -72,7 +72,7 @@ class pacifica extends pacifica$1["default"] {
             headers['PF-API-KEY'] = key;
         }
         else {
-            if (this.handleOption('setupApiKeyHeaders', 'apiKey', undefined) !== undefined) {
+            if (this.handleOption('setupApiKeyHeaders', 'apiKey') !== undefined) {
                 headers['PF-API-KEY'] = this.options['apiKey'];
             }
         }
@@ -102,15 +102,21 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [request, operationType] = this.createOrderRequest(symbol, type, side, amount, price, params);
-        params = this.omit(params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
-            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'agentAddress', 'originAddress',
-        ]);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction(operationType, request);
         const requestId = this.safeString(wsRequest, 'id');
         if (operationType === 'create_stop_order') {
@@ -184,13 +190,22 @@ class pacifica extends pacifica$1["default"] {
      */
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const batchOperationType = 'edit_order';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, market, params);
-        params = this.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId']);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction(batchOperationType, request);
         const requestId = this.safeString(wsRequest, 'id');
         const response = await this.watch(url, requestId, wsRequest, requestId);
@@ -239,15 +254,24 @@ class pacifica extends pacifica$1["default"] {
      */
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
         const batchOperationType = 'batch_orders';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + 'cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest(ids, symbol, params);
-        params = this.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds']);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction(batchOperationType, request);
         const requestId = this.safeString(wsRequest, 'id');
         const response = await this.watch(url, requestId, wsRequest, requestId);
@@ -278,8 +302,8 @@ class pacifica extends pacifica$1["default"] {
         const results = this.safeList(data, 'results', []);
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
-            const order = results[i];
-            const error = this.safeString(order, 'error', undefined);
+            const order = this.safeDict(results, i);
+            const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             const marketId = this.safeString(order, 'symbol');
             const market = this.safeMarket(marketId);
@@ -313,15 +337,24 @@ class pacifica extends pacifica$1["default"] {
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         const operationType = 'cancel_order';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const request = this.cancelOrderRequest(id, symbol, params);
-        params = this.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId']);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction(operationType, request);
         const requestId = this.safeString(wsRequest, 'id');
         const response = await this.watch(url, requestId, wsRequest, requestId);
@@ -369,13 +402,22 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const operationType = 'cancel_all_orders';
         const request = this.cancelAllOrdersRequest(symbol, params);
-        params = this.omit(params, ['excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow']);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction(operationType, request);
         const requestId = this.safeString(wsRequest, 'id');
         const response = await this.watch(url, requestId, wsRequest, requestId);
@@ -404,18 +446,27 @@ class pacifica extends pacifica$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         this.setupApiKeyHeaders();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let aggLevel = undefined;
-        [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
+        const [aggLevel, paramsAggLevel] = this.handleOptionIntegerAndParams(params, 'watchOrderBook', 'aggLevel', 1);
         const messageHash = 'orderbook:' + symbol;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'subscribe',
             'params': {
@@ -424,7 +475,7 @@ class pacifica extends pacifica$1["default"] {
                 'agg_level': aggLevel,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsAggLevel);
         const orderbook = await this.watch(url, messageHash, message, messageHash);
         return orderbook.limit();
     }
@@ -436,18 +487,27 @@ class pacifica extends pacifica$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        let aggLevel = undefined;
-        [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
+        const [aggLevel, paramsAggLevel] = this.handleOptionIntegerAndParams(params, 'watchOrderBook', 'aggLevel', 1);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'unsubscribe',
             'params': {
@@ -456,7 +516,7 @@ class pacifica extends pacifica$1["default"] {
                 'agg_level': aggLevel,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsAggLevel);
         return await this.watch(url, messageHash, message, messageHash);
     }
     handleOrderBook(client, message) {
@@ -505,16 +565,16 @@ class pacifica extends pacifica$1["default"] {
         const timestamp = this.safeInteger(entry, 't');
         const snapshot = this.parseOrderBook(result, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         const nonce = this.safeInteger(entry, 'li');
-        if (nonce) {
+        if ((nonce !== undefined) && (nonce !== 0)) {
             snapshot['nonce'] = nonce;
         }
+        const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook(snapshot);
             this.orderbooks[symbol] = ob;
         }
         const orderbook = this.orderbooks[symbol];
         orderbook.reset(snapshot);
-        const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
     /**
@@ -541,12 +601,22 @@ class pacifica extends pacifica$1["default"] {
      */
     async watchTickers(symbols = undefined, params = {}) {
         this.setupApiKeyHeaders();
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, true);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, true);
         const messageHash = 'tickers';
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'subscribe',
             'params': {
@@ -555,7 +625,7 @@ class pacifica extends pacifica$1["default"] {
         };
         const tickers = await this.watch(url, messageHash, this.extend(request, params), messageHash);
         if (this.newUpdates) {
-            return this.filterByArrayTickers(tickers, 'symbol', symbols);
+            return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
         }
         return this.tickers;
     }
@@ -569,13 +639,23 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, true);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        this.marketSymbols(symbols, undefined, true);
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'unsubscribe',
             'params': {
@@ -597,17 +677,27 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('watchMyTrades', params);
-        await this.loadMarkets();
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('watchMyTrades', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'myTrades';
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            messageHash += ':' + symbol;
+            symbolResolved = this.symbol(symbol);
+            messageHash = 'myTrades:' + symbolResolved;
         }
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'subscribe',
             'params': {
@@ -615,12 +705,13 @@ class pacifica extends pacifica$1["default"] {
                 'account': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsOriginAndSingleAddress);
         const trades = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -633,16 +724,25 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchMyTrades(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('unWatchMyTrades', params);
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('unWatchMyTrades', params);
         const messageHash = 'unsubscribe:myTrades';
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'unsubscribe',
             'params': {
@@ -650,7 +750,7 @@ class pacifica extends pacifica$1["default"] {
                 'account': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsOriginAndSingleAddress);
         return await this.watch(url, messageHash, message, messageHash);
     }
     handleWsTickers(client, message) {
@@ -732,12 +832,14 @@ class pacifica extends pacifica$1["default"] {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade(rawTrade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
             trades.append(parsed);
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {
-            const currentMessageHash = 'myTrades:' + keys[i];
+            const currentMessageHash = 'myTrades:' + this.safeString(keys, i, '');
             client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -756,13 +858,23 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'trade:' + symbolValue;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'subscribe',
             'params': {
@@ -772,10 +884,11 @@ class pacifica extends pacifica$1["default"] {
         };
         const message = this.extend(request, params);
         const trades = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -787,14 +900,24 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const subMessageHash = 'trade:' + symbol;
+        const symbolValue = market['symbol'];
+        const subMessageHash = 'trade:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'unsubscribe',
             'params': {
@@ -828,6 +951,7 @@ class pacifica extends pacifica$1["default"] {
         const marketId = this.safeString(first, 's');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
+        const messageHash = 'trade:' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const stored = new Cache.ArrayCache(limit);
@@ -835,11 +959,10 @@ class pacifica extends pacifica$1["default"] {
         }
         const trades = this.trades[symbol];
         for (let i = 0; i < entry.length; i++) {
-            const data = this.safeDict(entry, i);
+            const data = this.safeDict(entry, i, {});
             const trade = this.parseWsTrade(data);
             trades.append(trade);
         }
-        const messageHash = 'trade:' + symbol;
         client.resolve(trades, messageHash);
     }
     parseWsTrade(trade, market = undefined) {
@@ -881,8 +1004,8 @@ class pacifica extends pacifica$1["default"] {
         const price = this.safeString(trade, 'p');
         const amount = this.safeString(trade, 'a');
         const marketId = this.safeString(trade, 's');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString(trade, 'h');
         const fee = this.safeString(trade, 'f');
         let side = this.safeString2(trade, 'ts', 'd');
@@ -922,7 +1045,7 @@ class pacifica extends pacifica$1["default"] {
             'amount': amount,
             'cost': undefined,
             'fee': { 'cost': fee, 'currency': 'USDC' },
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -937,13 +1060,23 @@ class pacifica extends pacifica$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
         const parsedTf = this.safeString(this.timeframes, timeframe, timeframe);
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'subscribe',
             'params': {
@@ -952,13 +1085,14 @@ class pacifica extends pacifica$1["default"] {
                 'interval': parsedTf,
             },
         };
-        const messageHash = 'candles:' + parsedTf + ':' + symbol;
+        const messageHash = 'candles:' + parsedTf + ':' + symbolValue;
         const message = this.extend(request, params);
         const ohlcv = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     /**
      * @method
@@ -971,12 +1105,22 @@ class pacifica extends pacifica$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'unsubscribe',
             'params': {
@@ -985,7 +1129,7 @@ class pacifica extends pacifica$1["default"] {
                 'interval': timeframe,
             },
         };
-        const subMessageHash = 'candles:' + timeframe + ':' + symbol;
+        const subMessageHash = 'candles:' + timeframe + ':' + symbolValue;
         const messagehash = 'unsubscribe:' + subMessageHash;
         const message = this.extend(request, params);
         return await this.watch(url, messagehash, message, messagehash);
@@ -1013,18 +1157,22 @@ class pacifica extends pacifica$1["default"] {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const timeframe = this.safeString(data, 'i');
+        if (timeframe === undefined) {
+            return;
+        }
+        const messageHash = 'candles:' + timeframe + ':' + symbol;
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        const symbolOhlcvs = this.safeDict(this.ohlcvs, symbol, {});
+        let ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        if (ohlcv === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-            const stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            ohlcv = new Cache.ArrayCacheByTimestamp(limit);
+            symbolOhlcvs[timeframe] = ohlcv;
         }
-        const ohlcv = this.ohlcvs[symbol][timeframe];
         const parsed = this.parseOHLCV(data);
         ohlcv.append(parsed);
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve(ohlcv, messageHash);
     }
     /**
@@ -1040,19 +1188,29 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('watchOrders', params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('watchOrders', params);
         let market = undefined;
         let messageHash = 'order';
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            symbolResolved = this.safeString(market, 'symbol');
+            messageHash = messageHash + ':' + this.safeString(market, 'symbol', '');
         }
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
         const request = {
             'method': 'subscribe',
             'params': {
@@ -1060,12 +1218,13 @@ class pacifica extends pacifica$1["default"] {
                 'account': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsOriginAndSingleAddress);
         const orders = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -1078,16 +1237,25 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only');
         }
         const messageHash = 'unsubscribe:order';
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
-        let userAddress = undefined;
-        [userAddress, params] = this.handleOriginAndSingleAddress('unWatchOrders', params);
+        let urlKey = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict(this.urls, urlKey, {});
+        const wsUrls = this.safeDict(apiUrls, 'ws', {});
+        const url = this.safeString(wsUrls, 'public');
+        if (url === undefined) {
+            throw new errors.ExchangeError(this.id + ' has no websocket url for this endpoint');
+        }
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('unWatchOrders', params);
         const request = {
             'method': 'unsubscribe',
             'params': {
@@ -1095,7 +1263,7 @@ class pacifica extends pacifica$1["default"] {
                 'account': userAddress,
             },
         };
-        const message = this.extend(request, params);
+        const message = this.extend(request, paramsOriginAndSingleAddress);
         return await this.watch(url, messageHash, message, messageHash);
     }
     handleOrder(client, message) {
@@ -1143,7 +1311,9 @@ class pacifica extends pacifica$1["default"] {
             const order = this.parseOrder(rawOrder);
             stored.append(order);
             const symbol = this.safeString(order, 'symbol');
-            marketSymbols[symbol] = true;
+            if (symbol !== undefined) {
+                marketSymbols[symbol] = true;
+            }
         }
         const keys = Object.keys(marketSymbols);
         for (let i = 0; i < keys.length; i++) {
@@ -1165,8 +1335,11 @@ class pacifica extends pacifica$1["default"] {
         if (id === undefined) {
             id = this.safeString(data, 'id');
         }
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const wsHeaders = this.safeDict(wsOptions, 'options', {});
+        const wsHeadersFinal = this.safeDict(wsHeaders, 'headers', {});
         try {
-            this.handleErrors(0, error, '', postType, this.options['ws']['options']['headers'], this.json(data), message, {}, {});
+            this.handleErrors(0, error, '', postType, wsHeadersFinal, this.json(data), message, {}, '');
         }
         catch (e) {
             client.reject(e, id);
@@ -1211,10 +1384,13 @@ class pacifica extends pacifica$1["default"] {
         const symbol = market['symbol'];
         const interval = this.safeString(subscription, 'interval');
         const timeframe = this.findTimeframe(interval);
+        if (timeframe === undefined) {
+            return;
+        }
         const subMessageHash = 'candles:' + timeframe + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (symbol in this.ohlcvs) {
+        if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
             if (timeframe in this.ohlcvs[symbol]) {
                 delete this.ohlcvs[symbol][timeframe];
             }
@@ -1297,10 +1473,10 @@ class pacifica extends pacifica$1["default"] {
         //     }
         // }
         //
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
-        const postType = this.safeString(message, 'type', undefined);
+        const postType = this.safeString(message, 'type');
         const topic = this.safeString(message, 'channel', '');
         const methods = {
             'pong': this.handlePong,
@@ -1354,11 +1530,12 @@ class pacifica extends pacifica$1["default"] {
             throw new errors.ArgumentsRequired(this.id + 'postAction() requires a "operationType" argument!');
         }
         const requestId = this.requestId();
+        const postParams = {};
+        postParams[operationType] = request;
         const payload = {
             'id': requestId,
-            'params': {},
+            'params': postParams,
         };
-        payload['params'][operationType] = request;
         return payload;
     }
     handleWsPost(client, message) {

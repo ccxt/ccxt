@@ -1,8 +1,6 @@
-- [One Exchange Many Streams 2](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- 
 'use strict';
 
 import ccxt from '../../js/ccxt.js';
@@ -33,5 +31,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

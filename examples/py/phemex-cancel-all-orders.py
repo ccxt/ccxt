@@ -1,5 +1,8 @@
 import ccxt.pro
-from asyncio import run
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 from pprint import pprint
 
 print('CCXT Version:', ccxt.__version__)

@@ -1,8 +1,7 @@
-- [Hibachi Example](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- import { hibachi } from '../../js/ccxt.js';
+import { hibachi } from '../../js/ccxt.js';
 import fs from 'fs';
 
 /*
@@ -139,5 +138,5 @@ async function example () {
 
 }
 example ();
- 
+
 ```

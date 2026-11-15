@@ -7,158 +7,232 @@
 
 package ccxt
 
-func (this *IndependentreserveCore) PublicGetGetValidPrimaryCurrencyCodes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetValidPrimaryCurrencyCodes", args...)
+// PublicGetGetValidPrimaryCurrencyCodes returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetValidPrimaryCurrencyCodes(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetValidPrimaryCurrencyCodes", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidSecondaryCurrencyCodes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetValidSecondaryCurrencyCodes", args...)
+// PublicGetGetValidSecondaryCurrencyCodes returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetValidSecondaryCurrencyCodes(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetValidSecondaryCurrencyCodes", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidLimitOrderTypes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetValidLimitOrderTypes", args...)
+// PublicGetGetValidLimitOrderTypes returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetValidLimitOrderTypes(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetValidLimitOrderTypes", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidMarketOrderTypes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetValidMarketOrderTypes", args...)
+// PublicGetGetValidMarketOrderTypes returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetValidMarketOrderTypes(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetValidMarketOrderTypes", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidOrderTypes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetValidOrderTypes", args...)
+// PublicGetGetValidOrderTypes returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetValidOrderTypes(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetValidOrderTypes", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetValidTransactionTypes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetValidTransactionTypes", args...)
+// PublicGetGetValidTransactionTypes returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetValidTransactionTypes(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetValidTransactionTypes", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetMarketSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetMarketSummary", args...)
+// PublicGetGetMarketSummary returns a channel that yields a JSON object.
+func (this *Independentreserve) PublicGetGetMarketSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetMarketSummary", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetOrderBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetOrderBook", args...)
+// PublicGetGetOrderBook returns a channel that yields a JSON object.
+func (this *Independentreserve) PublicGetGetOrderBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetOrderBook", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetAllOrders", args...)
+// PublicGetGetAllOrders returns a channel that yields a JSON object.
+func (this *Independentreserve) PublicGetGetAllOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetAllOrders", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetTradeHistorySummary(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetTradeHistorySummary", args...)
+// PublicGetGetTradeHistorySummary returns a channel that yields a JSON object.
+func (this *Independentreserve) PublicGetGetTradeHistorySummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetTradeHistorySummary", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetRecentTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetRecentTrades", args...)
+// PublicGetGetRecentTrades returns a channel that yields a JSON object.
+func (this *Independentreserve) PublicGetGetRecentTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetRecentTrades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetFxRates(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetFxRates", args...)
+// PublicGetGetFxRates returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetFxRates(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetFxRates", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetOrderMinimumVolumes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetOrderMinimumVolumes", args...)
+// PublicGetGetOrderMinimumVolumes returns a channel that yields a JSON object.
+func (this *Independentreserve) PublicGetGetOrderMinimumVolumes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetOrderMinimumVolumes", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetCryptoWithdrawalFees", args...)
+// PublicGetGetDepositFees returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetDepositFees(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetDepositFees", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees2(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetCryptoWithdrawalFees2", args...)
+// PublicGetGetFiatWithdrawalFees returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetFiatWithdrawalFees(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetFiatWithdrawalFees", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetNetworks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetNetworks", args...)
+// PublicGetGetCryptoWithdrawalFees returns a channel that yields a JSON object.
+func (this *Independentreserve) PublicGetGetCryptoWithdrawalFees(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetCryptoWithdrawalFees", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PublicGetGetPrimaryCurrencyConfig2(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetPrimaryCurrencyConfig2", args...)
+// PublicGetGetCryptoWithdrawalFees2 returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetCryptoWithdrawalFees2(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetCryptoWithdrawalFees2", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetOpenOrders", args...)
+// PublicGetGetNetworks returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetNetworks(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetNetworks", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetClosedOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetClosedOrders", args...)
+// PublicGetGetPrimaryCurrencyConfig2 returns a channel that yields a JSON array.
+func (this *Independentreserve) PublicGetGetPrimaryCurrencyConfig2(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetPrimaryCurrencyConfig2", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetClosedFilledOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetClosedFilledOrders", args...)
+// PrivatePostGetOpenOrders returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetOpenOrders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetOrderDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetOrderDetails", args...)
+// PrivatePostGetClosedOrders returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetClosedOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetClosedOrders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetAccounts", args...)
+// PrivatePostGetClosedFilledOrders returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetClosedFilledOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetClosedFilledOrders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetTransactions", args...)
+// PrivatePostGetOrderDetails returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetOrderDetails(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetOrderDetails", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetFiatBankAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetFiatBankAccounts", args...)
+// PrivatePostGetAccounts returns a channel that yields a JSON array.
+func (this *Independentreserve) PrivatePostGetAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAccounts", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddress", args...)
+// PrivatePostGetTransactions returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetTransactions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetTransactions", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddress2(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddress2", args...)
+// PrivatePostGetFiatBankAccounts returns a channel that yields a JSON array.
+func (this *Independentreserve) PrivatePostGetFiatBankAccounts(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetFiatBankAccounts", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddresses", args...)
+// PrivatePostGetDigitalCurrencyDepositAddress returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetDigitalCurrencyDepositAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetDigitalCurrencyDepositAddress", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyDepositAddresses2(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetDigitalCurrencyDepositAddresses2", args...)
+// PrivatePostGetDigitalCurrencyDepositAddress2 returns a channel that yields a JSON array.
+func (this *Independentreserve) PrivatePostGetDigitalCurrencyDepositAddress2(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetDigitalCurrencyDepositAddress2", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetTrades", args...)
+// PrivatePostGetDigitalCurrencyDepositAddresses returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetDigitalCurrencyDepositAddresses(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetDigitalCurrencyDepositAddresses", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetBrokerageFees(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetBrokerageFees", args...)
+// PrivatePostGetDigitalCurrencyDepositAddresses2 returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetDigitalCurrencyDepositAddresses2(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetDigitalCurrencyDepositAddresses2", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetDigitalCurrencyWithdrawal", args...)
+// PrivatePostGetTrades returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetTrades", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostPlaceLimitOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPlaceLimitOrder", args...)
+// PrivatePostGetTradesByOrder returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetTradesByOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetTradesByOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostPlaceMarketOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPlaceMarketOrder", args...)
+// PrivatePostGetBrokerageFees returns a channel that yields a JSON array.
+func (this *Independentreserve) PrivatePostGetBrokerageFees(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetBrokerageFees", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCancelOrder", args...)
+// PrivatePostGetDigitalCurrencyWithdrawal returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetDigitalCurrencyWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetDigitalCurrencyWithdrawal", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostSynchDigitalCurrencyDepositAddressWithBlockchain(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostSynchDigitalCurrencyDepositAddressWithBlockchain", args...)
+// PrivatePostGetFiatWithdrawal returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetFiatWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetFiatWithdrawal", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostRequestFiatWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostRequestFiatWithdrawal", args...)
+// PrivatePostGetDepositLimits returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetDepositLimits(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetDepositLimits", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostWithdrawFiatCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawFiatCurrency", args...)
+// PrivatePostGetWithdrawalLimits returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostGetWithdrawalLimits(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "GetWithdrawalLimits", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostWithdrawDigitalCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawDigitalCurrency", args...)
+// PrivatePostPlaceLimitOrder returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostPlaceLimitOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "PlaceLimitOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *IndependentreserveCore) PrivatePostWithdrawCrypto(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawCrypto", args...)
+// PrivatePostPlaceMarketOrder returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostPlaceMarketOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "PlaceMarketOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostCancelOrder returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CancelOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostCancelOrders returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostCancelOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "CancelOrders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostSynchDigitalCurrencyDepositAddressWithBlockchain returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostSynchDigitalCurrencyDepositAddressWithBlockchain(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "SynchDigitalCurrencyDepositAddressWithBlockchain", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostRequestFiatWithdrawal returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostRequestFiatWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "RequestFiatWithdrawal", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostWithdrawFiatCurrency returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostWithdrawFiatCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "WithdrawFiatCurrency", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostWithdrawDigitalCurrency returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostWithdrawDigitalCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "WithdrawDigitalCurrency", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostWithdrawCrypto returns a channel that yields a JSON object.
+func (this *Independentreserve) PrivatePostWithdrawCrypto(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "WithdrawCrypto", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }

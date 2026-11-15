@@ -162,16 +162,32 @@ public final class Functions {
     }
 
     public static Object omit(Map<String, Object> a, String key) {
-        List<Object> keys = new ArrayList<>();
-        keys.add(key);
-        return omit(a, (Object) keys);
+        return omitMap(a, Collections.singletonList(key));
+    }
+
+    // Map input: a fresh map without the keys (a String or a List of keys); null map or keys -> null
+    public static Map<String, Object> omitMap(Map<String, Object> a, Object k) {
+        if (a == null || k == null) return null;
+        Set<String> skip = new HashSet<>();
+        if (k instanceof String key) {
+            skip.add(key);
+        } else if (k instanceof List<?> list) {
+            for (Object it : list) skip.add(String.valueOf(it));
+        } else {
+            throw new ClassCastException("omit keys must be a String or a List, got " + k.getClass().getName());
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : a.entrySet()) {
+            if (!skip.contains(entry.getKey())) out.put(entry.getKey(), entry.getValue());
+        }
+        return out;
     }
 
     // -------------------------------------------------
     // toArray
     // -------------------------------------------------
     public static List<Object> toArray(Object a) {
-        if (a == null) return null;
+        if (a == null) return new ArrayList<>();
 
         // WS caches mutate from the message-executor thread. Take the snapshot
         // under the cache's own monitor so the copy can't observe a remove(0)
@@ -181,6 +197,12 @@ public final class Functions {
         }
         if (a instanceof List<?> l) {
             return new ArrayList<>((List<Object>) l);
+        }
+        // Non-map scalars (Boolean/Number/String) must not cast to Map — callers
+        // may pass failed safeList results or other non-collections after strict-null
+        // refactors; treat them as empty collections.
+        if (!(a instanceof Map)) {
+            return new ArrayList<>();
         }
 
         // treat as map -> return values as list (preserve insertion order if possible).

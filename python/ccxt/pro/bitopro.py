@@ -6,15 +6,14 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 
 
 class bitopro(ccxt.async_support.bitopro):
 
-    def describe(self) -> Any:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitopro, self).describe(), {
             'has': {
                 'ws': True,
@@ -51,11 +50,14 @@ class bitopro(ccxt.async_support.bitopro):
             },
         })
 
-    async def watch_public(self, path, messageHash, marketId):
-        url = self.urls['ws']['public'] + '/' + path + '/' + marketId
+    async def watch_public(self, path: str, messageHash: str, marketId: Str):
+        wsUrl = self.safe_string(self.urls['ws'], 'public')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchPublic() has no public websocket url')
+        url = wsUrl + '/' + path + '/' + marketId
         return await self.watch(url, messageHash, None, messageHash)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -64,24 +66,26 @@ class bitopro(ccxt.async_support.bitopro):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if limit is not None:
             if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500) and (limit != 1000):
                 raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10, 20, 50, 100, 500 or 1000')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'ORDER_BOOK' + ':' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'ORDER_BOOK' + ':' + symbolValue
+        marketIdValue = self.safe_string(market, 'id', '')
         endPart = None
         if limit is None:
-            endPart = market['id']
+            endPart = marketIdValue
         else:
-            endPart = market['id'] + ':' + self.number_to_string(limit)
+            endPart = marketIdValue + ':' + self.number_to_string(limit)
         orderbook = await self.watch_public('order-books', messageHash, endPart)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "event": "ORDER_BOOK",
@@ -91,7 +95,7 @@ class bitopro(ccxt.async_support.bitopro):
         #         "limit": 5,
         #         "scale": 0,
         #         "bids": [
-        #             {price: "1188178", amount: '0.0425', count: 1, total: "0.0425"},
+        #             { price: "1188178", amount: '0.0425', count: 1, total: "0.0425" },
         #         ],
         #         "asks": [
         #             {
@@ -107,16 +111,17 @@ class bitopro(ccxt.async_support.bitopro):
         market = self.safe_market(marketId, None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
-        messageHash = event + ':' + symbol
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             orderbook = self.order_book({})
         timestamp = self.safe_integer(message, 'timestamp')
         snapshot = self.parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
         orderbook.reset(snapshot)
-        client.resolve(orderbook, messageHash)
+        if event is not None:
+            messageHash = event + ':' + symbol
+            client.resolve(orderbook, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -128,16 +133,18 @@ class bitopro(ccxt.async_support.bitopro):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'TRADE' + ':' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'TRADE' + ':' + symbolValue
         trades = await self.watch_public('trades', messageHash, market['id'])
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: dict):
         #
         #     {
         #         "event": "TRADE",
@@ -152,7 +159,7 @@ class bitopro(ccxt.async_support.bitopro):
         #                 "timestamp": 1650116227,
         #                 "price": "1189429",
         #                 "amount": "0.0153127",
-        #                 "isBuyer": True
+        #                 "isBuyer": true
         #             },
         #         ]
         #     }
@@ -161,19 +168,21 @@ class bitopro(ccxt.async_support.bitopro):
         market = self.safe_market(marketId, None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
-        messageHash = event + ':' + symbol
-        rawData = self.safe_value(message, 'data', [])
+        rawData = self.safe_list(message, 'data', [])
         trades = self.parse_trades(rawData, market)
         tradesCache = self.safe_value(self.trades, symbol)
         if tradesCache is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             tradesCache = ArrayCache(limit)
         for i in range(0, len(trades)):
-            tradesCache.append(trades[i])
+            trade = trades[i]
+            tradesCache.append(trade)
         self.trades[symbol] = tradesCache
-        client.resolve(tradesCache, messageHash)
+        if event is not None:
+            messageHash = event + ':' + symbol
+            client.resolve(tradesCache, messageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -186,19 +195,25 @@ class bitopro(ccxt.async_support.bitopro):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'USER_TRADE'
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = messageHash + ':' + market['symbol']
-        url = self.urls['ws']['private'] + '/' + 'user-trades'
+            symbolValue = market['symbol']
+            messageHash = messageHash + ':' + symbolValue
+        wsUrl = self.safe_string(self.urls['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchMyTrades() has no private websocket url')
+        url = wsUrl + '/' + 'user-trades'
         self.authenticate(url)
         trades = await self.watch(url, messageHash, None, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: dict):
         #
         #     {
         #         "event": "USER_TRADE",
@@ -217,16 +232,18 @@ class bitopro(ccxt.async_support.bitopro):
         #             "orderID": 390733918,
         #             "orderType": "LIMIT",
         #             "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
-        #             "isMarket": False,
-        #             "isMaker": False
+        #             "isMarket": false,
+        #             "isMaker": false
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_dict(message, 'data', {})
         baseId = self.safe_string(data, 'base')
         quoteId = self.safe_string(data, 'quote')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return
         symbol = self.symbol(base + '/' + quote)
         messageHash = self.safe_string(message, 'event')
         if self.myTrades is None:
@@ -236,7 +253,8 @@ class bitopro(ccxt.async_support.bitopro):
         parsed = self.parse_ws_trade(data)
         trades.append(parsed)
         client.resolve(trades, messageHash)
-        client.resolve(trades, messageHash + ':' + symbol)
+        if messageHash is not None:
+            client.resolve(trades, messageHash + ':' + symbol)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -253,8 +271,8 @@ class bitopro(ccxt.async_support.bitopro):
         #         "orderID": 390733918,
         #         "orderType": "LIMIT",
         #         "matchID": "bd07673a-94b1-419e-b5ee-d7b723261a5d",
-        #         "isMarket": False,
-        #         "isMaker": False
+        #         "isMarket": false,
+        #         "isMaker": false
         #     }
         #
         id = self.safe_string(trade, 'matchID')
@@ -264,8 +282,10 @@ class bitopro(ccxt.async_support.bitopro):
         quoteId = self.safe_string(trade, 'quote')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = self.symbol(base + '/' + quote)
-        market = self.safe_market(symbol, market)
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = self.symbol(base + '/' + quote)
+        marketResolved = self.safe_market(symbol, market)
         price = self.safe_string(trade, 'price')
         type = self.safe_string_lower(trade, 'orderType')
         side = self.safe_string(trade, 'side')
@@ -284,7 +304,7 @@ class bitopro(ccxt.async_support.bitopro):
                 'currency': feeSymbol,
                 'rate': None,
             }
-        isMaker = self.safe_value(trade, 'isMaker')
+        isMaker = self.safe_bool(trade, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
             if isMaker:
@@ -305,9 +325,9 @@ class bitopro(ccxt.async_support.bitopro):
             'amount': amount,
             'cost': None,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -317,13 +337,14 @@ class bitopro(ccxt.async_support.bitopro):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'TICKER' + ':' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'TICKER' + ':' + symbolValue
         return await self.watch_public('tickers', messageHash, market['id'])
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #         "event": "TICKER",
@@ -333,7 +354,7 @@ class bitopro(ccxt.async_support.bitopro):
         #         "lastPrice": "1189110",
         #         "lastPriceUSD": "40919.1328",
         #         "lastPriceTWD": "1189110",
-        #         "isBuyer": True,
+        #         "isBuyer": true,
         #         "priceChange24hr": "1.23",
         #         "volume24hr": "7.2090",
         #         "volume24hrUSD": "294985.5375",
@@ -342,21 +363,24 @@ class bitopro(ccxt.async_support.bitopro):
         #         "low24hr": "1179321"
         #     }
         #
-        marketId = self.safe_string(message, 'pair')
+        marketId = self.safe_string_lower(message, 'pair')
+        if marketId is None:
+            return  # some TICKER frames arrive without a pair - nothing to resolve them against
         # market-ids are lowercase in REST API and uppercase in WS API
-        market = self.safe_market(marketId.lower(), None, '_')
+        market = self.safe_market(marketId, None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
-        messageHash = event + ':' + symbol
         result = self.parse_ticker(message, market)
         result['symbol'] = self.safe_string(market, 'symbol')  # symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         timestamp = self.safe_integer(message, 'timestamp')
         result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
+        result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         self.tickers[symbol] = result
-        client.resolve(result, messageHash)
+        if event is not None:
+            messageHash = event + ':' + symbol
+            client.resolve(result, messageHash)
 
-    def authenticate(self, url):
+    def authenticate(self, url: str):
         if (self.clients is not None) and (url in self.clients):
             return
         self.check_required_credentials()
@@ -367,28 +391,30 @@ class bitopro(ccxt.async_support.bitopro):
         })
         payload = self.string_to_base64(rawData)
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
-        defaultOptions: dict = {
+        defaultOptions = {
             'ws': {
                 'options': {
                     'headers': {},
                 },
             },
         }
-        # self.options = self.extend(defaultOptions, self.options)
+        # this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(defaultOptions)
-        originalHeaders = self.options['ws']['options']['headers']
-        headers: dict = {
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        wsInnerOptions = self.safe_dict(wsOptions, 'options', {})
+        originalHeaders = wsInnerOptions['headers']
+        headers = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': self.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
             'X-BITOPRO-SIGNATURE': signature,
         }
-        self.options['ws']['options']['headers'] = headers
+        wsInnerOptions['headers'] = headers
         # instantiate client
         self.client(url)
-        self.options['ws']['options']['headers'] = originalHeaders
+        wsInnerOptions['headers'] = originalHeaders
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -398,13 +424,17 @@ class bitopro(ccxt.async_support.bitopro):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'ACCOUNT_BALANCE'
-        url = self.urls['ws']['private'] + '/' + 'account-balance'
+        wsUrl = self.safe_string(self.urls['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchBalance() has no private websocket url')
+        url = wsUrl + '/' + 'account-balance'
         self.authenticate(url)
         return await self.watch(url, messageHash, None, messageHash)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: dict):
         #
         #     {
         #         "event": "ACCOUNT_BALANCE",
@@ -416,35 +446,42 @@ class bitopro(ccxt.async_support.bitopro):
         #             "amount": "0",
         #             "available": "0",
         #             "stake": "0",
-        #             "tradable": True
+        #             "tradable": true
         #           },
         #         }
         #     }
         #
         event = self.safe_string(message, 'event')
-        data = self.safe_value(message, 'data')
+        data = self.safe_dict(message, 'data', {})
         timestamp = self.safe_integer(message, 'timestamp')
         datetime = self.safe_string(message, 'datetime')
         currencies = list(data.keys())
-        result: dict = {
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': datetime,
-        }
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a
+        # reference to this.balance, and Client.resolve is a no-op while
+        # nobody is awaiting, so a replaced object would make updates landing
+        # in that window invisible to the consumer forever (same class as
+        # issue #26773)
+        if self.balance is None:
+            self.balance = {}
+        self.balance['info'] = data
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = datetime
         for i in range(0, len(currencies)):
             currency = self.safe_string(currencies, i)
-            balance = self.safe_value(data, currency)
+            balance = self.safe_dict(data, currency, {})
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'amount')
-            result[code] = account
-        self.balance = self.safe_balance(result)
+            if code is not None:
+                self.balance[code] = account
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, event)
 
-    def handle_message(self, client: Client, message):
-        methods: dict = {
+    def handle_message(self, client: Client, message: dict):
+        methods = {
             'TRADE': self.handle_trade,
             'TICKER': self.handle_ticker,
             'ORDER_BOOK': self.handle_order_book,
