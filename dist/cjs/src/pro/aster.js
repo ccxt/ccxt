@@ -1376,11 +1376,23 @@ class aster extends aster$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const type = undefined;
-        this.handleMarketTypeAndParams('watchBalance', undefined, params, type);
-        {
+        const [typeMarketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        if (typeMarketType === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchBalance() requires a market type');
         }
+        await this.authenticate(typeMarketType, paramsMarketType);
+        const url = this.getPrivateUrl(typeMarketType);
+        const client = this.client(url);
+        this.setBalanceCache(client, typeMarketType);
+        const options = this.safeDict(this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
+        if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot)) {
+            await client.future(typeMarketType + ':fetchBalanceSnapshot');
+        }
+        const messageHash = typeMarketType + ':balance';
+        const message = undefined;
+        return await this.watch(url, messageHash, message, typeMarketType);
     }
     setBalanceCache(client, type) {
         if ((type in client.subscriptions) && (type in this.balance)) {
@@ -1704,15 +1716,29 @@ class aster extends aster$1["default"] {
             await this.loadMarkets();
         }
         let market = undefined;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            this.safeString(market, 'symbol');
+            symbolResolved = this.safeString(market, 'symbol');
         }
-        const type = undefined;
-        this.handleMarketTypeAndParams('watchOrders', market, params, type);
-        {
+        let messageHash = 'orders';
+        const [typeMarketType, paramsMarketType] = this.handleMarketTypeAndParams('watchOrders', market, params);
+        if (typeMarketType === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a market type');
         }
+        await this.authenticate(typeMarketType, paramsMarketType);
+        if (market !== undefined) {
+            messageHash = 'orders' + '::' + this.safeString(market, 'symbol', '');
+        }
+        const url = this.getPrivateUrl(typeMarketType);
+        const client = this.client(url);
+        this.setBalanceCache(client, typeMarketType);
+        const orders = await this.watchMultiple(url, [messageHash], undefined, [typeMarketType]);
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = orders.getLimit(symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -1732,15 +1758,29 @@ class aster extends aster$1["default"] {
             await this.loadMarkets();
         }
         let market = undefined;
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            this.safeString(market, 'symbol');
+            symbolResolved = this.safeString(market, 'symbol');
         }
-        const type = undefined;
-        this.handleMarketTypeAndParams('watchMyTrades', market, params, type);
-        {
+        let messageHash = 'myTrades';
+        const [typeMarketType, paramsMarketType] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
+        if (typeMarketType === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a market type');
         }
+        await this.authenticate(typeMarketType, paramsMarketType);
+        if (market !== undefined) {
+            messageHash = 'myTrades' + '::' + this.safeString(market, 'symbol', '');
+        }
+        const url = this.getPrivateUrl(typeMarketType);
+        const client = this.client(url);
+        this.setBalanceCache(client, typeMarketType);
+        const trades = await this.watchMultiple(url, [messageHash], undefined, [typeMarketType]);
+        let limitResolved = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit(symbolResolved, limit);
+        }
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     handleOrderUpdate(client, message) {
         const rawOrder = this.safeDict(message, 'o', message);
