@@ -2099,6 +2099,40 @@ impl crate::value::KeyRead for &Tickers {
     fn read(&self, key: &Value) -> Value { match key { Value::Str(k) => self.key_read(k), _ => Value::Null } }
 }
 
+/// A keyed read on a typed `OHLCVsBySymbol` result: the symbol's timeframe map boxed, as the boxed map read answered it.
+impl crate::value::KeyRead for &OHLCVsBySymbol {
+    fn key_read(&self, key: &str) -> Value { self.get(key).cloned().map(IntoRaw::into_raw).unwrap_or_default() }
+    fn read(&self, key: &Value) -> Value { match key { Value::Str(k) => self.key_read(k), _ => Value::Null } }
+}
+
+#[cfg(test)]
+mod ohlcvs_by_symbol_key_read_tests {
+    use super::{IntoRaw, OHLCVsBySymbol};
+    use crate::value::{get_value, KeyRead};
+    use crate::Value;
+    use indexmap::IndexMap as HashMap;
+
+    // ral-46h: `r[s][tf]` on the typed result reads exactly what the boxed result read
+    #[test]
+    fn key_read_matches_the_boxed_read() {
+        let make = || {
+            let mut tf = HashMap::new();
+            tf.insert("1m".to_string(), vec![[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]]);
+            let mut r: OHLCVsBySymbol = HashMap::new();
+            r.insert("BTC/USDT".to_string(), tf);
+            r
+        };
+        let r = make();
+        let boxed = make().into_raw();
+        let sym = Value::Str("BTC/USDT".into());
+        let tfk = Value::Str("1m".into());
+        assert_eq!(get_value(&(&r).read(&sym), &tfk), get_value(&get_value(&boxed, &sym), &tfk));
+        assert_eq!((&r).read(&sym), get_value(&boxed, &sym));
+        assert_eq!((&r).read(&Value::Str("ETH/USDT".into())), Value::Null);
+        assert_eq!((&r).read(&Value::Null), Value::Null);
+    }
+}
+
 /// An untyped unified return (`setLeverage`, `setMarginMode`, unsubscribe acks) passes the payload through.
 impl FromRaw for Value { fn from_raw(v: Value) -> Self { v } }
 impl IntoRaw for Value { fn into_raw(self) -> Value { self } }
