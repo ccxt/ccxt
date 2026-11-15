@@ -241,6 +241,10 @@ abstract class okx extends _okx {
         return this.request ('public/delta-hedge-currencies', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
+    override publicGetPublicCorporateActions (params = {}): Promise<Dict> {
+        return this.request ('public/corporate-actions', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
     override publicGetRubikStatTradingDataSupportCoin (params = {}): Promise<Dict> {
         return this.request ('rubik/stat/trading-data/support-coin', [ 'public' ], 'GET', params, { 'cost': 4 });
     }

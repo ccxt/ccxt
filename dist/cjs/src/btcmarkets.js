@@ -1113,6 +1113,7 @@ class btcmarkets extends btcmarkets$1["default"] {
     calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         /**
          * @method
+         * @name btcmarkets#calculateFee
          * @description calculates the presumptive fee that would be charged for an order
          * @param {string} symbol unified market symbol
          * @param {string} type not used by btcmarkets.calculateFee

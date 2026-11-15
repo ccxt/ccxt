@@ -333,7 +333,7 @@ public partial class blofin : ccxt.blofin
         parameters ??= new Dictionary<string, object>();
         if ((symbols == null))
         {
-            throw new NotSupported ((this.id + " watchTickers() requires a list of symbols")) ;
+            throw new ArgumentsRequired ((this.id + " watchTickers() requires a list of symbols")) ;
         }
         object ticker = await this.watchMultipleWrapper(true, "tickers", "watchTickers", symbols, parameters);
         if (this.newUpdates)
@@ -683,7 +683,7 @@ public partial class blofin : ccxt.blofin
 
     /**
      * @method
-     * @name biofin#watchOrders
+     * @name blofin#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://docs.blofin.com/index.html#ws-order-channel
      * @see https://docs.blofin.com/index.html#ws-algo-orders-channel

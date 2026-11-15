@@ -848,6 +848,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         second = self.safe_list(response, 1, [])
         meta = self.safe_list(first, 'universe', [])
         tokens = self.safe_list(first, 'tokens', [])
+        # a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+        tokensByIndex = {}
+        for i in range(0, len(tokens)):
+            token = self.safe_dict(tokens, i, {})
+            tokenIndex = self.safe_string(token, 'index')
+            if tokenIndex is not None:
+                tokensByIndex[tokenIndex] = token
         markets = []
         for i in range(0, len(meta)):
             market = self.safe_dict(meta, i, {})
@@ -865,10 +872,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             taker = self.safe_number(fees, 'taker')
             maker = self.safe_number(fees, 'maker')
             tokensPos = self.safe_list(market, 'tokens', [])
-            baseTokenPos = self.safe_integer(tokensPos, 0)
-            quoteTokenPos = self.safe_integer(tokensPos, 1)
-            baseTokenInfo = self.safe_dict(tokens, baseTokenPos, {})
-            quoteTokenInfo = self.safe_dict(tokens, quoteTokenPos, {})
+            baseTokenIndex = self.safe_string(tokensPos, 0)
+            quoteTokenIndex = self.safe_string(tokensPos, 1)
+            baseTokenInfo = self.safe_dict(tokensByIndex, baseTokenIndex, {})
+            quoteTokenInfo = self.safe_dict(tokensByIndex, quoteTokenIndex, {})
             baseName = self.safe_string(baseTokenInfo, 'name')
             quoteId = self.safe_string(quoteTokenInfo, 'name')
             if baseName is None or quoteId is None:

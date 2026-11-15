@@ -60,6 +60,8 @@ Six community CCXT MCP servers plus the wider ecosystem (official Kraken/OKX/Coi
 | `call_write_method` allowlist excludes batch order placement | `createOrders` would bypass the per-order notional caps; orders go through `create_order` one at a time |
 | Implicit API: GET via always-on `call_implicit_get`, non-GET via opt-in `call_implicit_write` | the HTTP verb is encoded in ccxt's implicit method names (first camel verb token after the API-section prefix), so GET-gating keeps the always-on tool honestly `readOnlyHint`; raw writes can't be validated, so they compensate with mandatory confirmation + journaling |
 | Deposit addresses gated behind the funds tier | transcript-visible addresses invite address-substitution scams; near-zero value below that tier |
+| `search_markets` takes `fields`, and its max limit follows row size: 100 full rows, or with `fields` as many rows as fit 55k chars (≥ 100, ≤ 1000) | a full market row is ~450 chars, so listing okx's 528 USDT-settled swaps took 6 calls and ~240k chars when the agent only wanted symbols (~15k chars). A fixed higher cap for any `fields` would let heavy fields (`limits` ≈ 170 chars/row) overflow the host limit, so the compact cap is measured on the actual projected page; 55k chars of rows keeps the whole response under 60k chars ≈ 20k tokens at 3 chars/token. Measurements under "search_markets sizing" below |
+| `search_markets` meta is uniform: `returned`/`available`/`offset`/`hasMore` always, `nextOffset` when there is more, `limitClamped: {requested, applied}` when the limit was reduced, `marketTypes` on zero matches | a live agent run found no `hasMore` (only `available` + a prose notice that was null on the last page), a silent clamp of `limit: 500`, and `type: "perpetual"` answering `available: 0` with no hint — an agent could conclude okx has no perpetuals. A zero-match result now names the types the exchange actually has (and that perpetuals are `"swap"`) |
 | `cancel_order` is non-destructive, never confirmed | cancels reduce risk; friction there pushes agents to leave stale orders live |
 | Journal: append-only monthly JSONL, fsync'd intent-before-dispatch, no auto-delete | crash-safe audit trail; the rolling-24h daily-cap accumulator derives from it, so caps survive restarts; a 50 MB warning doubles as a runaway-loop detector |
 | Doc manifest built by a small JSDoc parser over `ts/src/*.ts` (not jsdoc2md) | the doclets follow the repo's strict convention; a dependency-free parser at publish time ships 98 exchanges of per-method `params.*` docs + `@see` links in the tarball, with runtime introspection as fallback |
@@ -94,6 +96,25 @@ MCP hosts surface no model-visible push today, but the stdio server is long-live
 - `watch_subscribe` validates the `watch*` name (`/^watch[A-Z]/` + `has[method]`), starts a background loop, and returns a `subscriptionId`. Public streams use a **ref-counted stream pool** in `pools.ts` (separate from the LRU REST pool so a watched socket is never evicted); private streams (`watchOrders`/`watchMyTrades`/…) reuse the per-account instance. `newUpdates` mode is on, so watch\* return incremental updates.
 - The loop `Promise.race`s each `watch*` call against a stop signal, so unsubscribe breaks it promptly; updates are trimmed (order-book depth, ohlcv/trade/order batches, `info` stripped) into a bounded ring buffer (200) with a monotonic seq.
 - `watch_read` drains updates **oldest-first** since a cursor (capped at 50, projected) and returns `nextCursor` + `moreBuffered` so a client walks the buffer without skipping or replaying (a naive newest-first drain silently lost older buffered updates — caught in review); `watch_unsubscribe` stops + releases (closing the public socket on last ref, best-effort `unWatch*` on shared account instances, guarded so a sibling stream isn't torn down); `watch_list` shows active streams. An **idle TTL (10 min, unref'd timer)** auto-stops abandoned streams; there is **no subscription-count cap by default** (streaming is read-only and single-user; the idle TTL, shared sockets, and exchange-side stream limits are the real backstops) — `settings.maxSubscriptions` (default 0 = unlimited) is an optional runaway limit, reserved synchronously across the acquire when set; loops give up after 5 consecutive errors, **release the socket immediately** and set a 30s reaper (so a dead stream frees its slot), surfacing an actionable `{code, retryable, hint}` error on the next `watch_read`. Private streams (`watchOrders`/…) require an account (rejected up front). Verified live against Binance (concurrent `watchOHLCV`/`watchTicker`/`watchTrades`, cursor walk, private-account guard).
+
+## search_markets sizing (measured on okx, 2026-11-08)
+
+Live okx public data, the 528 active USDT-settled swaps, serialized exactly as the tool emits rows:
+
+| `fields` | chars/row | rows per 55k chars | all 528 rows |
+|---|---|---|---|
+| `["symbol"]` | 28 | 1975 → capped at 1000 | 14.7k chars |
+| `["symbol", "id"]` | 50 | 1106 → 1000 | 26k |
+| `["symbol", "contractSize"]` | 46 | 1207 → 1000 | 24k |
+| `["symbol", "precision"]` | 68 | 803 | 36k |
+| `["symbol", "id", "type", "base", "quote", "settle", "active"]` | 123 | 448 | 65k (2 calls) |
+| `["symbol", "limits"]` | 168 | 327 | 89k (2 calls) |
+| `["symbol", "contractSize", "limits"]` | 186 | 296 | 98k (2 calls) |
+| none (full `MARKET_FIELDS`) | 452 | 121 → fixed cap 100 | 239k (6 calls) |
+
+Listing every okx USDT-settled swap symbol end to end through the tool: **before** 6 calls / 239,592 chars at `limit: 100` (and at `limit: 200` the 90.8k-char page tripped the global truncation guard); **after** 1 call / 14,805 chars with `fields: ["symbol"], limit: 1000`. All 1210 okx spot symbols take 2 calls (22.6k + 4.9k chars).
+
+Counts come from `loadMarkets`, not from bulk tickers: okx `fetchTickers` (spot) returns 1214 entries but `search_markets type: "spot"` reports 1210 even with `activeOnly: false`. The 4 extra tickers — `TEST002/USDC`, `TEST002/USDT`, `XTESTA/USDC`, `XTESTA/USDT` — are internal test pairs that okx's `/api/v5/market/tickers` returns but its `/api/v5/public/instruments` (what ccxt's `fetchMarkets` reads) does not list, so they are not tradable markets and correctly absent from search.
 
 ## Also planned
 

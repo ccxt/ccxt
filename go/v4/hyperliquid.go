@@ -998,7 +998,16 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterf
 	var first map[string]any = SafeMapTyped(response, 0)
 	var second []any = SafeListTypedDefault(response, 1, []any{})
 	var meta []any = SafeListTyped(first, "universe")
-	var tokens []any = SafeListTypedDefault(first, "tokens", []any{})
+	var tokens []any = SafeListTyped(first, "tokens")
+	// a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+	var tokensByIndex map[string]any = map[string]any{}
+	for i := 0; i < len(tokens); i++ {
+		var token map[string]any = this.SafeDictMap(tokens, i, map[string]any{})
+		var tokenIndex *string = this.SafeString(token, "index")
+		if tokenIndex != nil {
+			tokensByIndex[*tokenIndex] = token
+		}
+	}
 	var markets []any = []any{}
 	for i := 0; i < len(meta); i++ {
 		var market map[string]any = this.SafeDictMap(meta, i, map[string]any{})
@@ -1016,10 +1025,10 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterf
 		var taker *float64 = this.SafeNumber(fees, "taker")
 		var maker *float64 = this.SafeNumber(fees, "maker")
 		var tokensPos []any = SafeListTyped(market, "tokens")
-		var baseTokenPos *int64 = this.SafeInteger(tokensPos, 0)
-		var quoteTokenPos *int64 = this.SafeInteger(tokensPos, 1)
-		var baseTokenInfo map[string]any = this.SafeDictMap(tokens, baseTokenPos, map[string]any{})
-		var quoteTokenInfo map[string]any = SafeMapTyped(tokens, quoteTokenPos)
+		var baseTokenIndex *string = this.SafeString(tokensPos, 0)
+		var quoteTokenIndex *string = this.SafeString(tokensPos, 1)
+		var baseTokenInfo map[string]any = this.SafeDictMap(tokensByIndex, baseTokenIndex, map[string]any{})
+		var quoteTokenInfo map[string]any = SafeMapTyped(tokensByIndex, quoteTokenIndex)
 		var baseName *string = this.SafeString(baseTokenInfo, "name")
 		var quoteId *string = this.SafeString(quoteTokenInfo, "name")
 		if (baseName == nil) || (quoteId == nil) {

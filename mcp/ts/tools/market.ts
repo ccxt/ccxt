@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { resolveMarketFields, searchMarketsMaxLimit, marketTypeCounts, zeroMatchNotice, SEARCH_MARKETS_MAX_COMPACT } from '../market-search.js';
 import type { ServerContext } from '../types.js';
 import { accountSummary } from '../types.js';
 import { ok, project, stripInfo, TICKER_FIELDS, MARKET_FIELDS, TRADE_FIELDS, EVENT_FIELDS } from '../format.js';
@@ -165,27 +166,30 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('search_markets', {
         'title': 'Search markets on an exchange',
-        'description': 'Search and filter the markets of one exchange (by text, base, quote, settle currency, market type), paginated. Use this to resolve unified symbols — there is deliberately no list-all-markets tool. On prediction exchanges use search_events instead.',
+        'description': 'Search and filter the markets of one exchange (by text, base, quote, settle currency, market type), paginated. Use this to resolve unified symbols — there is deliberately no list-all-markets tool. Rows are full market objects (~450 chars each; max 100 per call) unless you pass "fields" — e.g. fields: ["symbol"] lists symbols compactly, up to 1000 per call. meta always carries returned/available/offset/hasMore, plus nextOffset when there is more and limitClamped when the limit was reduced; on zero matches meta.marketTypes lists the types the exchange has. On prediction exchanges use search_events instead.',
         'inputSchema': {
             'exchange': exchangeParam,
             'query': z.string ().optional ().describe ('case-insensitive substring match on the symbol or market id'),
-            'type': z.string ().optional ().describe ('market type filter: "spot", "swap", "future", "option", …'),
+            'type': z.string ().optional ().describe ('market type filter: "spot", "swap" (perpetuals), "future", "option" — on zero matches meta.marketTypes lists the types this exchange has'),
             'base': z.string ().optional ().describe ('base currency filter, e.g. "BTC"'),
             'quote': z.string ().optional ().describe ('quote currency filter, e.g. "USDT"'),
             'settle': z.string ().optional ().describe ('settle currency filter (derivatives)'),
             'activeOnly': z.boolean ().optional ().describe ('only active markets (default true)'),
-            'limit': z.number ().int ().optional ().describe ('max results (default 50, max 200)'),
+            'limit': z.number ().int ().optional ().describe ('max results (default 50, max 100)'),
             'offset': z.number ().int ().optional ().describe ('pagination offset'),
             'reload': z.boolean ().optional ().describe ('force-refresh the markets cache'),
             'prediction': predictionParam,
+            'fields': z.array (z.string ()).min (1).optional ().describe ('return only these market fields per row (symbol is always included), e.g. ["symbol"] or ["symbol", "contractSize", "limits"]. Valid: ' + MARKET_FIELDS.join (', ') + '. Compact rows lift the max limit from 100 up to 1000 (as many rows as fit a ~60k-char response); a reduced limit is reported in meta.limitClamped'),
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'search_markets', 'exchange': args.exchange }, async () => {
+        const fields = resolveMarketFields (args.fields);
         const exchange = await ctx.pools.getPublic (args.exchange, undefined, args.prediction ?? false);
         if (args.reload === true) {
             await exchange.loadMarkets (true);
         }
-        const limit = clampLimit (args.limit, 50, 200);
+        // 100 full market rows ≈ 13k tokens; 200 (≈ 26k) overflowed the host tool-result limit
+        const limit = clampLimit (args.limit, 50, 100);
         const offset = Math.max (0, args.offset ?? 0);
         const activeOnly = args.activeOnly !== false;
         const query = args.query?.toLowerCase ();
@@ -214,20 +218,47 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             }
             matches.push (market);
         }
-        const page = matches.slice (offset, offset + limit).map ((market) => project (market, MARKET_FIELDS));
-        let notice: string | undefined;
-        if (matches.length === 0 && exchange.has?.['fetchEvents']) {
-            notice = exchange.id + ' is a prediction-market exchange with no unified spot/derivatives markets here — use search_events to find events and outcome handles';
-        } else if (matches.length > offset + page.length) {
-            notice = 'more matches available — increase offset or narrow the filters';
-        }
-        return ok (page, {
+        // `limit` above is the full-row rule; compact rows (`fields`) may go higher — as many
+        // of the projected candidate rows as fit the response budget (searchMarketsMaxLimit)
+        const candidates = matches.slice (offset, offset + SEARCH_MARKETS_MAX_COMPACT).map ((market) => project (market, fields ?? MARKET_FIELDS));
+        const applied = (fields === undefined) ? limit : clampLimit (args.limit, 50, searchMarketsMaxLimit (candidates, true));
+        const page = candidates.slice (0, applied);
+        const hasMore = matches.length > offset + page.length;
+        const meta: Record<string, any> = {
             'exchange': exchange.id,
             'returned': page.length,
             'available': matches.length,
             'offset': offset,
-            notice,
-        });
+            hasMore,
+        };
+        const notices: string[] = [];
+        if (hasMore) {
+            meta['nextOffset'] = offset + page.length;
+        }
+        if (args.limit !== undefined && args.limit !== applied) {
+            meta['limitClamped'] = { 'requested': args.limit, applied };
+            notices.push ('limit ' + args.limit + ' was clamped to ' + applied + (fields === undefined
+                ? ' (the max for full market rows) — pass fields, e.g. ["symbol"], for compact rows and a max of up to ' + SEARCH_MARKETS_MAX_COMPACT
+                : ' (as many rows of these fields as fit one response)'));
+        }
+        if (matches.length === 0) {
+            if (exchange.has?.['fetchEvents']) {
+                notices.push (exchange.id + ' is a prediction-market exchange with no unified spot/derivatives markets here — use search_events to find events and outcome handles');
+            } else {
+                const counts = marketTypeCounts (exchange.markets);
+                meta['marketTypes'] = counts;
+                notices.push (zeroMatchNotice (exchange.id, args.type, counts, activeOnly));
+            }
+        } else if (page.length === 0) {
+            notices.push ('offset ' + offset + ' is past the last match (available: ' + matches.length + ')');
+        }
+        if (hasMore) {
+            notices.push ('more matches available — call again with offset: ' + meta['nextOffset'] + ', or narrow the filters');
+        }
+        if (notices.length > 0) {
+            meta['notice'] = notices.join ('. ');
+        }
+        return ok (page, meta);
     }));
 
     server.registerTool ('get_tickers', {

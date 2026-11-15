@@ -151,9 +151,6 @@ public partial class krakenfutures : Exchange
                         { "openorders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "recentorders", new Dictionary<string, object>() {
-                            { "cost", 1 },
-                        } },
                         { "fills", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },

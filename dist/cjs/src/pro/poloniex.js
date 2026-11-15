@@ -1423,7 +1423,7 @@ class poloniex extends poloniex$1["default"] {
         else if (type === undefined) {
             this.handleOrderRequest(client, message);
         }
-        else {
+        else if (method !== undefined) {
             const data = this.safeList(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {

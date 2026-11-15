@@ -291,7 +291,7 @@ export default class blofin extends blofinRest {
      */
     async watchTickers(symbols = undefined, params = {}) {
         if (symbols === undefined) {
-            throw new NotSupported(this.id + ' watchTickers() requires a list of symbols');
+            throw new ArgumentsRequired(this.id + ' watchTickers() requires a list of symbols');
         }
         const ticker = await this.watchMultipleWrapper(true, 'tickers', 'watchTickers', symbols, params);
         if (this.newUpdates) {
@@ -581,7 +581,7 @@ export default class blofin extends blofinRest {
     }
     /**
      * @method
-     * @name biofin#watchOrders
+     * @name blofin#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://docs.blofin.com/index.html#ws-order-channel
      * @see https://docs.blofin.com/index.html#ws-algo-orders-channel

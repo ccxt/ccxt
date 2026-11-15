@@ -41,7 +41,6 @@ separate from regular coinbase.com keys - retail Coinbase.com / Advanced Trade a
 class instead. For Coinbase International derivatives see coinbaseinternational.
 
 
-
 ```javascript
 coinbaseexchange.coinbaseexchange ()
 ```

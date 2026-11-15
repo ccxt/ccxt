@@ -360,6 +360,9 @@ public partial class okx : Exchange
                         { "public/delta-hedge-currencies", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "public/corporate-actions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "rubik/stat/trading-data/support-coin", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },

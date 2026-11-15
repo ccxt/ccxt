@@ -17,7 +17,6 @@ class ImplicitAPI:
     private_get_notifications = privateGetNotifications = Entry[_Dict]('notifications', ['private'], 'GET', {'cost': 1})
     private_get_accounts = privateGetAccounts = Entry[_Dict]('accounts', ['private'], 'GET', {'cost': 1})
     private_get_openorders = privateGetOpenorders = Entry[_Dict]('openorders', ['private'], 'GET', {'cost': 1})
-    private_get_recentorders = privateGetRecentorders = Entry[_Dict]('recentorders', ['private'], 'GET', {'cost': 1})
     private_get_fills = privateGetFills = Entry[_Dict]('fills', ['private'], 'GET', {'cost': 1})
     private_get_transfers = privateGetTransfers = Entry[_Dict]('transfers', ['private'], 'GET', {'cost': 1})
     private_get_leveragepreferences = privateGetLeveragepreferences = Entry[_Dict]('leveragepreferences', ['private'], 'GET', {'cost': 1})

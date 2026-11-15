@@ -3751,6 +3751,21 @@ public partial class bybit : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> tickerList = this.safeList(result, "list", new List<object>() {});
+        if ((category == "spot"))
+        {
+            // bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
+            // resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
+            List<object> spotTickers = new List<object>() {};
+            for (int i = 0; i < (tickerList?.Count ?? 0); i++)
+            {
+                Dictionary<string, object> tickerMarket = this.safeMarket(this.safeString(tickerList[i], "symbol"), null, null, "spot");
+                if (!(this.safeBool(tickerMarket, "contract", false) == true))
+                {
+                    spotTickers.Add(tickerList[i]);
+                }
+            }
+            tickerList = spotTickers;
+        }
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickerList, parsedSymbols));
     }
 

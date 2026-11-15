@@ -2,7 +2,7 @@
 # Build: docker build -t ccxt-fumadocs docs/website
 # Run:   docker run -d --restart=always -p 127.0.0.1:3005:3005 --name ccxt-docs ccxt-fumadocs
 
-FROM node:20-slim AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
 COPY . .
 RUN npm ci
@@ -23,7 +23,7 @@ ENV NEXT_PUBLIC_SITE_URL=https://docs.ccxt.com \
 # never fails the build (the dir is created empty when the download failed, so the COPY below works).
 RUN npm run build && mkdir -p src/data/changelog-snapshot
 
-FROM node:20-slim AS runner
+FROM node:24-slim AS runner
 WORKDIR /app
 # same key at runtime — server.js decrypts incoming Server Action payloads with it
 ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY

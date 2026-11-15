@@ -102,6 +102,7 @@ Set `"sandbox": true` on an account to trade fake money on the exchange testnet 
 
 Conventions to follow:
 - Symbols are unified CCXT symbols: `BTC/USDT` (spot), `BTC/USDT:USDT` (linear swap), `BTC/USD:BTC` (inverse). Resolve them with `search_markets` — don't guess. Derivatives-only methods (funding rate, positions) need the `:SETTLE` form.
+- To list many symbols, call `search_markets` with `fields: ["symbol"]` (or e.g. `["symbol", "contractSize", "limits"]`) and a `limit` up to 1000 — full rows are ~450 chars each and capped at 100. Page with `meta.nextOffset` while `meta.hasMore` is true; `meta.limitClamped` says when your limit was reduced. Perpetuals are `type: "swap"`; an empty result lists the exchange's real types in `meta.marketTypes`.
 - Every exchange-touching tool takes a `params` passthrough for exchange-specific options; discover supported keys with `describe_method`.
 - `since` accepts a millisecond timestamp or an ISO8601 string; results carry both `timestamp` (ms) and `datetime` (ISO8601).
 - List results are capped to fit context; check `meta` (`count`/`returned`/`available`/`hasMore`/`truncated`) and page rather than assuming completeness.

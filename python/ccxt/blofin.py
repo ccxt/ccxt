@@ -31,7 +31,7 @@ class blofin(Exchange, ImplicitAPI):
         return self.deep_extend(super(blofin, self).describe(), {
             'id': 'blofin',
             'name': 'BloFin',
-            'countries': ['US'],
+            'countries': ['MH'],  # Marshall Islands
             'version': 'v1',
             'rateLimit': 200,  # 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro': True,
@@ -1007,14 +1007,12 @@ class blofin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: *only applies to publicGetMarketHistoryTrades* default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         if self.markets is None:
             self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
-        if paginate:
-            return self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', None, 100)
+        # the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        paramsNoPaginate = self.omit(params, 'paginate')
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1022,7 +1020,7 @@ class blofin(Exchange, ImplicitAPI):
         response = None
         if limit is not None:
             request['limit'] = limit  # default 100
-        method, paramsMethod = self.handle_option_string_and_params(paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades')
+        method, paramsMethod = self.handle_option_string_and_params(paramsNoPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades')
         if method == 'publicGetMarketTrades':
             response = self.publicGetMarketTrades(self.extend(request, paramsMethod))
         data = self.safe_list(response, 'data', [])
@@ -1114,7 +1112,7 @@ class blofin(Exchange, ImplicitAPI):
         query = None
         paginate, query = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', query, 100)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, query, 100)
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1496,8 +1494,10 @@ class blofin(Exchange, ImplicitAPI):
         fee = None
         if feeCostString is not None:
             feeCostSigned = Precise.string_abs(feeCostString)
-            feeCurrencyId = self.safe_string(order, 'feeCcy', 'USDT')
+            feeCurrencyId = self.safe_string(order, 'feeCcy')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            if feeCurrencyCode is None:
+                feeCurrencyCode = self.safe_string(marketResolved, 'settle')
             fee = {
                 'cost': self.parse_number(feeCostSigned),
                 'currency': feeCurrencyCode,
@@ -3057,7 +3057,7 @@ class blofin(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param boolean [params.autoCxl]: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. False or True, the default is False
         :param str [params.tag]: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-        :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             self.load_markets()

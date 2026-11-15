@@ -1290,10 +1290,18 @@ class coinbase(Exchange, ImplicitAPI):
         datetime = self.safe_string_n(trade, ['created_at', 'trade_time', 'time'])
         side = self.safe_string_lower_2(trade, 'resource', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'liquidity_indicator')
+        orderId = self.safe_string(trade, 'order_id')
+        entryId = self.safe_string(trade, 'entry_id')
+        if (orderId is None) and (entryId is None) and (self.safe_string(trade, 'resource') is None):
+            # public market trades carry the maker side, the unified side of a public trade is the taker side
+            if side == 'buy':
+                side = 'sell'
+            elif side == 'sell':
+                side = 'buy'
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string_2(trade, 'id', 'trade_id'),
-            'order': self.safe_string(trade, 'order_id'),
+            'order': orderId,
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'symbol': symbol,
@@ -3731,7 +3739,7 @@ class coinbase(Exchange, ImplicitAPI):
             limitValue = self.parse_to_int(limit)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 299)
         market = self.market(symbol)
         request = {
             'product_id': market['id'],
@@ -3748,11 +3756,15 @@ class coinbase(Exchange, ImplicitAPI):
             now = str(self.seconds())
             sinceString = Precise.string_sub(now, str(requestedDuration))
         request['start'] = sinceString
+        # 300 candles max
+        windowEnd = Precise.string_add(sinceString, str(requestedDuration))
         if until is not None:
-            request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
+            endString = self.number_to_string(self.parse_to_int(until / 1000))
+            if (since is not None) and Precise.string_lt(windowEnd, endString):
+                endString = windowEnd
+            request['end'] = endString
         else:
-            # 300 candles max
-            request['end'] = Precise.string_add(sinceString, str(requestedDuration))
+            request['end'] = windowEnd
         response = None
         usePrivate, paramsUsePrivate = self.handle_option_bool_and_params(paramsOmitted, 'fetchOHLCV', 'usePrivate', False)
         if usePrivate:

@@ -47,6 +47,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "watchOrderBook", true );
                 put( "watchOrderBookForSymbols", true );
                 put( "watchOrders", true );
+                put( "watchPositions", true );
                 put( "watchTicker", true );
                 put( "watchTickers", true );
                 put( "watchTrades", true );

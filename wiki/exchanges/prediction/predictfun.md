@@ -214,7 +214,6 @@ switches between BNB mainnet and the BNB testnet
 
 **Kind**: instance method of [<code>predictfun</code>](#predictfun)  
 
-
 | Param | Type | Description |
 | --- | --- | --- |
 | enable | <code>bool</code> | whether to use the testnet |

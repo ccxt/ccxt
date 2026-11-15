@@ -135,7 +135,6 @@ export default class krakenfutures extends Exchange {
                         'notifications': { 'cost': 1 },
                         'accounts': { 'cost': 1 },
                         'openorders': { 'cost': 1 },
-                        'recentorders': { 'cost': 1 },
                         'fills': { 'cost': 1 },
                         'transfers': { 'cost': 1 },
                         'leveragepreferences': { 'cost': 1 },

@@ -1534,10 +1534,23 @@ public partial class coinbase : Exchange
         string? datetime = this.safeStringN(trade, new List<object>() {"created_at", "trade_time", "time"});
         string? side = this.safeStringLower2(trade, "resource", "side");
         string? takerOrMaker = this.safeStringLower(trade, "liquidity_indicator");
+        string? orderId = this.safeString(trade, "order_id");
+        string? entryId = this.safeString(trade, "entry_id");
+        if (((orderId == null)) && ((entryId == null)) && ((this.safeString(trade, "resource") == null)))
+        {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if (side == "buy")
+            {
+                side = "sell";
+            } else if (side == "sell")
+            {
+                side = "buy";
+            }
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString2(trade, "id", "trade_id") },
-            { "order", this.safeString(trade, "order_id") },
+            { "order", orderId },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "symbol", symbol },
@@ -4430,7 +4443,7 @@ public partial class coinbase : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitValue,timeframeVar, paramsPaginate, 299));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 299));
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4451,13 +4464,19 @@ public partial class coinbase : Exchange
             sinceString = Precise.stringSub(now, ((object)requestedDuration).ToString());
         }
         request["start"] = sinceString;
+        // 300 candles max
+        string? windowEnd = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
         if ((until != null))
         {
-            request["end"] = this.numberToString(this.parseToInt(((double?)until / 1000)));
+            string? endString = this.numberToString(this.parseToInt(((double?)until / 1000)));
+            if (((since != null)) && Precise.stringLt(windowEnd, endString))
+            {
+                endString = windowEnd;
+            }
+            request["end"] = endString;
         } else
         {
-            // 300 candles max
-            request["end"] = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
+            request["end"] = windowEnd;
         }
         Dictionary<string, object> response = null;
         (bool?, object) usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false);

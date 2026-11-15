@@ -469,6 +469,7 @@ class whitebit(Exchange, ImplicitAPI):
                     'limit must be less than or equal to': BadRequest,
                     'The Price should be less than or equal to': InvalidOrder,  # {"code":250,"errors":{"price":["The Price should be less than or equal to 1.277"]},"message":"Validation failed"}
                     'The Price should be greater than or equal to': InvalidOrder,  # {"code":250,"errors":{"price":["The Price should be greater than or equal to 0.0029"]},"message":"Validation failed"}
+                    'Price must be a multiple of': InvalidOrder,  # {"code":1,"errors":{"price":["Price must be a multiple of 0.00001."]},"message":"Validation failed"}
                     'This action is unauthorized': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'Min amount step': InvalidOrder,  # {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
@@ -505,10 +506,14 @@ class whitebit(Exchange, ImplicitAPI):
         #          "takerFee": "0.1",         // Default taker fee ratio
         #          "minAmount": "0.001",      // Minimal amount of stock to trade
         #          "minTotal": "0.001",       // Minimal amount of money to trade
+        #          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         #          "tradesEnabled": true,     // Is trading enabled
         #          "isCollateral": true,      // Is margin trading enabled
         #          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        #          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        #          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        #          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        #          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        #          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         #        },
         #        {
         #          ...
@@ -537,7 +542,6 @@ class whitebit(Exchange, ImplicitAPI):
         swap = (typeId == 'futures') or (typeId == 'tradfiFutures')
         margin = isCollateral and not swap
         contract = False
-        amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
         linear = None
         inverse = None
         if swap:
@@ -582,8 +586,8 @@ class whitebit(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': amountPrecision,
-                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'moneyPrec'))),
+                'amount': self.safe_number(market, 'stepSize'),
+                'price': self.safe_number(market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -1812,6 +1816,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -1823,12 +1828,27 @@ class whitebit(Exchange, ImplicitAPI):
         }
         cappedLimit = 1440 if ((limit is None) or (limit > 1440)) else limit
         limitResolved = cappedLimit if (since is not None) else limit
-        if since is not None:
-            start = self.parse_to_int(since / 1000)
-            request['start'] = start
-        if (since is not None) or (limit is not None):
+        until = self.safe_integer(params, 'until')
+        paramsOmitted = self.omit(params, 'until')
+        if (since is not None) or (until is not None):
+            # the exchange ignores a start alone: it returns the last candles that closed by the end.
+            # It refuses an end past its own clock, which may be behind this one, so an end within a
+            # timeframe of now is left out, and the latest candles it then returns cover the range
+            duration = self.parse_timeframe(timeframe)
+            endTime = None
+            if until is not None:
+                endTime = self.sum(self.parse_to_int(until / 1000), duration)
+            if since is not None:
+                start = self.parse_to_int(since / 1000)
+                request['start'] = start
+                rangeEnd = self.sum(start, duration * cappedLimit)
+                if (endTime is None) or (rangeEnd < endTime):
+                    endTime = rangeEnd
+            if (endTime is not None) and (self.sum(endTime, duration) < self.seconds()):
+                request['end'] = endTime
+        if (since is not None) or (until is not None) or (limit is not None):
             request['limit'] = cappedLimit
-        response = await self.v1PublicGetKline(self.extend(request, params))
+        response = await self.v1PublicGetKline(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success":true,
@@ -3963,7 +3983,7 @@ class whitebit(Exchange, ImplicitAPI):
         maxLimit = 100
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, maxLimit)
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -3972,7 +3992,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startDate'] = int(round(since / 1000))
-        requestUntil, paramsUntil = self.handle_until_option('until_timestamp', request, paramsPaginate, 0.001)
+        requestUntil, paramsUntil = self.handle_until_option('endDate', request, paramsPaginate, 0.001)
         if limit is not None:
             requestUntil['limit'] = limit
         response = await self.v4PublicGetFundingHistoryMarket(self.extend(requestUntil, paramsUntil))

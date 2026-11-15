@@ -1383,10 +1383,20 @@ class coinbase extends Exchange {
         $datetime = $this->safe_string_n($trade, array( 'created_at', 'trade_time', 'time' ));
         $side = $this->safe_string_lower_2($trade, 'resource', 'side');
         $takerOrMaker = $this->safe_string_lower($trade, 'liquidity_indicator');
+        $orderId = $this->safe_string($trade, 'order_id');
+        $entryId = $this->safe_string($trade, 'entry_id');
+        if (($orderId === null) && ($entryId === null) && ($this->safe_string($trade, 'resource') === null)) {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if ($side === 'buy') {
+                $side = 'sell';
+            } elseif ($side === 'sell') {
+                $side = 'buy';
+            }
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string_2($trade, 'id', 'trade_id'),
-            'order' => $this->safe_string($trade, 'order_id'),
+            'order' => $orderId,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'symbol' => $symbol,
@@ -4109,7 +4119,7 @@ class coinbase extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limitValue, $timeframe, $paramsPaginate, 299));
+            return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 299));
         }
         $market = $this->market($symbol);
         $request = array(
@@ -4128,11 +4138,16 @@ class coinbase extends Exchange {
             $sinceString = Precise::string_sub($now, (string) $requestedDuration);
         }
         $request['start'] = $sinceString;
+        // 300 candles max
+        $windowEnd = Precise::string_add($sinceString, (string) $requestedDuration);
         if ($until !== null) {
-            $request['end'] = $this->number_to_string($this->parse_to_int($until / 1000));
+            $endString = $this->number_to_string($this->parse_to_int($until / 1000));
+            if (($since !== null) && Precise::string_lt($windowEnd, $endString)) {
+                $endString = $windowEnd;
+            }
+            $request['end'] = $endString;
         } else {
-            // 300 candles max
-            $request['end'] = Precise::string_add($sinceString, (string) $requestedDuration);
+            $request['end'] = $windowEnd;
         }
         $response = null;
         list($usePrivate, $paramsUsePrivate) = $this->handle_option_bool_and_params($paramsOmitted, 'fetchOHLCV', 'usePrivate', false);

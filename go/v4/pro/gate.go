@@ -1741,13 +1741,15 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	//     "channel": "spot.candlesticks",
 	//     "event": "update",
 	//     "result": {
-	//       "t": "1606292580", // total volume
-	//       "v": "2362.32035", // volume
+	//       "t": "1606292580", // timestamp
+	//       "v": "2362.32035", // volume in the quote currency
 	//       "c": "19128.1", // close
 	//       "h": "19128.1", // high
 	//       "l": "19128.1", // low
 	//       "o": "19128.1", // open
-	//       "n": "1m_BTC_USDT" // sub
+	//       "n": "1m_BTC_USDT", // sub
+	//       "a": "0.12349", // volume in the base currency
+	//       "w": false // window closed
 	//     }
 	//   }
 	//
@@ -1776,6 +1778,10 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 		var marketId string = ccxt.Replace(subscription, prefix, "")
 		var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv))
+		if marketType == "spot" {
+			// spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
+			parsed = []any{this.SafeTimestamp(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "a")}
+		}
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}

@@ -19,6 +19,8 @@ public partial class phemex : ccxt.phemex
                 { "watchOrders", true },
                 { "watchOrderBook", true },
                 { "watchOHLCV", true },
+                { "unWatchTrades", true },
+                { "unWatchOHLCV", true },
                 { "watchPositions", null },
                 { "watchOrderBookForSymbols", false },
                 { "watchTradesForSymbols", false },
@@ -786,6 +788,126 @@ public partial class phemex : ccxt.phemex
             limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+    }
+
+    public async virtual Task<object> unSubscribePublic(object method, object subMessageHash, object marketParams, IDictionary<string, object> subscription, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
+        Int64 requestId = this.requestId();
+        string messageHash = ("unsubscribe:" + (subMessageHash));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", method },
+            { "id", requestId },
+            { "params", marketParams },
+        };
+        Dictionary<string, object> unsubscription = this.extend(subscription, new Dictionary<string, object>() {
+            { "id", requestId },
+            { "unsubscribe", true },
+            { "subMessageHash", subMessageHash },
+            { "messageHash", messageHash },
+        });
+        return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, unsubscription);
+    }
+
+    /**
+     * @method
+     * @name phemex#unWatchTrades
+     * @description unWatches from the stream channel
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        bool isUsdtSwap = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"));
+        string name = "trade";
+        if (isUsdtSwap)
+        {
+            name = "trade_p";
+        }
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "topic", "trades" },
+            { "symbols", new List<object>() {symbolValue} },
+        };
+        return await this.unSubscribePublic((name + ".unsubscribe"), ("trade:" + symbolValue), new List<object>() {(market.ContainsKey("id") ? market["id"] : null)}, subscription, parameters);
+    }
+
+    /**
+     * @method
+     * @name phemex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+     * @param {string} symbol unified symbol of the market to unwatch the candles for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    {
+        string timeframeVar = timeframe;
+        timeframeVar ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        bool isUsdtSwap = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) && ((((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDT"));
+        string name = "kline";
+        if (isUsdtSwap)
+        {
+            name = "kline_p";
+        }
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "topic", "ohlcv" },
+            { "symbolsAndTimeframes", new List<object>() {new List<object>() {symbolValue, timeframeVar}} },
+        };
+        // phemex drops only the given interval when it is sent along with the symbol
+        List<object> marketParams = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), this.safeInteger(this.timeframes, timeframeVar)};
+        return await this.unSubscribePublic((name + ".unsubscribe"), ((("kline:" + (timeframeVar)) + ":") + symbolValue), marketParams, subscription, parameters);
+    }
+
+    public virtual void handleUnSubscription(WebSocketClient client, object message)
+    {
+        //
+        // phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
+        //
+        //     { "error": null, "id": 3, "result": { "status": "success" } }
+        //     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
+        //
+        string? id = this.safeString(message, "id");
+        List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+        for (int i = 0; i < subscriptionHashes.Count; i++)
+        {
+            string? subscriptionHash = ((string)subscriptionHashes[i]);
+            object subscription = (client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null);
+            bool? isUnSubscription = this.safeBool(subscription, "unsubscribe", false);
+            string? subscriptionId = this.safeString(subscription, "id");
+            if ((isUnSubscription == true) && ((subscriptionId != null)) && ((subscriptionId == id)))
+            {
+                string? subMessageHash = this.safeString(subscription, "subMessageHash");
+                string? messageHash = this.safeString(subscription, "messageHash");
+                IDictionary<string, object> error = this.safeDict(message, "error");
+                if ((error != null))
+                {
+                    // the stream stays subscribed, so drop only the pending unsubscribe
+                    ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
+                    client.reject(new ExchangeError(((this.id + " ") + this.json(error))), subscriptionHash);
+                    return;
+                }
+                this.cleanUnsubscription(client, subMessageHash, messageHash);
+                this.cleanCache(subscription);
+                return;
+            }
+        }
     }
 
     public virtual void customHandleDelta(object bookside, object delta, IDictionary<string, object>? market = null)
@@ -1657,6 +1779,11 @@ public partial class phemex : ccxt.phemex
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }
+        }
+        if (((message != null && ((IDictionary<string, object>)message).ContainsKey("result"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("error"))))
+        {
+            this.handleUnSubscription(client, message);
+            return;
         }
         string? methodName = this.safeString(message, "method", "");
         if (((message != null && ((IDictionary<string, object>)message).ContainsKey("market24h"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("spot_market24h"))) || ((methodName?.IndexOf("perp_market24h_pack_p", StringComparison.Ordinal) ?? -1) >= 0))

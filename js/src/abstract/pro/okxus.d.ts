@@ -59,6 +59,7 @@ declare abstract class okx extends _okx {
     publicGetPublicVipInterestRateLoanQuota(params?: {}): Promise<Dict>;
     publicGetPublicMmInstrumentTypes(params?: {}): Promise<Dict>;
     publicGetPublicDeltaHedgeCurrencies(params?: {}): Promise<Dict>;
+    publicGetPublicCorporateActions(params?: {}): Promise<Dict>;
     publicGetRubikStatTradingDataSupportCoin(params?: {}): Promise<Dict>;
     publicGetRubikStatContractsOpenInterestHistory(params?: {}): Promise<Dict>;
     publicGetRubikStatTakerVolume(params?: {}): Promise<Dict>;

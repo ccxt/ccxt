@@ -31,6 +31,7 @@ func (this *Toobit) Describe() map[string]any {
 			"watchOrderBook":           true,
 			"watchOrderBookForSymbols": true,
 			"watchOrders":              true,
+			"watchPositions":           true,
 			"watchTicker":              true,
 			"watchTickers":             true,
 			"watchTrades":              true,
