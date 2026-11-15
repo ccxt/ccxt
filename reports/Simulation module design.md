@@ -164,6 +164,61 @@ For reference, Binance's own daily trade files for BTC/USDT are 24–27 MB zippe
 - **Storage format.** Keep raw frames as the source of truth: gzip or brotli, daily files per symbol per stream. Derive columnar tables from them. Columnar compression wasn't measured; the script only estimates uncompressed columnar row sizes.
 - **Re-measure before committing to numbers.** Record a few hours on a weekday and a volatile day, and add COIN-M and options.
 
+### 5.5 Using the data
+
+Stored data serves three consumers: the simulator, direct research, and the live trading loop. Everything below runs on the user's side, on data they fetched, recorded or licensed themselves.
+
+**1. Feeding the simulator.** Each tier unlocks a level of fill realism (§8), so the tier a user needs depends on the strategy:
+
+| Data | What it makes realistic | Strategies it suits |
+|---|---|---|
+| OHLCV | Signals and rough fills at candle level | Trend, swing, rotation, rebalancing (hours to days) |
+| Trades | Limit fills only when a real trade crosses the price; partial fills; volume-capped slippage; partial candles | Intraday, breakout, VWAP-style execution |
+| Best bid/ask | Real spread paid on every market order | Anything that trades often, where spread eats the edge |
+| L2 order book | Slippage for larger orders, queue position, liquidity effects | Market making, larger accounts, short-horizon trading |
+| Funding / mark / index | Holding costs and liquidation on perpetuals | Any futures strategy |
+
+The strategy never sees storage: its `fetch*` and `watch*` calls are answered from the dataset at simulated time, through the time frontier (§4).
+
+**2. Direct research.** Users also query the data without running a strategy. Raw frames stay the source of truth; the store derives columnar tables (trades, L2 deltas plus snapshots, 1m OHLCV, funding, markets) partitioned as in §5.3, so both ccxt and standard tools can read them:
+
+```ts
+// ccxt query API: unified structures from the local store, point-in-time correct
+const trades = await ccxt.data.query ({ exchange: 'binance', symbol: 'BTC/USDT', type: 'trades', from: '2024-03-01', to: '2024-03-02' });
+const candles = await ccxt.data.ohlcv ('binance', 'ETH/USDT', '4h', { from: '2023-01-01' });   // resampled from 1m
+const book = await ccxt.data.orderBookAt ('binance', 'BTC/USDT', '2024-03-05T14:03:12Z', { depth: 20 });   // rebuilt from snapshot + diffs
+```
+
+```python
+# plain SQL / dataframes over the same files, no ccxt needed
+import duckdb
+duckdb.sql("""
+  select date_trunc('minute', to_timestamp(ts/1000)) m, sum(amount*price) usd
+  from 'data/binance/spot/trades/BTCUSDT/2024-03-*.parquet'
+  group by 1 order by usd desc limit 10
+""")
+```
+
+Typical uses:
+- **Features and models:** order-flow imbalance, spread and depth features, volume profiles, ML training sets. Splits and labels must respect time; the query API refuses look-ahead joins by default (data visible at `t` only).
+- **Event studies:** a scenario library of named windows (crashes, depegs, exchange outages, funding spikes) that strategies are stress-tested on, e.g. `ccxt.sim.scenarios.load ('2024-08-05-crash')`.
+- **Cross-exchange research:** merged timelines for arbitrage, lead-lag, basis and funding studies. Local receive timestamps show what was actually knowable at each instant, not just what the exchange stamped.
+
+**3. Closing the loop on live trading.** The most valuable use; it is what lets the simulator get more accurate over time (§10.4):
+- **Exact replay of a live session.** The runner's recording plus journal replays through the same strategy code: "what did my bot see at 14:03:12 when it sold?" Live bugs become reproducible.
+- **Simulator calibration.** Compare real fills with what the simulator predicted for the same moments. The gap tunes latency, slippage and fill-probability models per exchange and per symbol, and the calibrated models are saved with the dataset.
+- **Execution quality (transaction cost analysis).** Each live fill against the market at that instant: spread paid, slippage versus mid, limit-order fill rate and time-to-fill, missed fills.
+- **Re-optimization input.** Recordings become the rolling window for walk-forward re-optimization and for champion/challenger paper runs.
+
+**4. Testing ccxt itself.** Recorded raw WebSocket traffic becomes regression fixtures for ccxt's own parsers and order-book handling: real reconnects, sequence gaps and exchange format changes, extending today's `ts/src/test/static/ws/` fixtures.
+
+**5. AI agents.** The same queries are exposed as MCP tools on the ccxt MCP server (`data_query`, `data_ohlcv`, `data_coverage`, `run_tca`), over local data only, with no keys and no exchange calls. An agent can then answer "the 10 worst drawdown days for ETH/USDT in 2024" or "how often did my limit orders fill within 5 minutes last week?"
+
+**Constraints that apply to every use:**
+- **Point-in-time by default.** Every read takes an `asOf` (simulated or real); later data, later market metadata and later corrections are invisible unless explicitly requested.
+- **Coverage is explicit.** `ccxt.data.coverage ()` lists ranges, gaps and tiers per symbol, and every report states which tier and which gaps it ran on.
+- **Rights follow the source.** Data a user recorded, fetched or licensed is theirs to use locally. Anything ccxt serves (workstream F) carries that source's licence terms into the tooling, e.g. no export of vendor data where the vendor forbids it.
+
 ## 6. Using Tardis.dev
 
 Tardis stores the **raw WebSocket messages each exchange sent**, each stamped with a local receive time. That is exactly what ccxt.pro parses live, which gives CCXT three ways to use a Tardis subscription:
@@ -426,7 +481,7 @@ Recommendation: ship the generalized simulator first. Add venue-specific backtes
 |---|---|---|---|---|
 | **A. Business and legal** | Storage and serving rights per exchange and data tier; open-source vs paid split; vendor partnership | — | — | — |
 | **B. Router data recording** | Router records raw messages and daily market snapshots | — | Internal storage: confirm. Serving: yes | Tardis.dev, Crypto Lake, Kaiko, CoinAPI, Amberdata |
-| **C. Library data foundations** | REST backfill, recorder and replay, local store, market snapshots, Binance bulk-file importer | — | No (user side) | cryptofeed, tardis-node, Freqtrade `download-data`, Binance bulk files |
+| **C. Library data foundations** | REST backfill, recorder and replay, local store, market snapshots, Binance bulk-file importer, point-in-time query API and coverage report (§5.5) | — | No (user side) | cryptofeed, tardis-node, Freqtrade `download-data`, Binance bulk files |
 | **E1. Strategy + live runner** | `ccxt.Strategy`, `ccxt.run()` in live and sandbox modes, guardrails, journal, state | — | No | Freqtrade, Hummingbot, OctoBot, NautilusTrader live; hosted bot platforms (e.g. 3Commas, Cryptohopper) that hold users' keys, unlike ccxt |
 | **M. Matcher and ledger** | Order matching, fees, balances, positions, funding, liquidation | — | No | Nautilus `SimulatedExchange`, OctoBot exchange simulator, Hummingbot paper connector |
 | **E2. Paper mode** | Runner plus the matcher on live feeds | E1, M | No | Freqtrade dry-run, Hummingbot paper trade, Alpaca/IBKR paper accounts, exchange testnets |
@@ -435,7 +490,7 @@ Recommendation: ship the generalized simulator first. Add venue-specific backtes
 | **D2. Venue-specific backtest** | Same with a venue's own data and rules, up to order-book level | D0, M, C or F | Only if ccxt serves the data | NautilusTrader, hftbacktest, Hummingbot backtesting, Freqtrade (candles) |
 | **E3. Backtest mode in runner** | Same strategy file in backtest | E1, D1 or D2 | No | Freqtrade, Jesse, LEAN, Nautilus |
 | **F. Data API** | Historical data served by ccxt, as a simulator data source | A, B | **Yes** | Tardis.dev, Kaiko, CoinAPI, Amberdata, Crypto Lake, CCData/CryptoCompare; Binance bulk files |
-| **G. Optimization and agent loop** | Walk-forward, sweeps, promotion gates, live-vs-replay reconciliation, MCP tools | E3; better with F | No | Freqtrade hyperopt/FreqAI, VectorBT PRO, LEAN optimizer, MultiCharts walk-forward |
+| **G. Optimization and agent loop** | Walk-forward, sweeps, promotion gates, live-vs-replay reconciliation, simulator calibration, transaction cost analysis, scenario library, MCP data and run tools (§5.5) | E3; better with F | No | Freqtrade hyperopt/FreqAI, VectorBT PRO, LEAN optimizer, MultiCharts walk-forward |
 
 ### 11.3 Order
 
