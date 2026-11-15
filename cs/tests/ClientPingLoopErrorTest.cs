@@ -29,12 +29,62 @@ public partial class BaseTest
         }
     }
 
+    // throws before it reaches base.onError, so the base cleanup never runs from
+    // inside the override
+    private sealed class ThrowsBeforeBaseOnErrorExchange : ccxt.pro.binance
+    {
+        public override void onError(WebSocketClient client, object error = null)
+        {
+            throw new Exception("onError override threw before base.onError");
+        }
+    }
+
     async public Task testWsClientPingLoopErrors()
     {
         testClientOnErrorSurvivesThrowingCallback();
         await testPingLoopTimeoutClosesTheSocketWhenTheCallbackThrows();
         await testPingLoopSurvivesThrowingCallbackOnPingFailure();
         await testPingLoopSurvivesThrowingExchangeOnError();
+        testThrowingOnErrorOverrideStillUnregistersTheClient();
+        await testPingLoopThrowingOnErrorOverrideStillUnregistersTheClient();
+    }
+
+    // reconnecting is caller-driven: the next watch call asks exchange.client(url),
+    // which reuses whatever is registered under the url. a retired client left in
+    // the registry answers every later watch with its old error, so the caller
+    // never gets a fresh connection
+    void AssertReplacedOnNextWatch(BaseExchange exchange, BaseExchange.WebSocketClient dead)
+    {
+        Assert(!exchange.clients.Values.Contains(dead), "the errored client must be unregistered even when an onError override throws before base.onError");
+        var next = exchange.client(dead.url);
+        Assert(!object.ReferenceEquals(next, dead), "the next watch call must get a fresh client, not the retired one");
+        Assert(next.error == null, "the replacement client must not be retired");
+    }
+
+    void testThrowingOnErrorOverrideStillUnregistersTheClient()
+    {
+        // the Receiving() / Connect() shape: the transport error goes straight to client.onError
+        var exchange = new ThrowsBeforeBaseOnErrorExchange();
+        var client = exchange.client("wss://test.ccxt.com/29412-before-base");
+        var pending = client.future("trade::BTC/USDT");
+        client.onError(new NetworkError("receive failed"));
+        Assert(pending.task.IsFaulted && pending.task.Exception?.InnerException is NetworkError, "the pending future must be rejected with the transport error");
+        AssertReplacedOnNextWatch(exchange, client);
+    }
+
+    async Task testPingLoopThrowingOnErrorOverrideStillUnregistersTheClient()
+    {
+        // the same through the ping loop, where a throw used to abort the process
+        var exchange = new ThrowsBeforeBaseOnErrorExchange();
+        var client = exchange.client("wss://test.ccxt.com/29412-before-base-ping");
+        var pending = client.future("trade::BTC/USDT");
+        client.keepAlive = 50;
+        client.ping = (c) => throw new NetworkError("ping send failed");
+        client.isConnected = true;
+        await RunPingLoop(client);
+        await WaitUntil(() => pending.task.IsCompleted, 3000, "the pending future to settle");
+        Assert(pending.task.IsFaulted && pending.task.Exception?.InnerException is NetworkError, "the pending future must be rejected with the ping error");
+        AssertReplacedOnNextWatch(exchange, client);
     }
 
     // compiles against both `void PingLoop()` and `Task PingLoop()`: Task.Run
