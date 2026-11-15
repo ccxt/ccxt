@@ -404,7 +404,30 @@ pub unsafe fn coerce_value_to_mut(v: &Value) -> &mut Value {
     &mut *ptr
 }
 
-pub fn get_value_mut<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
+/// ral-48e: the container a nested write hops through (`get_value_mut`): a `Value`, or a held `List` local.
+pub trait MutHop { fn hop_mut<'a>(&'a mut self, key: &Value) -> &'a mut Value; }
+impl MutHop for Value { fn hop_mut<'a>(&'a mut self, key: &Value) -> &'a mut Value { get_value_mut_boxed(self, key) } }
+/// A held list hops an `Int` slot exactly as the `Value::Arr` arm (padded with `Null`); any other key reaches no slot,
+/// so the write lands in a detached `Null` (the boxed arm handed the list itself back, where a keyed write is a no-op).
+impl MutHop for crate::value::List {
+    fn hop_mut<'a>(&'a mut self, key: &Value) -> &'a mut Value {
+        match key {
+            Value::Int(i) => {
+                let idx = *i as usize;
+                let a = Arc::make_mut(self);
+                while a.len() <= idx { a.push(Value::Null); }
+                &mut a[idx]
+            }
+            _ => Box::leak(Box::new(Value::Null)),
+        }
+    }
+}
+
+pub fn get_value_mut<'a, T: MutHop + ?Sized>(obj: &'a mut T, key: &Value) -> &'a mut Value {
+    obj.hop_mut(key)
+}
+
+fn get_value_mut_boxed<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => Arc::make_mut(m).entry(k.to_string()).or_insert(Value::Null),
         (Value::Arr(a), Value::Int(i)) => {
@@ -1490,5 +1513,27 @@ mod ral48b_add_target_tests {
         let mut list = Value::Arr(Arc::new(vec![Value::Int(0)]));
         add_element_to_object(&mut list, &Value::Int(2), Value::Int(5));
         assert_eq!(list, Value::Arr(Arc::new(vec![Value::Int(0), Value::Null, Value::Int(5)])));
+    }
+}
+
+#[cfg(test)]
+mod list_hop_tests {
+    // ral-48e: `xs[i]['k'] = v` on a held `List` local hops the slot as the boxed `Value::Arr` did.
+    use super::*;
+    fn rows() -> crate::value::List { Arc::new(vec![Value::from(HashMap::<String, Value>::new()), Value::Int(3)]) }
+    #[test]
+    fn list_hop_matches_the_boxed_hop() {
+        for k in [0i64, 1, 4] {
+            let mut typed = rows();
+            add_element_to_object(get_value_mut(&mut typed, &Value::Int(k)), &Value::Str("k".into()), Value::Bool(true));
+            let mut boxed = Value::Arr(rows());
+            add_element_to_object(get_value_mut(&mut boxed, &Value::Int(k)), &Value::Str("k".into()), Value::Bool(true));
+            assert_eq!(Value::Arr(typed), boxed);
+        }
+        let mut typed = rows();
+        add_element_to_object(get_value_mut(&mut typed, &Value::Str("x".into())), &Value::Str("k".into()), Value::Int(1));
+        let mut boxed = Value::Arr(rows());
+        add_element_to_object(get_value_mut(&mut boxed, &Value::Str("x".into())), &Value::Str("k".into()), Value::Int(1));
+        assert_eq!(Value::Arr(typed), boxed);
     }
 }
