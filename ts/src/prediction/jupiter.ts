@@ -372,49 +372,7 @@ export default class jupiter extends Exchange {
         for (let i = 0; i < events.length; i++) {
             const eventMarkets = events[i]['markets'];
             for (let j = 0; j < eventMarkets.length; j++) {
-                const market = eventMarkets[j];
-                const raw = market['info'] as Dict;
-                const id = market['id'];
-                const row: Dict = {
-                    'id': id,
-                    'symbol': market['market'],
-                    'base': id,
-                    'quote': 'USD',
-                    'baseId': id,
-                    'quoteId': 'USD',
-                    'settle': 'USD',
-                    'settleId': 'USD',
-                    'active': market['active'],
-                    'type': 'prediction',
-                    'subType': undefined,
-                    'spot': false,
-                    'margin': false,
-                    'swap': false,
-                    'future': false,
-                    'option': false,
-                    'prediction': true,
-                    'contract': false,
-                    'contractSize': undefined,
-                    'linear': false,
-                    'inverse': false,
-                    'expiry': undefined,
-                    'expiryDatetime': undefined,
-                    'strike': undefined,
-                    'optionType': undefined,
-                    'precision': { 'amount': 0.000001, 'price': 0.000001, 'base': undefined, 'quote': undefined },
-                    'limits': { 'amount': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }},
-                    'created': undefined,
-                    'taker': undefined,
-                    'maker': undefined,
-                    'percentage': false,
-                    'tierBased': false,
-                    'feeSide': undefined,
-                    'info': raw,
-                    'market': market['market'],
-                    'marketType': market['marketType'],
-                    'outcomes': market['outcomes'],
-                };
-                markets.push (row as Market);
+                markets.push (eventMarkets[j] as Market);
             }
         }
         return markets;
@@ -1036,6 +994,9 @@ export default class jupiter extends Exchange {
             const yesPrice = this.safeNumber (pricing, 'buyYesPriceUsd');
             const noPrice = this.safeNumber (pricing, 'buyNoPriceUsd');
             const marketVolume = this.safeNumber (pricing, 'volume');
+            const status = this.safeString (rawMarket, 'status');
+            const active = (status === undefined) ? undefined : (status === 'open');
+            const end = this.parseJupiterTimestamp (this.safeInteger (rawMarket, 'closeTime'));
             const rawOutcomeLabels = this.safeList (rawMarket, 'outcomes', [ 'Yes', 'No' ]);
             let yesLabel = 'Yes';
             let noLabel = 'No';
@@ -1064,44 +1025,94 @@ export default class jupiter extends Exchange {
                 }
             }
             const outcomes: PredictionOutcome[] = [
-                { 'info': rawMarket, 'outcome': marketHandle + ':YES', 'outcomeId': marketId + ':YES', 'label': yesLabel, 'market': marketHandle, 'marketId': marketId, 'event': id, 'price': (yesPrice !== undefined) ? yesPrice / 1000000 : undefined, 'active': true },
-                { 'info': rawMarket, 'outcome': marketHandle + ':NO', 'outcomeId': marketId + ':NO', 'label': noLabel, 'market': marketHandle, 'marketId': marketId, 'event': id, 'price': (noPrice !== undefined) ? noPrice / 1000000 : undefined, 'active': true },
+                { 'info': rawMarket, 'outcome': marketHandle + ':YES', 'outcomeId': marketId + ':YES', 'label': yesLabel, 'market': marketHandle, 'marketId': marketId, 'event': id, 'price': (yesPrice !== undefined) ? yesPrice / 1000000 : undefined, 'active': active },
+                { 'info': rawMarket, 'outcome': marketHandle + ':NO', 'outcomeId': marketId + ':NO', 'label': noLabel, 'market': marketHandle, 'marketId': marketId, 'event': id, 'price': (noPrice !== undefined) ? noPrice / 1000000 : undefined, 'active': active },
             ];
+            const rawMarketMetaData = this.safeDict (rawMarket, 'metadata', {});
+            const marketTitleDefault = this.safeString (rawMarketMetaData, 'title');
+            let marketClosed = undefined;
+            if (status !== undefined) {
+                marketClosed = (status === 'closed');
+            }
+            const rawMarketResult = this.safeString (rawMarket, 'result');
+            let marketResolved = false;
+            if ((rawMarketResult !== undefined) && (rawMarketResult !== '')) {
+                marketResolved = true;
+            }
+            let marketVolumeResponse = undefined;
+            if (marketVolume !== undefined) {
+                marketVolumeResponse = marketVolume / 1000000;
+            }
             markets.push ({
                 'info': rawMarket,
                 'id': marketId,
                 'market': marketHandle,
                 'event': id,
+                'base': marketId,
+                'quote': 'USD',
+                'settle': 'USD',
+                'baseId': marketId,
+                'quoteId': 'USD',
+                'settleId': 'USD',
+                'type': 'prediction',
+                'spot': false,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'prediction': true,
+                'contract': false,
+                'linear': false,
+                'inverse': false,
+                'expiry': end,
+                'expiryDatetime': this.iso8601 (end),
+                'precision': { 'amount': 0.000001, 'price': 0.000001 },
+                'limits': { 'amount': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined } },
+                'percentage': false,
+                'tierBased': false,
                 'marketType': 'binary',
                 'executionModel': 'amm',
-                'title': this.safeString (rawMarket, 'title', this.safeString (this.safeDict (rawMarket, 'metadata', {}), 'title')),
+                'title': this.safeString (rawMarket, 'title', marketTitleDefault),
                 'description': this.safeString (rawMarket, 'description'),
                 'outcomes': outcomes,
                 'collateral': 'USD',
-                'active': this.safeString (rawMarket, 'status', 'open') === 'open',
-                'closed': this.safeString (rawMarket, 'status') === 'closed',
-                'resolved': this.safeString (rawMarket, 'result') !== undefined && this.safeString (rawMarket, 'result') !== '',
-                'volume': (marketVolume === undefined) ? undefined : marketVolume / 1000000,
+                'active': active,
+                'closed': marketClosed,
+                'resolved': marketResolved,
+                'volume': marketVolumeResponse,
                 'liquidity': this.safeNumber (rawMarket, 'liquidityUsd'),
-                'end': this.parseJupiterTimestamp (this.safeInteger (rawMarket, 'closeTime')),
-                'endDatetime': this.iso8601 (this.parseJupiterTimestamp (this.safeInteger (rawMarket, 'closeTime'))),
+                'end': end,
+                'endDatetime': this.iso8601 (end),
             });
         }
+        let end = this.parseJupiterTimestamp (this.safeInteger (raw, 'closeTime'));
+        if (end === undefined) {
+            end = this.parse8601 (this.safeString (metadata, 'closeTime'));
+        }
+        const status = this.safeString (raw, 'status');
+        const resolvedDefault = (status === 'resolved');
+        const titleDefault = this.safeString (metadata, 'title');
+        const descriptionDefault = this.safeString (metadata, 'description');
+        const slugDefault = this.safeString (metadata, 'slug');
+        const created = this.safeInteger (raw, 'createdAt');
         return {
             'info': raw,
             'id': id,
             'event': id,
-            'title': this.safeString (raw, 'title', this.safeString (metadata, 'title')),
-            'description': this.safeString (raw, 'description', this.safeString (metadata, 'description')),
-            'slug': this.safeString (raw, 'slug'),
+            'title': this.safeString (raw, 'title', titleDefault),
+            'description': this.safeString (raw, 'description', descriptionDefault),
+            'slug': this.safeString (raw, 'slug', slugDefault),
             'category': this.safeString (raw, 'category'),
+            'tags': this.safeList (raw, 'tags'),
             'markets': markets,
-            'active': this.safeBool (raw, 'active', this.safeString (raw, 'status', 'open') !== 'closed'),
-            'resolved': this.safeBool (raw, 'resolved', this.safeString (raw, 'status') === 'resolved'),
+            'active': this.safeBool2 (raw, 'active', 'isActive'),
+            'resolved': this.safeBool (raw, 'resolved', resolvedDefault),
             'volume': this.safeNumber (raw, 'volumeUsd'),
             'liquidity': this.safeNumber (raw, 'liquidityUsd'),
-            'created': this.parseJupiterTimestamp (this.safeInteger (raw, 'createdAt')),
-            'end': this.parseJupiterTimestamp (this.safeInteger (raw, 'closeTime')),
+            'created': this.parseJupiterTimestamp (created),
+            'end': end,
+            'endDatetime': this.iso8601 (end),
+            'image': this.safeString (metadata, 'imageUrl'),
         };
     }
 
@@ -1277,8 +1288,14 @@ export default class jupiter extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const url = this.urls['api'][api[0]] + '/' + path;
-        const requestUrl = (method === 'GET' && Object.keys (params).length > 0) ? url + '?' + this.urlencode (params) : url;
+        const url = this.urls['api'][api[0]] + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        let requestUrl = undefined;
+        if (method === 'GET' && Object.keys (query).length > 0) {
+            requestUrl = url + '?' + this.urlencode (query);
+        } else {
+            requestUrl = url;
+        }
         const headers: Dict = { 'Accept': 'application/json' };
         if (this.apiKey !== undefined) {
             headers['x-api-key'] = this.apiKey;
@@ -1286,7 +1303,7 @@ export default class jupiter extends Exchange {
         let body: string | undefined = undefined;
         if (method !== 'GET') {
             headers['Content-Type'] = 'application/json';
-            body = this.json (params);
+            body = this.json (query);
         }
         return { 'url': requestUrl, 'method': method, 'body': body, 'headers': headers };
     }

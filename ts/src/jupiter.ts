@@ -47,7 +47,7 @@ export default class jupiter extends Exchange {
                 'fetchDCAOrders': true,
                 'fetchLiquidity': true,
                 'fetchLiquidityPools': true,
-                'fetchMarkets': false,
+                'fetchMarkets': 'emulated',
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
@@ -866,6 +866,89 @@ export default class jupiter extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchMarkets
+     * @description creates a synthetic market for a selected pair of Solana tokens
+     * @see https://developers.jup.ag/docs/api-reference/tokens/search
+     * @param {object} params extra parameters specific to the endpoint
+     * @param {string} params.base base token symbol or mint address; use a mint address to disambiguate duplicate symbols
+     * @param {string} params.quote quote token symbol or mint address; use a mint address to disambiguate duplicate symbols
+     * @returns {object[]} a synthetic [market structure](https://docs.ccxt.com/#/?id=market-structure)
+     */
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        const baseCode = this.safeString (params, 'base');
+        const quoteCode = this.safeString (params, 'quote');
+        if ((baseCode === undefined) || (quoteCode === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchMarkets() requires params.base and params.quote');
+        }
+        const baseCurrency = await this.lookupJupiterCurrency (baseCode);
+        const quoteCurrency = await this.lookupJupiterCurrency (quoteCode);
+        if (baseCurrency['id'] === quoteCurrency['id']) {
+            throw new BadSymbol (this.id + ' fetchMarkets() base and quote must be different tokens');
+        }
+        return [ this.parseMarket ({
+            'id': baseCurrency['id'] + '/' + quoteCurrency['id'],
+            'baseCurrency': baseCurrency,
+            'quoteCurrency': quoteCurrency,
+        }) ];
+    }
+
+    /**
+     * @ignore
+     * @param {object} market synthetic market details containing base and quote currencies
+     * @returns {object} a market structure
+     */
+    override parseMarket (market: Dict): Market {
+        const baseCurrency = this.safeDict (market, 'baseCurrency') as CurrencyInterface;
+        const quoteCurrency = this.safeDict (market, 'quoteCurrency') as CurrencyInterface;
+        const base = this.safeString (baseCurrency, 'code');
+        const quote = this.safeString (quoteCurrency, 'code');
+        const baseId = this.safeString (baseCurrency, 'id');
+        const quoteId = this.safeString (quoteCurrency, 'id');
+        if ((base === undefined) || (quote === undefined) || (baseId === undefined) || (quoteId === undefined)) {
+            throw new ExchangeError (this.id + ' parseMarket() requires base and quote currency metadata');
+        }
+        return this.safeMarketStructure ({
+            'info': market,
+            'id': this.safeString (market, 'id', baseId + '/' + quoteId),
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'maker': undefined,
+            'taker': undefined,
+            'precision': {
+                'amount': this.safeInteger (baseCurrency, 'precision'),
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': { 'min': undefined, 'max': undefined },
+                'amount': { 'min': undefined, 'max': undefined },
+                'price': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
+            },
+        });
     }
 
     /**
