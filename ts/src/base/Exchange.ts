@@ -4092,8 +4092,11 @@ export class BaseExchange {
     isRoundNumber (value: number): boolean {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        const res = this.parseToNumeric ((value % 1));
-        return res === 0;
+        // decimal-string math keeps this exact in every language: a numeric `value % 1 === 0`
+        // compared a boxed int64/float64 with an int literal in go (never equal), and c#'s
+        // mod truncates the remainder to an integer (so 1.5 % 1 became 0)
+        const remainder = Precise.stringMod (this.numberToString (value), '1');
+        return Precise.stringEq (remainder, '0');
     }
 
     isEmptyString (value: any): boolean {
