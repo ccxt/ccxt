@@ -683,13 +683,13 @@ impl Limitless {
             let mut knownTotal: i64 = self.safe_integer_k(&firstPageResponse, "totalMarketsCount", &[Value::Int(0)]).as_i64().unwrap_or(0);
             let mut allPages: Option<i64> = self.parse_to_int(((match ((Value::from(knownTotal)).as_f64(), (Value::from(pageSize)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
             {
-                                let mut i: Value = Value::Int(2);
+                                let mut i: i64 = 2;
                 let mut __for_first_1301: bool = true;
-                while { if !__for_first_1301 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1301 = false; matches!(allPages, Some(__b) if i.as_f64().unwrap_or(f64::NAN) <= (__b as f64)) } {
-                if i.as_f64().unwrap_or(f64::NAN) > cappedPages.as_f64().unwrap_or(f64::NAN) {
+                while { if !__for_first_1301 { i += 1; } __for_first_1301 = false; matches!(allPages, Some(__b) if (i as f64) <= (__b as f64)) } {
+                if (i as f64) > cappedPages.as_f64().unwrap_or(f64::NAN) {
                     break;
                 }
-                page = i.as_i64().unwrap_or_default();
+                page = i;
                 request.insert("page".into(), Value::from(page));
                 let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[&rest]);
                 promises.push(self.limitless_public_get_markets_active(&[__ws_arg_2]).await);

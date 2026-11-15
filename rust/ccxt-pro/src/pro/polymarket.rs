@@ -1291,7 +1291,7 @@ impl Polymarket {
             })]).into_dict();
             let mut parsed: crate::value::Dict = self.parse_order(Value::Dict(row), None).into_dict();
             stored.append(Value::from(&parsed));
-            let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -1418,7 +1418,7 @@ impl Polymarket {
             })]).into_dict();
             let mut parsed: crate::value::Dict = self.parse_trade(Value::Dict(row), None).into_dict();
             stored.append(Value::from(&parsed));
-            let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }

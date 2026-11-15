@@ -942,7 +942,7 @@ impl Hyperliquid {
 }));
             m
         });
-        let mut defaultDex: Value = self.safe_string_k(params.clone(), "dex", &[]);
+        let mut defaultDex: Option<String> = self.safe_string_k(params.clone(), "dex", &[]).as_str().map(str::to_owned);
         let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (firstSymbol.is_some()) {
             let mut market: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -951,14 +951,14 @@ impl Hyperliquid {
     m
 })]), Value::Str("dex".into()), &[]).as_str().map(str::to_owned);
             if (dexName.is_some()) {
-                defaultDex = dexName.map(Value::from).unwrap_or(Value::Null);
+                defaultDex = dexName;
             }
         }
-        let mut paramsOmitted: crate::value::Dict = (if (defaultDex != Value::Null) { self.omit(params.clone(), Value::Str("dex".into()), &[]) } else { params }).into_dict();
-        if (defaultDex != Value::Null) {
-            messageHash = format!("{}{}", "tickers:", defaultDex);
+        let mut paramsOmitted: crate::value::Dict = (if (defaultDex.is_some()) { self.omit(params.clone(), Value::Str("dex".into()), &[]) } else { params }).into_dict();
+        if (defaultDex.is_some()) {
+            messageHash = format!("{}{}", "tickers:", defaultDex.as_deref().unwrap_or("null"));
             if let Value::Dict(__d) = request.entry("subscription".into()).or_default() { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("allMids".into())); }
-            if let Value::Dict(__d) = request.entry("subscription".into()).or_default() { std::sync::Arc::make_mut(__d).insert("dex".into(), defaultDex); }
+            if let Value::Dict(__d) = request.entry("subscription".into()).or_default() { std::sync::Arc::make_mut(__d).insert("dex".into(), defaultDex.map(Value::from).unwrap_or(Value::Null)); }
         }
         // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
         self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), "tickers").await;

@@ -867,7 +867,7 @@ impl Bullish {
                 while { if !__for_first_176 { i += 1; } __for_first_176 = false; i < (rawOrders.len() as i64) } {
                 let mut parsedOrder: crate::value::Dict = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
                 orders.append(Value::from(&parsedOrder));
-                let mut symbol: Option<String> = self.safe_string_k_opt(&parsedOrder, "symbol", &[]);
+                let mut symbol: Option<String> = self.safe_string_k(&parsedOrder, "symbol", &[]).as_str().map(str::to_owned);
                 if (symbol.is_some()) {
                     symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 }
@@ -1008,7 +1008,7 @@ impl Bullish {
                 while { if !__for_first_178 { i += 1; } __for_first_178 = false; i < (rawTrades.len() as i64) } {
                 let mut parsedTrade: crate::value::Dict = self.parse_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
                 trades.append(Value::from(&parsedTrade));
-                let mut symbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
+                let mut symbol: Option<String> = self.safe_string_k(&parsedTrade, "symbol", &[]).as_str().map(str::to_owned);
                 if (symbol.is_some()) {
                     symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                 }

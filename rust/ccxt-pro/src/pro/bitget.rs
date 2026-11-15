@@ -2433,9 +2433,9 @@ impl Bitget {
         }
         let mut useSpotInstType: bool = (symbol == Value::Null) && (type_var.as_deref() == Some("spot"));
         let mut instType: Option<String> = Some("SPOT".to_string());
-        let mut paramsInstType: Value = Value::from(&paramsSubType);
+        let mut paramsInstType: crate::value::Dict = Value::from(&paramsSubType).into_dict();
         if !useSpotInstType {
-            { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchOrders".into()), market.as_ref(), &[uta.map_or(Value::Null, Value::Bool), Value::Dict(paramsSubType)]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchOrders".into()), market.as_ref(), &[uta.map_or(Value::Null, Value::Bool), Value::Dict(paramsSubType)]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         }
         if (type_var.as_deref() == Some("spot")) && (symbolResolved.is_some()) {
             subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, ":").into()), symbolResolved.as_deref().unwrap_or("null"));
@@ -2452,7 +2452,7 @@ impl Bitget {
         if (isTrigger) {
             channel = "orders-algo".to_string();
         }
-        let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[paramsInstType]).as_array().cloned().unwrap_or_default();
+        let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[Value::Dict(paramsInstType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marginMode.is_some()) {

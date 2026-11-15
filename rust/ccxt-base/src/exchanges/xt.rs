@@ -2747,8 +2747,7 @@ impl Xt {
             // window start return one pre-since candle, shifting paginated windows and
             // dropping one candle per page - align up so the rounding is a no-op, see https://github.com/ccxt/ccxt/issues/25285
             let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
-            request.insert("startTime".into(), (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null)))), &(Value::from(duration))) { (Value::Int(x),
-                Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+            request.insert("startTime".into(), Value::from((if let Some(__l) = (self.parse_to_int(((match ((since).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null))) { Some(__l * duration) } else { None })));
         }
         let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit != Value::Null) {
@@ -4150,11 +4149,11 @@ impl Xt {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let mut isMarketBuy: bool = (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy"));
-        let mut paramsWithoutCost: Value = Value::from(&paramsMarginMode);
+        let mut paramsWithoutCost: crate::value::Dict = Value::from(&paramsMarginMode).into_dict();
         if isMarketBuy {
-            paramsWithoutCost = self.omit(&paramsMarginMode, Value::Str("cost".into()), &[]);
+            paramsWithoutCost = self.omit(&paramsMarginMode, Value::Str("cost".into()), &[]).into_dict();
         }
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(timeInForce.as_deref() == Some("GTX")), &[paramsWithoutCost]).as_array().cloned().unwrap_or_default();
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(timeInForce.as_deref() == Some("GTX")), &[Value::Dict(paramsWithoutCost)]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly {

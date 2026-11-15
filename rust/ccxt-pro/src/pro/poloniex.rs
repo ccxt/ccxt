@@ -480,14 +480,14 @@ impl Poloniex {
                 m.insert("channel".to_string(), Value::from(vec![name.clone()]));
             m
         });
-        let mut marketIds: Value = Value::from(vec![]);
+        let mut marketIds: crate::value::List = std::sync::Arc::new(Vec::new());
         if self.is_empty(symbols.clone()).as_bool() == Some(true) {
-            append_to_array(&mut marketIds, Value::Str("all".into()));
+            std::sync::Arc::make_mut(&mut marketIds).push(Value::Str("all".into()));
         }  else {
             if (symbols == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " subscribe() symbols is required")));
             }
-            marketIds = self.market_ids(&[symbols.clone()]);
+            marketIds = self.market_ids(&[symbols.clone()]).into_list();
         }
         let mut symbolsSuffix: String = (if (symbols == Value::Null) { "".to_string() } else { symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default() });
         let mut symbolsHash: Value = Value::Null;
@@ -497,7 +497,7 @@ impl Poloniex {
             symbolsHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), symbolsSuffix).into());
         }
         if (name.as_str() != Some("balances")) {
-            subscribe.insert("symbols".into(), marketIds);
+            subscribe.insert("symbols".into(), Value::Arr(marketIds));
         }
         let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
         return self.watch(url.as_deref(), &symbolsHash, &request, &symbolsHash, Value::Null).await;

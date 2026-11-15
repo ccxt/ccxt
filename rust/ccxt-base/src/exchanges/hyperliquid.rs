@@ -1946,7 +1946,7 @@ impl Hyperliquid {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         // at this stage, to get tickers data, we use fetchMarkets endpoints
-        let mut response: Value = Value::from(vec![]);
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("type".into()), &[]).into_dict();
         let hip3OptionparamsHip3Variable: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchTickers".into()), Value::Str("hip3".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -1964,13 +1964,13 @@ impl Hyperliquid {
             }
         }
         if (hip3 == Some(true)) {
-            response = self.fetch_hip3_markets(&[self.omit(&paramsHip3, Value::Str("hip3".into()), &[])]).await;
+            response = self.fetch_hip3_markets(&[self.omit(&paramsHip3, Value::Str("hip3".into()), &[])]).await.into_list();
         }  else if (type_var.as_deref() == Some("spot")) {
-            response = self.fetch_spot_markets(&[Value::from(&paramsHip3)]).await;
+            response = self.fetch_spot_markets(&[Value::from(&paramsHip3)]).await.into_list();
         }  else if (type_var.as_deref() == Some("swap")) {
-            response = self.fetch_swap_markets(&[Value::from(&paramsHip3)]).await;
+            response = self.fetch_swap_markets(&[Value::from(&paramsHip3)]).await.into_list();
         }  else {
-            response = crate::types::IntoRaw::into_raw(self.fetch_markets(Value::Dict(paramsHip3)).await);
+            response = crate::types::IntoRaw::into_raw(self.fetch_markets(Value::Dict(paramsHip3)).await).into_list();
         }
         // same response as under "fetchMarkets"
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1981,7 +1981,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_808: bool = true;
             while { if !__for_first_808 { i += 1; } __for_first_808 = false; i < (response.len() as i64) } {
-            let mut market: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut market: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut info: crate::value::Dict = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

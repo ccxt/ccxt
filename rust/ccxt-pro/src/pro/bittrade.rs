@@ -976,11 +976,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return message;
         }
         let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
-        let mut subscription: Value = self.safe_dict(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (subscription != Value::Null) {
-            let mut method: Option<String> = self.safe_value_k(subscription.clone(), "method", &[]).as_str().map(str::to_owned);
+        let mut subscription: Option<crate::value::Dict> = self.safe_dict(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+        if (subscription.is_some()) {
+            let mut method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
-                return self.dispatch_ws_handler(&method, &[client, message.clone(), subscription]);
+                return self.dispatch_ws_handler(&method, &[client, message.clone(), subscription.map_or(Value::Null, Value::Dict)]);
             }
             // clean up
             if (__ch.has_subscription(id.as_deref())) {

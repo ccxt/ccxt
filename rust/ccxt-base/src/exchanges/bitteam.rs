@@ -1040,7 +1040,7 @@ impl Bitteam {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut blockChain: Option<String> = self.safe_string_k_opt(currency.clone(), "blockChain", &[]);
+        let mut blockChain: Option<String> = self.safe_string_k(currency.clone(), "blockChain", &[]).as_str().map(str::to_owned);
         // if only one blockChain
         if (blockChain.is_some()) && (blockChain.as_deref() != Some("")) {
             fee = self.parse_number(Value::from(&withdrawCommissionFixed), &[]);

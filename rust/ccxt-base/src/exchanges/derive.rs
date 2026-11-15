@@ -3216,13 +3216,13 @@ impl Derive {
             request.insert("label".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         request.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
-        let mut paramsOmitted: Value = self.omit(&paramsDeriveWalletAddress, &["reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLossPrice", "takeProfitPrice", "trigger_price_type"], &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsDeriveWalletAddress, &["reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLossPrice", "takeProfitPrice", "trigger_price_type"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if test {
-            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_post_order_debug(&[__ws_arg_12]).await.into_opt_dict();
         }  else {
-            let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_order(&[__ws_arg_13]).await.into_opt_dict();
         }
         //

@@ -577,7 +577,7 @@ impl Hollaex {
             stored.append(Value::Dict(parsed));
             let mut symbol: Option<String> = self.safe_string_k(&trade, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
+            let mut marketId: Option<String> = self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
             if (marketId.is_some()) {
                 marketIds.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -733,7 +733,7 @@ impl Hollaex {
             stored.append(Value::Dict(parsed));
             let mut symbol: Option<String> = self.safe_string_k(order, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
+            let mut marketId: Option<String> = self.safe_string_k(&market, "id", &[]).as_str().map(str::to_owned);
             if (marketId.is_some()) {
                 marketIds.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }

@@ -1287,15 +1287,14 @@ impl Bitopro {
         // supports slightly more than 75k candles atm, but limit here to avoid errors
         let mut limitResolved: Option<i64> = self.parse_to_int((if (limit == Value::Null) { Value::Int(500) } else { crate::runtime::Math::min(&limit, &Value::Int(75000)) }));
         let mut timeframeInSeconds: i64 = self.parse_timeframe(timeframe.clone());
-        let mut alignedSince: Value = Value::Null;
+        let mut alignedSince: Option<i64> = None;
         if (since == Value::Null) {
             let mut toSeconds: i64 = self.seconds();
             request.insert("to".into(), Value::from(toSeconds));
             request.insert("from".into(), Value::from((if let Some(__r) = ((if let Some(__l) = limitResolved { Some(__l * timeframeInSeconds) } else { None })) { Some(toSeconds - __r) } else { None })));
         }  else {
             let mut timeframeInMilliseconds: i64 = (timeframeInSeconds * 1000);
-            alignedSince = (match (&(Value::from(self.parse_to_int(((match ((since).as_f64(), (Value::from(timeframeInMilliseconds)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)))), &(Value::from(timeframeInMilliseconds))) { (Value::Int(x),
-                Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            alignedSince = (if let Some(__l) = (self.parse_to_int(((match ((since).as_f64(), (Value::from(timeframeInMilliseconds)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null))) { Some(__l * timeframeInMilliseconds) } else { None });
             let mut fromSeconds: Value = ((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null);
             request.insert("from".into(), fromSeconds.clone());
             request.insert("to".into(), self.sum(&[fromSeconds, Value::from((if let Some(__l) = limitResolved { Some(__l * timeframeInSeconds) } else { None }))]));
@@ -1318,7 +1317,7 @@ impl Bitopro {
         //     }
         //
         let mut sparse: crate::value::List = self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitResolved)]).into_list();
-        return self.insert_missing_candles(Value::Arr(sparse), Value::Int((timeframeInSeconds * 1000)), alignedSince, Value::from(limitResolved));
+        return self.insert_missing_candles(Value::Arr(sparse), Value::Int((timeframeInSeconds * 1000)), Value::from(alignedSince), Value::from(limitResolved));
         Value::Null
         }).await?))
     }

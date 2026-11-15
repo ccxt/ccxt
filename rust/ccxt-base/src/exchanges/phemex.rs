@@ -2401,8 +2401,7 @@ impl Phemex {
                     }  else {
                         // when since is defined 'to' is mandatory
                         let mut now: i64 = self.seconds();
-                        let mut to: Option<i64> = self.parse_to_int((match (&(Value::from(self.parse_to_int(fromSeconds))), &((Value::Int((maxLimit * candleDuration))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-                            (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+                        let mut to: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = (self.parse_to_int(fromSeconds)) { Some(__l + ((maxLimit * candleDuration))) } else { None })));
                         request.insert("to".into(), (if (to > Some(now)) { Value::from(now) } else { Value::from(to) }));
                     }
                 }  else if (until.is_some()) {
@@ -5245,7 +5244,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut code: Option<String> = self.safe_string2(params.clone(), Value::Str("currency".into()), Value::Str("code".into()), &[Value::Str("USDT".into())]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["currency", "code"], &[]).into_dict();
-        let mut paramsSettle: Value = Value::from(&paramsOmitted);
+        let mut paramsSettle: crate::value::Dict = Value::from(&paramsOmitted).into_dict();
         let mut settle: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -5254,9 +5253,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             settle = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
             code = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
         }  else {
-            { let __destr_tmp = self.handle_option_string_and_params(&paramsOmitted, Value::Str("fetchPositions".into()), Value::Str("settle".into()), &[code.clone().map(Value::from).unwrap_or(Value::Null)]).into_list(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params(&paramsOmitted, Value::Str("fetchPositions".into()), Value::Str("settle".into()), &[code.clone().map(Value::from).unwrap_or(Value::Null)]).into_list(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         }
-        let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositions".into()), market.as_ref(), &[paramsSettle]).as_array().cloned().unwrap_or_default();
+        let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositions".into()), market.as_ref(), &[Value::Dict(paramsSettle)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isUSDTSettled: bool = settle.as_deref() == Some("USDT");
@@ -7323,7 +7322,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]).into_opt_list();
         let mut code: Option<String> = self.safe_string2(params.clone(), Value::Str("currency".into()), Value::Str("code".into()), &[Value::Str("USDT".into())]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["currency", "code"], &[]).into_dict();
-        let mut paramsSettle: Value = Value::from(&paramsOmitted);
+        let mut paramsSettle: crate::value::Dict = Value::from(&paramsOmitted).into_dict();
         let mut settle: Option<String> = None;
         let mut market: Option<crate::types::Market> = None;
         let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -7332,9 +7331,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             settle = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
             code = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
         }  else {
-            { let __destr_tmp = self.handle_option_string_and_params(&paramsOmitted, Value::Str("fetchPositionsADLRank".into()), Value::Str("settle".into()), &[code.clone().map(Value::from).unwrap_or(Value::Null)]).into_list(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_string_and_params(&paramsOmitted, Value::Str("fetchPositionsADLRank".into()), Value::Str("settle".into()), &[code.clone().map(Value::from).unwrap_or(Value::Null)]).into_list(); settle = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSettle = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         }
-        let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionsADLRank".into()), market.as_ref(), &[paramsSettle]).as_array().cloned().unwrap_or_default();
+        let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionsADLRank".into()), market.as_ref(), &[Value::Dict(paramsSettle)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isUSDTSettled: bool = settle.as_deref() == Some("USDT");

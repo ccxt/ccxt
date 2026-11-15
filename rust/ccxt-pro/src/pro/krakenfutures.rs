@@ -1371,10 +1371,10 @@ impl Krakenfutures {
                 // get order without symbol
                 let mut cancelledOrderId: Option<String> = (match __pro_message.get("order_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_435: bool = true;
-                    while { if !__for_first_435 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_435 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orders).as_f64().unwrap_or(f64::NAN) } {
-                    let mut currentOrder: Value = get_value(&orders, &i);
+                    while { if !__for_first_435 { i += 1; } __for_first_435 = false; (i as f64) < get_array_length(&orders).as_f64().unwrap_or(f64::NAN) } {
+                    let mut currentOrder: Value = get_value(&orders, &Value::Int(i));
                     let mut currentOrderId: Option<String> = self.safe_string_k(currentOrder.clone(), "id", &[]).as_str().map(str::to_owned);
                     if (currentOrderId == cancelledOrderId) {
                         let __ws_arg_0 = self.safe_dict_k(currentOrder.clone(), "info", &[Value::Map({
@@ -1386,7 +1386,7 @@ impl Krakenfutures {
                                 m.insert("reason".to_string(), Value::from(reason.as_deref()));
                             m
                         })]).into_dict();
-                        add_element_to_object(&mut orders, &i, self.extend(currentOrder.clone(), &[Value::Map({
+                        add_element_to_object(&mut orders, &Value::Int(i), self.extend(currentOrder.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::from(status.clone()));
         m.insert("info".to_string(), Value::Dict(info));
@@ -1482,7 +1482,7 @@ impl Krakenfutures {
             while { if !__for_first_436 { i += 1; } __for_first_436 = false; i < (orders.len() as i64) } {
             let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
-            let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -2261,7 +2261,7 @@ impl Krakenfutures {
             while { if !__for_first_444 { i += 1; } __for_first_444 = false; i < (trades.len() as i64) } {
             let mut trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsedTrade: crate::value::Dict = self.parse_ws_my_trade(Value::Dict(trade), None).into_dict();
-            let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
+            let mut tradeSymbol: Option<String> = self.safe_string_k(&parsedTrade, "symbol", &[]).as_str().map(str::to_owned);
             if (tradeSymbol.is_some()) {
                 tradeSymbols.insert(tradeSymbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }

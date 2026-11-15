@@ -3911,12 +3911,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut headersValue: Value = self.extend(Value::Map({
+        let mut headersValue: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
-        }), &[Value::Map(existingHeaders)]);
+        }), &[Value::Map(existingHeaders)]).into_dict();
         let mut bodyValue: Option<String> = None;
         if (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -3932,13 +3932,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut keyParts: crate::value::List = Value::Array(if let Some(__s) = self.privateKey.as_str() { __s.split("\\n").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut cleanPrivateKey: Value = Value::Str(keyParts.iter().map(Value::to_string).collect::<Vec<String>>().join("\n").into());
             let mut signature: String = rsa(payload, cleanPrivateKey, Value::Str("sha256".into()));
-            headersValue = self.extend(headersValue, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("KALSHI-ACCESS-KEY".to_string(), self.apiKey.clone());
-                    m.insert("KALSHI-ACCESS-SIGNATURE".to_string(), Value::from(signature));
-                    m.insert("KALSHI-ACCESS-TIMESTAMP".to_string(), Value::from(timestamp));
-                m
-            })]);
+            headersValue = self.extend(&headersValue, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("KALSHI-ACCESS-KEY".to_string(), self.apiKey.clone());
+        m.insert("KALSHI-ACCESS-SIGNATURE".to_string(), Value::from(signature));
+        m.insert("KALSHI-ACCESS-TIMESTAMP".to_string(), Value::from(timestamp));
+    m
+})]).into_dict();
             if (method.as_str() != Some("GET")) && (querystring != "") {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path
                 bodyValue = json_stringify(&query).as_str().map(str::to_owned);
@@ -3949,7 +3949,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyValue.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersValue);
+        m.insert("headers".to_string(), Value::Dict(headersValue));
     m
 });
 

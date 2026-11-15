@@ -4356,13 +4356,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         let mut time: i64 = self.milliseconds();
         let mut resolvedAuth: Vec<Value> = self.resolve_auth_type(Value::Str("authenticate".into()), None, &[params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = resolvedAuth.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = resolvedAuth.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAuth: Value = resolvedAuth.get(2).cloned().unwrap_or(Value::Null);
         let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsAuth, Value::Str("authenticate".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPortfolioMargin: crate::value::Dict = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // For spot use WebSocket API signature subscription
-        if (type_var.as_str() == Some("spot")) {
+        if (type_var.as_deref() == Some("spot")) {
             self.ensure_user_data_stream_ws_subscribe_signature(&[Value::Str("spot".into())]).await;
             return Value::Null;
         }
@@ -4372,7 +4372,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut isIsolatedMargin: bool = marginMode.as_deref() == Some("isolated");
         let mut symbol: Option<String> = self.safe_string_k(&paramsMarginMode, "symbol", &[]).as_str().map(str::to_owned);
         // For margin use WebSocket API listenToken subscription
-        if (type_var.as_str() == Some("margin")) || isIsolatedMargin {
+        if (type_var.as_deref() == Some("margin")) || isIsolatedMargin {
             let mut marginParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -4387,8 +4387,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return Value::Null;
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::Str("symbol".into()), &[]).into_dict();
-        let mut isStock: bool = type_var.as_str() == Some("stock");
-        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), type_var.clone(), &[Value::Map({
+        let mut isStock: bool = type_var.as_deref() == Some("stock");
+        let mut options: crate::value::Dict = self.safe_dict(self.options.clone(), Value::from(type_var.as_deref()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
@@ -4407,7 +4407,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // client.futures is the registry: client.future () is the atomic
             // check-and-insert and client.resolve () / client.reject () settle
             // and remove the entry under the same lock in every port
-            let mut messageHash: String = format!("{}{}", "authenticate:", type_var);
+            let mut messageHash: String = format!("{}{}", "authenticate:", type_var.as_deref().unwrap_or("null"));
             let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client("authenticationFlights"));
             if (client.has_future(messageHash.as_str())) {
                 // a flight is already in progress - wake when the leader
@@ -4426,11 +4426,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     response = self.parent.sapi_post_equity_listen_key(&[Value::Dict(requestParams)]).await.into_opt_dict();
                 }  else if isPortfolioMargin {
                     response = self.parent.papi_post_listen_key(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
-                }  else if (type_var.as_str() == Some("linear")) {
+                }  else if (type_var.as_deref() == Some("linear")) {
                     response = self.parent.fapi_private_post_listen_key(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
-                }  else if (type_var.as_str() == Some("inverse")) {
+                }  else if (type_var.as_deref() == Some("inverse")) {
                     response = self.parent.dapi_private_post_listen_key(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
-                }  else if (type_var.as_str() == Some("option")) {
+                }  else if (type_var.as_deref() == Some("option")) {
                     response = self.parent.eapi_private_post_listen_key(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
                 }  else {
                     response = self.parent.public_post_user_data_stream(&[Value::from(&paramsOmitted)]).await.into_opt_dict();
@@ -4444,7 +4444,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("listenKey".to_string(), listenKey.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("lastAuthenticatedTime".to_string(), Value::from(time));
     m
-})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
+})]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(type_var.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
                 // hoisted out of the delay call: the transpilers garble an inline
                 // dict literal nested inside a delay argument
                 let mut delayParams: Value = Value::from(&paramsOmitted);

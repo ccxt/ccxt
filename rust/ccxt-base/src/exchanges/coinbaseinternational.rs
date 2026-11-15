@@ -1692,9 +1692,7 @@ impl Coinbaseinternational {
             if (limitResolved.is_none()) {
                 limitResolved = Some(100);
             }
-            request.insert("start_timestamp".into(), self.sum(&[Value::from(now), (match (&((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(-1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            request.insert("start_timestamp".into(), Value::from((if let Some(__m1) = ((if let Some(__l) = ((if let (Some(__l), Some(__r)) = ((self.parse_to_int(Value::from(limitResolved))), duration) { Some(__l * __r) } else { None })) { Some(__l * -1000) } else { None })) { Some((now + __m1)) } else { None })));
             request.insert("end_timestamp".into(), Value::from(now));
         }  else {
             let mut sinceResolved: Option<i64> = (if let Some(__m0) = ((if let Some(__l) = since.as_i64() { Some(__l - 1) } else { None })) { Some(i64::max(__m0, 0)) } else { None });
@@ -1702,9 +1700,7 @@ impl Coinbaseinternational {
             if (limitResolved.is_none()) {
                 request.insert("end_timestamp".into(), Value::from(now));
             }  else {
-                request.insert("end_timestamp".into(), self.sum(&[Value::from(sinceResolved), (match (&((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
-                    Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+                request.insert("end_timestamp".into(), Value::from((if let (Some(__m0), Some(__m1)) = (sinceResolved, ((if let Some(__l) = ((if let (Some(__l), Some(__r)) = ((self.parse_to_int(Value::from(limitResolved))), duration) { Some(__l * __r) } else { None })) { Some(__l * 1000) } else { None }))) { Some((__m0 + __m1)) } else { None })));
             }
         }
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();

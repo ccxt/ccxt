@@ -712,12 +712,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         let mut refused: i64 = 0;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_585: bool = true;
-            while { if !__for_first_585 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_585 = false; i.as_f64().unwrap_or(f64::NAN) < ((channels.len() as i64) as f64) } {
-            if i.as_f64().unwrap_or(f64::NAN) >= start.as_f64().unwrap_or(f64::NAN) {
+            while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (channels.len() as i64) } {
+            if (i as f64) >= start.as_f64().unwrap_or(f64::NAN) {
                 let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                    self.unsubscribe_channel_at(url.as_str().unwrap_or_default(), topic.as_str().unwrap_or_default(), channels.clone(), subMessageHashes.clone(), symbols.clone(), i.clone(), &[params.clone()]).await;
+                    self.unsubscribe_channel_at(url.as_str().unwrap_or_default(), topic.as_str().unwrap_or_default(), channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int(i), &[params.clone()]).await;
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
                     refused = (refused + 1);
@@ -3353,9 +3353,9 @@ if _try_result.is_err() {
                 return Value::Null;
             }
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_615: bool = true;
-                while { if !__for_first_615 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_615 = false; matches!(numInGroup, Some(__p) if j.as_f64().unwrap_or(f64::NAN) < (__p as f64)) } {
+                while { if !__for_first_615 { j += 1; } __for_first_615 = false; matches!(numInGroup, Some(__b) if (j as f64) < (__b as f64)) } {
                 if let Value::Arr(__a) = &mut levels { std::sync::Arc::make_mut(__a).push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("side".to_string(), sides.get(i as usize).cloned().unwrap_or(Value::Null));

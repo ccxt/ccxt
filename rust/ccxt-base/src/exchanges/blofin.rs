@@ -2352,8 +2352,8 @@ impl Blofin {
         let mut query: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         request.insert("marginMode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
-        let mut triggerPriceAny: Option<String> = self.safe_string_n(Value::from(&query), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).as_str().map(str::to_owned);
-        let mut triggerPriceSlTp: Option<String> = self.safe_string2(Value::from(&query), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut triggerPriceAny: Option<String> = self.safe_string_n(&query, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]).as_str().map(str::to_owned);
+        let mut triggerPriceSlTp: Option<String> = self.safe_string2(&query, Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), &[]).as_str().map(str::to_owned);
         let mut timeInForce: Option<String> = self.safe_string_k(&query, "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
         let mut isHedged: bool = self.safe_bool_k(&query, "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isHedged {

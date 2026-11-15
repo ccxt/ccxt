@@ -1431,10 +1431,9 @@ impl Poloniex {
             // without an end time the exchange returns the latest candles, not the ones starting at since,
             // so end the window at the start of the limit-th candle from the first one at or after since
             let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
-            let __yd0: Option<i64> = self.parse_to_int(((match ((since).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null));
-            let mut firstCandle: Value = (match (&(Value::from(__yd0)), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut endTimeByLimit: Value = self.sum(&[firstCandle, Value::from((if let Some(__r) = ((if let Some(__l) = limit.as_i64() { Some(__l - 1) } else { None })) { Some(duration * __r) } else { None }))]);
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert(keyEnd, crate::runtime::Math::min(&endTimeByLimit, &Value::Int(self.milliseconds()))); }
+            let mut firstCandle: Option<i64> = (if let Some(__l) = (self.parse_to_int(((match ((since).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null))) { Some(__l * duration) } else { None });
+            let mut endTimeByLimit: Option<i64> = (if let (Some(__m0), Some(__m1)) = (firstCandle, ((if let Some(__r) = ((if let Some(__l) = limit.as_i64() { Some(__l - 1) } else { None })) { Some(duration * __r) } else { None }))) { Some((__m0 + __m1)) } else { None });
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert(keyEnd, Value::from((if let Some(__m0) = endTimeByLimit { Some(i64::min(__m0, (self.milliseconds()))) } else { None }))); }
         }
         if (market).contract {
             let __ws_arg_0 = self.extend(requestUntil.clone(), &[&paramsUntil]);

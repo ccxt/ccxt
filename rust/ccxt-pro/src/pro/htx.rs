@@ -1814,7 +1814,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     }
         //
-        let mut messageHash: Value = self.safe_string2(message.clone(), Value::Str("ch".into()), Value::Str("topic".into()), &[]);
+        let mut messageHash: Option<String> = self.safe_string2(message.clone(), Value::Str("ch".into()), Value::Str("topic".into()), &[]).as_str().map(str::to_owned);
         let mut data: Option<crate::value::Dict> = __pro_message.get("data").cloned().unwrap_or_default().into_opt_dict();
         let mut marketId: Option<String> = (match __pro_message.get("contract_code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (marketId.is_none()) {
@@ -1862,7 +1862,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut tradesObject: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("trades".to_string(), Value::Arr(rawTrades));
-                        m.insert("ch".to_string(), messageHash.clone());
+                        m.insert("ch".to_string(), Value::from(messageHash.as_deref()));
                         m.insert("symbol".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
                     m
                 });
@@ -1886,23 +1886,23 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
         cachedOrders.append(parsedOrder);
-        client.resolve(Value::from(&self.orders), &messageHash);
-        if (messageHash != Value::Null) && (marketId.is_some()) {
-            if (messageHash.as_str() == Some("orders")) {
-                let mut specificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ".").into()), marketId.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
+        client.resolve(Value::from(&self.orders), messageHash.as_deref());
+        if (messageHash.is_some()) && (marketId.is_some()) {
+            if (messageHash.as_deref() == Some("orders")) {
+                let mut specificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash.as_deref().unwrap_or("null"), ".").into()), marketId.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
                 client.resolve(Value::from(&self.orders), specificMessageHash.as_str());
             }
         }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here
-        if (messageHash == Value::Null) {
+        if (messageHash.is_none()) {
             return;
         }
         let mut lowercaseId: String = self.safe_string_lower_k(&market, "lowercaseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut genericMessageHash: Value = messageHash.as_str().zip((Value::Str(format!("{}{}", ".", lowercaseId).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| messageHash.clone());
+        let mut genericMessageHash: Option<String> = (if let Some(__s) = messageHash.as_deref() { Some(__s.replace(format!("{}{}", ".", lowercaseId).as_str(), "")) } else { None });
         let mut lowerCaseBaseId: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        genericMessageHash = genericMessageHash.as_str().zip((Value::Str(format!("{}{}", ".", lowerCaseBaseId).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| genericMessageHash.clone());
-        client.resolve(Value::from(&self.orders), &genericMessageHash);
+        genericMessageHash = (if let Some(__s) = genericMessageHash.as_deref() { Some(__s.replace(format!("{}{}", ".", lowerCaseBaseId).as_str(), "")) } else { None });
+        client.resolve(Value::from(&self.orders), genericMessageHash.as_deref());
 }
 
     pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
@@ -2087,12 +2087,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut avgPrice: Option<String> = self.safe_string_k(order.clone(), "trade_avg_price", &[]).as_str().map(str::to_owned);
         let mut rawTrades: Option<crate::value::List> = self.safe_list_k(order.clone(), "trade", &[]).into_opt_list();
-        let mut typeSideParts: Value = Value::from(vec![]);
+        let mut typeSideParts: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut type_var: Option<String> = None;
         if (typeSide.is_some()) {
             if typeSide.as_deref().unwrap_or_default().contains("-") {
-                typeSideParts = Value::Array(if let Some(__s) = typeSide.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                type_var = self.safe_string_lower(typeSideParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+                typeSideParts = Value::Array(if let Some(__s) = typeSide.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
+                type_var = self.safe_string_lower(&typeSideParts, Value::Int(1), &[]).as_str().map(str::to_owned);
             }  else {
                 type_var = typeSide;
             }
@@ -2100,7 +2100,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (type_var.is_none()) {
             type_var = self.safe_string_k(order.clone(), "order_price_type", &[]).as_str().map(str::to_owned);
         }
-        let mut side: Option<String> = self.safe_string_lower(typeSideParts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower(&typeSideParts, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (side.is_none()) {
             side = self.safe_string2(order.clone(), Value::Str("direction".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         }
@@ -2886,11 +2886,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         let mut subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into())).into_dict();
-        let mut subscription: Value = self.safe_dict(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (subscription != Value::Null) {
-            let mut method: Option<String> = self.safe_value_k(subscription.clone(), "method", &[]).as_str().map(str::to_owned);
+        let mut subscription: Option<crate::value::Dict> = self.safe_dict(&subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+        if (subscription.is_some()) {
+            let mut method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
-                self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription.clone()]);
+                self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription.clone().map_or(Value::Null, Value::Dict)]);
             }
             // clean up
             if (__ch.has_subscription(id.as_deref())) {
@@ -2900,7 +2900,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("unsubbed"))) {
-            self.handle_un_subscription(client, subscription);
+            self.handle_un_subscription(client, &subscription);
         }
 }
 
@@ -3431,8 +3431,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut cachedTrades: Option<crate::pro::cache::Cache> = self.myTrades.clone();
-        let mut messageHash: Value = self.safe_string2(message.clone(), Value::Str("ch".into()), Value::Str("topic".into()), &[]);
-        if (messageHash != Value::Null) {
+        let mut messageHash: Option<String> = self.safe_string2(message.clone(), Value::Str("ch".into()), Value::Str("topic".into()), &[]).as_str().map(str::to_owned);
+        if (messageHash.is_some()) {
             let mut data: Value = (match __pro_message.get("data").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
             if (data != Value::Null) {
                 let mut contractCode: Option<String> = (match __pro_message.get("contract_code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
@@ -3457,9 +3457,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         cachedTrades.append(Value::Dict(parsed));
                     }
                 }
-                client.resolve(Value::from(&self.myTrades), &messageHash);
-                if (messageHash.as_str() == Some("trade")) && (contractCode.is_some()) {
-                    let mut specificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ".").into()), contractCode.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
+                client.resolve(Value::from(&self.myTrades), messageHash.as_deref());
+                if (messageHash.as_deref() == Some("trade")) && (contractCode.is_some()) {
+                    let mut specificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash.as_deref().unwrap_or("null"), ".").into()), contractCode.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
                     client.resolve(Value::from(&self.myTrades), specificMessageHash.as_str());
                 }
             }  else {
@@ -3481,7 +3481,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 // messageHash here is the orders one, so
                 // we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'
-                let mut tradesHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), "trade");
+                let mut tradesHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash.as_deref().unwrap_or("null"), ":").into()), "trade");
                 client.resolve(Value::from(&self.myTrades), tradesHash.as_str());
                 // when we make an global order sub we have to send the channel like this
                 // ch = orders_cross.* and we store messageHash = 'orders_cross'
@@ -3489,10 +3489,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 let mut lowercaseId: String = self.safe_string_lower_k(&market, "lowercaseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut genericOrderHash: Value = messageHash.as_str().zip((Value::Str(format!("{}{}", ".", lowercaseId).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| messageHash.clone());
+                let mut genericOrderHash: Option<String> = (if let Some(__s) = messageHash.as_deref() { Some(__s.replace(format!("{}{}", ".", lowercaseId).as_str(), "")) } else { None });
                 let mut lowerCaseBaseId: String = self.safe_string_lower_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                genericOrderHash = genericOrderHash.as_str().zip((Value::Str(format!("{}{}", ".", lowerCaseBaseId).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| genericOrderHash.clone());
-                let mut genericTradesHash: String = format!("{}{}", Value::Str(format!("{}{}", genericOrderHash, ":").into()), "trade");
+                genericOrderHash = (if let Some(__s) = genericOrderHash.as_deref() { Some(__s.replace(format!("{}{}", ".", lowerCaseBaseId).as_str(), "")) } else { None });
+                let mut genericTradesHash: String = format!("{}{}", Value::Str(format!("{}{}", genericOrderHash.as_deref().unwrap_or("null"), ":").into()), "trade");
                 client.resolve(Value::from(&self.myTrades), genericTradesHash.as_str());
             }
         }
@@ -3811,16 +3811,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Value = self.safe_string_k(params.clone(), "url", &[]);
+        let mut url: Option<String> = self.safe_string_k(params.clone(), "url", &[]).as_str().map(str::to_owned);
         let mut hostname: Option<String> = self.safe_string_k(params.clone(), "hostname", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[]).as_str().map(str::to_owned);
-        if (url == Value::Null) || (hostname.is_none()) || (type_var.is_none()) {
+        if (url.is_none()) || (hostname.is_none()) || (type_var.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " authenticate requires a url, hostname and type argument")));
         }
         self.check_required_credentials(&[]);
         let mut messageHash: String = "auth".to_string();
-        let mut relativePath: Value = url.as_str().zip((Value::Str(format!("{}{}", "wss://", hostname.as_deref().unwrap_or("null")).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| url.clone());
-        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
+        let mut relativePath: Option<String> = (if let Some(__s) = url.as_deref() { Some(__s.replace(format!("{}{}", "wss://", hostname.as_deref().unwrap_or("null")).as_str(), "")) } else { None });
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
         if (!authenticated) {
@@ -3847,7 +3847,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             signatureParams = self.keysort(signatureParams, &[]);
             let mut auth: String = self.urlencode(signatureParams, &[Value::Bool(true)]); // true required in go
-            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "GET", "\n").into()), hostname.as_deref().unwrap_or("null")).into()), "\n").into()), relativePath).into()), "\n").into()), auth); // eslint-disable-line quotes
+            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "GET", "\n").into()), hostname.as_deref().unwrap_or("null")).into()), "\n").into()), relativePath.as_deref().unwrap_or("null")).into()), "\n").into()), auth); // eslint-disable-line quotes
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut request: Option<crate::value::Dict> = None;
             if (type_var.as_deref() == Some("spot")) {
@@ -3889,7 +3889,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("params".to_string(), params);
                 m
             });
-            self.watch(&url, &messageHash[..], request.map_or(Value::Null, Value::Dict), &messageHash[..], Value::Map(subscription)).await;
+            self.watch(url.as_deref(), &messageHash[..], request.map_or(Value::Null, Value::Dict), &messageHash[..], Value::Map(subscription)).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

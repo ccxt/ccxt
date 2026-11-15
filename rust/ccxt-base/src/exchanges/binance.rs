@@ -7876,9 +7876,9 @@ impl Binance {
                 m.insert("created".to_string(), self.safe_integer2(market.clone(), Value::Str("onboardDate".into()), Value::Str("listingTime".into()), &[]));
             m
         });
-        let mut stepSize: Value = self.safe_number_k(market, "stepSize", &[]);
-        if (stepSize != Value::Null) {
-            if let Value::Dict(__d) = entry.entry("precision".into()).or_default() { std::sync::Arc::make_mut(__d).insert("amount".into(), stepSize); }
+        let mut stepSize: Option<f64> = self.safe_number_k(market, "stepSize", &[]).as_f64();
+        if (stepSize.is_some()) {
+            if let Value::Dict(__d) = entry.entry("precision".into()).or_default() { std::sync::Arc::make_mut(__d).insert("amount".into(), Value::from(stepSize)); }
         }
         if (filtersByType.contains_key("PRICE_FILTER")) {
             let mut filter: crate::value::Dict = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
@@ -12003,12 +12003,12 @@ impl Binance {
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrder".into()), &[Value::from(&paramsStock)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut isPortfolioMargin: Option<bool> = None;
         { let __destr_tmp = self.handle_option_bool_and_params2(&paramsStock, Value::Str("fetchOrder".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).into_list(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut isConditional: Option<bool> = self.safe_bool_n(Value::from(&paramsStock), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
+        let mut isConditional: Option<bool> = self.safe_bool_n(&paramsStock, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
         let mut isOptionType: bool = type_var.as_deref() == Some("option");
         let mut isLinearType: bool = self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true);
         let mut isInverseType: bool = self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true);
         let mut isContractConditional: bool = (isLinearType || isInverseType) && (isConditional == Some(true)) && (!(isPortfolioMargin == Some(true)));
-        let mut clientOrderId: Option<String> = self.safe_string_n(Value::from(&paramsStock), Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("clientAlgoId".into())]), &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_n(&paramsStock, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("clientAlgoId".into())]), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             if isOptionType {
                 request.insert("clientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -12151,7 +12151,7 @@ impl Binance {
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrders".into()), &[Value::from(&paramsPaginate)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut isPortfolioMargin: Option<bool> = None;
         { let __destr_tmp = self.handle_option_bool_and_params2(&paramsPaginate, Value::Str("fetchOrders".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).into_list(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsPaginate = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut isConditional: Option<bool> = self.safe_bool_n(Value::from(&paramsPaginate), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
+        let mut isConditional: Option<bool> = self.safe_bool_n(&paramsPaginate, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
         let mut isOptionType: bool = type_var.as_deref() == Some("option");
         let mut isLinearType: bool = self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true);
         let mut isInverseType: bool = self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true);
@@ -12162,7 +12162,7 @@ impl Binance {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrders() requires a symbol argument")));
             }
         }
-        let mut until: Option<i64> = self.safe_integer_n(Value::from(&paramsPaginate), Value::from(vec![Value::Str("until".into()), Value::Str("till".into()), Value::Str("endTime".into())]), &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_n(&paramsPaginate, Value::from(vec![Value::Str("until".into()), Value::Str("till".into()), Value::Str("endTime".into())]), &[]).as_i64();
         paramsPaginate = self.omit(&paramsPaginate, &["stop", "trigger", "conditional", "until", "till", "endTime"], &[]).into_dict();
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
@@ -12310,7 +12310,7 @@ impl Binance {
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[params]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut isPortfolioMargin: Option<bool> = None;
         { let __destr_tmp = self.handle_option_bool_and_params2(&paramsMarginMode, Value::Str("fetchOpenOrders".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).into_list(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut isConditional: Option<bool> = self.safe_bool_n(Value::from(&paramsMarginMode), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
+        let mut isConditional: Option<bool> = self.safe_bool_n(&paramsMarginMode, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
         let mut stock: bool = false;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&paramsMarginMode, Value::Str("fetchOpenOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); stock = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (symbol != Value::Null) {
@@ -12904,7 +12904,7 @@ impl Binance {
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[Value::from(&paramsStock)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut isPortfolioMargin: Option<bool> = None;
         { let __destr_tmp = self.handle_option_bool_and_params2(&paramsStock, Value::Str("cancelOrder".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).into_list(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut isConditional: Option<bool> = self.safe_bool_n(Value::from(&paramsStock), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
+        let mut isConditional: Option<bool> = self.safe_bool_n(&paramsStock, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
         let mut isOptionType: bool = type_var.as_deref() == Some("option");
         let mut isLinearType: bool = self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true);
         let mut isInverseType: bool = self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true);
@@ -12914,7 +12914,7 @@ impl Binance {
         let mut isSwapOrFuture: bool = (market.is_some()) && ((crate::value::KeyRead::key_read(&&market, "swap").as_bool() == Some(true)) || (crate::value::KeyRead::key_read(&&market, "future").as_bool() == Some(true)));
         let mut isPortfolioMarginInverse: bool = (isPortfolioMargin == Some(true)) && (isInverseType);
         let mut isAlgoOrder: bool = isSwapOrFuture && (isConditional == Some(true)) && (!isPortfolioMarginInverse);
-        let mut clientOrderId: Option<String> = self.safe_string_n(Value::from(&paramsStock), Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("newClientStrategyId".into()), Value::Str("clientAlgoId".into())]), &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_n(&paramsStock, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), Value::Str("newClientStrategyId".into()), Value::Str("clientAlgoId".into())]), &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             if isOptionType {
                 request.insert("clientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -13063,7 +13063,7 @@ impl Binance {
         }
         let mut isPortfolioMargin: Option<bool> = None;
         { let __destr_tmp = self.handle_option_bool_and_params2(&paramsStock, Value::Str("cancelAllOrders".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).into_list(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut isConditional: Option<bool> = self.safe_bool_n(Value::from(&paramsStock), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
+        let mut isConditional: Option<bool> = self.safe_bool_n(&paramsStock, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
         let mut type_var: Option<String> = None;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), market.as_ref(), &[Value::from(&paramsStock), Value::Str("spot".into())]).into_list(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut subType: Option<String> = None;
@@ -13327,7 +13327,7 @@ impl Binance {
         if (!stock) && (type_var.as_deref() != Some("option")) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol argument")));
         }
-        let mut endTime: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
+        let mut endTime: Option<i64> = self.safe_integer2(&paramsPaginate, Value::Str("until".into()), Value::Str("endTime".into()), &[]).as_i64();
         if (since != Value::Null) {
             let mut startTime: Option<i64> = since.as_i64();
             request.insert("startTime".into(), Value::from(startTime));

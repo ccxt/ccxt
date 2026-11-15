@@ -485,7 +485,7 @@ impl Mudrex {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unknown API namespace: ").into()), apiName.as_deref().unwrap_or("null"))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut requestHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -501,16 +501,16 @@ impl Mudrex {
             if (methodUpper.as_str() == Some("POST")) || (methodUpper.as_str() == Some("PATCH")) || (methodUpper.as_str() == Some("DELETE")) {
                 requestHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                 // is_symbol is a query-string flag even on write requests
-                let mut isSymbol: Option<String> = self.safe_string_k(query.clone(), "is_symbol", &[]).as_str().map(str::to_owned);
+                let mut isSymbol: Option<String> = self.safe_string_k(&query, "is_symbol", &[]).as_str().map(str::to_owned);
                 if (isSymbol.is_some()) {
-                    query = self.omit(query, Value::Str("is_symbol".into()), &[]);
+                    query = self.omit(Value::Dict(query), Value::Str("is_symbol".into()), &[]).into_dict();
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("is_symbol".to_string(), isSymbol.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[])));
                 }
-                if (methodUpper.as_str() == Some("DELETE")) && self.is_empty(query.clone()).as_bool() == Some(true) {
+                if (methodUpper.as_str() == Some("DELETE")) && self.is_empty(Value::from(&query)).as_bool() == Some(true) {
                     return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
@@ -520,7 +520,7 @@ impl Mudrex {
     m
 });
                 }
-                let mut bodyStr: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
+                let mut bodyStr: Option<String> = json_stringify(&Value::from(&query)).as_str().map(str::to_owned);
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.clone()));
@@ -531,8 +531,8 @@ impl Mudrex {
 });
             }
         }
-        if !(self.is_empty(query.clone()).as_bool() == Some(true)) {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+        if !(self.is_empty(Value::from(&query)).as_bool() == Some(true)) {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Dict(query), &[])));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2129,13 +2129,13 @@ impl Mudrex {
             while { if !__for_first_977 { i += 1; } __for_first_977 = false; i < (transactions.len() as i64) } {
             let mut rebate: Option<String> = None;
             {
-                                let mut j: Value = Value::Int(0);
+                                let mut j: i64 = 0;
                 let mut __for_first_976: bool = true;
-                while { if !__for_first_976 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_976 = false; j.as_f64().unwrap_or(f64::NAN) < ((rebateKeys.len() as i64) as f64) } {
-                if (rebateKeys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str()) {
-                    rebate = self.safe_string(&rebateAmounts, j.clone(), &[]).as_str().map(str::to_owned);
+                while { if !__for_first_976 { j += 1; } __for_first_976 = false; j < (rebateKeys.len() as i64) } {
+                if (rebateKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str()) {
+                    rebate = self.safe_string(&rebateAmounts, Value::Int(j), &[]).as_str().map(str::to_owned);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-                    add_element_to_object(&mut rebateKeys, &j, Value::Str("".into()));
+                    add_element_to_object(&mut rebateKeys, &Value::Int(j), Value::Str("".into()));
                     break;
                 }
             }

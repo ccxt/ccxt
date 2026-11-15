@@ -1715,8 +1715,8 @@ impl Bithumb {
                     while { if !__for_first_401 { i += 1; } __for_first_401 = false; i < (symbols.len() as i64) } {
                     let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                    let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteId", &[]);
-                    if (quoteId.is_some()) && (matches!(&quoteId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if quoteCurrencies.contains_key(__k.as_ref()))) {
+                    let mut quoteId: Option<String> = self.safe_string_k(&market, "quoteId", &[]).as_str().map(str::to_owned);
+                    if (quoteId.is_some()) && (matches!(quoteId.as_deref(), Some(__k) if quoteCurrencies.contains_key(__k))) {
                         requiredQuotes.insert(quoteId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                     }
                 }

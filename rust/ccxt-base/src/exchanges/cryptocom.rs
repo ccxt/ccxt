@@ -4668,10 +4668,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //                 },
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(contract.clone(), "t", &[]).as_i64();
-        let mut fundingTimestamp: Value = Value::Null;
+        let mut fundingTimestamp: Option<i64> = None;
         if (timestamp.is_some()) {
-            fundingTimestamp = (match (&(Value::from(self.parse_to_int(Value::from((if let Some(__x) = ((if let Some(__l) = timestamp { Some((__l as f64) / 3600000.0) } else { None })) { Some(f64::ceil(__x)) } else { None }))))), &(Value::Int(3600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
-                Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // end of the next hour
+            fundingTimestamp = (if let Some(__l) = (self.parse_to_int(Value::from((if let Some(__x) = ((if let Some(__l) = timestamp { Some((__l as f64) / 3600000.0) } else { None })) { Some(f64::ceil(__x)) } else { None })))) { Some(__l * 3600000) } else { None }); // end of the next hour
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4684,7 +4683,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("fundingRate".to_string(), self.safe_number_k(contract, "v", &[]));
-        m.insert("fundingTimestamp".to_string(), fundingTimestamp.clone());
+        m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);

@@ -2145,7 +2145,7 @@ impl Pacifica {
             let mut rawOrder: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None).into_dict();
             stored.append(Value::from(&order));
-            let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 marketSymbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }

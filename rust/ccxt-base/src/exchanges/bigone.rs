@@ -2243,7 +2243,7 @@ impl Bigone {
         let mut postOnly: Option<bool> = None;
         let mut query: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(exchangeSpecificParam), &[params]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut triggerPrice: Option<String> = self.safe_string_n(Value::from(&query), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.safe_string_n(&query, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_pair_name".to_string(), Value::from((market).id.as_deref()));

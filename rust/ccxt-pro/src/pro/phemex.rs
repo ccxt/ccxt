@@ -697,8 +697,8 @@ impl Phemex {
             while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (message.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(message.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            let mut currency: crate::value::Dict = self.safe_dict(self.currencies.clone(), code.clone(), &[Value::Map({
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+            let mut currency: crate::value::Dict = self.safe_dict(self.currencies.clone(), Value::from(code.as_deref()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -721,8 +721,8 @@ impl Phemex {
             }
             account.insert("used".into(), used.map(Value::from).unwrap_or(Value::Null));
             account.insert("total".into(), total.map(Value::from).unwrap_or(Value::Null));
-            if (code != Value::Null) {
-                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map(account)); }
+            if (code.is_some()) {
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
             }
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         }

@@ -6080,19 +6080,19 @@ impl Digifinex {
             let mut __for_first_656: bool = true;
             while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < (rows.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&rows, Value::Int(i), &[]).into_opt_dict();
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(&entry, "currency", &[]), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) && ((codesValue.is_none()) || (self.in_array(code.clone(), codesValue.clone().map_or(Value::Null, Value::Arr)))) {
-                if !(matches!(&code, Value::Str(__k) if depositWithdrawFees.contains_key(__k.as_ref()))) {
+            let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&entry, "currency", &[]), None);
+            if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, codesValue.clone().map_or(Value::Null, Value::Arr)))) {
+                if !(matches!(code.as_deref(), Some(__k) if depositWithdrawFees.contains_key(__k))) {
                     let mut feeStructure: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })).as_map().cloned().unwrap_or_default();
                     feeStructure.insert("info".into(), Value::from(vec![]));
-                    depositWithdrawFees.insert(crate::runtime::stringify_param(&code), Value::Map(feeStructure));
+                    depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(feeStructure));
                 }
-                let mut depositWithdrawFee: Value = depositWithdrawFees.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                let mut depositWithdrawFee: Value = depositWithdrawFees.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 let mut depositWithdrawInfo: Value = depositWithdrawFee.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null);
-                if let Value::Arr(__a) = &mut depositWithdrawInfo { std::sync::Arc::make_mut(__a).push(entry.clone().map_or(Value::Null, Value::Dict)); };
+                if let Value::Arr(__a) = &mut depositWithdrawInfo { std::sync::Arc::make_mut(__a).push(entry.clone().map_or(Value::Null, Value::Dict)); }
                 let mut networkId: Option<String> = self.safe_string_k(&entry, "chain", &[]).as_str().map(str::to_owned);
                 let mut withdrawFee: Option<f64> = self.safe_number_k(&entry, "min_withdraw_fee", &[]).as_f64();
                 let mut withdrawResult: indexmap::IndexMap<String, Value> = ({
@@ -6108,7 +6108,7 @@ impl Digifinex {
                     m
                 });
                 if (networkId.is_some()) {
-                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code]));
+                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)]));
                     if (networkCode != Value::Null) {
                         add_element_to_object(get_value_mut(&mut depositWithdrawFee, &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -8701,7 +8701,7 @@ impl Htx {
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut stopLossTakeProfit: Option<bool> = self.safe_bool_n(Value::from(&paramsSubType), Value::from(vec![Value::Str("stopLossTakeProfit".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut query: Option<crate::value::Dict> = self.omit(&paramsSubType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_opt_dict();
+        let mut query: crate::value::Dict = self.omit(&paramsSubType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_deref() == Some("spot")) {
             let mut clientOrderId: Option<String> = self.safe_string2(&query, Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
@@ -8711,7 +8711,7 @@ impl Htx {
                 response = self.spot_private_post_v1_order_orders_order_id_submitcancel(&[__ws_arg_80]).await;
             }  else {
                 request.insert("client-order-id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                query = self.omit(&query, &["client-order-id", "clientOrderId"], &[]).into_opt_dict();
+                query = self.omit(Value::Dict(query), &["client-order-id", "clientOrderId"], &[]).into_dict();
                 let __ws_arg_81 = self.extend(Value::Map(request.clone()), &[&query]);
                 response = self.spot_private_post_v1_order_orders_submit_cancel_client_order(&[__ws_arg_81]).await;
             }
@@ -8725,7 +8725,7 @@ impl Htx {
                     request.insert("order_id".into(), id.clone());
                 }  else {
                     request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
-                    query = self.omit(&query, &["client_order_id", "clientOrderId"], &[]).into_opt_dict();
+                    query = self.omit(Value::Dict(query), &["client_order_id", "clientOrderId"], &[]).into_dict();
                 }
             }
             if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -8742,10 +8742,10 @@ impl Htx {
                     });
                     if (clientOrderId.is_none()) {
                         requestItem.insert("algo_id".into(), id.clone());
-                        query = self.omit(&query, Value::Str("algo_id".into()), &[]).into_opt_dict();
+                        query = self.omit(Value::Dict(query), Value::Str("algo_id".into()), &[]).into_dict();
                     }  else {
                         requestItem.insert("algo_client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                        query = self.omit(&query, &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]).into_opt_dict();
+                        query = self.omit(Value::Dict(query), &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]).into_dict();
                     }
                     let mut requestBody: Value = Value::from(vec![self.extend(Value::Map(requestItem), &[&query])]);
                     response = self.contract_private_post_v5_algo_cancel_orders(&[requestBody]).await;
@@ -8905,7 +8905,7 @@ impl Htx {
         });
         let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut query: Option<crate::value::Dict> = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trigger"], &[]).into_opt_dict();
+        let mut query: crate::value::Dict = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trigger"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
             let mut clientOrderIds: Value = self.safe_value2(&query, Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]);
@@ -8922,7 +8922,7 @@ impl Htx {
                 }  else {
                     request.insert("client-order-ids".into(), clientOrderIds.clone());
                 }
-                query = self.omit(&query, &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]).into_opt_dict();
+                query = self.omit(Value::Dict(query), &["client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"], &[]).into_dict();
             }
             let __ws_arg_92 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.spot_private_post_v1_order_orders_batchcancel(&[__ws_arg_92]).await.into_opt_dict();
@@ -8932,7 +8932,7 @@ impl Htx {
             }
             let mut clientOrderIds: Value = self.safe_value2(&query, Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
             clientOrderIds = self.safe_value2(&query, Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[clientOrderIds.clone()]);
-            query = self.omit(&query, &["client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"], &[]).into_opt_dict();
+            query = self.omit(Value::Dict(query), &["client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"], &[]).into_dict();
             if !matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (clientOrderIds == Value::Null) {
                     request.insert("order_id".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));

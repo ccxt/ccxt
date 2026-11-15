@@ -2236,8 +2236,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 })]).into_dict();
                 let mut id: Option<String> = self.safe_string_k(&order, "order_id", &[]).as_str().map(str::to_owned);
                 let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
-                let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
-                let mut previousOrders: crate::value::Dict = self.safe_dict(stored.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+                let mut symbol: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
+                let mut previousOrders: crate::value::Dict = self.safe_dict(stored.hashmap(), Value::from(symbol.as_deref()), &[]).into_dict();
                 let mut previousOrder: Option<crate::value::Dict> = self.safe_dict(&previousOrders, id.map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
                 let mut newOrder: Value = Value::from(&parsed);
                 if (previousOrder.is_some()) {

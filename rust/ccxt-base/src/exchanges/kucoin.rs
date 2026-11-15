@@ -6849,7 +6849,7 @@ impl Kucoin {
         let mut marginMode: Option<String> = None;
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsRequest)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut tradeType: Value = self.handle_trade_type(&[Value::Bool(isContract), marginMode.clone().map(Value::from).unwrap_or(Value::Null), Value::Bool(isUnified), Value::from(&paramsRequest)]).map(Value::from).unwrap_or(Value::Null);
-        let mut clientOrderId: Option<String> = self.safe_string2(Value::from(&paramsRequest), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string2(&paramsRequest, Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
         paramsRequest = self.omit(&paramsRequest, &["clientOid", "clientOrderId"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -14817,7 +14817,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrders() requires a symbol argument for uta endpoint")));
         }
         let mut ordersRequests: Value = Value::from(vec![]);
-        let mut clientOrderIds: crate::value::List = self.safe_list2(Value::from(&paramsRequest), Value::Str("clientOrderIds".into()), Value::Str("clientOids".into()), &[Value::from(vec![])]).into_list();
+        let mut clientOrderIds: crate::value::List = self.safe_list2(&paramsRequest, Value::Str("clientOrderIds".into()), Value::Str("clientOids".into()), &[Value::from(vec![])]).into_list();
         paramsRequest = self.omit(&paramsRequest, &["clientOrderIds", "clientOids"], &[]).into_dict();
         let mut useClientorderId: bool = false;
         {

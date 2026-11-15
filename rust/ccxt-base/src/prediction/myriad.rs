@@ -5502,12 +5502,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut headersValue: Value = self.extend(Value::Map({
+        let mut headersValue: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
-        }), &[Value::Map(existingHeaders)]);
+        }), &[Value::Map(existingHeaders)]).into_dict();
         // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         // included — the previous logic only sent a body for authenticated requests)
         let mut bodyValue: Option<String> = None;
@@ -5530,14 +5530,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             });
             headersKey.insert(headerKey, self.apiKey.clone());
-            headersValue = self.extend(headersValue, &[Value::Map(headersKey)]);
+            headersValue = self.extend(&headersValue, &[Value::Map(headersKey)]).into_dict();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyValue.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersValue);
+        m.insert("headers".to_string(), Value::Dict(headersValue));
     m
 });
 

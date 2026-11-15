@@ -1034,16 +1034,16 @@ impl Binance {
             let mut tokenId: Option<String> = self.safe_string_k(&rawOutcome, "tokenId", &[]).as_str().map(str::to_owned);
             let mut outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol.as_deref().unwrap_or("null"), ":").into()), label.as_deref().unwrap_or("null"));
             let mut price: Option<String> = self.safe_string_k(&rawOutcome, "price", &[]).as_str().map(str::to_owned);
-            let mut winnerRaw: Value = Value::Null;
+            let mut winnerRaw: Option<bool> = None;
             let mut settleFractionRaw: Option<i64> = None;
             if resolved && (price.is_some()) {
-                winnerRaw = crate::precise::Precise::stringEq(&price, &Value::Str("1".into()));
-                settleFractionRaw = (if (winnerRaw).as_bool() == Some(true) { Some(1) } else { Some(0) });
-                if winnerRaw.as_bool() == Some(true) {
+                winnerRaw = crate::precise::Precise::stringEq(&price, &Value::Str("1".into())).as_bool();
+                settleFractionRaw = (if (winnerRaw == Some(true)) { Some(1) } else { Some(0) });
+                if (winnerRaw == Some(true)) {
                     resolvedOutcomeRaw = Some(outcomeHandle.clone());
                 }
             }
-            let mut winner: Value = winnerRaw;
+            let mut winner: Option<bool> = winnerRaw;
             let mut settleFraction: Option<i64> = settleFractionRaw;
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1054,7 +1054,7 @@ impl Binance {
                     m.insert("label".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("price".to_string(), self.parse_number(price.clone().map(Value::from).unwrap_or(Value::Null), &[]));
                     m.insert("active".to_string(), Value::Bool(active));
-                    m.insert("winner".to_string(), winner);
+                    m.insert("winner".to_string(), winner.map_or(Value::Null, Value::Bool));
                     m.insert("settleFraction".to_string(), Value::from(settleFraction));
                     m.insert("precision".to_string(), Value::Map(precision.clone()));
                     m.insert("info".to_string(), Value::Map({

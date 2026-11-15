@@ -881,8 +881,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //       ]
         // }
         //
-        let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (channel == Value::Null) {
+        let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (channel.is_none()) {
             return;
         }
         let mut marketId: Option<String> = (match message.get("instrument_name") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -908,9 +908,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             stored.append(self.safe_dict(&parsedTrades, Value::Int(j), &[]));
         }
         }
-        let mut channelReplaced: Value = channel.as_str().zip((Value::Str(format!("{}{}", ".", marketId.as_deref().unwrap_or("null")).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| channel.clone());
+        let mut channelReplaced: Option<String> = (if let Some(__s) = channel.as_deref() { Some(__s.replace(format!("{}{}", ".", marketId.as_deref().unwrap_or("null")).as_str(), "")) } else { None });
         client.resolve(Value::from(&stored), symbolSpecificMessageHash.as_deref());
-        client.resolve(Value::from(&stored), &channelReplaced);
+        client.resolve(Value::from(&stored), channelReplaced.as_deref());
 }
 
 /*

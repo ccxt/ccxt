@@ -2284,19 +2284,18 @@ impl Polymarket {
                 continue;
             }
             let mut rawMs: Option<i64> = (if let Some(__l) = t { Some(__l * 1000) } else { None });
-            let __yd0: Option<i64> = self.parse_to_int((match ((Value::from(rawMs)).as_f64(), (Value::from(resolutionMs)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            let mut snappedMs: Value = (match (&(Value::from(__yd0)), &(Value::from(resolutionMs))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut snappedMs: Option<i64> = (if let Some(__l) = (self.parse_to_int((match ((Value::from(rawMs)).as_f64(), (Value::from(resolutionMs)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) { Some(__l * resolutionMs) } else { None });
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             let mut vol: Option<f64> = self.safe_number_k(&item, "s", &[]).as_f64();
             if (vol.is_none()) {
                 vol = self.safe_number_k(&item, "v", &[]).as_f64();
             }
-            let mut bucketKey: Value = Value::Str(format!("{}", snappedMs).into());
-            if !(matches!((&buckets, &bucketKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&bucketKey), Value::from(vec![snappedMs, price.clone(), price.clone(), price.clone(), price.clone(), Value::from(vol)])); }
+            let mut bucketKey: String = format!("{}", Value::from(snappedMs));
+            if !(matches!((&buckets, Some(bucketKey.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(bucketKey.clone(), Value::from(vec![Value::from(snappedMs), price.clone(), price.clone(), price.clone(), price.clone(), Value::from(vol)])); }
             }  else {
-                let mut candle: Value = self.safe_list(buckets.clone(), bucketKey.clone(), &[Value::from(vec![])]);
+                let mut candle: Value = self.safe_list(buckets.clone(), Value::from(bucketKey.clone()), &[Value::from(vec![])]);
                 { let __be_tmp = crate::runtime::Math::max(&get_value(&candle, &Value::Int(2)), &price); add_element_to_object(&mut candle, &Value::Int(2), __be_tmp); }; // high
                 { let __be_tmp = crate::runtime::Math::min(&get_value(&candle, &Value::Int(3)), &price); add_element_to_object(&mut candle, &Value::Int(3), __be_tmp); }; // low
                 add_element_to_object(&mut candle, &Value::Int(4), price); // close (last tick wins)
@@ -2304,7 +2303,7 @@ impl Polymarket {
                     let mut prevVol: Value = candle.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null);
                     add_element_to_object(&mut candle, &Value::Int(5), (if (prevVol == Value::Null) { Value::from(vol) } else { self.sum(&[prevVol, Value::from(vol)]) })); // volume
                 }
-                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&bucketKey), candle); }; // reassign after mutation, php arrays are value types
+                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(bucketKey, candle); }; // reassign after mutation, php arrays are value types
             }
         }
         }
@@ -4398,12 +4397,12 @@ impl Polymarket {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut headersValue: Value = self.extend(Value::Map({
+        let mut headersValue: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Accept".to_string(), Value::Str("application/json".into()));
                 m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
             m
-        }), &[Value::Map(headerDefaults)]);
+        }), &[Value::Map(headerDefaults)]).into_dict();
         if (access.as_deref() == Some("private")) {
             // 'auth/derive-api-key' is built by concatenation so the substring "api" sits at a
             // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
@@ -4422,14 +4421,14 @@ impl Polymarket {
                 let mut nonce: i64 = self.safe_integer_k(params.clone(), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
                 let mut l1signature: Option<String> = self.sign_clob_auth(address.as_str().unwrap_or_default(), timestamp.as_str().unwrap_or_default(), Value::from(nonce));
                 let __ws_arg_29 = self.number_to_string(Value::from(nonce));
-                headersValue = self.extend(headersValue, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("POLY_ADDRESS".to_string(), address);
-                        m.insert("POLY_SIGNATURE".to_string(), l1signature.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("POLY_TIMESTAMP".to_string(), timestamp);
-                        m.insert("POLY_NONCE".to_string(), Value::from(__ws_arg_29));
-                    m
-                })]);
+                headersValue = self.extend(&headersValue, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("POLY_ADDRESS".to_string(), address);
+        m.insert("POLY_SIGNATURE".to_string(), l1signature.map(Value::from).unwrap_or(Value::Null));
+        m.insert("POLY_TIMESTAMP".to_string(), timestamp);
+        m.insert("POLY_NONCE".to_string(), Value::from(__ws_arg_29));
+    m
+})]).into_dict();
             }  else {
                 // L2 credentials: provided directly (apiKey/secret/password) or derived from
                 // the privateKey and cached in options (see setApiCredentials/loadApiCredentials)
@@ -4462,15 +4461,15 @@ impl Polymarket {
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = signature.replace("+", "-");
                 signature = signature.replace("/", "_");
-                headersValue = self.extend(headersValue, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("POLY_ADDRESS".to_string(), address);
-                        m.insert("POLY_API_KEY".to_string(), apiKey.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("POLY_PASSPHRASE".to_string(), passphrase.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("POLY_SIGNATURE".to_string(), Value::from(signature));
-                        m.insert("POLY_TIMESTAMP".to_string(), timestamp);
-                    m
-                })]);
+                headersValue = self.extend(&headersValue, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("POLY_ADDRESS".to_string(), address);
+        m.insert("POLY_API_KEY".to_string(), apiKey.map(Value::from).unwrap_or(Value::Null));
+        m.insert("POLY_PASSPHRASE".to_string(), passphrase.map(Value::from).unwrap_or(Value::Null));
+        m.insert("POLY_SIGNATURE".to_string(), Value::from(signature));
+        m.insert("POLY_TIMESTAMP".to_string(), timestamp);
+    m
+})]).into_dict();
             }
         }
         return Value::Map({
@@ -4478,7 +4477,7 @@ impl Polymarket {
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyValue);
-        m.insert("headers".to_string(), headersValue);
+        m.insert("headers".to_string(), Value::Dict(headersValue));
     m
 });
 

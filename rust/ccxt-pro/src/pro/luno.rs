@@ -743,19 +743,19 @@ impl Luno {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let mut storedNonce: Value = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]);
-        if (storedNonce == Value::Null) {
+        let mut storedNonce: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]).as_i64();
+        if (storedNonce.is_none()) {
             return Value::Bool(false);
         }
-        let mut messageSequence: Value = (match message.get("sequence") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        if (messageSequence == Value::Null) {
+        let mut messageSequence: Option<i64> = (match message.get("sequence") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        if (messageSequence.is_none()) {
             return Value::Bool(true);
         }
-        if messageSequence.as_f64().unwrap_or(f64::NAN) <= storedNonce.as_f64().unwrap_or(f64::NAN) {
+        if (messageSequence.is_some() && storedNonce.is_some() && messageSequence <= storedNonce) {
             return Value::Bool(false);
         }
-        let mut expectedSequence: Value = (match (&(Value::from(self.parse_to_int(storedNonce))), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-        if (messageSequence.as_f64() != expectedSequence.as_f64()) {
+        let mut expectedSequence: Option<i64> = (if let Some(__l) = (self.parse_to_int(Value::from(storedNonce))) { Some(__l + 1) } else { None });
+        if (messageSequence != expectedSequence) {
             // a gap in the sequence means a lost message and the book is
             // unrecoverable on a live connection, because luno only sends
             // a snapshot as the first frame after a fresh handshake:
@@ -776,7 +776,7 @@ impl Luno {
                 __ch.remove_subscription(subscriptionHash.as_str());
             }
             let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOrderBook() received an out-of-sequence update for ").into()), symbolValue).into()),
-                ", expected ").into()), Value::Str(format!("{}", expectedSequence).into())).into()), " but got ").into()), Value::Str(format!("{}", messageSequence).into()))));
+                ", expected ").into()), Value::from(format!("{}", Value::from(expectedSequence)))).into()), " but got ").into()), Value::from(format!("{}", Value::from(messageSequence))))));
             client.reset(error);
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &client.url()) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             return Value::Bool(false);

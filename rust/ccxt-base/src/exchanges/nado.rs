@@ -4214,12 +4214,10 @@ impl Nado {
         let left: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let mut zeros: String = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_string();
         if left {
-            let mut paddedLeft: Value = Value::Str(format!("{}{}", zeros, value).into());
-            let mut start: Value = (match (&(Value::Int(paddedLeft.len() as i64)), &(Value::from(self.parse_to_int(length.clone())))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            return (match (&(paddedLeft), (match &(start) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(Value::Int(paddedLeft.len() as i64)) { Value::Int(__n) => Some(*__n),
-                Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-                __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }).as_str().map(str::to_owned);
+            let mut paddedLeft: String = format!("{}{}", zeros, value);
+            let mut start: Option<i64> = (if let Some(__r) = (self.parse_to_int(length.clone())) { Some(((paddedLeft.chars().count() as i64)) - __r) } else { None });
+            return Value::from(({ let (__l, __b, __e) = (paddedLeft.chars().count() as i64, start.unwrap_or(0), ((paddedLeft.chars().count() as i64))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l));
+                paddedLeft.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })).as_str().map(str::to_owned);
         }
         let mut paddedRight: Value = Value::Str(format!("{}{}", value, zeros).into());
         return (match (&(paddedRight), 0i64, (match &(length) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,

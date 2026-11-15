@@ -2205,7 +2205,7 @@ impl Dydx {
                 m.insert("value".to_string(), Value::Map(orderPayload));
             m
         });
-        let mut paramsOmitted: Value = self.omit(&paramsGoodTillBlockTimeInSeconds, &["reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"], &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGoodTillBlockTimeInSeconds, &["reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"], &[]).into_dict();
         let mut walletAddress: Option<String> = self.get_wallet_address().as_str().map(str::to_owned);
         let mut clobPairId: i64 = self.safe_integer_k(&marketInfo, "clobPairId", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut subaccountIdValue: i64 = subaccountIdOption.unwrap_or(0);
@@ -2213,7 +2213,7 @@ impl Dydx {
         let mut orderFlagValue: i64 = orderFlag.unwrap_or(0);
         let mut clobPairIdValue: i64 = (if (false) { 0 } else { clobPairId });
         let mut orderId: Option<String> = self.create_order_id_from_parts(walletAddress.as_deref().unwrap_or_default(), (subaccountIdValue as f64), (clientOrderIdValue as f64), (orderFlagValue as f64), (clobPairIdValue as f64));
-        return Value::from(vec![orderId.map(Value::from).unwrap_or(Value::Null), self.extend(Value::Map(signingPayload), &[paramsOmitted])]);
+        return Value::from(vec![orderId.map(Value::from).unwrap_or(Value::Null), self.extend(Value::Map(signingPayload), &[&paramsOmitted])]);
 
     Value::Null
 }

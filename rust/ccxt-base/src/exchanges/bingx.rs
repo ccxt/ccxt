@@ -5148,8 +5148,8 @@ impl Bingx {
                 request.insert("quantity".into(), amountReq); // precision not available for inverse contracts
             }
         }
-        let mut paramsRequest: Value = self.omit(paramsOrder, &["hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty", "triggerPriceType", "workingType"], &[]);
-        return self.extend(Value::Map(request), &[paramsRequest]);
+        let mut paramsRequest: crate::value::Dict = self.omit(paramsOrder, &["hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty", "triggerPriceType", "workingType"], &[]).into_dict();
+        return self.extend(Value::Map(request), &[&paramsRequest]);
 
     Value::Null
 }

@@ -3306,7 +3306,7 @@ impl Okx {
             let mut rawTrade: crate::value::Dict = filteredOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut trade: crate::value::Dict = self.order_to_trade(Value::Dict(rawTrade), None).into_dict();
             myTrades.append(Value::from(&trade));
-            let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(&trade, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }

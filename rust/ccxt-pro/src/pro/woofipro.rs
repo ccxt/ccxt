@@ -1895,24 +1895,24 @@ impl Woofipro {
             while { if !__for_first_728 { i += 1; } __for_first_728 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut value: crate::value::Dict = self.safe_dict(&balances, Value::from(key.as_deref()), &[]).into_dict();
-            let mut code: Value = self.safe_currency_code(Value::from(key.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);
             let mut account: Value = self.account();
-            if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut cachedAccount: Value = self.safe_dict(self.balance.clone(), code.clone(), &[]);
+            if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                let mut cachedAccount: Value = self.safe_dict(self.balance.clone(), Value::from(code.as_deref()), &[]);
                 if (cachedAccount != Value::Null) {
                     account = cachedAccount;
                 }
             }
             let mut total: Option<String> = self.safe_string_k(&value, "holding", &[]).as_str().map(str::to_owned);
             let mut used: Option<String> = self.safe_string_k(&value, "frozen", &[]).as_str().map(str::to_owned);
-            if (code != Value::Null) {
+            if (code.is_some()) {
                 { let __be_tmp = self.extend(account, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("total".to_string(), total.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("used".to_string(), used.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("free".to_string(), crate::precise::Precise::stringSub(&total, &used));
     m
-})]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
+})]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             }
         }
         }

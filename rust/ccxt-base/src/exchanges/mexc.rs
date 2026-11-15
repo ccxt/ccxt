@@ -4089,7 +4089,7 @@ impl Mexc {
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut symbol: Option<String> = None;
-        let mut paramsLoop: Value = params;
+        let mut paramsLoop: crate::value::Dict = params.into_dict();
         {
                         let mut i: i64 = 0;
             let mut __for_first_950: bool = true;
@@ -4116,7 +4116,7 @@ impl Mexc {
                 m
             })]).into_dict();
             let mut marginMode: Option<String> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsLoop.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsLoop = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsLoop)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsLoop = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             let mut orderRequest: crate::value::Dict = self.create_spot_order_request(Some(&market), type_var.as_deref(), side.as_deref(), amount, &[price, marginMode.map(Value::from).unwrap_or(Value::Null), Value::Dict(orderParams)]).into_dict();
             ordersRequests.push(Value::Dict(orderRequest));
         }

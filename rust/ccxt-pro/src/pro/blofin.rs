@@ -1555,13 +1555,13 @@ impl Blofin {
         let mut callerMethodNameOption: Option<String> = callerMethodNameOptionparamsCallerMethodNameVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsCallerMethodName: crate::value::Dict = callerMethodNameOptionparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isOHLCV: bool = channelName.as_str() == Some("candle");
-        let mut symbols: Value = Value::from(vec![]);
+        let mut symbols: crate::value::List = std::sync::Arc::new(Vec::new());
         if isOHLCV {
-            symbols = self.market_symbols(&[self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)), Value::Null, Value::Bool(false), Value::Bool(true)]);
+            symbols = self.market_symbols(&[self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)), Value::Null, Value::Bool(false), Value::Bool(true)]).into_list();
         }  else {
-            symbols = self.market_symbols(&[symbolsArray.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]);
+            symbols = self.market_symbols(&[symbolsArray.clone(), Value::Null, Value::Bool(false), Value::Bool(true)]).into_list();
         }
-        let mut firstMarket: crate::types::Market = (match self.market((self.safe_string(symbols.clone(), Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut firstMarket: crate::types::Market = (match self.market((self.safe_string(&symbols, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(callerMethodNameOption.clone().map(Value::from).unwrap_or(Value::Null), Some(&firstMarket), &[Value::from(&paramsCallerMethodName)]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1574,7 +1574,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_173: bool = true;
             while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (symbols.len() as i64) } {
-            let mut market: crate::types::Market = (match self.market((self.safe_string(symbols.clone(), Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut market: crate::types::Market = (match self.market((self.safe_string(&symbols, Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut channel: Value = channelName.clone();
             if isOHLCV {
                 let mut tfArray: Value = get_value(&symbolsArray, &Value::Int(i));

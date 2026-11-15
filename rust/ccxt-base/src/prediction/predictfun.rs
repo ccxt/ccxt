@@ -912,24 +912,24 @@ impl Predictfun {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // predictfun topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        let mut postParams: Value = self.omit(&paramsValue, Value::from(postOmitKeys), &[]);
+        let mut postParams: crate::value::Dict = self.omit(&paramsValue, Value::from(postOmitKeys), &[]).into_dict();
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
         let mut rawStatus: Option<String> = self.safe_string_k(&paramsValue, "status", &[]).as_str().map(str::to_owned);
         if (rawStatus.as_deref() == Some("OPEN")) {
-            postParams = self.extend(postParams, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("status".to_string(), Value::Str("active".into()));
-                m
-            })]);
+            postParams = self.extend(&postParams, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("status".to_string(), Value::Str("active".into()));
+    m
+})]).into_dict();
         }  else if (rawStatus.as_deref() == Some("RESOLVED")) {
-            postParams = self.extend(postParams, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("status".to_string(), Value::Str("closed".into()));
-                m
-            })]);
+            postParams = self.extend(&postParams, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("status".to_string(), Value::Str("closed".into()));
+    m
+})]).into_dict();
         }
-        return self.apply_event_fetch_params(Value::from(result), &[postParams, Value::Arr(queries)]);
+        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), Value::Arr(queries)]);
         Value::Null
         }).await?))
     }

@@ -5918,13 +5918,13 @@ impl Okx {
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[paramsReduceOnly]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut orderParams: Value = self.omit(&paramsPostOnly, &["currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice"], &[]);
+        let mut orderParams: crate::value::Dict = self.omit(&paramsPostOnly, &["currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice"], &[]).into_dict();
         let mut ioc: bool = (timeInForce.as_deref() == Some("IOC")) || (type_var.as_str() == Some("ioc"));
         let mut fok: bool = (timeInForce.as_deref() == Some("FOK")) || (type_var.as_str() == Some("fok"));
         // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         let mut marketIOC: bool = (isMarketOrder && ioc) || (type_var.as_str() == Some("optimal_limit_ioc"));
         let mut defaultTgtCcy: String = self.safe_string_k(self.options.clone(), "tgtCcy", &[Value::Str("base_ccy".into())]).as_str().unwrap_or("base_ccy").to_string();
-        let mut tgtCcy: Option<String> = self.safe_string_k(orderParams.clone(), "tgtCcy", &[Value::from(defaultTgtCcy)]).as_str().map(str::to_owned);
+        let mut tgtCcy: Option<String> = self.safe_string_k(&orderParams, "tgtCcy", &[Value::from(defaultTgtCcy)]).as_str().map(str::to_owned);
         // conditional sell orders must not carry tgtCcy
         if (contract != Some(true)) && (!margin) && (trigger || (!(conditional)) || (side.as_str() != Some("sell"))) {
             request.insert("tgtCcy".into(), Value::from(tgtCcy.as_deref()));
@@ -5936,11 +5936,11 @@ impl Okx {
                 // see documentation: https://www.okx.com/docs-v5/en/#rest-api-trade-place-order
                 if (tgtCcy.as_deref() == Some("quote_ccy")) {
                     // quote_ccy: sz refers to units of quote currency
-                    let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(orderParams.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+                    let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(&orderParams, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
                     let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
                     let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
                     let mut notional: Value = self.safe_number2(Value::from(&paramsRequiresPrice), Value::Str("cost".into()), Value::Str("sz".into()), &[]);
-                    orderParams = self.omit(&paramsRequiresPrice, &["cost", "sz"], &[]);
+                    orderParams = self.omit(&paramsRequiresPrice, &["cost", "sz"], &[]).into_dict();
                     if createMarketBuyOrderRequiresPrice {
                         if (price != Value::Null) {
                             if (notional == Value::Null) {
@@ -6116,7 +6116,7 @@ impl Okx {
         }
         // unified stp
         let mut selfTradePrevention: Option<String> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(orderParams.clone(), Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).as_array().cloned().unwrap_or_default(); selfTradePrevention = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); orderParams = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(&orderParams, Value::Str("createOrder".into()), Value::Str("selfTradePrevention".into()), &[]).into_list(); selfTradePrevention = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); orderParams = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (selfTradePrevention.is_some()) {
             let mut stpModes: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -6151,9 +6151,9 @@ impl Okx {
             }
         }  else {
             request.insert("clOrdId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            orderParams = self.omit(orderParams, &["clOrdId", "clientOrderId"], &[]);
+            orderParams = self.omit(Value::Dict(orderParams), &["clOrdId", "clientOrderId"], &[]).into_dict();
         }
-        return self.extend(Value::Map(request), &[orderParams]);
+        return self.extend(Value::Map(request), &[&orderParams]);
 
     Value::Null
 }

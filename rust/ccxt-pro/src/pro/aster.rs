@@ -1883,12 +1883,12 @@ impl Aster {
         let mut symboltimeframestoredVariable = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_10, &messageHashes, Value::Null).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
-        let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
+        let mut stored: Option<crate::pro::cache::Cache> = get_value(&symboltimeframestoredVariable, &Value::Int(2)).into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
         }
-        let mut filtered: crate::value::List = self.filter_by_since_limit(stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
+        let mut filtered: crate::value::List = self.filter_by_since_limit(&stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
         return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))

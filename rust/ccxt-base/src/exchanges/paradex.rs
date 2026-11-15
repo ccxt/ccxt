@@ -1823,9 +1823,7 @@ impl Paradex {
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, &["price"], &[]).into_dict();
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         let mut limitResolved: Option<i64> = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64))) { Some(1000) } else { limit.as_i64() });
-        let mut windowLength: Option<i64> = self.parse_to_int((match (&((match (&(Value::from(duration)), &(((match (&(Value::from(self.parse_to_int(Value::from(limitResolved)))), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+        let mut windowLength: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__r) = ((if let Some(__l) = (self.parse_to_int(Value::from(limitResolved))) { Some(__l + 1) } else { None })) { Some(duration * __r) } else { None })) { Some(__l * 1000) } else { None })));
         if (since != Value::Null) {
             std::sync::Arc::make_mut(&mut requestUntil).insert("start_at".into(), since.clone());
             if !hasEnd {

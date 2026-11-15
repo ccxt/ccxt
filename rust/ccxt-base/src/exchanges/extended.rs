@@ -4002,9 +4002,8 @@ impl Extended {
         }
         let mut now: i64 = self.milliseconds();
         let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(&paramsBuilder, "expiryEpochMillis", &[Value::Int((now + 3600000))]).as_i64();
-        let mut settlementDefault: Value = (if (expiryEpochMillis.is_some()) { (match (&(Value::from(self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = expiryEpochMillis { Some(__l + 999) } else { None })) { Some((__l as f64) / 1000.0) } else { None }))))), &(Value::Int(1209600))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y),
-            (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) } else { Value::Null });
-        let mut settlementExpiration: Value = self.safe_integer_k(&paramsBuilder, "settlementExpiration", &[settlementDefault]);
+        let mut settlementDefault: Option<i64> = (if (expiryEpochMillis.is_some()) { (if let Some(__l) = (self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = expiryEpochMillis { Some(__l + 999) } else { None })) { Some((__l as f64) / 1000.0) } else { None })))) { Some(__l + 1209600) } else { None }) } else { None });
+        let mut settlementExpiration: Option<i64> = self.safe_integer_k(&paramsBuilder, "settlementExpiration", &[Value::from(settlementDefault)]).as_i64();
         let mut nonce: Option<String> = self.number_to_string(self.nonce());
         let mut account: crate::value::Dict = self.fetch_extended_account(&[]).await.into_dict();
         let mut starkKey: Option<String> = self.safe_string_k(&account, "l2Key", &[]).as_str().map(str::to_owned);
@@ -4032,7 +4031,7 @@ impl Extended {
                 m.insert("syntheticResolution".to_string(), Value::from(syntheticResolution));
                 m.insert("collateralId".to_string(), collateralId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("collateralResolution".to_string(), Value::from(collateralResolution));
-                m.insert("settlementExpiration".to_string(), settlementExpiration);
+                m.insert("settlementExpiration".to_string(), Value::from(settlementExpiration));
                 m.insert("nonce".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("collateralPosition".to_string(), collateralPosition.clone().map(Value::from).unwrap_or(Value::Null));
             m
