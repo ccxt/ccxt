@@ -221,11 +221,13 @@ Typical uses:
 
 ### 5.6 How far back exchanges let you go (probed 2026-11-15)
 
-**Method.** `research_notes/Trading simulation design research/probe-history-depth.mjs` calls ccxt's unified methods with default params on BTC spot and BTC perpetual markets. For each data type it binary-searches, to 1-day resolution, the earliest date `t` for which `fetchX(symbol, since = t, limit = 5)` returns rows starting near `t`. An exchange that ignores `since` therefore shows up as "recent only", which is what a backfill through ccxt can actually rely on. Raw output: `research_notes/…/measurements/history-depth.json`.
+**Method.** `research_notes/Trading simulation design research/probe-history-depth.mjs` calls ccxt's unified methods with default params on BTC, ETH and one low-volume market, each for spot and perpetuals. The low-volume market is the one at about the 80th percentile of 24h quote volume among the exchange's markets with the same quote currency (BTC and ETH excluded), so roughly 20% of markets are quieter. For each data type it binary-searches, to 1-day resolution, the earliest date `t` for which `fetchX(symbol, since = t, limit = 5)` returns rows starting near `t`. An exchange that ignores `since` therefore shows up as "recent only", which is what a backfill through ccxt can actually rely on. Raw output: `research_notes/…/measurements/history-depth.json`, plus `history-depth-rerun.json` for Bitfinex, Hyperliquid and Coinbase. Those three were rerun after the probe was changed to retry errors with backoff and report persistent errors separately, instead of counting them as "no data".
 
 Caveats:
 - It measures **ccxt's unified call with default params**. Some exchanges have extra history endpoints reachable through `params`, or through ccxt's pagination, that this probe doesn't try.
-- One symbol per market, one run.
+- One run per exchange (two for the rerun three), at 1-day resolution.
+- **Bitfinex rate-limits candle requests hard** (`ratelimit: error` 11010 even after 30 s backoff), so several of its candle cells could not be measured. ccxt's request pacing for Bitfinex candles is probably too aggressive.
+- Some unified calls need extra arguments the probe doesn't pass: Coinbase `fetchTrades` needs `until` when `since` is given, and Hyperliquid `fetchTrades` needs a user address (it has no public trade history over REST).
 - **Binance answered 451 and Bybit 403** from the probe's region (US cloud), so neither was probed via REST. Binance is covered by its bulk files instead (below). Both should be re-probed from an allowed region.
 - "Recent only" means nothing was served for a date 7 days back: either `since` is ignored, or retention is under a week.
 
@@ -241,12 +243,29 @@ Caveats:
 | MEXC | 2017-10 | 2018-06 | ~1 month | 2020-05 / 2020-05 / ~1 month | recent only | `since` not honoured | — | 4,000 / 3,000 |
 | Gate | 2013-03 | ~14 months | recent only | 2019-11 / ~14 months / recent only | recent only | `since` not honoured | ~6 months | 2,000 / 600 |
 | Kraken futures | — | — | — | 2022-03 / 2022-03 / 2022-03 | **2022-03** | ~1 year | — | 2,834 |
-| Bitfinex | 2019-02 | 2019-03 | recent only | not served | **2019-03** | `since` not honoured | — | 200 |
-| Coinbase | 2021-04 | 2021-05 | recent only | not served | recent only | — | — | 1,745 |
+| Bitfinex | 2019-02 | 2019-03 | rate-limited (2020-07 in one run) | rate-limited (not measured) | **2019-03** spot, **2019-07** perp | `since` not honoured | `since` not honoured | 200 |
+| Coinbase | 2021-04 | 2021-05 | 2021-05 for BTC, recent only for ETH (inconsistent across runs) | not served via ccxt | needs `until` (not probed) | — | — | ~1,740 |
 | Kraken | ~2 years (last 720 candles) | last 720 only | last 720 only | — | **2019-12** (full history by `since`) | — | — | 200 |
-| Hyperliquid | 2025-01 | ~7 months (last 5,000 candles) | recent only | 2020-07* / ~7 months / recent only | recent only | **2023-05** | — | 40 |
+| Hyperliquid | 2025-01 | ~7 months (last 5,000 candles) | recent only | 2020-07* / ~7 months / recent only | no public REST trade history | **2023-05** | — | 40 |
 
-\* Hyperliquid's perpetuals launched in 2023, so the 2020-07 perp 1d result is probably a probe artefact (rows returned before listing). Treat it as "from listing".
+\* Hyperliquid's perpetuals launched in 2023, yet BTC, ETH and NEO perp daily candles all report 2020–2021 starts in both runs. The candle endpoint apparently returns rows for dates before listing. Treat it as "from listing" until checked against real prices.
+
+**ETH and low-volume markets:**
+
+| Exchange | ETH vs BTC | Low-volume spot (rank, 24h volume) → history | Low-volume perp (rank, 24h volume) → history | Book levels BTC → low |
+|---|---|---|---|---|
+| OKX | identical (perp 1h/1m from 2019-12-25) | USAT/USDT (372 of 464, $4.7k) → all candles from 2026-01 (listing) | MOONSHOT/USDT (421 of 526, $17k) → from 2026-08; funding from 2026-08 | 10,000 → 56 / 590 |
+| Bitget | identical; ETH perp from 2019-08 | RLTBR/USDT (2,871 of 3,588) → 1h from 2023-05; 1d and 1m not served | CSTOCK/USDT (707 of 883, $32k) → from 2026-10 | 300 → none / 69 |
+| KuCoin | identical; ETH perp 1d from 2020-05 | PIPEDOG/USDT (641 of 801, $10k) → from 2026-08 | MANA/USDT (573 of 715, $38k) → 1d from 2021-03; 1h and 1m hit the same caps as BTC | 200 → 96 / 155 |
+| HTX | identical | LUNC/USDT (rank unknown) → from 2020-07 | FLEX/USDT (333 of 416, $8k) → same ~1 month cap as BTC | 300 → 213 / 46 |
+| Deribit | ETH perp from 2019-03 | USDE/USDT (rank unknown) → from 2025-03 | — | 86 / 1,651 → 7 |
+| MEXC | identical | CORN/USDT (1,056 of 1,319, $52k) → 1d from 2025-03; 1m same ~1 month cap | HONSTOCK/USDT (852 of 1,064, $102k) → from 2026-09 | 4,000 → 141 / 143 |
+| Gate | ETH spot 1d from 2016-03; otherwise identical | BID/USDT (1,589 of 1,985, $1.9k) → 1d from 2025-03; 1h same ~14-month cap | CCL/USDT (840 of 1,049, $1.5k) → from 2026-06 | 2,000 → 196 / 57 |
+| Kraken futures | identical | — | 1INCH/USD (165 of 205, $7.9k) → candles and trades from 2022-08; funding same ~1 year | 2,847 → 24 |
+| Kraken | identical (trades from 2019-12) | TON/USDT (34 of 42, $3.3k) → trades from 2025-02 (listing); candles capped at 720 | — | 200 → 144 |
+| Bitfinex | trades from 2019-03 spot, 2019-08 perp; candles rate-limited | KAIA/USDT (52 of 64, $68) → 1h from 2025-03, trades from 2025-03 | ATO/USDT (60 of 74, $42) → candles and trades from 2021-10 | 200 → 34 / 30 |
+| Coinbase | 1m inconsistent (see above) | DOT/USDT (15 of 18, $9.4k) → 1d/1h from 2021-06; 1m recent only | perps not served via ccxt | ~1,740 → ~400 |
+| Hyperliquid | identical; funding from 2023-05 | LQNA/USDC (79 of 98, $17) → 1d from 2024-10 | NEO/USDC (142 of 177, $106k) → funding from 2023-11 | 40 → 40 |
 
 **Binance bulk files (`data.binance.vision`), checked directly:**
 
@@ -266,9 +285,13 @@ Caveats:
 - **Funding history is short or unpaginated on most venues:** OKX ~3 months, KuCoin ~1 month, Kraken futures ~1 year. Deribit (2019) and Hyperliquid (2023) are the exceptions. Funding should be **recorded daily from now on**, because what venues serve today won't be available later.
 - **Open-interest history is days to months deep.** Record it forward too.
 - **Order-book depth per request varies 250×,** from 40 levels (Hyperliquid) to 10,000 (OKX). A periodic REST snapshot is only "full depth" on some venues. Elsewhere the recorder must build the book from WebSocket diffs.
+- **ETH behaves like BTC.** Start dates and caps match on every venue, apart from listing dates. Results for the top pairs generalise.
+- **Low-volume history mostly starts at listing, and many quiet pairs are young.** Six of the eleven quiet markets with a known start were listed in 2025–2026. So for the long tail, the binding limit is usually the listing date, not the exchange's retention. Older quiet pairs go back years (Kraken futures 1INCH to 2022, HTX LUNC to 2020, Bitfinex ATO to 2021).
+- **Caps are per endpoint, not per symbol.** Gate's ~14 months of hourly candles, MEXC's ~1 month of 1m candles and Kraken's 720 candles hit quiet pairs exactly as they hit BTC. So `historyStart` hints can be stored per exchange and timeframe, not per symbol.
+- **Quiet books are thin.** The quiet pairs returned 7–600 levels versus 200–10,000 for BTC. A REST snapshot of a quiet book is often its full depth, which makes periodic snapshots a cheap and complete way to record the long tail.
 
 **Consequences for the design:**
-1. **`features` should carry a history hint per data type**, e.g. `fetchOHLCV: { historyStart: { '1m': '2018-01-11' }, maxCandlesBack: 720 }`, and `fetchTrades: { sinceSupported: false }`. The probe produces exactly these values, so it can run in CI to keep them current.
+1. **`features` should carry a history hint per data type and timeframe** (per exchange, not per symbol), e.g. `fetchOHLCV: { historyStart: { '1m': '2018-01-11' }, maxCandlesBack: 720 }`, and `fetchTrades: { sinceSupported: false }`. The probe produces exactly these values, so it can run in CI to keep them current.
 2. **`ccxt data backfill` picks the source per data type:** bulk files first (Binance), then REST where `since` works, then the vendor key if configured. Whatever is still missing is reported as a gap to be recorded forward.
 3. **Start recording now** for data types where venues keep only a short window: funding, open interest, trades on most venues, 1m candles on count-capped venues, and all order books.
 

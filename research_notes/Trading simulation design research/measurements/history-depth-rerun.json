@@ -1,0 +1,608 @@
+{
+  "probedAt": "2026-11-15T20:43:38.788Z",
+  "results": [
+    {
+      "exchange": "bitfinex",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": true,
+        "fetchMarkOHLCV": false,
+        "fetchIndexOHLCV": false,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": true,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot:BTC": "BTC/USDT",
+        "spot:ETH": "ETH/USDT",
+        "spot:low": "KAIA/USDT",
+        "perp:BTC": "BTC/USDT:USDT",
+        "perp:ETH": "ETH/USDT:USDT",
+        "perp:low": "ATO/USDT:USDT"
+      },
+      "history": {
+        "spot:BTC": {
+          "ohlcv_1d": {
+            "earliest": "2019-02-08",
+            "yearsBack": 7.8
+          },
+          "ohlcv_1h": {
+            "earliest": "2019-03-04",
+            "yearsBack": 7.7
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "trades": {
+            "earliest": "2019-03-09",
+            "yearsBack": 7.7
+          }
+        },
+        "spot:ETH": {
+          "ohlcv_1d": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "ohlcv_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "trades": {
+            "earliest": "2019-03-09",
+            "yearsBack": 7.7
+          }
+        },
+        "spot:low": {
+          "ohlcv_1d": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "ohlcv_1h": {
+            "earliest": "2025-03-05",
+            "yearsBack": 1.7
+          },
+          "ohlcv_1m": {
+            "earliest": "2025-04-06",
+            "yearsBack": 1.6
+          },
+          "trades": {
+            "earliest": "2025-03-19",
+            "yearsBack": 1.7
+          }
+        },
+        "perp:BTC": {
+          "ohlcv_1d": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "ohlcv_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "trades": {
+            "earliest": "2019-07-30",
+            "yearsBack": 7.3
+          },
+          "funding": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "openInterest_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp:ETH": {
+          "ohlcv_1d": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "ohlcv_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "trades": {
+            "earliest": "2019-08-31",
+            "yearsBack": 7.2
+          },
+          "funding": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "openInterest_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        },
+        "perp:low": {
+          "ohlcv_1d": {
+            "earliest": "2021-10-02",
+            "yearsBack": 5.1
+          },
+          "ohlcv_1h": {
+            "earliest": "2021-10-27",
+            "yearsBack": 5.1
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "bitfinex [\"error\", 11010, \"ratelimit: error\"]"
+          },
+          "trades": {
+            "earliest": "2021-10-31",
+            "yearsBack": 5
+          },
+          "funding": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "openInterest_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot:BTC": 200,
+        "spot:ETH": 200,
+        "spot:low": 34,
+        "perp:BTC": 200,
+        "perp:ETH": 200,
+        "perp:low": 30
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "3h",
+        "4h",
+        "6h",
+        "12h",
+        "1d",
+        "1w",
+        "2w",
+        "1M"
+      ],
+      "lowVolume": {
+        "spot": {
+          "symbol": "KAIA/USDT",
+          "rank": "52 of 64",
+          "quoteVolume24h": 68
+        },
+        "perp": {
+          "symbol": "ATO/USDT:USDT",
+          "rank": "60 of 74",
+          "quoteVolume24h": 42
+        }
+      }
+    },
+    {
+      "exchange": "hyperliquid",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": true,
+        "fetchOpenInterestHistory": false,
+        "fetchMarkOHLCV": false,
+        "fetchIndexOHLCV": false,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot:BTC": "BTC/USDC",
+        "spot:ETH": "ETH/USDC",
+        "spot:low": "LQNA/USDC",
+        "perp:BTC": "BTC/USDC:USDC",
+        "perp:ETH": "ETH/USDC:USDC",
+        "perp:low": "NEO/USDC:USDC"
+      },
+      "history": {
+        "spot:BTC": {
+          "ohlcv_1d": {
+            "earliest": "2025-01-03",
+            "yearsBack": 1.9
+          },
+          "ohlcv_1h": {
+            "earliest": "2026-04-14",
+            "yearsBack": 0.6
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "hyperliquid fetchTrades() requires a user parameter inside 'params' or the wallet address set"
+          }
+        },
+        "spot:ETH": {
+          "ohlcv_1d": {
+            "earliest": "2025-02-23",
+            "yearsBack": 1.7
+          },
+          "ohlcv_1h": {
+            "earliest": "2026-04-14",
+            "yearsBack": 0.6
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "hyperliquid fetchTrades() requires a user parameter inside 'params' or the wallet address set"
+          }
+        },
+        "spot:low": {
+          "ohlcv_1d": {
+            "earliest": "2024-10-01",
+            "yearsBack": 2.1
+          },
+          "ohlcv_1h": {
+            "earliest": "2026-04-14",
+            "yearsBack": 0.6
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "hyperliquid fetchTrades() requires a user parameter inside 'params' or the wallet address set"
+          }
+        },
+        "perp:BTC": {
+          "ohlcv_1d": {
+            "earliest": "2020-07-19",
+            "yearsBack": 6.3
+          },
+          "ohlcv_1h": {
+            "earliest": "2026-04-14",
+            "yearsBack": 0.6
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "hyperliquid fetchTrades() requires a user parameter inside 'params' or the wallet address set"
+          },
+          "funding": {
+            "earliest": "2023-05-09",
+            "yearsBack": 3.5
+          }
+        },
+        "perp:ETH": {
+          "ohlcv_1d": {
+            "earliest": "2020-07-19",
+            "yearsBack": 6.3
+          },
+          "ohlcv_1h": {
+            "earliest": "2026-04-14",
+            "yearsBack": 0.6
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "hyperliquid fetchTrades() requires a user parameter inside 'params' or the wallet address set"
+          },
+          "funding": {
+            "earliest": "2023-05-09",
+            "yearsBack": 3.5
+          }
+        },
+        "perp:low": {
+          "ohlcv_1d": {
+            "earliest": "2021-01-13",
+            "yearsBack": 5.8
+          },
+          "ohlcv_1h": {
+            "earliest": "2026-04-14",
+            "yearsBack": 0.6
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "hyperliquid fetchTrades() requires a user parameter inside 'params' or the wallet address set"
+          },
+          "funding": {
+            "earliest": "2023-11-06",
+            "yearsBack": 3
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot:BTC": 40,
+        "spot:ETH": 40,
+        "spot:low": 40,
+        "perp:BTC": 40,
+        "perp:ETH": 40,
+        "perp:low": 40
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "3m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "4h",
+        "8h",
+        "12h",
+        "1d",
+        "3d",
+        "1w",
+        "1M"
+      ],
+      "lowVolume": {
+        "spot": {
+          "symbol": "LQNA/USDC",
+          "rank": "79 of 98",
+          "quoteVolume24h": 17
+        },
+        "perp": {
+          "symbol": "NEO/USDC:USDC",
+          "rank": "142 of 177",
+          "quoteVolume24h": 105748
+        }
+      }
+    },
+    {
+      "exchange": "coinbase",
+      "has": {
+        "fetchOHLCV": true,
+        "fetchTrades": true,
+        "fetchFundingRateHistory": false,
+        "fetchOpenInterestHistory": false,
+        "fetchMarkOHLCV": false,
+        "fetchIndexOHLCV": false,
+        "fetchPremiumIndexOHLCV": false,
+        "fetchLiquidations": false,
+        "fetchOrderBook": true
+      },
+      "symbols": {
+        "spot:BTC": "BTC/USDT",
+        "spot:ETH": "ETH/USDT",
+        "spot:low": "DOT/USDT",
+        "perp:BTC": "BTC/USDC:USDC",
+        "perp:ETH": "ETH/USDC:USDC",
+        "perp:low": "LINK/USDC:USDC"
+      },
+      "history": {
+        "spot:BTC": {
+          "ohlcv_1d": {
+            "earliest": "2021-04-29",
+            "yearsBack": 5.5
+          },
+          "ohlcv_1h": {
+            "earliest": "2021-05-04",
+            "yearsBack": 5.5
+          },
+          "ohlcv_1m": {
+            "earliest": "2021-05-04",
+            "yearsBack": 5.5
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "coinbase fetchTrades() requires a `until` parameter when you use `since` argument"
+          }
+        },
+        "spot:ETH": {
+          "ohlcv_1d": {
+            "earliest": "2021-04-29",
+            "yearsBack": 5.5
+          },
+          "ohlcv_1h": {
+            "earliest": "2021-05-04",
+            "yearsBack": 5.5
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "coinbase fetchTrades() requires a `until` parameter when you use `since` argument"
+          }
+        },
+        "spot:low": {
+          "ohlcv_1d": {
+            "earliest": "2021-06-11",
+            "yearsBack": 5.4
+          },
+          "ohlcv_1h": {
+            "earliest": "2021-06-16",
+            "yearsBack": 5.4
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "coinbase fetchTrades() requires a `until` parameter when you use `since` argument"
+          }
+        },
+        "perp:BTC": {
+          "ohlcv_1d": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "coinbase fetchTrades() requires a `until` parameter when you use `since` argument"
+          }
+        },
+        "perp:ETH": {
+          "ohlcv_1d": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "coinbase fetchTrades() requires a `until` parameter when you use `since` argument"
+          }
+        },
+        "perp:low": {
+          "ohlcv_1d": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1h": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "ohlcv_1m": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "nothing at now-7d (since ignored, or no history)"
+          },
+          "trades": {
+            "earliest": null,
+            "yearsBack": null,
+            "note": "probe error after retries",
+            "error": "coinbase fetchTrades() requires a `until` parameter when you use `since` argument"
+          }
+        }
+      },
+      "orderBookLevels": {
+        "spot:BTC": 1735,
+        "spot:ETH": 1185,
+        "spot:low": 401
+      },
+      "errors": [],
+      "ohlcvTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "6h",
+        "1d"
+      ],
+      "lowVolume": {
+        "spot": {
+          "symbol": "DOT/USDT",
+          "rank": "15 of 18",
+          "quoteVolume24h": 9378
+        },
+        "perp": {
+          "symbol": "LINK/USDC:USDC",
+          "rank": "unknown (no tickers)"
+        }
+      }
+    }
+  ]
+}
