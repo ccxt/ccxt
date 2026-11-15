@@ -971,6 +971,8 @@ class bitrue extends Exchange {
         $filters = $this->safe_list($market, 'filters', array());
         $filtersByType = $this->index_by($filters, 'filterType');
         $status = $this->safe_string($market, 'status');
+        // spot markets say TRADING, futures contracts 1 (0 when offline)
+        $active = ($status === 'TRADING') || ($status === '1');
         $priceFilter = $this->safe_dict($filtersByType, 'PRICE_FILTER', array());
         $amountFilter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
         $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
@@ -1003,7 +1005,7 @@ class bitrue extends Exchange {
             'swap' => $isContract,
             'future' => false,
             'option' => false,
-            'active' => ($status === 'TRADING'),
+            'active' => $active,
             'contract' => $isContract,
             'linear' => $isLinear,
             'inverse' => $isInverse,

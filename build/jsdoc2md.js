@@ -3,210 +3,163 @@ import jsdoc2md from 'jsdoc-to-markdown'
 import fs from 'fs'
 import path from 'path'
 
+// jsdoc parses the doc comments into doclets; the markdown is rendered by the plain functions below
 
-/* input and output paths */
-
-// Function to get all files that match the glob pattern
-const findByExtensionSync = (dir, ext) => {
-  const matchedFiles = [];
-
-  const files = fs.readdirSync(dir);
-
-  for (const file of files) {
-    const fileExt = path.extname(file);
-
-    if (fileExt === `.${ext}`) {
-      matchedFiles.push(path.join(dir,file));
-    }
-  }
-
-  return matchedFiles;
-};
-
-// main function
-(async ()=> {
-
-// Get all files to read js docs
-const inputFiles = findByExtensionSync('js/src', 'js')
-const proInputFiles = findByExtensionSync('js/src/pro', 'js');
-const basePartials = './wiki/basePartials/'
-const basePartial = fs.readdirSync (basePartials).map (file => basePartials + file)
-const exchangePartials = './wiki/exchangePartials/'
-const exchangePartial = fs.readdirSync (exchangePartials).map (file => exchangePartials + file)
+const listJs = (dir) => fs.readdirSync (dir).filter (f => path.extname (f) === '.js').map (f => path.join (dir, f))
 const outputFolder = './wiki/'
-const outputFile = './wiki/baseSpec.md'
-const helper = './wiki/helpers.cjs'
+
+const escapeHtml = (s) => s.replace (/</g, '&lt;').replace (/>/g, '&gt;')
+
+// [text]{@link url} and {@link url} → markdown links
+const inlineLinks = (s = '') => s
+    .replace (/\[([^\]]*)\]\{@link\s+([^}\s]+)\s*\}/g, '[$1]($2)')
+    .replace (/\{@link\s+([^}\s|]+)(?:\s*\|\s*|\s+)([^}]+)\}/g, '[$2]($1)')
+    .replace (/\{@link\s+([^}\s|]+)\s*\}/g, '[$1]($1)')
+
+// a type naming the class documented on the same page links to it
+const typeList = (type, delimiter, cls) => ((type && type.names) || [])
+    .map (n => n.replace (/Array\./g, 'Array'))
+    .map (n => n === cls ? `[<code>${n}</code>](#${n})` : `<code>${escapeHtml (n)}</code>`)
+    .join (delimiter)
+
+const methodSig = (doclet) => (doclet.params || [])
+    .filter (p => p.name && !p.name.includes ('.'))
+    .map (p => p.optional ? p.name + '?' : p.name)
+    .join (', ')
+
+const anchor = (doclet) => `\n<a name="${doclet.name}" id="${doclet.name.toLowerCase ()}"></a>\n\n`
+
+function renderBody (doclet, kind, cls) {
+    let out = ''
+    if (doclet.deprecated) {
+        out += '`DEPRECATED`\n\n'
+    }
+    if (doclet.description) {
+        out += inlineLinks (doclet.description) + '\n\n'
+    }
+    if (kind) {
+        out += `**Kind**: ${kind}  \n`
+    }
+    if (doclet.augments) {
+        out += `**Extends**: ${doclet.augments.map (a => `<code>${a}</code>`).join (', ')}  \n`
+    }
+    const returns = doclet.returns || []
+    if (returns.length && returns[0].description) {
+        out += '**Returns**: ' + returns.map (r => r.type
+            ? typeList (r.type, ' \\| ', cls) + (r.description ? ' - ' + inlineLinks (r.description) : '')
+            : inlineLinks (r.description)).join ('') + '\n\n'
+    }
+    const see = doclet.see || []
+    if (see.length === 1) {
+        out += `**See**: ${inlineLinks (see[0])}  \n`
+    } else if (see.length > 1) {
+        out += '**See**\n\n' + see.map (s => `- ${inlineLinks (s)}\n`).join ('') + '\n'
+    }
+    if (doclet.params && doclet.params.length) {
+        // like jsdoc2md, a column is only shown when at least one param fills it
+        const columns = [
+            [ 'Param', p => p.name, true ],
+            [ 'Type', p => typeList (p.type, ', ', cls), doclet.params.some (p => p.type) ],
+            [ 'Required', p => p.optional ? 'No' : 'Yes', doclet.params.some (p => p.optional) ],
+            [ 'Description', p => inlineLinks (p.description || '').replace (/[\r\n]+/g, ' '), doclet.params.some (p => p.description) ],
+        ].filter (c => c[2])
+        out += '\n| ' + columns.map (c => c[0]).join (' | ') + ' |\n|' + columns.map (() => ' --- |').join ('') + '\n'
+        for (const p of doclet.params) {
+            out += '| ' + columns.map (c => c[1] (p)).join (' | ') + ' |\n'
+        }
+        out += '\n'
+    }
+    return out
+}
+
+// the documented members of a class (constructor, methods and properties), in source order
+const ownMembers = (doclets, cls) => doclets.filter (d => d.memberof === cls.longname && !d.ignore)
+const isMethod = (d) => d.kind === 'function' && d.scope === 'instance'
+
+// one page per class: header, method index, then every member
+function renderClassPage (doclets) {
+    const cls = doclets.find (d => d.kind === 'class')
+    const own = ownMembers (doclets, cls)
+    const methods = own.filter (isMethod)
+    const members = own.filter (d => d.kind === 'constructor' || (d.scope === 'instance' && (d.kind === 'function' || d.kind === 'member')))
+    let out = anchor (cls) + `## ${cls.name}{docsify-ignore}\n`
+    out += renderBody ({ augments: cls.augments }, 'global class', cls.name)
+    out += '\n' + methods.map (d => `* [${d.name}](#${d.name.toLowerCase ()})\n`).join ('')
+    for (const m of members) {
+        const kind = (m.kind === 'constructor') ? undefined : `instance ${m.kind === 'member' ? 'property' : 'method'} of [<code>${cls.name}</code>](#${cls.name})`
+        out += anchor (m) + `### ${m.name}{docsify-ignore}\n`
+        out += renderBody (m, kind, cls.name)
+        out += `\n\`\`\`javascript\n${cls.name}.${m.name} (${methodSig (m)})\n\`\`\`\n\n`
+    }
+    return out
+}
+
+// base spec: one section per unified method, ending with an inline list of the exchanges implementing it
+function renderBaseMethod ([spec, ...exchanges]) {
+    const links = exchanges.map (id => `[${id}](/exchanges/${id}.md#${spec.name.toLowerCase ()})`)
+    return anchor (spec) + `## ${spec.name}\n` + renderBody (spec, 'instance ') + `**Supported exchanges:**\n${links.join ('\n')}\n`
+}
+
+const loadDocs = async (files) => (await Promise.all (files.map (async (file) => {
+    const data = await jsdoc2md.getTemplateData ({ files: file })
+    data.exchangeId = path.basename (file, '.js')
+    return data
+// alias exchanges (binanceus, bequant, …) document no methods of their own: skip them
+}))).filter (x => x.length > 0)
 
 console.log ('📰 loading js docs...')
-let templateData = await Promise.all(inputFiles.map (async (file) => {
-  const data = await jsdoc2md.getTemplateData({ files: file })
-  // remember the source exchange id so the output filename never depends on jsdoc's
-  // doclet order (arrays are objects, so this survives the filter/find/push below)
-  data.exchangeId = path.basename (file, '.js')
-  return data
-}));
-// alias exchanges (binanceus, bequant, …) document no methods of their own, so jsdoc
-// returns no doclets for them — drop those, they have no exchange page to render
-templateData = templateData.filter (x => x.length > 0)
-// every remaining exchange MUST expose its class-level doclet as the first entry, emitted
-// from the /** @class <id> @augments <Parent> */ comment above the class. Without it jsdoc
-// falls through to the first method doclet, whose name then leaks into the output as a
-// phantom exchanges/<method>.md (e.g. fetchStatus.md / fetchBidsAsks.md), and the real page
-// renders empty. Detect by name mismatch (the class doclet is named after the exchange;
-// a leaked method is not) — kind is unreliable (jsdoc reports it as 'class' or 'constructor').
-for (const data of templateData) {
-  if (!data[0] || data[0].name !== data.exchangeId) {
-    throw new Error (`🚨 ${data.exchangeId}.js exposes no class-level doclet (first doclet is '${data[0] && data[0].name}', kind '${data[0] && data[0].kind}'). Add a "/** @class ${data.exchangeId} @augments <Parent> */" comment above the class declaration in ts/src/${data.exchangeId}.ts.`)
-  }
-}
-
-let proTemplateData = await Promise.all(proInputFiles.map (file => jsdoc2md.getTemplateData({ files: file })));
-proTemplateData = proTemplateData.filter (x => x.length > 0)
-
-// prediction-market exchanges live in their own namespace (js/src/prediction) and
-// extend PredictionExchange; render them separately so their per-exchange docs build too
-const predictionInputFiles = findByExtensionSync('js/src/prediction', 'js')
-let predictionTemplateData = await Promise.all(predictionInputFiles.map (file => jsdoc2md.getTemplateData({ files: file })));
-predictionTemplateData = predictionTemplateData.filter (x => x.length > 0)
-
-// assign pro classes to REST template data
-proTemplateData.forEach((proData) => {
-  const classArray = templateData.find ((template) => template[0].id === proData[0].memberof);
-  if (classArray) {
-    classArray.push(...proData);
-  }
-})
-
-// the pro-merge can append a method that the REST class already documents (e.g. the
-// post-#27661 kucoinfutures pro class re-declares kucoinfutures#transfer / #fetchBidsAsks
-// with identical @name). Drop duplicate doclets per exchange so each method renders once on
-// the exchange page (the base-spec grouping already de-dups, but the per-exchange render did not).
-templateData = templateData.map ((data) => {
-  const seen = new Set ()
-  const deduped = data.filter ((doclet) => {
-    const key = doclet.id || doclet.longname
-    if (seen.has (key)) {
-      return false
+const exchanges = await loadDocs (listJs ('js/src'))
+// each exchange must open with its class doclet (/** @class <id> @augments <Parent> */), else jsdoc
+// promotes the first method in its place and the exchange page renders empty
+for (const data of exchanges) {
+    if (!data[0] || data[0].name !== data.exchangeId) {
+        throw new Error (`🚨 ${data.exchangeId}.js exposes no class-level doclet (first doclet is '${data[0] && data[0].name}', kind '${data[0] && data[0].kind}'). Add a "/** @class ${data.exchangeId} @augments <Parent> */" comment above the class declaration in ts/src/${data.exchangeId}.ts.`)
     }
-    seen.add (key)
-    return true
-  })
-  deduped.exchangeId = data.exchangeId
-  return deduped
-})
-
-console.log ('📰 rendering docs for each exchange...')
-const template = fs.readFileSync ('./wiki/spec.hbs', 'utf8')
-
-const outputByExchange = await Promise.all (templateData.map (data => jsdoc2md.render ({ template, data, partial: exchangePartial, helper })))
-const predictionOutputByExchange = await Promise.all (predictionTemplateData.map (data => jsdoc2md.render ({ template, data, partial: exchangePartial, helper })))
-// Group docs by method
-const groupedByMethod = templateData.reduce((acc, arr) => {
-  arr.filter(obj => obj.kind === 'function' && !obj.ignore).forEach(obj => {
-    const method = obj.name;
-    if (!acc[method]) {
-      acc[method] = [{
-        id: method,
-        longname: method,
-        name: method,
-        kind: "",
-        scope: "instance",
-        description: obj.description,
-        params: obj.params,
-        returns: obj.returns,
-      }];
-    }
-    obj.exchange = obj.memberof
-    obj.memberof = method
-    acc[method].push(obj);
-  });
-  return acc;
-}, {});
-
-let duplicateIds = []
-const templateDataGroupedByMethod = Object.values(groupedByMethod)
-    .map(group => {
-        // Filter out duplicate IDs within each group's data array. This is done to avoid Jsdoc2md error: Maximum call stack size exceeded
-        return group.filter((item, index, self) => {
-            if (index === self.findIndex(el => el.id === item.id)) {
-                return true
-            } else {
-                console.error ('🚨 duplicate id found: ', item.id)
-                duplicateIds.push (item.id)
-                return false
-            }
-          }
-        );
-    })
-    .sort((a, b) => a[0].name < b[0].name ? -1 : 1);
-
-if (duplicateIds.length > 0) {
-  throw new Error ('🚨 duplicate ids found: ' + duplicateIds.join (', '))
 }
+// merge pro methods into their REST class; a pro class may redeclare a REST method, keep the first
+for (const proData of await loadDocs (listJs ('js/src/pro'))) {
+    const rest = exchanges.find (data => data[0].id === proData[0].memberof)
+    if (rest) {
+        const ids = new Set (rest.map (d => d.id))
+        rest.push (...proData.filter (d => !ids.has (d.id) && ids.add (d.id)))
+    }
+}
+const predictionExchanges = await loadDocs (listJs ('js/src/prediction'))
 
-const baseOutput = await Promise.all(templateDataGroupedByMethod.map(data => 
-    jsdoc2md.render({ template, data, partial: basePartial, helper})
-));
-
-console.log ('📰 creating index of exchange functions')
-// remove stale per-exchange pages first, so renamed/removed exchanges (and any legacy
-// phantom files) don't linger in wiki/exchanges/ and get pushed to the wiki
+console.log ('📰 writing exchange docs')
+// wipe stale pages so renamed/removed exchanges don't linger in wiki/exchanges/
 const exchangesDir = outputFolder + 'exchanges/'
-if (fs.existsSync (exchangesDir)) {
-  for (const f of fs.readdirSync (exchangesDir)) {
-    if (f.endsWith ('.md')) {
-      fs.unlinkSync (exchangesDir + f)
+fs.mkdirSync (exchangesDir + 'prediction/', { recursive: true })
+for (const f of fs.readdirSync (exchangesDir).filter (f => f.endsWith ('.md'))) {
+    fs.unlinkSync (exchangesDir + f)
+}
+const writePages = (list, folder) => list.map ((data) => {
+    fs.writeFileSync (`${outputFolder}${folder}${data.exchangeId}.md`, renderClassPage (data))
+    return `\t- [${data.exchangeId}](${folder}${data.exchangeId}.md)`
+})
+const exchangeLinks = writePages (exchanges, 'exchanges/')
+const predictionLinks = writePages (predictionExchanges, 'exchanges/prediction/')
+
+console.log ('📰 writing base spec')
+const byMethod = new Map ()
+for (const data of exchanges) {
+    for (const d of ownMembers (data, data[0]).filter (isMethod)) {
+        if (!byMethod.has (d.name)) {
+            byMethod.set (d.name, [{ name: d.name, description: d.description, params: d.params, returns: d.returns }])
+        }
+        byMethod.get (d.name).push (data.exchangeId)
     }
-  }
 }
-const exchangeLinks = []
-outputByExchange.forEach ((output, i) => {
-  const name = templateData[i].exchangeId
-  const fileName = 'exchanges/' + name + '.md'
-  try {
-    fs.writeFileSync(outputFolder + fileName, output)
-  } catch (e) {
-    const error = `Error writing file ${fileName}: ${e.message}`
-    console.error(error)
-    throw error
-  }
-  exchangeLinks.push (`\t- [${name}](${fileName})`)
-})
+const methods = [...byMethod.values ()].sort ((a, b) => a[0].name < b[0].name ? -1 : 1)
+fs.writeFileSync (outputFolder + 'baseSpec.md', methods.map (renderBaseMethod).join ('\n---\n'))
 
-console.log ('📰 writing prediction-market exchange docs')
-const predictionFolder = outputFolder + 'exchanges/prediction/'
-if (!fs.existsSync (predictionFolder)) {
-  fs.mkdirSync (predictionFolder, { recursive: true })
-}
-const predictionLinks = []
-predictionOutputByExchange.forEach ((output, i) => {
-  const name = predictionTemplateData[i][0].name
-  const fileName = 'exchanges/prediction/' + name + '.md'
-  try {
-    fs.writeFileSync(outputFolder + fileName, output)
-  } catch (e) {
-    const error = `Error writing file ${fileName}: ${e.message}`
-    console.error(error)
-    throw error
-  }
-  predictionLinks.push (`\t- [${name}](${fileName})`)
-})
-
-
-// OrderRouter is documented as its own page. It is NOT an exchange — it does not extend
-// Exchange, implements no unified method, and is constructed directly — so it must stay out
-// of the per-exchange render and out of the by-method index above, which groups a method
-// name across the exchanges that implement it. fetchRoute is implemented by nothing else,
-// and listing it there would read as a unified method that every exchange is missing.
-console.log ('\ud83d\udcf0 writing OrderRouter docs')
+// OrderRouter is not an exchange, so it gets its own page and stays out of the by-method index
+console.log ('📰 writing OrderRouter docs')
 const routerData = await jsdoc2md.getTemplateData ({ files: 'js/src/base/OrderRouter.js' })
-if (!routerData.length) {
-  throw new Error ('\ud83d\udea8 js/src/base/OrderRouter.js produced no doclets. It needs a "/** @class OrderRouter */" comment above the class declaration in ts/src/base/OrderRouter.ts, or the page renders empty.')
+if (!routerData.some (d => d.kind === 'class')) {
+    throw new Error ('🚨 js/src/base/OrderRouter.js produced no class doclet. It needs a "/** @class OrderRouter */" comment above the class declaration in ts/src/base/OrderRouter.ts.')
 }
-const routerOutput = await jsdoc2md.render ({ template, data: routerData, partial: exchangePartial, helper })
-fs.writeFileSync (outputFolder + 'OrderRouter.md', routerOutput)
-
-fs.writeFileSync (outputFile, baseOutput.join ('\n---\n'))
+fs.writeFileSync (outputFolder + 'OrderRouter.md', renderClassPage (routerData))
 
 const sidebar =
 `
@@ -223,13 +176,10 @@ const sidebar =
 - [Changelog](CHANGELOG.md)
 - [Awesome](Awesome.md)
 - API Spec by Exchange
-${exchangeLinks.join('\n')}
+${exchangeLinks.join ('\n')}
 - API Spec by Prediction Exchange
-${predictionLinks.join('\n')}
+${predictionLinks.join ('\n')}
 `
-fs.writeFileSync('./wiki/_sidebar.md', sidebar);
+fs.writeFileSync ('./wiki/_sidebar.md', sidebar)
 
 console.log ('📰 finished rendering docs! 🙌 😶‍🌫')
-
-})()
-

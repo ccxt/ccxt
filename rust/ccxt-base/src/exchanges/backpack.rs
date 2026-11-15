@@ -2547,9 +2547,10 @@ impl BackpackCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
+        let mut maxLimit: Value = Value::Int(2000);
         let mut market: Value = self.market(symbol);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut duration: Value = self.parse_timeframe(timeframe.clone());
+        let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut dataRequest: Value = self.stock_data_request(Value::Str("fetchOHLCV".into()), params, &[market.clone()]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2564,29 +2565,28 @@ impl BackpackCore {
             request.insert("endTime".into(), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); // convert milliseconds to seconds
         }
         let mut defaultLimit: Value = Value::Int(100);
-        let mut limitResolved: Value = limit.clone();
-        if (since == Value::Null) && (limit == Value::Null) {
-            limitResolved = defaultLimit.clone();
+        let mut limitResolved: Value = limit;
+        if (limitResolved != Value::Null) {
+            limitResolved = crate::runtime::Math::min(&limitResolved, &maxLimit);
         }
-        let mut windowLimit: Value = (if (limit == Value::Null) { defaultLimit } else { limit });
-        let mut startTime: Value = Value::Null;
-        if (since == Value::Null) {
-            let mut endTime: Value = self.seconds();
-            if (until != Value::Null) && (until.as_f64() != Some(0.0)) {
-                endTime = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut windowLimit: Value = (if (limitResolved == Value::Null) { defaultLimit } else { limitResolved.clone() });
+        let mut now: Value = self.milliseconds();
+        let mut startTime: Value = since.clone();
+        let mut untilValue: Value = until;
+        if (startTime == Value::Null) {
+            if (untilValue == Value::Null) {
+                untilValue = now.clone();
             }
-            startTime = (match (&(endTime), &(((match (&(windowLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+            startTime = (match (&(untilValue), &(((match (&(windowLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                 _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        }  else {
-            startTime = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })); // convert milliseconds to seconds
         }
-        request.insert("startTime".into(), startTime.clone());
-        if (until == Value::Null) {
-            let mut currentMs: Value = self.seconds(); // default to current time in seconds
+        request.insert("startTime".into(), self.parse_to_int((match ((startTime).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+        // set until value
+        if (untilValue == Value::Null) {
             let mut windowEnd: Value = self.sum(&[startTime, (match (&(windowLimit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-            let mut minTimestamp: Value = crate::runtime::Math::min(&currentMs, &windowEnd);
-            request.insert("endTime".into(), self.parse_to_int(minTimestamp)); // default to current time in seconds if until is not specified
+            untilValue = crate::runtime::Math::min(&now, &windowEnd);
         }
+        request.insert("endTime".into(), self.parse_to_int((match ((untilValue).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         let mut price: Option<String> = self.safe_string_k_opt(paramsUntil.clone(), "price", &[]);
         let mut paramsOmitted: Value = (if (price.is_some()) { self.omit(paramsUntil.clone(), Value::Str("price".into()), &[]) } else { paramsUntil });
         if (price.is_some()) {
@@ -4642,8 +4642,8 @@ impl BackpackCore {
         let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut entryPrice: Option<String> = self.safe_string_k_opt(position.clone(), "entryPrice", &[]);
-        let mut markPrice: Option<String> = self.safe_string_k_opt(position.clone(), "markPrice", &[]);
+        let mut entryPrice: Value = self.safe_number_k(position.clone(), "entryPrice", &[]);
+        let mut markPrice: Value = self.safe_number_k(position.clone(), "markPrice", &[]);
         let mut netCost: Option<String> = self.safe_string_k_opt(position.clone(), "netCost", &[]);
         let mut hedged: Value = Value::Bool(false);
         let mut side: Value = Value::Str("long".into());
@@ -4654,9 +4654,9 @@ impl BackpackCore {
             hedged = Value::Null;
             side = Value::Null;
         }
-        let mut unrealizedPnl: Option<String> = self.safe_string_k_opt(position.clone(), "pnlUnrealized", &[]);
-        let mut realizedPnl: Option<String> = self.safe_string_k_opt(position.clone(), "pnlRealized", &[]);
-        let mut liquidationPrice: Option<String> = self.safe_string_k_opt(position.clone(), "estLiquidationPrice", &[]);
+        let mut unrealizedPnl: Value = self.safe_number_k(position.clone(), "pnlUnrealized", &[]);
+        let mut realizedPnl: Value = self.safe_number_k(position.clone(), "pnlRealized", &[]);
+        let mut liquidationPrice: Value = self.safe_number_k(position.clone(), "estLiquidationPrice", &[]);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -4667,21 +4667,21 @@ impl BackpackCore {
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("hedged".to_string(), hedged);
         m.insert("side".to_string(), side);
-        m.insert("contracts".to_string(), self.safe_string_k(position.clone(), "netExposureQuantity", &[]));
+        m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "netExposureQuantity", &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), entryPrice.map(Value::from).unwrap_or(Value::Null));
-        m.insert("markPrice".to_string(), markPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("entryPrice".to_string(), entryPrice);
+        m.insert("markPrice".to_string(), markPrice);
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), crate::precise::Precise::stringAbs(&netCost.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("notional".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&netCost.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
         m.insert("leverage".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
-        m.insert("initialMarginPercentage".to_string(), self.safe_string_k(position.clone(), "imf", &[]));
+        m.insert("initialMarginPercentage".to_string(), self.safe_number_k(position.clone(), "imf", &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
-        m.insert("maintenanceMarginPercentage".to_string(), self.safe_string_k(position, "mmf", &[]));
-        m.insert("realizedPnl".to_string(), realizedPnl.map(Value::from).unwrap_or(Value::Null));
-        m.insert("unrealizedPnl".to_string(), unrealizedPnl.map(Value::from).unwrap_or(Value::Null));
-        m.insert("liquidationPrice".to_string(), liquidationPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("maintenanceMarginPercentage".to_string(), self.safe_number_k(position, "mmf", &[]));
+        m.insert("realizedPnl".to_string(), realizedPnl);
+        m.insert("unrealizedPnl".to_string(), unrealizedPnl);
+        m.insert("liquidationPrice".to_string(), liquidationPrice);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);

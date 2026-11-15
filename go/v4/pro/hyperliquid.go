@@ -2470,14 +2470,24 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message map[string]any) 
 	//
 	var channel string = *this.SafeString(message, "channel", "")
 	if channel == "error" {
-		var ret_msg string = *this.SafeString(message, "data", "")
-		if strings.Index(ret_msg, "Already subscribed") >= 0 {
+		var ret_msg *string = this.SafeString(message, "data", "")
+		if strings.Index(*ret_msg, "Already subscribed") >= 0 {
 			// a duplicate subscribe is harmless - the server-side subscription is intact
 			// and data keeps flowing; rejecting all pending futures here would poison the
 			// whole connection, see https://github.com/ccxt/ccxt/issues/28369
 			return true
 		}
-		error := ccxt.ExchangeError(this.Id + " " + ret_msg)
+		if strings.Index(*ret_msg, "Already unsubscribed") >= 0 {
+			// the requested state is already reached, so the unWatch call resolves through the
+			// regular unsubscription handler, the subscription is echoed only inside the text
+			var subscriptionStart int = strings.Index(*ret_msg, "{")
+			var subscription any = this.ParseJson(ccxt.Slice(ret_msg, subscriptionStart, nil))
+			if subscription != nil {
+				this.HandleUnsubscription(client, subscription)
+				return true
+			}
+		}
+		error := ccxt.ExchangeError(this.Id + " " + *ret_msg)
 		client.(ccxt.ClientInterface).Reject(error)
 		return true
 	}
@@ -2596,7 +2606,7 @@ func (this *Hyperliquid) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[b
 	}
 	return nil
 }
-func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription map[string]any) {
+func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription any) {
 	//
 	//        "subscription":{
 	//           "type":"l2Book",
@@ -2761,26 +2771,29 @@ func (this *Hyperliquid) HandleSubscriptionResponse(client any, message map[stri
 	var method *string = this.SafeString(data, "method")
 	if method != nil && *method == "unsubscribe" {
 		var subscription map[string]any = this.SafeDictMap(data, "subscription", map[string]any{})
-		var typeVar *string = this.SafeString(subscription, "type")
-		if typeVar != nil && *typeVar == "l2Book" {
-			this.HandleOrderBookUnsubscription(client, subscription)
-		} else if typeVar != nil && *typeVar == "trades" {
-			this.HandleTradesUnsubscription(client, subscription)
-		} else if typeVar != nil && *typeVar == "candle" {
-			this.HandleOHLCVUnsubscription(client, subscription)
-		} else if typeVar != nil && *typeVar == "orderUpdates" {
-			this.HandleOrderUnsubscription(client, subscription)
-		} else if typeVar != nil && *typeVar == "userFills" {
-			this.HandleMyTradesUnsubscription(client, subscription)
-		} else if typeVar != nil && *typeVar == "clearinghouseState" {
-			this.HandlePositionsUnsubscription(client, subscription)
-		} else if typeVar != nil && *typeVar == "spotState" {
-			this.HandleSpotBalanceUnsubscription(client, subscription)
-		} else if (typeVar != nil && *typeVar == "activeAssetCtx") || (typeVar != nil && *typeVar == "activeSpotAssetCtx") {
-			this.HandleTickerUnsubscription(client, subscription)
-		} else if typeVar != nil && *typeVar == "allMids" {
-			this.HandleTickersUnsubscription(client, subscription)
-		}
+		this.HandleUnsubscription(client, subscription)
+	}
+}
+func (this *Hyperliquid) HandleUnsubscription(client any, subscription any) {
+	var typeVar *string = this.SafeString(subscription, "type")
+	if typeVar != nil && *typeVar == "l2Book" {
+		this.HandleOrderBookUnsubscription(client, subscription)
+	} else if typeVar != nil && *typeVar == "trades" {
+		this.HandleTradesUnsubscription(client, subscription)
+	} else if typeVar != nil && *typeVar == "candle" {
+		this.HandleOHLCVUnsubscription(client, subscription)
+	} else if typeVar != nil && *typeVar == "orderUpdates" {
+		this.HandleOrderUnsubscription(client, subscription)
+	} else if typeVar != nil && *typeVar == "userFills" {
+		this.HandleMyTradesUnsubscription(client, subscription)
+	} else if typeVar != nil && *typeVar == "clearinghouseState" {
+		this.HandlePositionsUnsubscription(client, subscription)
+	} else if typeVar != nil && *typeVar == "spotState" {
+		this.HandleSpotBalanceUnsubscription(client, subscription)
+	} else if (typeVar != nil && *typeVar == "activeAssetCtx") || (typeVar != nil && *typeVar == "activeSpotAssetCtx") {
+		this.HandleTickerUnsubscription(client, subscription)
+	} else if typeVar != nil && *typeVar == "allMids" {
+		this.HandleTickersUnsubscription(client, subscription)
 	}
 }
 func (this *Hyperliquid) HandleMessage(client any, message map[string]any) {

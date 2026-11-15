@@ -153,7 +153,6 @@
 enables or disables demo trading mode
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-
 **See**
 
 - https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd

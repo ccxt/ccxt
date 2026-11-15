@@ -147,7 +147,8 @@ jobs:
         timeout-minutes: 15
         run: |
           cargo test --jobs 4 --manifest-path rust/ccxt-common/Cargo.toml
-          cargo test --jobs 4 --manifest-path rust/ccxt-base/Cargo.toml --features transpiled-base
+          # ccxt-base unit tests are gated on engine+binance; transpiled-base would recompile every venue Core.
+          cargo test --jobs 4 --manifest-path rust/ccxt-base/Cargo.toml --features engine,binance
       - name: Cargo test gate
         if: github.ref == 'refs/heads/master' && env.important_modified == 'true'
         run: |

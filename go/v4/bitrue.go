@@ -1126,6 +1126,8 @@ func (this *Bitrue) ParseMarket(market any) map[string]any {
 	var filters []any = SafeListTyped(market, "filters")
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var status *string = this.SafeString(market, "status")
+	// spot markets say TRADING, futures contracts 1 (0 when offline)
+	var active bool = (status != nil && *status == "TRADING") || (status != nil && *status == "1")
 	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 	var amountFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 	var defaultPricePrecision *string = this.SafeString(market, "pricePrecision")
@@ -1158,7 +1160,7 @@ func (this *Bitrue) ParseMarket(market any) map[string]any {
 		"swap":           isContract,
 		"future":         false,
 		"option":         false,
-		"active":         (status != nil && *status == "TRADING"),
+		"active":         active,
 		"contract":       isContract,
 		"linear":         isLinear,
 		"inverse":        isInverse,

@@ -29,11 +29,11 @@ class toobit extends \ccxt\async\toobit {
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
+                'watchPositions' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
-                // 'watchPosition': false,
             ),
             'urls' => array(
                 'api' => array(

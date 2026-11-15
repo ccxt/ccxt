@@ -490,9 +490,13 @@ public partial class BaseExchange
 
         public void resolve(object content, object messageHash2)
         {
-            if (this.verbose && (messageHash2 == null))
+            if (messageHash2 == null)
             {
-                Console.WriteLine("resolve received undefined messageHash");
+                if (this.verbose)
+                {
+                    Console.WriteLine("resolve received undefined messageHash");
+                }
+                return;
             }
             var messageHash = messageHash2.ToString();
             var future = (Future)ask(() =>

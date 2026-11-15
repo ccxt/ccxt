@@ -3,6 +3,7 @@ import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
+import { installCcxtGoMarketBoolReads } from './go-worker.js';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
@@ -5716,6 +5717,7 @@ class NewTranspiler {
         installCcxtGoTupleSlotReads (this.transpiler.goTranspiler);
         installFmGo5GP08 (this.transpiler.goTranspiler);  // FM-GO5
         installFmGo5OG02 (this.transpiler.goTranspiler);  // FM-GO5
+        installCcxtGoMarketBoolReads (this.transpiler.goTranspiler);
     }
 
     // The base files are assembled from the part of the printed body after its delimiter, which cuts

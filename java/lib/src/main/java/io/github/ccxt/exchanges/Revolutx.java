@@ -842,13 +842,20 @@ public class Revolutx extends RevolutxApi
             {
                 request.put("since", since);
             }
+            Long defaultLimit = 1000L; // default max limit if not specified
+            Long limitValue = (((!java.util.Objects.equals(limit, null)))) ? limit : defaultLimit;
+            Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
             Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("until", until);
-            } else
+            }
+            if (!java.util.Objects.equals(since, null) && java.util.Objects.equals(until, null))
             {
-                request.put("until", this.milliseconds());
+                request.put("until", this.sum(since, (limitValue * duration)));
+            } else if (java.util.Objects.equals(since, null) && !java.util.Objects.equals(until, null))
+            {
+                request.put("since", (until - (limitValue * duration)));
             }
             String region = this.safeString2(parameters, "region", "region", this.options.get("region"));
             if (!java.util.Objects.equals(region, null))

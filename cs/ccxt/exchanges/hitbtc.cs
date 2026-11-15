@@ -3057,7 +3057,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> response = await this.privatePostWalletTransfer(this.extend(request, parameters));
         //
         //     [
-        //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
+        //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         //     ]
         //
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));

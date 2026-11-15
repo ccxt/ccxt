@@ -2076,11 +2076,11 @@ public class Hibachi extends HibachiApi
             put( "info", position );
             put( "id", null );
             put( "symbol", symbol );
-            put( "entryPrice", Hibachi.this.safeString(position, "average_entry_price") );
+            put( "entryPrice", Hibachi.this.safeNumber(position, "average_entry_price", (Object) null) );
             put( "markPrice", null );
-            put( "notional", Hibachi.this.safeString(position, "notionalValue") );
+            put( "notional", Hibachi.this.safeNumber(position, "notionalValue", (Object) null) );
             put( "collateral", null );
-            put( "unrealizedPnl", unrealizedPnl );
+            put( "unrealizedPnl", Hibachi.this.parseNumber(unrealizedPnl) );
             put( "side", side );
             put( "contracts", Hibachi.this.parseNumber(quantity) );
             put( "contractSize", null );

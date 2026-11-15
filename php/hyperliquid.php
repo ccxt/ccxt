@@ -870,6 +870,15 @@ class hyperliquid extends Exchange {
         $second = $this->safe_list($response, 1, array());
         $meta = $this->safe_list($first, 'universe', array());
         $tokens = $this->safe_list($first, 'tokens', array());
+        // a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+        $tokensByIndex = array();
+        for ($i = 0; $i < count($tokens); $i++) {
+            $token = $this->safe_dict($tokens, $i, array());
+            $tokenIndex = $this->safe_string($token, 'index');
+            if ($tokenIndex !== null) {
+                $tokensByIndex[$tokenIndex] = $token;
+            }
+        }
         $markets = array();
         for ($i = 0; $i < count($meta); $i++) {
             $market = $this->safe_dict($meta, $i, array());
@@ -887,10 +896,10 @@ class hyperliquid extends Exchange {
             $taker = $this->safe_number($fees, 'taker');
             $maker = $this->safe_number($fees, 'maker');
             $tokensPos = $this->safe_list($market, 'tokens', array());
-            $baseTokenPos = $this->safe_integer($tokensPos, 0);
-            $quoteTokenPos = $this->safe_integer($tokensPos, 1);
-            $baseTokenInfo = $this->safe_dict($tokens, $baseTokenPos, array());
-            $quoteTokenInfo = $this->safe_dict($tokens, $quoteTokenPos, array());
+            $baseTokenIndex = $this->safe_string($tokensPos, 0);
+            $quoteTokenIndex = $this->safe_string($tokensPos, 1);
+            $baseTokenInfo = $this->safe_dict($tokensByIndex, $baseTokenIndex, array());
+            $quoteTokenInfo = $this->safe_dict($tokensByIndex, $quoteTokenIndex, array());
             $baseName = $this->safe_string($baseTokenInfo, 'name');
             $quoteId = $this->safe_string($quoteTokenInfo, 'name');
             if ($baseName === null || $quoteId === null) {

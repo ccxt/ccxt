@@ -310,44 +310,63 @@ class paradex extends paradex$1["default"] {
             },
             'exceptions': {
                 'exact': {
-                    'VALIDATION_ERROR': errors.AuthenticationError,
-                    'BINDING_ERROR': errors.OperationRejected,
+                    'VALIDATION_ERROR': errors.BadRequest,
+                    'BINDING_ERROR': errors.BadRequest,
                     'INTERNAL_ERROR': errors.ExchangeError,
                     'NOT_FOUND': errors.BadRequest,
-                    'SERVICE_UNAVAILABLE': errors.ExchangeError,
+                    'SERVICE_UNAVAILABLE': errors.ExchangeNotAvailable,
                     'INVALID_REQUEST_PARAMETER': errors.BadRequest,
-                    'ORDER_ID_NOT_FOUND': errors.InvalidOrder,
+                    'ORDER_ID_NOT_FOUND': errors.OrderNotFound,
                     'ORDER_IS_CLOSED': errors.InvalidOrder,
-                    'ORDER_IS_NOT_OPEN_YET': errors.InvalidOrder,
-                    'CLIENT_ORDER_ID_NOT_FOUND': errors.InvalidOrder,
-                    'DUPLICATED_CLIENT_ID': errors.InvalidOrder,
-                    'INVALID_PRICE_PRECISION': errors.OperationRejected,
-                    'INVALID_SYMBOL': errors.OperationRejected,
-                    'INVALID_TOKEN': errors.OperationRejected,
+                    'ORDER_IS_NOT_OPEN': errors.InvalidOrder,
+                    'INVALID_PRICE_PRECISION': errors.InvalidOrder,
+                    'INVALID_ORDER_SIZE': errors.InvalidOrder,
+                    'CLIENT_ORDER_ID_NOT_FOUND': errors.OrderNotFound,
+                    'ALGO_ID_NOT_FOUND': errors.OrderNotFound,
+                    'DUPLICATED_CLIENT_ID': errors.DuplicateOrderId,
+                    'INVALID_SYMBOL': errors.BadSymbol,
+                    'INVALID_TOKEN': errors.AuthenticationError,
+                    'INVALID_TOKEN_SCOPE': errors.PermissionDenied,
                     'INVALID_ETHEREUM_ADDRESS': errors.OperationRejected,
-                    'INVALID_ETHEREUM_SIGNATURE': errors.OperationRejected,
+                    'INVALID_ETHEREUM_SIGNATURE': errors.AuthenticationError,
+                    'INVALID_EVM_SIGNATURE': errors.AuthenticationError,
                     'INVALID_STARKNET_ADDRESS': errors.OperationRejected,
-                    'INVALID_STARKNET_SIGNATURE': errors.OperationRejected,
+                    'INVALID_STARKNET_SIGNATURE': errors.AuthenticationError,
                     'STARKNET_SIGNATURE_VERIFICATION_FAILED': errors.AuthenticationError,
+                    'EVM_SIGNATURE_VERIFICATION_FAILED': errors.AuthenticationError,
+                    'INVALID_SUBKEY': errors.AuthenticationError,
+                    'SUBKEY_REVOKED': errors.AuthenticationError,
                     'BAD_STARKNET_REQUEST': errors.BadRequest,
                     'ETHEREUM_SIGNER_MISMATCH': errors.BadRequest,
                     'ETHEREUM_HASH_MISMATCH': errors.BadRequest,
-                    'NOT_ONBOARDED': errors.BadRequest,
+                    'NOT_ONBOARDED': errors.AccountNotEnabled,
                     'INVALID_TIMESTAMP': errors.BadRequest,
-                    'INVALID_SIGNATURE_EXPIRATION': errors.AuthenticationError,
+                    'INVALID_BLOCK_EXPIRATION': errors.AuthenticationError,
                     'ACCOUNT_NOT_FOUND': errors.AuthenticationError,
                     'INVALID_ORDER_SIGNATURE': errors.AuthenticationError,
                     'PUBLIC_KEY_INVALID': errors.BadRequest,
                     'UNAUTHORIZED_ETHEREUM_ADDRESS': errors.BadRequest,
+                    'UNAUTHORIZED_ERROR': errors.PermissionDenied,
+                    'NO_ACCESS_TO_MARKET': errors.PermissionDenied,
+                    'IP_NOT_ALLOWED': errors.PermissionDenied,
+                    'RPI_ACCOUNT_NOT_WHITELISTED': errors.PermissionDenied,
                     'ETHEREUM_ADDRESS_ALREADY_ONBOARDED': errors.BadRequest,
-                    'MARKET_NOT_FOUND': errors.BadRequest,
+                    'MARKET_NOT_FOUND': errors.BadSymbol,
                     'ALLOWLIST_ENTRY_NOT_FOUND': errors.BadRequest,
                     'USERNAME_IN_USE': errors.AuthenticationError,
                     'GEO_IP_BLOCK': errors.PermissionDenied,
-                    'ETHEREUM_ADDRESS_BLOCKED': errors.PermissionDenied,
+                    'ETHEREUM_ADDRESS_BLOCKED': errors.AccountSuspended,
                     'PROGRAM_NOT_FOUND': errors.BadRequest,
                     'INVALID_DASHBOARD': errors.OperationRejected,
                     'MARKET_NOT_OPEN': errors.BadRequest,
+                    'SYSTEM_STATUS_CANCEL_ONLY': errors.OnMaintenance,
+                    'SYSTEM_STATUS_POST_ONLY': errors.OperationRejected,
+                    'MMP_CONFIG_INVALID': errors.OperationRejected,
+                    'MMP_NOT_ENABLED': errors.OperationRejected,
+                    'MMP_NOT_CONFIGURED': errors.OperationRejected,
+                    'MMP_MIN_FREEZE_NOT_ELAPSED': errors.OperationRejected,
+                    'ONBOARDING_RATE_LIMITED': errors.RateLimitExceeded,
+                    'RFQ_CREATE_BUDGET_EXCEEDED': errors.RateLimitExceeded,
                     'INVALID_REFERRAL_CODE': errors.OperationRejected,
                     'PARENT_ADDRESS_ALREADY_ONBOARDED': errors.BadRequest,
                     'INVALID_PARENT_ACCOUNT': errors.OperationRejected,
@@ -372,6 +391,9 @@ class paradex extends paradex$1["default"] {
                     '42901': errors.RateLimitExceeded, // Rate limited
                 },
                 'broad': {
+                    // INVALID_REQUEST_PARAMETER is shared by every validation failure, its message tells them apart
+                    'must be a multiple of': errors.InvalidOrder,
+                    'market not found': errors.BadSymbol,
                     'missing or malformed jwt': errors.AuthenticationError,
                 },
             },
@@ -1626,6 +1648,21 @@ class paradex extends paradex$1["default"] {
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
         const triggerPrice = this.omitZero(this.safeString(order, 'trigger_price'));
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (orderType !== undefined) {
+            if (orderType.indexOf('STOP_LOSS') >= 0) {
+                stopLossPrice = triggerPrice;
+            }
+            else if (orderType.indexOf('TAKE_PROFIT') >= 0) {
+                takeProfitPrice = triggerPrice;
+            }
+        }
+        const timeInForce = this.parseTimeInForce(this.safeString(order, 'instruction'));
+        let postOnly = undefined;
+        if (timeInForce !== undefined) {
+            postOnly = (timeInForce === 'PO');
+        }
         const lastUpdateTimestamp = this.safeInteger(order, 'last_updated_at');
         const flags = this.safeList(order, 'flags');
         let reduceOnly = undefined;
@@ -1642,14 +1679,14 @@ class paradex extends paradex$1["default"] {
             'status': this.parseOrderStatus(status),
             'symbol': symbol,
             'type': this.parseOrderType(orderType),
-            'timeInForce': this.parseTimeInForce(this.safeString(order, 'instruction')),
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
-            'takeProfitPrice': undefined,
-            'stopLossPrice': undefined,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'average': average,
             'amount': amount,
             'filled': undefined,
@@ -1668,6 +1705,7 @@ class paradex extends paradex$1["default"] {
             'IOC': 'IOC',
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
+            'RPI': 'PO', // retail price improvement orders only rest on the book, the raw instruction stays in info
         };
         return this.safeString(timeInForces, timeInForce);
     }
@@ -1689,11 +1727,29 @@ class paradex extends paradex$1["default"] {
             'MARKET': 'market',
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
+            'STOP_LOSS_LIMIT': 'limit',
+            'STOP_LOSS_MARKET': 'market',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
         };
         return this.safeStringLower(types, type, type);
     }
     scaleNumber(num) {
         return Precise["default"].stringMul(num, '100000000');
+    }
+    encodeTimeInForce(timeInForce) {
+        const timeInForces = {
+            'GTC': 'GTC',
+            'IOC': 'IOC',
+            'PO': 'POST_ONLY',
+            'POST_ONLY': 'POST_ONLY',
+            'RPI': 'RPI',
+        };
+        const instruction = this.safeString(timeInForces, timeInForce);
+        if (instruction === undefined) {
+            throw new errors.NotSupported(this.id + ' createOrder() does not support timeInForce ' + timeInForce + ', supported values are GTC, IOC, PO and RPI');
+        }
+        return instruction;
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === undefined) {
@@ -1710,7 +1766,6 @@ class paradex extends paradex$1["default"] {
             'market': market['id'],
             'side': orderSide,
             'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
-            'instruction': 'GTC',
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
@@ -1721,62 +1776,59 @@ class paradex extends paradex$1["default"] {
         const isStopOrder = (triggerPrice !== undefined) || isTakeProfitOrder || isStopLossOrder;
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
-        if (!isMarket) {
-            if (postOnly) {
-                request['instruction'] = 'POST_ONLY';
+        let instruction = 'GTC';
+        if (timeInForce !== undefined) {
+            instruction = this.encodeTimeInForce(timeInForce);
+        }
+        if (postOnly && (instruction !== 'RPI')) {
+            instruction = 'POST_ONLY';
+        }
+        if ((instruction === 'POST_ONLY') || (instruction === 'RPI')) {
+            // both instructions only rest on the book, the exchange rejects them on market and trigger orders
+            if (isMarket) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() market orders cannot be post only or RPI');
             }
-            else if (timeInForce === 'IOC') {
-                request['instruction'] = 'IOC';
+            if (isStopOrder) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() trigger, stop loss and take profit orders cannot be post only or RPI');
             }
         }
-        if (price !== undefined) {
+        request['instruction'] = instruction;
+        // the exchange requires the price to be omitted for every market order type
+        if ((price !== undefined) && !isMarket) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
         }
+        const [recvWindow, paramsRecvWindow] = this.handleOptionAndParams2(params, 'createOrder', 'recvWindow', 'recv_window');
+        if (recvWindow !== undefined) {
+            request['recv_window'] = this.parseToInt(recvWindow);
+        }
+        const isTakeProfitOrStopLoss = isStopLossOrder || isTakeProfitOrder;
         let sizeString = '0';
+        // a stop loss or take profit order with a size of 0 closes the whole position when triggered
+        if (!isTakeProfitOrStopLoss || ((amount !== undefined) && (amount > 0))) {
+            sizeString = this.amountToPrecision(symbol, amount);
+        }
         let stopPrice = undefined;
         if (isStopOrder) {
-            // flags: Reduce_Only must be provided for TPSL orders.
-            if (isMarket) {
-                if (isStopLossOrder) {
-                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
-                    reduceOnly = true;
-                    request['type'] = 'STOP_LOSS_MARKET';
-                }
-                else if (isTakeProfitOrder) {
-                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                    reduceOnly = true;
-                    request['type'] = 'TAKE_PROFIT_MARKET';
-                }
-                else {
-                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
-                    sizeString = this.amountToPrecision(symbol, amount);
-                    request['type'] = 'STOP_MARKET';
-                }
+            if (isTakeProfitOrStopLoss) {
+                // flags: Reduce_Only must be provided for TPSL orders.
+                reduceOnly = true;
+            }
+            if (isStopLossOrder) {
+                stopPrice = this.priceToPrecision(symbol, stopLossPrice);
+                request['type'] = (isMarket) ? 'STOP_LOSS_MARKET' : 'STOP_LOSS_LIMIT';
+            }
+            else if (isTakeProfitOrder) {
+                stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                request['type'] = (isMarket) ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
             }
             else {
-                if (isStopLossOrder) {
-                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
-                    reduceOnly = true;
-                    request['type'] = 'STOP_LOSS_LIMIT';
-                }
-                else if (isTakeProfitOrder) {
-                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                    reduceOnly = true;
-                    request['type'] = 'TAKE_PROFIT_LIMIT';
-                }
-                else {
-                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
-                    sizeString = this.amountToPrecision(symbol, amount);
-                    request['type'] = 'STOP_LIMIT';
-                }
+                stopPrice = this.priceToPrecision(symbol, triggerPrice);
+                request['type'] = (isMarket) ? 'STOP_MARKET' : 'STOP_LIMIT';
             }
-        }
-        else {
-            sizeString = this.amountToPrecision(symbol, amount);
         }
         if (stopPrice !== undefined) {
             request['trigger_price'] = stopPrice;
@@ -1787,19 +1839,19 @@ class paradex extends paradex$1["default"] {
                 'REDUCE_ONLY',
             ];
         }
-        const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        const paramsOmitted = this.omit(paramsRecvWindow, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
         return this.extend(request, paramsOmitted);
     }
     async signOrderRequest(request, modify = false) {
         const account = await this.retrieveAccount();
-        const now = this.parseToInt(this.nonce());
+        const now = this.milliseconds();
         const orderType = this.safeString(request, 'type');
         if (orderType === undefined) {
             throw new errors.ExchangeError(this.id + ' signOrderRequest() missing orderType');
         }
         const isMarket = (orderType.indexOf('MARKET') >= 0);
         const orderReq = {
-            'timestamp': now * 1000,
+            'timestamp': now,
             'market': this.stringToBase16(this.safeString(request, 'market')),
             'side': (this.safeString(request, 'side') === 'BUY') ? '1' : '2',
             'orderType': this.stringToBase16(this.safeString(request, 'type')),
@@ -1849,12 +1901,13 @@ class paradex extends paradex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at, an amount of 0 closes the whole position
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at, an amount of 0 closes the whole position
+     * @param {string} [params.timeInForce] "GTC", "IOC", "PO" or "RPI" (retail price improvement), "FOK" and "GTD" are not supported
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {int} [params.recvWindow] the number of milliseconds after the signature timestamp the order is accepted for, the exchange applies its own default when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1907,18 +1960,21 @@ class paradex extends paradex$1["default"] {
      * @param {string} type 'limit' or a TPSL order type
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of the currency you want to trade in units of the base currency
-     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for limit orders and ignored for market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (amount === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires an amount argument');
         }
-        if (price === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a price argument');
+        const isMarket = (type !== undefined) && (type.toUpperCase() === 'MARKET');
+        if ((price === undefined) && !isMarket) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a price argument for limit orders');
         }
         await this.authenticateRest();
         if (this.markets === undefined) {
@@ -1926,7 +1982,7 @@ class paradex extends paradex$1["default"] {
         }
         const market = this.market(symbol);
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
-        request = this.omit(request, ['instruction', 'client_id', 'flags']);
+        request = this.omit(request, ['instruction', 'client_id', 'flags', 'recv_window']);
         request['order_id'] = id;
         request['id'] = id;
         request = await this.signOrderRequest(request, true);
@@ -2487,7 +2543,7 @@ class paradex extends paradex$1["default"] {
     /**
      * @method
      * @name paradex#fetchPosition
-     * @description fetch data on an open position
+     * @description fetch data on a single position, a closed one included
      * @see https://docs.paradex.trade/api/prod/account/get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2499,7 +2555,16 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const positions = await this.fetchPositions([market['symbol']], params);
+        const response = await this.privateGetPositions(params);
+        const data = this.safeList(response, 'results', []);
+        // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
+        const matching = [];
+        for (let i = 0; i < data.length; i++) {
+            if (this.safeString(data[i], 'market') === market['id']) {
+                matching.push(data[i]);
+            }
+        }
+        const positions = this.parsePositions(matching, [market['symbol']]);
         return this.safeDict(positions, 0, {});
     }
     /**
@@ -2517,7 +2582,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const response = await this.privateGetPositions();
+        const response = await this.privateGetPositions(params);
         //
         //     {
         //         "results": [
@@ -2546,7 +2611,17 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        return this.parsePositions(data, symbolsNormalized);
+        // the endpoint keeps returning a market's position after it is closed, with a size of 0
+        const openPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const position = data[i];
+            const status = this.safeString(position, 'status');
+            const size = this.safeString(position, 'size');
+            if ((status !== 'CLOSED') && !Precise["default"].stringEq(size, '0')) {
+                openPositions.push(position);
+            }
+        }
+        return this.parsePositions(openPositions, symbolsNormalized);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2591,6 +2666,7 @@ class paradex extends paradex$1["default"] {
             'notional': this.parseNumber(notionalString),
             'collateral': undefined, // cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
+            'realizedPnl': this.safeNumber(position, 'realized_pnl'),
             'side': side,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
@@ -2605,7 +2681,7 @@ class paradex extends paradex$1["default"] {
             'leverage': this.safeNumber(position, 'leverage'),
             'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
-            'marginMode': undefined,
+            'marginMode': 'cross', // isolated margin positions live on their own sub-account
             'percentage': undefined,
         });
     }
@@ -2693,8 +2769,13 @@ class paradex extends paradex$1["default"] {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchDeposits', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
+            // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            const transactions = await this.fetchPaginatedCallCursor('fetchDeposits', code, since, undefined, this.extend(paramsPaginate, { 'allKinds': true }), 'next', 'cursor', undefined, 100);
+            const transactionsOfKind = this.filterTransactionsByKind(transactions, 'DEPOSIT');
+            return this.filterBySinceLimit(transactionsOfKind, since, limit);
         }
+        const allKinds = this.safeBool(paramsPaginate, 'allKinds', false);
+        const paramsKinds = this.omit(paramsPaginate, 'allKinds');
         const request = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2702,7 +2783,7 @@ class paradex extends paradex$1["default"] {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsKinds);
         const response = await this.privateGetTransfers(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -2726,10 +2807,15 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const rows = this.safeList(response, 'results', []);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        const next = this.safeString(response, 'next');
+        for (let i = 0; i < rows.length; i++) {
+            rows[i]['next'] = next;
+        }
         const deposits = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (this.safeString(row, 'kind') === 'DEPOSIT') {
+            if (allKinds || (this.safeString(row, 'kind') === 'DEPOSIT')) {
                 deposits.push(row);
             }
         }
@@ -2755,8 +2841,13 @@ class paradex extends paradex$1["default"] {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchWithdrawals', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
+            // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            const transactions = await this.fetchPaginatedCallCursor('fetchWithdrawals', code, since, undefined, this.extend(paramsPaginate, { 'allKinds': true }), 'next', 'cursor', undefined, 100);
+            const transactionsOfKind = this.filterTransactionsByKind(transactions, 'WITHDRAWAL');
+            return this.filterBySinceLimit(transactionsOfKind, since, limit);
         }
+        const allKinds = this.safeBool(paramsPaginate, 'allKinds', false);
+        const paramsKinds = this.omit(paramsPaginate, 'allKinds');
         const request = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2764,7 +2855,7 @@ class paradex extends paradex$1["default"] {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsKinds);
         const response = await this.privateGetTransfers(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -2788,10 +2879,15 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const rows = this.safeList(response, 'results', []);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        const next = this.safeString(response, 'next');
+        for (let i = 0; i < rows.length; i++) {
+            rows[i]['next'] = next;
+        }
         const deposits = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (this.safeString(row, 'kind') === 'WITHDRAWAL') {
+            if (allKinds || (this.safeString(row, 'kind') === 'WITHDRAWAL')) {
                 deposits.push(row);
             }
         }
@@ -2854,6 +2950,11 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const rows = this.safeList(response, 'results', []);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        const next = this.safeString(response, 'next');
+        for (let i = 0; i < rows.length; i++) {
+            rows[i]['next'] = next;
+        }
         return this.parseTransfers(rows, currency, since, limit);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -2950,6 +3051,16 @@ class paradex extends paradex$1["default"] {
             'fee': undefined,
         };
     }
+    filterTransactionsByKind(transactions, kind) {
+        const result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const info = this.safeDict(transactions[i], 'info');
+            if (this.safeString(info, 'kind') === kind) {
+                result.push(transactions[i]);
+            }
+        }
+        return result;
+    }
     parseTransactionStatus(status) {
         const statuses = {
             'PENDING': 'pending',
@@ -3011,7 +3122,7 @@ class paradex extends paradex$1["default"] {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.leverage] the rate of leverage
+     * @param {float} [params.leverage] the rate of leverage, the current leverage of the market is kept when omitted
      * @returns {object} response from the exchange
      */
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
@@ -3021,11 +3132,19 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const leverage = 1;
-        const [leverageOption, paramsLeverage] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', leverage);
+        const [leverageOption, paramsLeverage] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage');
+        let leverage = leverageOption;
+        if (leverage === undefined) {
+            // the endpoint always sets the leverage too, keep the current one instead of resetting it
+            const currentLeverage = await this.fetchLeverage(symbol);
+            leverage = this.safeInteger(currentLeverage, 'longLeverage');
+            if (leverage === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a params.leverage argument, the current leverage of ' + market['symbol'] + ' could not be fetched');
+            }
+        }
         const request = {
             'market': market['id'],
-            'leverage': leverageOption,
+            'leverage': leverage,
             'margin_type': this.encodeMarginMode(marginMode),
         };
         return await this.privatePostAccountMarginMarket(this.extend(request, paramsLeverage));
@@ -3339,6 +3458,11 @@ class paradex extends paradex$1["default"] {
         // }
         //
         const results = this.safeList(response, 'results', []);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        const next = this.safeString(response, 'next');
+        for (let i = 0; i < results.length; i++) {
+            results[i]['next'] = next;
+        }
         return this.parseIncomes(results, market, since, limit);
     }
     parseIncome(income, market = undefined) {
@@ -3527,7 +3651,18 @@ class paradex extends paradex$1["default"] {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
+        //     {
+        //         "error": "INVALID_REQUEST_PARAMETER",
+        //         "message": "market: FOO-USD-PERP does not exist.",
+        //         "data": { "market": "FOO-USD-PERP does not exist." }
+        //     }
+        //
+        //     {
+        //         "message": "missing or malformed jwt"
+        //     }
+        //
         let errorCode = this.safeString(response, 'error');
+        let message = this.safeString(response, 'message');
         if ((errorCode === undefined) && (code === 400)) {
             //
             // a batch where every order was rejected, errors are index-aligned with the request
@@ -3542,17 +3677,28 @@ class paradex extends paradex$1["default"] {
                 const batchErrorCode = this.safeString(batchErrors[i], 'error');
                 if (batchErrorCode !== undefined) {
                     errorCode = batchErrorCode;
+                    message = this.safeString(batchErrors[i], 'message');
                     break;
                 }
             }
         }
-        if (errorCode !== undefined) {
-            const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
-            throw new errors.ExchangeError(feedback); // unknown message
+        const feedback = this.id + ' ' + body;
+        if (errorCode === undefined) {
+            if ((code >= 400) && (message !== undefined)) {
+                this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            }
+            return undefined; // fallback to default error handler
         }
-        return undefined;
+        // the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
+        if ((errorCode === 'INVALID_REQUEST_PARAMETER') && (message !== undefined)) {
+            // an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
+            if ((message.indexOf('market') === 0) && (message.indexOf('does not exist') >= 0)) {
+                throw new errors.BadSymbol(feedback);
+            }
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+        }
+        this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+        throw new errors.ExchangeError(feedback); // unknown message
     }
 }
 

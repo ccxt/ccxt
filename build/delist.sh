@@ -45,6 +45,7 @@ ts/src/test/static/currencies/${EXCHANGE}.json
 ts/src/test/static/markets/${EXCHANGE}.json
 ts/src/test/static/request/${EXCHANGE}.json
 ts/src/test/static/response/${EXCHANGE}.json
+ts/src/test/static/ws/${EXCHANGE}.json
 # JavaScript (tsc output)
 js/src/${EXCHANGE}.js
 js/src/${EXCHANGE}.d.ts

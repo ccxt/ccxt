@@ -2221,7 +2221,6 @@ public partial class binance : ccxt.binance
         string? interval = this.safeString(kline, "i");
         // use a reverse lookup in a static map instead
         string? unifiedTimeframe = this.findTimeframe(interval);
-        List<object> parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")};
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
@@ -2230,7 +2229,12 @@ public partial class binance : ccxt.binance
         {
             marketType = "spot";
         }
-        string? symbol = this.safeSymbol(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        bool? inverse = this.safeBool(market, "inverse");
+        string volumeKey = ((inverse == true)) ? "q" : "v";
+        List<object> parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, volumeKey)};
         string messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), unifiedTimeframe));
@@ -5490,7 +5494,7 @@ public partial class binance : ccxt.binance
             { "amount", this.safeString(order, "q") },
             { "cost", this.safeString(order, "Z") },
             { "average", this.safeString(order, "ap") },
-            { "filled", this.safeString(order, "z") },
+            { "filled", this.safeString2(order, "z", "aq") },
             { "remaining", null },
             { "status", status },
             { "fee", fee },
@@ -5910,11 +5914,22 @@ public partial class binance : ccxt.binance
         {
             this.positions = new Dictionary<string, object>() {};
         }
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((((IDictionary<string,object>)this.positions) != null && type is string entryKey0 && ((IDictionary<string,object>)this.positions).ContainsKey(entryKey0)))
         {
-            return;
+            // a fresh client has no snapshot future yet, which means the
+            // connection was re-established after a disconnect: positions
+            // closed while disconnected never arrive as stream deltas, so
+            // the cached positions are stale and must be reloaded
+            object messageHash = add(type, ":fetchPositionsSnapshot");
+            if (((fetchPositionsSnapshot == true)) && (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))))
+            {
+                ((IDictionary<string,object>)this.positions).Remove((string)type);
+            } else
+            {
+                return;
+            }
         }
-        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");
@@ -5939,6 +5954,14 @@ public partial class binance : ccxt.binance
             parameters["portfolioMargin"] = true;
         }
         List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
+        // the client may have been replaced by a reconnect while the
+        // snapshot was in flight: a stale snapshot must not overwrite
+        // the fresh one loaded for the new client
+        WebSocketClient currentClient = ((WebSocketClient)this.safeValue(this.clients, client.url));
+        if (!isEqual(currentClient, client))
+        {
+            return;
+        }
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)(((IDictionary<string,object>)this.positions) != null && type != null && ((IDictionary<string,object>)this.positions).ContainsKey(type) ? ((IDictionary<string,object>)this.positions)[type] : null));
         for (int i = 0; i < (positions?.Count ?? 0); i++)

@@ -728,8 +728,8 @@ impl HtxCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_382: bool = true;
-            while { if !__for_first_382 { i += 1; } __for_first_382 = false; i < (data.len() as i64) } {
+            let mut __for_first_384: bool = true;
+            while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (data.len() as i64) } {
             let mut trade: Value = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             tradesCache.append(trade);
         }
@@ -1047,8 +1047,8 @@ impl HtxCore {
                 orderbook.reset(snapshot);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_383: bool = true;
-                    while { if !__for_first_383 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_383 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_385: bool = true;
+                    while { if !__for_first_385 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_385 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
                     self.handle_order_book_message(client.clone(), get_value(&messages, &i));
                 }
                 }
@@ -1129,8 +1129,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_384: bool = true;
-            while { if !__for_first_384 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_384 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            let mut __for_first_386: bool = true;
+            while { if !__for_first_386 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_386 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
             self.handle_delta(bookside.clone(), deltas.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -2360,13 +2360,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut prefixes: Value = Value::from(vec![Value::Str("cross:positions".into()), Value::Str("isolated:positions".into())]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_386: bool = true;
-                while { if !__for_first_386 { i += 1; } __for_first_386 = false; i < (prefixes.len() as i64) } {
+                let mut __for_first_388: bool = true;
+                while { if !__for_first_388 { i += 1; } __for_first_388 = false; i < (prefixes.len() as i64) } {
                 let mut messageHashes: Value = self.find_message_hashes(client.clone(), prefixes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_385: bool = true;
-                    while { if !__for_first_385 { j += 1; } __for_first_385 = false; j < (messageHashes.len() as i64) } {
+                    let mut __for_first_387: bool = true;
+                    while { if !__for_first_387 { j += 1; } __for_first_387 = false; j < (messageHashes.len() as i64) } {
                     client.resolve(&[Value::from(vec![]), messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null)]);
                 }
                 }
@@ -2382,8 +2382,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut timestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_387: bool = true;
-            while { if !__for_first_387 { i += 1; } __for_first_387 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_389: bool = true;
+            while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition, &[]);
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), timestamp.clone()); }
@@ -2406,15 +2406,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marginModes: Vec<Value> = object_keys(&positionsByMarginMode).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_389: bool = true;
-            while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (marginModes.len() as i64) } {
+            let mut __for_first_391: bool = true;
+            while { if !__for_first_391 { i += 1; } __for_first_391 = false; i < (marginModes.len() as i64) } {
             let mut marginMode: Value = marginModes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marginModePositions: Value = self.safe_list(positionsByMarginMode.clone(), marginMode.clone(), &[Value::from(vec![])]);
             let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", marginMode, Value::Str(":positions::".into())).into()));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_388: bool = true;
-                while { if !__for_first_388 { j += 1; } __for_first_388 = false; j < (messageHashes.len() as i64) } {
+                let mut __for_first_390: bool = true;
+                while { if !__for_first_390 { j += 1; } __for_first_390 = false; j < (messageHashes.len() as i64) } {
                 let mut messageHash: Value = messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut parts: Vec<Value> = Value::Array(if let Some(__s) = messageHash.as_str() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 let mut symbolsString: Value = parts.get(1).cloned().unwrap_or(Value::Null);
@@ -2704,8 +2704,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut detailsLength: f64 = ((details.len() as i64) as f64);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_390: bool = true;
-                    while { if !__for_first_390 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_390 = false; i.as_f64().unwrap_or(f64::NAN) < detailsLength } {
+                    let mut __for_first_392: bool = true;
+                    while { if !__for_first_392 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_392 = false; i.as_f64().unwrap_or(f64::NAN) < detailsLength } {
                     let mut detail: Value = self.safe_dict(details.clone(), i.clone(), &[]);
                     let mut currencyId: Option<String> = self.safe_string_k_opt(detail.clone(), "currency", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2789,8 +2789,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else {
                     {
                                                 let mut i: i64 = 0;
-                        let mut __for_first_391: bool = true;
-                        while { if !__for_first_391 { i += 1; } __for_first_391 = false; i < (data.len() as i64) } {
+                        let mut __for_first_393: bool = true;
+                        while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (data.len() as i64) } {
                         let mut isolatedBalance: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
                         let mut account: Value = self.account();
                         if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(isolatedBalance.clone(), "margin_balance", &[Value::Str("margin_available".into())])); }
@@ -2807,8 +2807,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_392: bool = true;
-                    while { if !__for_first_392 { i += 1; } __for_first_392 = false; i < (data.len() as i64) } {
+                    let mut __for_first_394: bool = true;
+                    while { if !__for_first_394 { i += 1; } __for_first_394 = false; i < (data.len() as i64) } {
                     let mut balance: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
                     let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "symbol", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2876,8 +2876,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut subMessageHashes: Vec<Value> = (match __pro_message.get("subMessageHashes").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_393: bool = true;
-            while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_395: bool = true;
+            while { if !__for_first_395 { i += 1; } __for_first_395 = false; i < (messageHashes.len() as i64) } {
             let mut unsubHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut subHash: Value = subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
             self.clean_unsubscription(client.clone(), subHash, unsubHash, &[]);
@@ -3404,8 +3404,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut dataList: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
                     {
                                                 let mut i: i64 = 0;
-                        let mut __for_first_394: bool = true;
-                        while { if !__for_first_394 { i += 1; } __for_first_394 = false; i < (dataList.len() as i64) } {
+                        let mut __for_first_396: bool = true;
+                        while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (dataList.len() as i64) } {
                         let mut parsed: Value = self.parse_ws_trade(dataList.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
                         let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
                         if (symbol.is_some()) {
@@ -3433,8 +3433,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut market: Value = self.market(marketId.clone().map(Value::from).unwrap_or(Value::Null));
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_395: bool = true;
-                    while { if !__for_first_395 { i += 1; } __for_first_395 = false; i < (rawTrades.len() as i64) } {
+                    let mut __for_first_397: bool = true;
+                    while { if !__for_first_397 { i += 1; } __for_first_397 = false; i < (rawTrades.len() as i64) } {
                     let mut trade: Value = rawTrades.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut parsedTrade: Value = self.parse_trade(trade, &[market.clone()]);
                     // add extra params (side, type, ...) coming from the order

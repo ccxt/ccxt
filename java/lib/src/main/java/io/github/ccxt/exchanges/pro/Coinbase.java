@@ -8,6 +8,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
 import io.github.ccxt.types.Ticker;
@@ -47,7 +48,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 put( "fetchTradesWs", false );
                 put( "watchBalance", false );
                 put( "watchMyTrades", false );
-                put( "watchOHLCV", false );
+                put( "watchOHLCV", true );
                 put( "watchOrderBook", true );
                 put( "watchOrderBookForSymbols", true );
                 put( "watchOrders", true );
@@ -610,6 +611,98 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             put( "baseVolume", Coinbase.this.safeString(ticker, "volume_24_h") );
             put( "quoteVolume", null );
         }}, (Map<String, Object>) null);
+    }
+
+    /**
+     * @method
+     * @name coinbase#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, close price, and volume of a market
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels#candles-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents, only 5m is supported
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "5m"), "5m"))
+            {
+                throw new NotSupported((this.id + " watchOHLCV() only supports the 5m timeframe")) ;
+            }
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            String symbolValue = this.symbol(symbol);
+            String name = "candles";
+            List<Object> ohlcv = (List<Object>) (this.subscribe(name, false, symbolValue, parameters)).join();
+            Long limitResolved = limit;
+            if (this.newUpdates)
+            {
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
+            }
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+
+    }
+
+    public void handleOHLCV(Client client, Object message)
+    {
+        //
+        //     {
+        //         "channel": "candles",
+        //         "timestamp": "2023-06-09T20:19:35.39625135Z",
+        //         "sequence_num": 0,
+        //         "events": [
+        //             {
+        //                 "type": "snapshot",
+        //                 "candles": [
+        //                     {
+        //                         "start": "1688998200",
+        //                         "high": "1867.72",
+        //                         "low": "1865.63",
+        //                         "open": "1867.38",
+        //                         "close": "1866.81",
+        //                         "volume": "0.20269406",
+        //                         "product_id": "ETH-USD"
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> events = (List<Object>) this.safeList(message, "events", new ArrayList<Object>(Arrays.asList()));
+        String timeframe = "5m";
+        for (var i = 0; i < ((List<?>)events).size(); i++)
+        {
+            Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
+            List<Object> candles = (List<Object>) this.safeList(eventVar, "candles", new ArrayList<Object>(Arrays.asList()));
+            for (var j = 0; j < ((List<?>)candles).size(); j++)
+            {
+                Object candle = (candles == null || j < 0 || j >= candles.size() ? null : candles.get(j));
+                String marketId = this.safeString(candle, "product_id");
+                Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+                String symbol = (String) market.get("symbol");
+                List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(candle, "start"), this.safeNumber(candle, "open", (Object) null), this.safeNumber(candle, "high", (Object) null), this.safeNumber(candle, "low", (Object) null), this.safeNumber(candle, "close", (Object) null), this.safeNumber(candle, "volume", (Object) null)));
+                this.ohlcvs.put(symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+                io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
+                if (java.util.Objects.equals(stored, null))
+                {
+                    Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                    stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
+                    Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                }
+                stored.append(parsed);
+                String messageHash = ("candles::" + symbol);
+                client.resolve(stored, messageHash);
+                this.tryResolveUsdc(client, messageHash, stored);
+            }
+        }
     }
 
     /**
@@ -1215,14 +1308,15 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
     public void handleMessage(Client client, Map<String, Object> message)
     {
         String channel = this.safeString(message, "channel");
-        Map<String, String> methods = new HashMap<String, String>() {{
-            put("subscriptions", "handleSubscriptionStatus");
-            put("ticker", "handleTickers");
-            put("ticker_batch", "handleTickers");
-            put("market_trades", "handleTrade");
-            put("user", "handleOrder");
-            put("l2_data", "handleOrderBook");
-            put("heartbeats", "handleHeartbeats");
+        Map<String, Object> methods = new HashMap<String, Object>() {{
+            put( "subscriptions", "handleSubscriptionStatus");
+            put( "ticker", "handleTickers");
+            put( "ticker_batch", "handleTickers");
+            put( "candles", "handleOHLCV");
+            put( "market_trades", "handleTrade");
+            put( "user", "handleOrder");
+            put( "l2_data", "handleOrderBook");
+            put( "heartbeats", "handleHeartbeats");
         }};
         String type = this.safeString(message, "type");
         if (java.util.Objects.equals(type, "error"))
@@ -1236,31 +1330,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             throw new ExchangeError(errorMessageValue) ;
         }
-        String method = methods.get(channel);
+        Object method = this.safeValue(methods, channel);
         if (!java.util.Objects.equals(method, null))
         {
-            switch (method) {
-                case "handleSubscriptionStatus":
-                    this.handleSubscriptionStatus(client, message);
-                    break;
-                case "handleTickers":
-                    this.handleTickers(client, message);
-                    break;
-                case "handleTrade":
-                    this.handleTrade(client, message);
-                    break;
-                case "handleOrder":
-                    this.handleOrder(client, message);
-                    break;
-                case "handleOrderBook":
-                    this.handleOrderBook(client, message);
-                    break;
-                case "handleHeartbeats":
-                    this.handleHeartbeats(client, message);
-                    break;
-                default:
-                    throw new RuntimeException("Method not found: " + method);
-            }
+            Helpers.callDynamically(this, method, new Object[] {client, message});
         }
     }
 }

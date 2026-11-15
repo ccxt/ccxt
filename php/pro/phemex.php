@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
@@ -26,6 +27,8 @@ class phemex extends \ccxt\async\phemex {
                 'watchOrders' => true,
                 'watchOrderBook' => true,
                 'watchOHLCV' => true,
+                'unWatchTrades' => true,
+                'unWatchOHLCV' => true,
                 'watchPositions' => null, // TODO
                 // multi-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols' => false,
@@ -760,6 +763,124 @@ class phemex extends \ccxt\async\phemex {
             $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
+    }
+
+    public function un_subscribe_public(string $method, string $subMessageHash, array $marketParams, array $subscription, $params = array()) {
+        return Async\async(self::do_un_subscribe_public(...))($method, $subMessageHash, $marketParams, $subscription, $params);
+    }
+
+    private function do_un_subscribe_public(string $method, string $subMessageHash, array $marketParams, array $subscription, $params = array()) {
+        $url = $this->urls['api']['ws'];
+        $requestId = $this->request_id();
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $request = array(
+            'method' => $method,
+            'id' => $requestId,
+            'params' => $marketParams,
+        );
+        $unsubscription = $this->extend($subscription, array(
+            'id' => $requestId,
+            'unsubscribe' => true,
+            'subMessageHash' => $subMessageHash,
+            'messageHash' => $messageHash,
+        ));
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $unsubscription));
+    }
+
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unWatches from the stream channel
+         *
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+         *
+         * @param {string} $symbol unified $symbol of the $market to unwatch the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $isUsdtSwap = ($market['swap'] === true) && ($market['settle'] === 'USDT');
+        $name = 'trade';
+        if ($isUsdtSwap) {
+            $name = 'trade_p';
+        }
+        $subscription = array(
+            'topic' => 'trades',
+            'symbols' => array( $symbolValue ),
+        );
+        return Async\await($this->un_subscribe_public($name . '.unsubscribe', 'trade:' . $symbolValue, array( $market['id'] ), $subscription, $params));
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+         *
+         * @param {string} $symbol unified $symbol of the $market to unwatch the candles for
+         * @param {string} [$timeframe] the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $isUsdtSwap = ($market['swap'] === true) && ($market['settle'] === 'USDT');
+        $name = 'kline';
+        if ($isUsdtSwap) {
+            $name = 'kline_p';
+        }
+        $subscription = array(
+            'topic' => 'ohlcv',
+            'symbolsAndTimeframes' => array( array( $symbolValue, $timeframe ) ),
+        );
+        // phemex drops only the given interval when it is sent along with the symbol
+        $marketParams = array( $market['id'], $this->safe_integer($this->timeframes, $timeframe) );
+        return Async\await($this->un_subscribe_public($name . '.unsubscribe', 'kline:' . $timeframe . ':' . $symbolValue, $marketParams, $subscription, $params));
+    }
+
+    public function handle_un_subscription(Client $client, array $message) {
+        //
+        // phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
+        //
+        //     { "error": null, "id": 3, "result": { "status": "success" } }
+        //     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
+        //
+        $id = $this->safe_string($message, 'id');
+        $subscriptionHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+        for ($i = 0; $i < count($subscriptionHashes); $i++) {
+            $subscriptionHash = $subscriptionHashes[$i];
+            $subscription = $client->subscriptions[$subscriptionHash];
+            $isUnSubscription = $this->safe_bool($subscription, 'unsubscribe', false);
+            $subscriptionId = $this->safe_string($subscription, 'id');
+            if ($isUnSubscription && ($subscriptionId !== null) && ($subscriptionId === $id)) {
+                $subMessageHash = $this->safe_string($subscription, 'subMessageHash');
+                $messageHash = $this->safe_string($subscription, 'messageHash');
+                $error = $this->safe_dict($message, 'error');
+                if ($error !== null) {
+                    // the stream stays subscribed, so drop only the pending unsubscribe
+                    unset($client->subscriptions[$subscriptionHash]);
+                    $client->reject(new ExchangeError($this->id . ' ' . $this->json($error)), $subscriptionHash);
+                    return;
+                }
+                $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+                $this->clean_cache($subscription);
+                return;
+            }
+        }
     }
 
     public function custom_handle_delta(mixed $bookside, array $delta, ?array $market = null) {
@@ -1576,6 +1697,10 @@ class phemex extends \ccxt\async\phemex {
                 $method($client, $message);
                 return;
             }
+        }
+        if ((is_array($message) && array_key_exists('result' ?? '', $message)) || (is_array($message) && array_key_exists('error' ?? '', $message))) {
+            $this->handle_un_subscription($client, $message);
+            return;
         }
         $methodName = $this->safe_string($message, 'method', '');
         if ((is_array($message) && array_key_exists('market24h' ?? '', $message)) || (is_array($message) && array_key_exists('spot_market24h' ?? '', $message)) || (mb_strpos($methodName, 'perp_market24h_pack_p') !== false)) {

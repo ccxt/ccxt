@@ -18,18 +18,72 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 def test_fetch_ohlcv(exchange, skipped_properties, symbol):
     method = 'fetchOHLCV'
     timeframe_keys = list(exchange.timeframes.keys())
-    assert len(timeframe_keys) > 0, exchange.id + ' ' + method + ' - no timeframes found'
-    # prefer 1m timeframe if available, otherwise return the first one
+    log_text = test_shared_methods.log_template(exchange, method, {})
+    assert len(timeframe_keys) > 0, exchange.id + ' ' + method + ' - no timeframes found' + log_text  # prefer 1m timeframe if available, otherwise return the first one
     chosen_timeframe_key = '1m'
     if not exchange.in_array(chosen_timeframe_key, timeframe_keys):
         chosen_timeframe_key = timeframe_keys[0]
-    limit = 10
-    duration = exchange.parse_timeframe(chosen_timeframe_key)
-    since = exchange.milliseconds() - duration * limit * 1000 - 1000
-    ohlcvs = exchange.fetch_ohlcv(symbol, chosen_timeframe_key, since, limit)
-    test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, ohlcvs, symbol)
+    duration_ms = exchange.parse_timeframe(chosen_timeframe_key) * 1000
+    #
+    # check for all possible "since" & "limit" combinations, where one of them could be undefined and the other not
+    #
+    since_array = [None, exchange.milliseconds() - duration_ms * 2800]  # eg, "since" was a date of 2800 bars back
+    limits_array = [None, 50, 25000]
+    for i in range(0, len(since_array)):
+        since_current = since_array[i]
+        for j in range(0, len(limits_array)):
+            limit = limits_array[j]
+            ohlcvs = exchange.fetch_ohlcv(symbol, chosen_timeframe_key, since_current, limit)
+            # we can't expect array to have values, because requested period might have zero bars for valid reason
+            # testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
+            helper_fetch_ohlcv_checker(exchange, skipped_properties, symbol, ohlcvs, chosen_timeframe_key, since_current, limit)
+    return True
+
+
+def helper_fetch_ohlcv_checker(exchange, skipped_properties, symbol, ohlcvs, timeframe, since, limit):
+    method = 'fetchOHLCV'
+    log_text = test_shared_methods.log_template(exchange, method, {})
+    assert isinstance(ohlcvs, list), exchange.id + ' ' + method + ' must return an array, returned ' + log_text
     now = exchange.milliseconds()
     for i in range(0, len(ohlcvs)):
         test_ohlcv(exchange, skipped_properties, method, ohlcvs[i], symbol, now)
-    # todo: sorted timestamps check
-    return True
+    duration_ms = exchange.parse_timeframe(timeframe) * 1000
+    bars_length = len(ohlcvs)
+    # check bars amounts, to be between 0 and limit
+    # less then limit
+    if limit is not None:
+        assert bars_length <= limit, 'Returned bars amount (' + str(bars_length) + ') is more than requested (' + str(limit) + ')' + log_text + '' + exchange.json(ohlcvs)
+    # ensure bars amount is more than zero
+    if bars_length == 0:
+        # zero-amount of bars should not be tolerated for major exchanges, because it would indicate implementation issue
+        # so unless the target exchange (probably mostly lower end exchanges) is skipped, we should assert that
+        if not ('compareAmountToZero' in skipped_properties):
+            assert bars_length > 0, 'Returned bars amount should be more then zero' + log_text
+        # exchange was skipped for zero-bars, then just return and don't do any further check, because there were no ohlcv entries
+        return
+    # else we continue and check timestamps
+    for i in range(0, bars_length):
+        ohlcv = ohlcvs[i]
+        bar_ts = ohlcv[0]
+        # if this is the first bar, then ensure its timestamp is not earlier than requested "since"
+        if not ('compareTimestampToSince' in skipped_properties):
+            if i == 0 and since is not None:
+                assert bar_ts >= since, 'Returned bars earliest timestamp (' + str(bar_ts) + ') is before than requested since (' + str(since) + ')' + log_text
+        # if this is the last bar, then check if it's <= now
+        if i == bars_length - 1:
+            if not ('compareToNow' in skipped_properties):
+                assert bar_ts <= now, 'Returned bars latest timestamp (' + str(bar_ts) + ') is after than current timestamp (' + str(now) + ')' + log_text
+            # and ensure the last bar's timestamp does not exceed the requested "since + limit * duration" upper bound
+            if not ('compareTimestampToLimit' in skipped_properties):
+                if since is not None and limit is not None:
+                    max_expected_ts = since + (limit * duration_ms)
+                    assert bar_ts <= max_expected_ts, 'Returned bars latest timestamp (' + str(bar_ts) + ') is after than requested since + limit * duration (' + str(max_expected_ts) + ')' + log_text
+        # we compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
+        if not ('compareDuration' in skipped_properties):
+            if i > 0:
+                previous_bar_ts = ohlcvs[i - 1][0]
+                diff_between_current_and_previous = bar_ts - previous_bar_ts
+                assert diff_between_current_and_previous > 0, 'Difference between current bar timestamp (' + str(bar_ts) + ') and previous bar timestamp (' + str(previous_bar_ts) + ') should be positive' + log_text
+                # ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
+                is_round_number = exchange.is_round_number(diff_between_current_and_previous / duration_ms)
+                assert is_round_number, 'Difference between current bar timestamp (' + str(bar_ts) + ') and previous bar timestamp (' + str(previous_bar_ts) + ') is not multiplier of duration (' + str(duration_ms) + ')' + log_text
