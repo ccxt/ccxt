@@ -63,39 +63,56 @@ async function pickLowVolume (ex, reference) {
 }
 
 // does the exchange serve data at time t?  fetcher (t) returns rows with timestamps (ms)
+// errors are retried with backoff; persistent errors are reported, never counted as "no data"
+class ProbeError extends Error {}
+const sleep = (ms) => new Promise ((res) => setTimeout (res, ms));
+
 async function servesAt (fetcher, t, window) {
-    try {
-        const rows = await fetcher (t);
-        if (!rows || rows.length === 0) {
-            return false;
+    let rows;
+    for (const backoff of [ 0, 3000, 10000, 30000 ]) {
+        await sleep (backoff);
+        try {
+            rows = await fetcher (t);
+            break;
+        } catch (e) {
+            if (e instanceof ccxt.BadRequest || e instanceof ccxt.BadSymbol || e instanceof ccxt.NotSupported) {
+                return false;     // the exchange rejected this `since`: treat as not served
+            }
+            rows = new ProbeError (String (e.message).slice (0, 160));
         }
-        const first = Math.min (...rows.map ((r) => r.ts));
-        return first >= t - window && first <= t + window;
-    } catch (e) {
+    }
+    if (rows instanceof ProbeError) {
+        throw rows;
+    }
+    if (!rows || rows.length === 0) {
         return false;
     }
+    const first = Math.min (...rows.map ((r) => r.ts));
+    return first >= t - window && first <= t + window;
 }
 
 async function earliest (fetcher, window) {
-    // newest probe first: if nothing is served a week ago, the type is effectively live-only
-    if (!(await servesAt (fetcher, NOW - 7 * DAY, window))) {
-        return { earliest: undefined, note: 'nothing at now-7d (since ignored, or no history)' };
-    }
-    let lo = EPOCH, hi = NOW - 7 * DAY;     // invariant: serves at hi
-    if (await servesAt (fetcher, lo, window)) {
-        return { earliest: lo, note: 'serves at 2010-01-01 (lower bound of probe)' };
-    }
-    let calls = 2;
-    while (hi - lo > DAY) {
-        const mid = lo + Math.floor ((hi - lo) / 2);
-        if (await servesAt (fetcher, mid, window)) {
-            hi = mid;
-        } else {
-            lo = mid;
+    try {
+        // newest probe first: if nothing is served a week ago, the type is effectively live-only
+        if (!(await servesAt (fetcher, NOW - 7 * DAY, window))) {
+            return { earliest: undefined, note: 'nothing at now-7d (since ignored, or no history)' };
         }
-        calls += 1;
+        let lo = EPOCH, hi = NOW - 7 * DAY;     // invariant: serves at hi
+        if (await servesAt (fetcher, lo, window)) {
+            return { earliest: lo, note: 'serves at 2010-01-01 (lower bound of probe)' };
+        }
+        while (hi - lo > DAY) {
+            const mid = lo + Math.floor ((hi - lo) / 2);
+            if (await servesAt (fetcher, mid, window)) {
+                hi = mid;
+            } else {
+                lo = mid;
+            }
+        }
+        return { earliest: hi };
+    } catch (e) {
+        return { earliest: undefined, error: e.message, note: 'probe error after retries' };
     }
-    return { earliest: hi, calls };
 }
 
 const iso = (t) => (t === undefined ? null : new Date (t).toISOString ().slice (0, 10));
@@ -137,24 +154,24 @@ async function probeExchange (id) {
                     continue;
                 }
                 const r = await earliest (async (t) => (await ex.fetchOHLCV (symbol, tf, t, 5)).map ((c) => ({ ts: c[0] })), window);
-                h['ohlcv_' + tf] = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note };
+                h['ohlcv_' + tf] = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note, error: r.error };
             }
         }
         if (ex.has['fetchTrades']) {
             const r = await earliest (async (t) => (await ex.fetchTrades (symbol, t, 5)).map ((x) => ({ ts: x.timestamp })), 2 * DAY);
-            h.trades = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note };
+            h.trades = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note, error: r.error };
         }
         if (kind === 'perp' && ex.has['fetchFundingRateHistory']) {
             const r = await earliest (async (t) => (await ex.fetchFundingRateHistory (symbol, t, 5)).map ((x) => ({ ts: x.timestamp })), 3 * DAY);
-            h.funding = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note };
+            h.funding = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note, error: r.error };
         }
         if (kind === 'perp' && ex.has['fetchOpenInterestHistory']) {
             const r = await earliest (async (t) => (await ex.fetchOpenInterestHistory (symbol, '1h', t, 5)).map ((x) => ({ ts: x.timestamp })), 7 * DAY);
-            h.openInterest_1h = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note };
+            h.openInterest_1h = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note, error: r.error };
         }
         if (kind === 'perp' && ex.has['fetchMarkOHLCV']) {
             const r = await earliest (async (t) => (await ex.fetchMarkOHLCV (symbol, '1h', t, 5)).map ((c) => ({ ts: c[0] })), 7 * DAY);
-            h.markOhlcv_1h = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note };
+            h.markOhlcv_1h = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note, error: r.error };
         }
         out.history[label] = h;
         if (ex.has['fetchOrderBook']) {
@@ -175,7 +192,7 @@ async function probeExchange (id) {
 }
 
 const results = await Promise.all (wanted.map ((id) => probeExchange (id).catch ((e) => ({ exchange: id, errors: [ String (e.message).slice (0, 200) ] }))));
-const file = new URL ('./measurements/history-depth.json', import.meta.url);
+const file = new URL ('./measurements/' + (process.argv[3] ?? 'history-depth.json'), import.meta.url);
 fs.mkdirSync (new URL ('./measurements/', import.meta.url), { recursive: true });
 fs.writeFileSync (file, JSON.stringify ({ probedAt: new Date (NOW).toISOString (), results }, null, 2));
 for (const r of results) {
