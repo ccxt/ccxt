@@ -219,6 +219,59 @@ Typical uses:
 - **Coverage is explicit.** `ccxt.data.coverage ()` lists ranges, gaps and tiers per symbol, and every report states which tier and which gaps it ran on.
 - **Rights follow the source.** Data a user recorded, fetched or licensed is theirs to use locally. Anything ccxt serves (workstream F) carries that source's licence terms into the tooling, e.g. no export of vendor data where the vendor forbids it.
 
+### 5.6 How far back exchanges let you go (probed 2026-11-15)
+
+**Method.** `research_notes/Trading simulation design research/probe-history-depth.mjs` calls ccxt's unified methods with default params on BTC spot and BTC perpetual markets. For each data type it binary-searches, to 1-day resolution, the earliest date `t` for which `fetchX(symbol, since = t, limit = 5)` returns rows starting near `t`. An exchange that ignores `since` therefore shows up as "recent only", which is what a backfill through ccxt can actually rely on. Raw output: `research_notes/…/measurements/history-depth.json`.
+
+Caveats:
+- It measures **ccxt's unified call with default params**. Some exchanges have extra history endpoints reachable through `params`, or through ccxt's pagination, that this probe doesn't try.
+- One symbol per market, one run.
+- **Binance answered 451 and Bybit 403** from the probe's region (US cloud), so neither was probed via REST. Binance is covered by its bulk files instead (below). Both should be re-probed from an allowed region.
+- "Recent only" means nothing was served for a date 7 days back: either `since` is ignored, or retention is under a week.
+
+**REST history via ccxt, BTC markets:**
+
+| Exchange | Spot 1d | Spot 1h | Spot 1m | Perp 1d / 1h / 1m | Trades (`since`) | Funding history | OI history (1h) | Order book levels |
+|---|---|---|---|---|---|---|---|---|
+| OKX | 2018-01 | 2018-01 | 2018-01 | 2019-12 / 2019-12 / 2019-12 | recent only | ~3 months | ~1 month | 10,000 |
+| Bitget | 2018-07 | 2018-07 | 2018-07 | 2019-07 / 2019-07 / 2019-07 | recent only | `since` not honoured | — | 300 / 200 |
+| KuCoin | 2017-10 | 2017-10 | 2017-10 | 2020-03 / 2024-08 / 2024-12 | recent only | ~1 month | ~1 week | 200 |
+| HTX | 2017-10 | 2017-10 | 2017-10 | ~1 month / ~1 week / recent only | recent only | `since` not honoured | ~1 week | 300 |
+| Deribit | 2023-12 (pair listed then) | 2023-12 | 2023-12 | 2018-08 / 2018-08 / 2018-08 | recent only | **2019-04** | — | 86 / 1,690 |
+| MEXC | 2017-10 | 2018-06 | ~1 month | 2020-05 / 2020-05 / ~1 month | recent only | `since` not honoured | — | 4,000 / 3,000 |
+| Gate | 2013-03 | ~14 months | recent only | 2019-11 / ~14 months / recent only | recent only | `since` not honoured | ~6 months | 2,000 / 600 |
+| Kraken futures | — | — | — | 2022-03 / 2022-03 / 2022-03 | **2022-03** | ~1 year | — | 2,834 |
+| Bitfinex | 2019-02 | 2019-03 | recent only | not served | **2019-03** | `since` not honoured | — | 200 |
+| Coinbase | 2021-04 | 2021-05 | recent only | not served | recent only | — | — | 1,745 |
+| Kraken | ~2 years (last 720 candles) | last 720 only | last 720 only | — | **2019-12** (full history by `since`) | — | — | 200 |
+| Hyperliquid | 2025-01 | ~7 months (last 5,000 candles) | recent only | 2020-07* / ~7 months / recent only | recent only | **2023-05** | — | 40 |
+
+\* Hyperliquid's perpetuals launched in 2023, so the 2020-07 perp 1d result is probably a probe artefact (rows returned before listing). Treat it as "from listing".
+
+**Binance bulk files (`data.binance.vision`), checked directly:**
+
+| Dataset | Available from |
+|---|---|
+| Spot candles, trades, aggTrades | 2017-08 |
+| USD-M trades | 2019-12 or earlier |
+| USD-M candles, mark/premium-index candles, funding | 2020-01 |
+| USD-M open interest + long/short metrics | 2020-09 |
+| COIN-M candles | 2020-08 or earlier |
+| USD-M depth bands (aggregated, 30 s) | 2023-01-01 to now |
+| USD-M best bid/ask | stops after 2024-03-30 |
+
+**Findings:**
+- **Candles are the deep tier.** Most large venues serve 1d and 1m candles back to 2017–2019 through ccxt. The exceptions cap by candle count, not by date: Kraken (720), Gate (~10,000), Hyperliquid (5,000), and MEXC and Coinbase for 1m. For those, history has to be **recorded forward** or taken from bulk files or vendors.
+- **Trades by `since` are mostly not backfillable over REST.** Only Kraken, Bitfinex and Kraken futures honour `since` back years. Everywhere else ccxt returns recent trades only. That makes Binance's bulk files and vendors (Tardis) the realistic source of historical trades.
+- **Funding history is short or unpaginated on most venues:** OKX ~3 months, KuCoin ~1 month, Kraken futures ~1 year. Deribit (2019) and Hyperliquid (2023) are the exceptions. Funding should be **recorded daily from now on**, because what venues serve today won't be available later.
+- **Open-interest history is days to months deep.** Record it forward too.
+- **Order-book depth per request varies 250×,** from 40 levels (Hyperliquid) to 10,000 (OKX). A periodic REST snapshot is only "full depth" on some venues. Elsewhere the recorder must build the book from WebSocket diffs.
+
+**Consequences for the design:**
+1. **`features` should carry a history hint per data type**, e.g. `fetchOHLCV: { historyStart: { '1m': '2018-01-11' }, maxCandlesBack: 720 }`, and `fetchTrades: { sinceSupported: false }`. The probe produces exactly these values, so it can run in CI to keep them current.
+2. **`ccxt data backfill` picks the source per data type:** bulk files first (Binance), then REST where `since` works, then the vendor key if configured. Whatever is still missing is reported as a gap to be recorded forward.
+3. **Start recording now** for data types where venues keep only a short window: funding, open interest, trades on most venues, 1m candles on count-capped venues, and all order books.
+
 ## 6. Using Tardis.dev
 
 Tardis stores the **raw WebSocket messages each exchange sent**, each stamped with a local receive time. That is exactly what ccxt.pro parses live, which gives CCXT three ways to use a Tardis subscription:
