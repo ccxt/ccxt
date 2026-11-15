@@ -592,8 +592,8 @@ export default class lighter extends lighterRest {
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            // the exchange resends already-seen trades on every push, so
-            // dedupe by trade id instead of blindly appending each batch
+            // keyed by trade id so a trade resent by the exchange (e.g. in the
+            // subscribed/trade snapshot after a resubscribe) is not stored twice
             stored = new ArrayCacheBySymbolById (limit);
             this.trades[symbol] = stored;
         }
@@ -628,7 +628,11 @@ export default class lighter extends lighterRest {
         };
         const messageHash = this.getMessageHash ('trade', this.safeString (market, 'symbol'));
         const trades = await this.subscribePublic (messageHash, this.extend (request, params));
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = trades.getLimit (this.safeString (market, 'symbol'), limit);
+        }
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
