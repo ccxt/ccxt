@@ -288,6 +288,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
 
     public void handleTradesInner(Client client, Map<String, Object> message)
     {
+        // elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String symbol = this.safeString(this.options.get("watchTrades"), "symbol");
         if (java.util.Objects.equals(symbol, null))
@@ -305,8 +306,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
             Long index = ((((long) dataLength) - 1L) - ((long) i));
-            Object rawTrade = (data == null || index == null || index.intValue() < 0 || index.intValue() >= data.size() ? null : data.get(index.intValue()));
-            Object parsed = this.parseWsOldTrade(rawTrade, market);
+            Object parsed = this.parseWsOldTrade((data == null || index == null || index.intValue() < 0 || index.intValue() >= data.size() ? null : data.get(index.intValue())), market);
             stored.append(parsed);
         }
         String messageHash = "trades";
