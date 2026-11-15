@@ -1,5 +1,6 @@
 // Probes how far back each exchange serves public history through ccxt's unified API,
-// and which historical data types it exposes.
+// and which historical data types it exposes, for BTC, ETH and one low-volume market of
+// each type (spot and perpetual).
 //
 // Usage:  node probe-history-depth.mjs [exchange,exchange,...]   (run from the ccxt repo, after npm ci)
 //
@@ -17,8 +18,6 @@ const EPOCH = Date.UTC (2010, 0, 1);
 const NOW = Date.now ();
 const wanted = (process.argv[2] ?? 'binance,binanceusdm,okx,bybit,coinbase,kraken,krakenfutures,gate,bitget,kucoin,kucoinfutures,htx,mexc,bitfinex,deribit,hyperliquid').split (',');
 
-const SPOT = [ 'BTC/USDT', 'BTC/USD', 'BTC/USDC' ];
-const PERP = [ 'BTC/USDT:USDT', 'BTC/USD:USD', 'BTC/USD:BTC', 'BTC/USDC:USDC' ];
 
 function pick (ex, candidates, type) {
     for (const s of candidates) {
@@ -28,6 +27,39 @@ function pick (ex, candidates, type) {
         }
     }
     return undefined;
+}
+
+const QUOTES = [ 'USDT', 'USD', 'USDC' ];
+
+function candidates (base, type) {
+    if (type === 'spot') {
+        return QUOTES.map ((q) => base + '/' + q);
+    }
+    return [ base + '/USDT:USDT', base + '/USD:USD', base + '/USD:' + base, base + '/USDC:USDC' ];
+}
+
+// a quiet but still trading market of the same type and quote as the reference market:
+// about the 80th percentile of 24h quote volume, so ~20% of markets are quieter
+async function pickLowVolume (ex, reference) {
+    const ref = ex.markets[reference];
+    const pool = Object.values (ex.markets).filter ((m) => m.active !== false && m.type === ref.type && m.quote === ref.quote && m.settle === ref.settle && [ 'BTC', 'ETH' ].indexOf (m.base) === -1);
+    if (pool.length === 0) {
+        return undefined;
+    }
+    let ranked;
+    try {
+        const tickers = await ex.fetchTickers (undefined, { 'type': ref.type, 'subType': ref.subType });
+        ranked = pool.map ((m) => ({ symbol: m.symbol, vol: tickers[m.symbol]?.quoteVolume ?? (tickers[m.symbol]?.baseVolume ?? 0) * (tickers[m.symbol]?.last ?? 0) }))
+            .filter ((x) => x.vol > 0).sort ((a, b) => b.vol - a.vol);
+    } catch (e) {
+        ranked = [];
+    }
+    if (ranked.length === 0) {
+        const sorted = pool.map ((m) => m.symbol).sort ();
+        return { symbol: sorted[Math.floor (sorted.length / 2)], rank: 'unknown (no tickers)' };
+    }
+    const i = Math.floor (ranked.length * 0.8);
+    return { symbol: ranked[i].symbol, rank: `${i + 1} of ${ranked.length}`, quoteVolume24h: Math.round (ranked[i].vol) };
 }
 
 // does the exchange serve data at time t?  fetcher (t) returns rows with timestamps (ms)
@@ -82,13 +114,22 @@ async function probeExchange (id) {
         out.has[k] = ex.has[k] ?? false;
     }
     out.ohlcvTimeframes = ex.timeframes ? Object.keys (ex.timeframes) : [];
-    const spot = pick (ex, SPOT, 'spot');
-    const perp = pick (ex, PERP, 'swap');
-    out.symbols = { spot, perp };
     const targets = [];
-    if (spot) targets.push ([ 'spot', spot ]);
-    if (perp) targets.push ([ 'perp', perp ]);
-    for (const [ kind, symbol ] of targets) {
+    for (const [ kind, type ] of [ [ 'spot', 'spot' ], [ 'perp', 'swap' ] ]) {
+        const btc = pick (ex, candidates ('BTC', type), type);
+        const eth = pick (ex, candidates ('ETH', type), type);
+        if (btc) targets.push ([ kind + ':BTC', btc ]);
+        if (eth) targets.push ([ kind + ':ETH', eth ]);
+        const low = btc ? await pickLowVolume (ex, btc) : undefined;
+        if (low) {
+            targets.push ([ kind + ':low', low.symbol ]);
+            out.lowVolume = out.lowVolume ?? {};
+            out.lowVolume[kind] = low;
+        }
+    }
+    out.symbols = Object.fromEntries (targets);
+    for (const [ label, symbol ] of targets) {
+        const kind = label.split (':')[0];
         const h = {};
         if (ex.has['fetchOHLCV']) {
             for (const [ tf, window ] of [ [ '1d', 31 * DAY ], [ '1h', 7 * DAY ], [ '1m', 1 * DAY ] ]) {
@@ -115,7 +156,7 @@ async function probeExchange (id) {
             const r = await earliest (async (t) => (await ex.fetchMarkOHLCV (symbol, '1h', t, 5)).map ((c) => ({ ts: c[0] })), 7 * DAY);
             h.markOhlcv_1h = { earliest: iso (r.earliest), yearsBack: yearsBack (r.earliest), note: r.note };
         }
-        out.history[kind] = h;
+        out.history[label] = h;
         if (ex.has['fetchOrderBook']) {
             let levels;
             for (const limit of [ 5000, 1000, 500, 400, 200, 100, 50, undefined ]) {
@@ -127,7 +168,7 @@ async function probeExchange (id) {
                     // try a smaller limit
                 }
             }
-            out.orderBookLevels[kind] = levels;
+            out.orderBookLevels[label] = levels;
         }
     }
     return out;
