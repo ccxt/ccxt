@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class kucoin extends kucoinRest {
     describe(): Dict;
-    negotiate(privateChannel: boolean, isFuturesMethod?: boolean, params?: Dict): Promise<any>;
+    negotiate(privateChannel: boolean, isFuturesMethod?: boolean, params?: Dict): Promise<string>;
     negotiateHelper(privateChannel: any, connectId: string, params?: Dict): Promise<Str>;
     requestId(): int;
     subscribe(url: string, messageHash: string, subscriptionHash: string, params?: Dict, subscription?: NullableDict): Promise<any>;
