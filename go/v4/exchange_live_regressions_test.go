@@ -2,6 +2,7 @@ package ccxt
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"strings"
 	"testing"
@@ -17,8 +18,18 @@ func TestIsRoundNumberOfTimestampQuotient(t *testing.T) {
 			t.Errorf("IsRoundNumber(Divide(%T %v, int64 60000)) = false", diff, diff)
 		}
 	}
+	for _, v := range []any{int64(1), float64(1.0), float64(3), int64(-2), float64(-4.0), int64(0)} {
+		if !ex.IsRoundNumber(v) {
+			t.Errorf("IsRoundNumber(%T %v) = false", v, v)
+		}
+	}
 	if ex.IsRoundNumber(Divide(int64(90000), int64(60000))) {
 		t.Errorf("IsRoundNumber(1.5) = true")
+	}
+	for _, v := range []any{float64(1.5), float64(-2.25), math.NaN()} {
+		if ex.IsRoundNumber(v) {
+			t.Errorf("IsRoundNumber(%T %v) = true", v, v)
+		}
 	}
 }
 
@@ -55,5 +66,60 @@ func TestOrderBookSideSingleOwnerFuzz(t *testing.T) {
 			}
 			ob.Reset(map[string]any{"asks": rows, "bids": rows})
 		}
+	}
+}
+
+// bingx/hyperliquid/kucoin/derive: fetchMarkets over typed sub-fetches must not read as empty
+func typedMarketsTask(symbol string) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
+	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList([]any{map[string]any{
+		"id": symbol, "symbol": symbol, "base": "BTC", "quote": "USDT", "type": "spot", "spot": true,
+	}})}
+	close(ch)
+	return ch
+}
+
+// bingx/hyperliquid/kucoin shape: promiseAll over typed `<-chan AsyncResult[[]MarketInterface]`
+// cores, then SafeListTypedDefault / SafeList + ArrayConcat over the result list.
+func TestPromiseAllTypedMarketListsConcat(t *testing.T) {
+	e := &BaseExchange{}
+	r := <-promiseAll([]any{typedMarketsTask("BTC/USDT"), typedMarketsTask("ETH/USDT")})
+	if r.Err != nil {
+		t.Fatal(r.Err)
+	}
+	promises := ListTyped(r.Value)
+	first := SafeListTypedDefault(promises, 0, []any{})    // bingx form
+	second := ArrayTyped(e.SafeList(promises, 1, []any{})) // hyperliquid / kucoin form
+	all := e.ArrayConcat(first, second)
+	if len(all) != 2 {
+		t.Fatalf("typed sub-fetch results dropped by promiseAll consumers: got %d markets (elem %T), want 2", len(all), promises[0])
+	}
+	if s := e.SafeString(all[0], "symbol"); s == nil || *s != "BTC/USDT" {
+		t.Fatalf("market row not readable as a dict: %#v", all[0])
+	}
+}
+
+// derive shape: getMarketsPaginated (TS Promise<Dict[]>, raw instruments) must not be
+// retyped to []MarketInterface, which drops every raw key before ParseMarkets runs.
+func TestDeriveLoadMarketsFromMockedResponse(t *testing.T) {
+	ex := NewDerive(map[string]any{})
+	ex.SetFetchResponse(map[string]any{
+		"id": "x",
+		"result": map[string]any{
+			"instruments": []any{map[string]any{
+				"instrument_type": "perp", "instrument_name": "ZEC-PERP", "is_active": true,
+				"tick_size": "0.01", "minimum_amount": "1", "maximum_amount": "100000", "amount_step": "0.01",
+				"maker_fee_rate": "0.0001", "taker_fee_rate": "0.0003", "base_currency": "ZEC", "quote_currency": "USDC",
+				"scheduled_activation": 1780572941, "scheduled_deactivation": 9223372036854775807,
+				"perp_details": map[string]any{"index": "ZEC-USD"},
+			}},
+			"pagination": map[string]any{"num_pages": 1, "count": 1},
+		},
+	})
+	if _, err := ex.LoadMarkets(); err != nil {
+		t.Fatal(err)
+	}
+	if len(ex.GetSymbols()) == 0 {
+		t.Fatalf("derive LoadMarkets produced no symbols")
 	}
 }
