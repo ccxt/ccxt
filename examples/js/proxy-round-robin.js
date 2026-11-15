@@ -21,9 +21,6 @@ let loadExchange = async (exchange) => {
 let tryAllProxies = async function (exchange, proxies) {
     let currentProxy = 0;
     let maxRetries = proxies.length;
-    // a special case for ccex
-    if (exchange.id == 'ccex')
-        currentProxy = 1;
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
         try {
             exchange.proxy = proxies[currentProxy];
