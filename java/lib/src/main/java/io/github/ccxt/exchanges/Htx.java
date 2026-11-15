@@ -9678,7 +9678,7 @@ public class Htx extends HtxApi
             {
                 request.put("contract_code", market.get("id"));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 List<Object> marginModeAndParams = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");

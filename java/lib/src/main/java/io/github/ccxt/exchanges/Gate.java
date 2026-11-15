@@ -7878,7 +7878,7 @@ public class Gate extends GateApi
             {
                 ((Map<String, Object>)request).put("leverage", stringifiedMargin);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 response = (this.privateFuturesPostSettlePositionsContractLeverage(this.extend(request, query))).join();

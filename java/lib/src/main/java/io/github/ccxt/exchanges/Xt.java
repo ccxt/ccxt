@@ -5442,7 +5442,7 @@ public class Xt extends XtApi
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setLeverage", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.privateInversePostFutureUserV1PositionAdjustLeverage(this.extend(request, paramsSubType))).join();
@@ -6828,7 +6828,7 @@ public class Xt extends XtApi
             Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setMarginMode", market, paramsOmitted, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.privateInversePostFutureUserV1PositionChangeType(this.extend(request, paramsSubType))).join();

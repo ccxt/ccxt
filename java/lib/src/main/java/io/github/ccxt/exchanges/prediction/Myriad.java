@@ -530,7 +530,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object result = null;
+            Map<String, Object> result = null;
             try
             {
                 result = (this.myriadPublicGetQuestionsId(this.extend(request, parameters))).join();
@@ -563,7 +563,7 @@ public class Myriad extends MyriadApi
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return result;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

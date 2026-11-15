@@ -5606,7 +5606,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             String marketSettle = this.safeString(market, "settle");
             if (java.util.Objects.equals(marketSettle, "USDT") || java.util.Objects.equals(marketSettle, "USDC"))
             {

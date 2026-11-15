@@ -3755,7 +3755,7 @@ public class Polymarket extends PolymarketApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object creds = null;
+            Map<String, Object> creds = null;
             try
             {
                 creds = (this.deriveApiKey(parameters)).join();
@@ -3768,7 +3768,7 @@ public class Polymarket extends PolymarketApi
                 throw new ExchangeError((this.id + " createOrDeriveApiKey() returned no credentials")) ;
             }
             return creds;
-        }).thenApply(res -> (Map<String, Object>) res);
+        });
 
     }
 

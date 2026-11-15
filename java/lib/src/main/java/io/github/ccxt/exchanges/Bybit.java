@@ -8944,7 +8944,7 @@ public class Bybit extends BybitApi
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
             Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
             Map<String, Object> market = null;
-            Object response = null;
+            Map<String, Object> response = null;
             Map<String, Object> marginModes = new HashMap<String, Object>() {{
                 put( "isolated", "ISOLATED_MARGIN" );
                 put( "cross", "REGULAR_MARGIN" );

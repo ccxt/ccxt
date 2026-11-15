@@ -15343,7 +15343,7 @@ public class Binance extends BinanceApi
             Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "setLeverage", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
-            Object response = null;
+            Map<String, Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 if (Boolean.TRUE.equals(isPortfolioMargin))
@@ -15419,7 +15419,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("symbol", market.get("id"));
             request.put("marginType", marginModeValue);
-            Object response = null;
+            Map<String, Object> response = null;
             try
             {
                 if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
@@ -15510,7 +15510,7 @@ public class Binance extends BinanceApi
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("dualSidePosition", dualSidePosition);
-            Object response = null;
+            Map<String, Object> response = null;
             if (this.isInverse(type, subType))
             {
                 if (Boolean.TRUE.equals(isPortfolioMargin))
