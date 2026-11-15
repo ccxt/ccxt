@@ -107,10 +107,14 @@ test ('search_markets caps a page at 100 rows and pages the rest with offset', a
     assert.equal (first.data.length, 100, 'a limit above the cap is clamped, not rejected');
     assert.equal (first.meta.returned, 100);
     assert.equal (first.meta.available, 150);
-    assert.ok (first.meta.notice.includes ('offset'));
-    const second = await call (client, 'search_markets', { 'exchange': 'fakex', 'limit': 150, 'offset': 100 });
+    assert.deepEqual (first.meta.limitClamped, { 'requested': 150, 'applied': 100 });
+    assert.equal (first.meta.hasMore, true);
+    assert.equal (first.meta.nextOffset, 100);
+    assert.equal (first.meta.paginated, undefined, 'a capped page fits one response');
+    const second = await call (client, 'search_markets', { 'exchange': 'fakex', 'limit': 100, 'offset': first.meta.nextOffset });
     assert.equal (second.data.length, 50);
-    assert.equal (second.meta.notice ?? null, null, 'no "more matches" notice on the last page');
+    assert.equal (second.meta.hasMore, false);
+    assert.equal (second.meta.notice ?? null, null, 'no clamp or "more matches" notice on the last page');
     assert.deepEqual ([ ...first.data, ...second.data ].map ((market: any) => market.symbol), Object.keys (markets));
     await client.close ();
 });
