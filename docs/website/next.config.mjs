@@ -10,6 +10,11 @@ const config = {
   // Pin the standalone tracing root to website/ so server.js lands at a deterministic
   // path (.next/standalone/server.js) rather than a monorepo-nested one.
   outputFileTracingRoot: import.meta.dirname,
+  // app/sitemap.ts reads content/docs from disk, but it is force-static: that read only
+  // happens while the sitemap is prerendered at build time. Keep the converted docs
+  // (the whole wiki) out of its server trace so they aren't copied into the standalone
+  // image. Drop this if the sitemap ever renders at runtime.
+  outputFileTracingExcludes: { '/sitemap.xml': ['./content/docs/**/*'] },
   reactStrictMode: true,
   // ccxt (used by the health monitor, src/lib/health-monitor.ts) is a large server-only
   // package — load it from node_modules at runtime instead of bundling it. It is still
