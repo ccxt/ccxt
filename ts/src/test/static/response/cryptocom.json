@@ -17,7 +17,7 @@
                     }
                 ],
                 "httpResponseByUrl": {
-                    "instrument_name=BTCUSD-PERP&valuation_type=funding_hist&count=3&end_ts=1792389599000": {
+                    "end_ts=1792389599000": {
                         "id": -1,
                         "method": "public/get-valuations",
                         "code": 0,
@@ -39,7 +39,7 @@
                             "instrument_name": "BTCUSD-PERP"
                         }
                     },
-                    "instrument_name=BTCUSD-PERP&valuation_type=funding_hist&count=3&end_ts=1792378799999": {
+                    "end_ts=1792378799999": {
                         "id": -1,
                         "method": "public/get-valuations",
                         "code": 0,
@@ -56,28 +56,6 @@
                                 {
                                     "v": "0.000005107",
                                     "t": 1792368000000
-                                }
-                            ],
-                            "instrument_name": "BTCUSD-PERP"
-                        }
-                    },
-                    "instrument_name=BTCUSD-PERP&valuation_type=funding_hist&start_ts=1792368000000&count=3&end_ts=1792389599000": {
-                        "id": -1,
-                        "method": "public/get-valuations",
-                        "code": 0,
-                        "result": {
-                            "data": [
-                                {
-                                    "v": "0.000010722",
-                                    "t": 1792386000000
-                                },
-                                {
-                                    "v": "0.000012105",
-                                    "t": 1792382400000
-                                },
-                                {
-                                    "v": "0.000012105",
-                                    "t": 1792378800000
                                 }
                             ],
                             "instrument_name": "BTCUSD-PERP"
