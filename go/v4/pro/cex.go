@@ -292,6 +292,7 @@ func (this *Cex) HandleTrade(client any, message map[string]any) {
 	this.HandleTradesInner(client, message)
 }
 func (this *Cex) HandleTradesInner(client any, message map[string]any) {
+	// elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var symbol *string = this.SafeString(this.Options["watchTrades"], "symbol")
 	if symbol == nil {
@@ -306,8 +307,7 @@ func (this *Cex) HandleTradesInner(client any, message map[string]any) {
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var index any = (int64(dataLength) - 1) - int64(i)
-		var rawTrade any = ccxt.GetValue(data, index)
-		var parsed any = this.ParseWsOldTrade(rawTrade, market)
+		var parsed any = this.ParseWsOldTrade(ccxt.GetValue(data, index), market)
 		stored.Append(parsed)
 	}
 	var messageHash string = "trades"
