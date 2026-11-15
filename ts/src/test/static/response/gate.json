@@ -10,6 +10,142 @@
         }
     },
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "paginate walks back from until over the returned t values; gate answers a from-to range with its newest rows, so fixed 8h windows got only the last day (3 of 6 rows)",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792540799000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "contract=BTC_USDT&limit=3&to=1792540799": [
+                        {
+                            "r": "0.000017",
+                            "t": 1792512000
+                        },
+                        {
+                            "r": "0.000049",
+                            "t": 1792483200
+                        },
+                        {
+                            "r": "0.000063",
+                            "t": 1792454400
+                        }
+                    ],
+                    "contract=BTC_USDT&limit=3&to=1792454399": [
+                        {
+                            "r": "0.000071",
+                            "t": 1792425600
+                        },
+                        {
+                            "r": "-0.000009",
+                            "t": 1792396800
+                        },
+                        {
+                            "r": "0.000018",
+                            "t": 1792368000
+                        }
+                    ],
+                    "contract=BTC_USDT&limit=3&from=1792454399&to=1792540799": [
+                        {
+                            "r": "0.000017",
+                            "t": 1792512000
+                        },
+                        {
+                            "r": "0.000049",
+                            "t": 1792483200
+                        },
+                        {
+                            "r": "0.000063",
+                            "t": 1792454400
+                        }
+                    ],
+                    "contract=BTC_USDT&limit=3&from=1792368000&to=1792540799": [
+                        {
+                            "r": "0.000017",
+                            "t": 1792512000
+                        },
+                        {
+                            "r": "0.000049",
+                            "t": 1792483200
+                        },
+                        {
+                            "r": "0.000063",
+                            "t": 1792454400
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "r": "0.000018",
+                            "t": 1792368000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000018,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "r": "-0.000009",
+                            "t": 1792396800
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": -0.000009,
+                        "timestamp": 1792396800000,
+                        "datetime": "2026-10-19T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "r": "0.000071",
+                            "t": 1792425600
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000071,
+                        "timestamp": 1792425600000,
+                        "datetime": "2026-10-19T16:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "r": "0.000063",
+                            "t": 1792454400
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000063,
+                        "timestamp": 1792454400000,
+                        "datetime": "2026-10-20T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "r": "0.000049",
+                            "t": 1792483200
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000049,
+                        "timestamp": 1792483200000,
+                        "datetime": "2026-10-20T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "r": "0.000017",
+                            "t": 1792512000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.000017,
+                        "timestamp": 1792512000000,
+                        "datetime": "2026-10-20T16:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchSwapMarkets": [
             {
                 "description": "fetchSwapMarkets parses decimal contract size metadata",
