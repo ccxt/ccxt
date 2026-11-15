@@ -35,7 +35,7 @@ exchanges = [
     ccxt.bybit({"options":{"defaultType":"spot"}}),
     ccxt.binance(),
     ccxt.kucoin(),
-    ccxt.bitmart(),
+    ccxt.mexc(),
     ccxt.gate()
 ]
 
