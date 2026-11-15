@@ -82,17 +82,6 @@ function callArgs(masked: string, callStart: number, recv: string): [number, num
 }
 
 
-type NativeGetValueStats = { seqLocals: number, seqReads: number, dictLocals: number, dictReads: number };
-
-
-
-
-// ── self-test ────────────────────────────────────────────────────────────────
-// Each case is a shape the rule must transform (or must leave alone).
-
-type Case = { name: string, src: string, want: string[], gone: string[] };
-
-
 
 // ---- native insert ----
 /**
@@ -964,29 +953,6 @@ function stripOuter (src: string): string {
     return s;
 }
 
-/** Text from the start of the statement holding `pos` up to `pos`. */
-function statementBefore (masked: string, pos: number): string {
-    let depth = 0;
-    for (let i = pos; i > 0; i--) {
-        const c = masked[i - 1];
-        if (c === ')' || c === ']') depth++;
-        else if (c === '(' || c === '[') { if (depth > 0) depth--; }
-        else if (depth === 0 && (c === ';' || c === '{' || c === '}' || c === '\n')) return masked.slice(i, pos);
-    }
-    return masked.slice(0, pos);
-}
-
-function fnRegionOf (masked: string, pos: number): FnRegion {
-    const heads: number[] = [0];
-    for (const m of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) heads.push((m.index as number) + 1);
-    heads.push(masked.length);
-    let lo = 0;
-    for (let h = 0; h + 1 < heads.length; h++) if (heads[h] <= pos) lo = h;
-    const body = masked.slice(heads[lo], heads[lo + 1]);
-    const brace = body.indexOf('{');
-    return { start: heads[lo], end: heads[lo + 1], header: brace < 0 ? body : body.slice(0, brace) };
-}
-
 function rhsAfter (masked: string, from: number): string {
     let depth = 0;
     for (let i = from; i < masked.length; i++) {
@@ -996,44 +962,6 @@ function rhsAfter (masked: string, from: number): string {
         else if (c === ';' && depth === 0) return masked.slice(from, i).trim();
     }
     return '';
-}
-
-/** Drop the balanced expression ending `s` (an operand of `&&` / `||`). */
-function stripTrailingOperand (s: string): string {
-    let depth = 0;
-    for (let i = s.length - 1; i >= 0; i--) {
-        const c = s[i];
-        if (c === ')' || c === ']' || c === '}') depth++;
-        else if (c === '(' || c === '[' || c === '{') {
-            if (depth === 0) return s.slice(0, i);
-            depth--;
-            if (depth === 0 && !/[A-Za-z0-9_.)\]]/.test(s[i - 1] ?? '')) return s.slice(0, i);
-        } else if (depth === 0) {
-            if ((c === '&' && s[i - 1] === '&') || (c === '|' && s[i - 1] === '|')) return s.slice(0, i - 1);
-            if (c === ',' || c === ';' || c === '=') return s.slice(0, i + 1);
-            if (/[A-Za-z0-9_.)]/.test(c)) {
-                let k = i;
-                while (k >= 0 && /[A-Za-z0-9_.]/.test(s[k])) k--;
-                return k < 0 ? s : s.slice(0, k + 1);
-            }
-        }
-    }
-    return '';
-}
-
-/** True when a `bool` is legal at `start` (condition, bool decl, Value::Bool box). */
-function boolSlotAt (masked: string, start: number): boolean {
-    let prefix = statementBefore(masked, start);
-    for (let hop = 0; hop < 60; hop++) {
-        prefix = prefix.replace(/[\s!]+$/, '');
-        if (/(?:^|[^\w])(?:if|while|for|assert|assert_eq)$/.test(prefix)) return true;
-        if (/Value::Bool\($/.test(prefix)) return true;
-        if (/(?:&&|\|\|)$/.test(prefix)) { prefix = stripTrailingOperand(prefix.slice(0, -2)); continue; }
-        if (/[^=!<>]=$/.test(prefix)) return /:\s*bool\s*=?$/.test(prefix.slice(0, -1));
-        if (/\($/.test(prefix)) { prefix = prefix.slice(0, -1); continue; }
-        return false;
-    }
-    return false;
 }
 
 const UNION: Variant[] = ['bool', 'null'];
@@ -1127,95 +1055,6 @@ function proveLocal (masked: string, name: string, region: FnRegion, depth: numb
         if (acc.size === 0) return { kind: 'none' };
     }
     return acc === undefined ? { kind: 'none' } : { kind: 'variant', variants: acc };
-}
-
-const isBoolOnly = (v: VariantSet): boolean => [...v].every((x) => x === 'bool' || x === 'null');
-
-/** `!is_true(&X)` flips the comparison instead of wrapping it. */
-function pushEdit (edits: Array<{ start: number, end: number, text: string }>, masked: string, start: number, close: number, text: string): void {
-    let k = start - 1;
-    while (k >= 0 && (masked[k] === ' ' || masked[k] === '\t')) k--;
-    if (k >= 0 && masked[k] === '!' && masked[k - 1] !== '=') {
-        edits.push({ start: k, end: close + 1, text: text.replace(' == ', ' != ') });
-        return;
-    }
-    edits.push({ start, end: close + 1, text });
-}
-
-function nativeBoolScalars (content: string): string {
-    if (!content.includes('is_true(&') && !content.includes('is_equal(&')) return content;
-    const masked = mask(content);
-    const edits: Array<{ start: number, end: number, text: string }> = [];
-    for (const m of masked.matchAll(/(?<![A-Za-z0-9_:.])(is_true|is_equal)\(&/g)) {
-        const start = m.index as number;
-        const open = start + m[1].length;
-        const close = closeParen(masked, open);
-        if (close < 0) continue;
-        if (!boolSlotAt(masked, start)) continue;
-        const args = splitTopLevel(content.slice(open + 1, close), ',');
-        const region = fnRegionOf(masked, start);
-        const proofOf = (e: string): VariantSet | undefined => {
-            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(e)) return undefined;
-            return proveLocal(masked, e, region, 0).variants;
-        };
-        if (m[1] === 'is_true') {
-            if (args.length !== 1) continue;
-            const operand = stripOuter(args[0].replace(/^&/, ''));
-            const variants = proofOf(operand);
-            if (variants === undefined || !isBoolOnly(variants)) continue;
-            pushEdit(edits, masked, start, close, `${operand}.as_bool() == Some(true)`);
-            continue;
-        }
-        if (args.length !== 2) continue;
-        const a = stripOuter(args[0].replace(/^&/, ''));
-        const b = stripOuter(args[1].replace(/^&/, ''));
-        const lit = (e: string): boolean => e === 'Value::Null' || /^Value::Bool\((?:true|false)\)$/.test(e);
-        if (lit(a) && lit(b)) continue;
-        const va = lit(a) ? new Set<Variant>(UNION) : proofOf(a);
-        const vb = lit(b) ? new Set<Variant>(UNION) : proofOf(b);
-        if (va === undefined || vb === undefined || !isBoolOnly(va) || !isBoolOnly(vb)) continue;
-        const asOption = (e: string): string => {
-            const box = /^Value::Bool\((true|false)\)$/.exec(e);
-            if (box !== null) return `Some(${box[1]})`;
-            return e === 'Value::Null' ? 'None' : `${e}.as_bool()`;
-        };
-        pushEdit(edits, masked, start, close, `${asOption(a)} == ${asOption(b)}`);
-    }
-    if (edits.length === 0) return content;
-    let out = '';
-    let at = 0;
-    for (const e of edits) {
-        if (e.start < at) continue;
-        out += content.slice(at, e.start) + e.text;
-        at = e.end;
-    }
-    return out + content.slice(at);
-}
-
-const BOOL_SCALAR_CASES: Array<[string, string, string]> = [
-    ['box-only local', 'let mut flag: Value = Value::Bool(false);\n        if is_true(&flag) {', 'if flag.as_bool() == Some(true) {'],
-    ['ternary writes', 'let mut flag: Value = Value::Bool(false);\n        flag = (if c { Value::Bool(true) } else { Value::Bool(false) });\n        if is_true(&flag) {', 'if flag.as_bool() == Some(true) {'],
-    ['safe_bool empty default', 'let mut flag: Value = self.safe_bool_k(o, "k", &[]);\n        if is_true(&flag) {', 'if flag.as_bool() == Some(true) {'],
-    ['safe_bool proven default', 'let mut pre: Value = Value::Bool(a != Value::Null);\n        let mut flag: Value = self.safe_bool_k(o, "k", &[pre.clone()]);\n        if is_true(&flag) {', 'if flag.as_bool() == Some(true) {'],
-    ['negated', 'let mut flag: Value = self.safe_bool_k(o, "k", &[]);\n        if !is_true(&flag) {', 'if flag.as_bool() != Some(true) {'],
-    ['is_equal pair', 'let mut a: Value = Value::Bool(true);\n        let mut b: Value = self.safe_bool_k(o, "k", &[]);\n        if is_equal(&a, &b) {', 'if a.as_bool() == b.as_bool() {'],
-    ['value slot keeps helper', 'let mut flag: Value = self.safe_bool_k(o, "k", &[]);\n        m.insert("k".into(), is_true(&flag));', 'is_true(&flag)'],
-    ['mixed write keeps helper', 'let mut flag: Value = Value::Bool(false);\n        flag = get_arg(o, 0, Value::Null);\n        if is_true(&flag) {', 'is_true(&flag)'],
-    ['any default keeps helper', 'let mut flag: Value = self.safe_bool_k(o, "k", &[other]);\n        if is_true(&flag) {', 'is_true(&flag)'],
-];
-
-/** Each case: the native text must appear, and the helper must be gone unless the case keeps it. */
-function nativeBoolScalarsSelfTest (): string[] {
-    const bad: string[] = [];
-    for (const [name, body, want] of BOOL_SCALAR_CASES) {
-        const src = `    pub fn f(&mut self) -> Value {\n        ${body} return Value::Null; }\n    Value::Null\n}\n`;
-        const out = nativeBoolScalars(src);
-        if (!out.includes(want)) bad.push(`${name}: missing ${JSON.stringify(want)}`);
-        const keep = want.startsWith('is_true') || want.startsWith('is_equal');
-        if (keep && out !== src) bad.push(`${name}: must stay unchanged`);
-        if (!keep && (out.includes('is_true(&') || out.includes('is_equal(&'))) bad.push(`${name}: helper left`);
-    }
-    return bad;
 }
 
 // ---- Arr-only vec push ----
@@ -2304,7 +2143,7 @@ function rustTypedLocalsSelfTest(): string[] {
 
 // ---- bool-proven callee is_true ----
 // When every return of every same-file declaration of a `-> Value` method is `Value::Bool`, a bool `safe_bool*`, a
-// proven bool local or `Value::Null`, `is_true(&call)` reduces to `.as_bool() == Some(true)`. Runs after nativeBoolScalars.
+// proven bool local or `Value::Null`, `is_true(&call)` reduces to `.as_bool() == Some(true)`.
 
 interface BoolCalleeRegion { start: number, end: number, name: string, ret: string, body: string }
 
@@ -3243,39 +3082,6 @@ type VSet = Set<string>;
 type Local = { set?: VSet, ty: string, elems?: string };
 
 const SCALAR: VSet = new Set([ 'str', 'int', 'float', 'bool', 'null' ]);
-const NATIVE_TY = new Set([ 'String', 'Vec<String>', 'i64', 'f64', 'bool', 'usize', 'u32', 'isize' ]);
-
-/** Blank string literals and comments, same length as the input. */
-function stringNativesMaskText(src: string): string {
-    const out = src.split('');
-    let i = 0;
-    while (i < src.length) {
-        const c = src[i];
-        if (c === '/' && src[i + 1] === '/') {
-            while (i < src.length && src[i] !== '\n') out[i++] = ' ';
-            continue;
-        }
-        if (c === '/' && src[i + 1] === '*') {
-            while (i < src.length && !(src[i] === '*' && src[i + 1] === '/')) {
-                if (src[i] !== '\n') out[i] = ' ';
-                i++;
-            }
-            if (i < src.length) { out[i] = ' '; out[i + 1] = ' '; i += 2; }
-            continue;
-        }
-        if (c === '"') {
-            out[i++] = ' ';
-            while (i < src.length && src[i] !== '"') {
-                if (src[i] === '\\') out[i++] = ' ';
-                if (i < src.length) { if (src[i] !== '\n') out[i] = ' '; i++; }
-            }
-            if (i < src.length) out[i++] = ' ';
-            continue;
-        }
-        i++;
-    }
-    return out.join('');
-}
 
 /** Index just past the delimiter matching the one at `open`, or -1. */
 function stringNativesCloseParen(masked: string, open: number): number {
@@ -3305,30 +3111,6 @@ function stringNativesSplitArgs(masked: string, from: number, to: number): strin
     return args;
 }
 
-/** Index of the `;` closing the statement at `from`, or -1. */
-function stringNativesStmtEnd(masked: string, from: number): number {
-    let depth = 0;
-    for (let k = from; k < masked.length; k++) {
-        const c = masked[k];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') { depth--; if (depth < 0) return -1; }
-        else if (c === ';' && depth === 0) return k;
-    }
-    return -1;
-}
-
-const STRING_NATIVES_FN_HEAD = /(?:^|\n)[ \t]*(?:pub(?:\([a-z]+\))? )?(?:async )?fn /g;
-
-/** `[start, end)` of the fn body holding `pos`. */
-function fnBounds(masked: string, pos: number): [number, number] {
-    let start = 0;
-    for (const m of masked.matchAll(STRING_NATIVES_FN_HEAD)) {
-        const at = m.index as number;
-        if (at <= pos) start = at + 1; else return [start, at + 1];
-    }
-    return [ start, masked.length ];
-}
-
 /** `&Value::Str("lit".into())` -> `"lit"`, else undefined. */
 function strBox(arg: string): string | undefined {
     const m = /^&\s*Value::Str\(\s*("(?:[^"\\]|\\.)*")\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(arg.trim());
@@ -3339,42 +3121,6 @@ function strBox(arg: string): string | undefined {
 function intBox(arg: string): string | undefined {
     const m = /^&\s*Value::Int\(\s*(-?\d+)\s*\)$/.exec(arg.trim());
     return m === null ? undefined : m[1];
-}
-
-/** `'str'` when every element the expression can hold is a `Value::Str`, else undefined. */
-function elemKind(expr: string, locals: Map<string, Local>, depth = 0): string | undefined {
-    const e = expr.trim().replace(/;$/, '').trim();
-    const vec = /^(?:Value::(?:Array|List|from)|vec!)\(?(vec!)?\[/.exec(e) ?? /^vec!\[/.exec(e);
-    if (vec !== null) {
-        const open = e.indexOf('[');
-        const close = stringNativesCloseParen(e, open);
-        if (close < 0 || !/^\)*$/.test(e.slice(close))) return undefined;
-        const items = stringNativesSplitArgs(e, open + 1, close - 1);
-        if (items === undefined) return undefined;
-        for (const it of items) {
-            if (it.trim() === '') continue;
-            if (!/^\s*Value::Str\(/.test(it)) return undefined;
-        }
-        return 'str';
-    }
-    const arr = /^Value::(?:Array|List)\(/.exec(e);
-    if (arr !== null) {
-        const open = arr[0].length - 1;
-        const close = stringNativesCloseParen(e, open);
-        if (close !== e.length) return undefined;
-        const inner = e.slice(open + 1, close - 1);
-        // The printer's `split` idiom maps every part through `Value::Str` — as a `|__p|` closure or,
-        // since the ast closure pass, as the `From` fn item on the split parts.
-        if (/\.map\(\|__p\| Value::Str\(|\.split\([^()]*\)\.map\(Value::from\)/.test(inner)) return 'str';
-        return undefined;
-    }
-    if (/^(?:crate::runtime::)?split\(/.test(e)) return 'str';
-    const slice = /^(?:self\.)?array_slice\(\s*&?([A-Za-z_]\w*)/.exec(e);
-    if (slice !== null && depth === 0) {
-        const src = locals.get(slice[1]);
-        return src === undefined ? undefined : src.elems;
-    }
-    return undefined;
 }
 
 /** Variant set a single write expression can leave in a `Value`, or undefined. */
@@ -3450,71 +3196,6 @@ function inferSet(expr: string, locals: Map<string, Local>): VSet | undefined {
     return undefined;
 }
 
-/** Locals of one fn: declared native type, or the variant set every write of a `Value` local pins. */
-function valueSets(region: string, maskedRegion: string, sig: string): Map<string, Local> {
-    const locals = new Map<string, Local>();
-    const declRe = /let\s+(?:mut\s+)?([A-Za-z_]\w*)\s*:\s*([^=;]+?)\s*=/g;
-    const decls: Array<{ name: string, ty: string, at: number, init: number }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(maskedRegion)) !== null) {
-        const rel = new RegExp(`\\b${m[1]}\\b`).exec(m[0]);
-        decls.push({ name: m[1], ty: m[2].replace(/\s+/g, ''), at: m.index + (rel === null ? 0 : rel.index), init: m.index + m[0].length });
-    }
-    const multi = new Map<string, number>();
-    for (const d of decls) multi.set(d.name, (multi.get(d.name) ?? 0) + 1);
-    // Typed parameters declare their own type; only those need a set.
-    for (const p of sig.matchAll(/\(\s*(?:&?\s*(?:mut\s+)?([A-Za-z_]\w*)\s*:\s*([^,)]+)|&[A-Za-z_]\w*)|,\s*(?:mut\s+)?([A-Za-z_]\w*)\s*:\s*([^,)]+)/g)) {
-        const name = p[1] ?? p[3];
-        const ty = (p[2] ?? p[4] ?? '').replace(/\s+/g, '');
-        if (name !== undefined && NATIVE_TY.has(ty)) locals.set(name, { ty });
-    }
-    for (const d of decls) {
-        if (multi.get(d.name) !== 1) continue;
-        locals.set(d.name, { ty: d.ty });
-        if (d.ty !== 'Value') continue;
-        // A parameter, loop binding or closure arg of the same name could shadow the local.
-        const bind = new RegExp(`(?:[(,|]\\s*(?:mut\\s+)?${d.name}\\s*:|\\bfor\\s+(?:mut\\s+)?${d.name}\\b)`);
-        if (bind.test(sig)) continue;
-        const set: VSet = new Set();
-        let ok = true;
-        let elems: string | undefined = 'str';
-        const word = new RegExp(`(?<![A-Za-z0-9_.])${d.name}(?![A-Za-z0-9_])`, 'g');
-        for (let k = 0; k < maskedRegion.length; k++) {
-            word.lastIndex = k;
-            const hit = word.exec(maskedRegion);
-            if (hit === null) break;
-            const s = hit.index;
-            k = s;
-            if (/&\s*mut\s*$/.test(maskedRegion.slice(Math.max(0, s - 12), s))) { ok = false; break; }
-            const tail = maskedRegion.slice(s + d.name.length);
-            const rhs = /^\s*=(?!=)/.exec(tail);
-            if (s === d.at) {
-                const end = stringNativesStmtEnd(maskedRegion, d.init);
-                const ex = end < 0 ? '' : region.slice(d.init, end);
-                const got = end < 0 ? undefined : inferSet(ex, locals);
-                if (got === undefined) { ok = false; break; }
-                got.forEach(v => set.add(v));
-                if (elemKind(ex, locals) !== 'str') elems = undefined;
-                k = end < 0 ? s + d.name.length : end;
-                continue;
-            }
-            if (rhs !== null) {
-                const from = s + d.name.length + rhs[0].length;
-                const end = stringNativesStmtEnd(maskedRegion, from);
-                const ex = end < 0 ? '' : region.slice(from, end);
-                const got = end < 0 ? undefined : inferSet(ex, locals);
-                if (got === undefined) { ok = false; break; }
-                got.forEach(v => set.add(v));
-                if (elemKind(ex, locals) !== 'str') elems = undefined;
-                k = end < 0 ? from : end;
-                continue;
-            }
-        }
-        if (ok && set.size > 0) locals.set(d.name, { ty: d.ty, set, elems });
-    }
-    return locals;
-}
-
 /** Native replacement for one helper call, or undefined when the operand is unproven. */
 function rewrite(name: string, args: string[], locals: Map<string, Local>): string | undefined {
     const arg0 = (args[0] ?? '').trim();
@@ -3587,128 +3268,6 @@ function rewrite(name: string, args: string[], locals: Map<string, Local>): stri
     }
     default: return undefined;
     }
-}
-
-/** Rewrite the family where the operand type is proven; leave every other site as printed. */
-function rustStringNatives(content: string): string {
-    if (!/to_string_val\(|replace_str\(|replace_all_str\(|split\(|join\(|starts_with\(|ends_with\(|to_fixed\(/.test(content)) return content;
-    const masked = stringNativesMaskText(content);
-    const rx = /(?<![A-Za-z0-9_:.])(to_string_val|replace_str|replace_all_str|split|join|starts_with|ends_with|to_fixed)\(/g;
-    const hits: Array<{ start: number, end: number, name: string }> = [];
-    for (const m of masked.matchAll(rx)) {
-        const start = m.index as number;
-        if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
-        const open = start + m[1].length;
-        const close = stringNativesCloseParen(masked, open);
-        if (close < 0) continue;
-        hits.push({ start, end: close, name: m[1] });
-    }
-    if (hits.length === 0) return content;
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    const cache = new Map<number, Map<string, Local>>();
-    for (const h of hits) {
-        const [ lo, hi ] = fnBounds(masked, h.start);
-        let locals = cache.get(lo);
-        if (locals === undefined) {
-            const region = content.slice(lo, hi);
-            const head = content.slice(lo, hi).indexOf('{');
-            const sig = head < 0 ? '' : region.slice(0, head);
-            locals = valueSets(region, masked.slice(lo, hi), sig);
-            cache.set(lo, locals);
-        }
-        const args = stringNativesSplitArgs(content, h.start + h.name.length + 1, h.end - 1);
-        if (args === undefined) continue;
-        const text = rewrite(h.name, args, locals);
-        if (text === undefined) continue;
-        // Never push a line that was under the 400-char report threshold over it.
-        const lineStart = content.lastIndexOf('\n', h.start) + 1;
-        const lineEnd = content.indexOf('\n', h.end);
-        const len = (lineEnd < 0 ? content.length : lineEnd) - lineStart;
-        if (len <= 400 && len - (h.end - h.start) + text.length > 400) continue;
-        rewrites.push({ start: h.start, end: h.end, text });
-    }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start);
-    let out = '';
-    let at = 0;
-    for (const r of rewrites) {
-        if (r.start < at) continue;
-        out += content.slice(at, r.start) + r.text;
-        at = r.end;
-    }
-    return out + content.slice(at);
-}
-
-/** One case per rule; each fails on the base generator (no such pass). */
-function rustStringNativesSelfTest(): string[] {
-    const cases: Array<[string, string, string]> = [
-        [
-            'to-string-scalar-local',
-            'fn f(&self) -> Value {\n    let mut e: Value = self.sum(&[a, b]);\n    let mut s: Value = to_string_val(&e);\n    s\n}\n',
-            'fn f(&self) -> Value {\n    let mut e: Value = self.sum(&[a, b]);\n    let mut s: Value = Value::str(e.to_string());\n    s\n}\n',
-        ],
-        [
-            'to-string-inline-sum',
-            'fn f(&self) -> Value {\n    self.log(to_string_val(&self.sum(&[a, b])));\n}\n',
-            'fn f(&self) -> Value {\n    self.log(Value::str(self.sum(&[a, b]).to_string()));\n}\n',
-        ],
-        [
-            'replace-on-str-local',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.decimal_to_precision(n, r, p, &[]);\n    s = replace_str(&s, &Value::Str(".".into()), &Value::Str("".into()));\n    s\n}\n',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.decimal_to_precision(n, r, p, &[]);\n    s = Value::str(s.as_str().unwrap_or_default().replace(".", ""));\n    s\n}\n',
-        ],
-        [
-            'split-on-str-param',
-            'fn f(&self, mut s: String) -> Value {\n    let mut parts: Value = split(&s, &Value::Str("_".into()));\n    parts\n}\n',
-            'fn f(&self, mut s: String) -> Value {\n    let mut parts: Value = Value::Array(s.split("_").map(Value::str).collect());\n    parts\n}\n',
-        ],
-        [
-            'join-on-string-vec',
-            'fn f(&self, mut xs: Vec<String>) -> Value {\n    join(&xs, &Value::Str(",".into()))\n}\n',
-            'fn f(&self, mut xs: Vec<String>) -> Value {\n    Value::str(xs.join(","))\n}\n',
-        ],
-        [
-            'affix-on-str-local',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.safe_string_k(raw, "k", &[Value::Str("".into())]);\n    ends_with(&s, &Value::Str("USDT".into()))\n}\n',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.safe_string_k(raw, "k", &[Value::Str("".into())]);\n    s.as_str().unwrap_or_default().ends_with("USDT")\n}\n',
-        ],
-        [
-            'to-fixed-on-float-local',
-            'fn f(&self, mut d: f64) -> Value {\n    to_fixed(&d, &Value::Int(8))\n}\n',
-            'fn f(&self, mut d: f64) -> Value {\n    Value::str(format!("{:.*}", 8, d))\n}\n',
-        ],
-        [
-            'join-on-str-array-local',
-            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());\n    join(&parts, &Value::Str("-".into()))\n}\n',
-            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(|__p| Value::Str(__p.to_string().into())).collect()).unwrap_or_default());\n    Value::str(parts.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join("-"))\n}\n',
-        ],
-        [
-            'join-on-str-array-local-from-split',
-            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());\n    join(&parts, &Value::Str("-".into()))\n}\n',
-            'fn f(&self) -> Value {\n    let mut parts: Value = Value::from(vec![]);\n    parts = Value::Array(s.as_str().map(|__s| __s.split("-").map(Value::from).collect()).unwrap_or_default());\n    Value::str(parts.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join("-"))\n}\n',
-        ],
-        [
-            'unproven-join-keeps-helper',
-            'fn f(&self, mut xs: Value) -> Value {\n    join(&xs, &Value::Str(",".into()))\n}\n',
-            'fn f(&self, mut xs: Value) -> Value {\n    join(&xs, &Value::Str(",".into()))\n}\n',
-        ],
-        [
-            'unproven-keeps-helper',
-            'fn f(&self, mut x: Value) -> Value {\n    to_string_val(&x)\n}\n',
-            'fn f(&self, mut x: Value) -> Value {\n    to_string_val(&x)\n}\n',
-        ],
-        [
-            'mutated-local-keeps-helper',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.safe_string_k(raw, "k", &[Value::Str("".into())]);\n    s = get_value(&raw, &Value::Str("x".into()));\n    to_string_val(&s)\n}\n',
-            'fn f(&self) -> Value {\n    let mut s: Value = self.safe_string_k(raw, "k", &[Value::Str("".into())]);\n    s = get_value(&raw, &Value::Str("x".into()));\n    to_string_val(&s)\n}\n',
-        ],
-    ];
-    const fails: string[] = [];
-    for (const [ label, src, want ] of cases) {
-        const got = rustStringNatives(src);
-        if (got !== want) fails.push(`${label}: got\n${got}\nwant\n${want}`);
-    }
-    return fails;
 }
 
 // ---- plain-dict state containers ----
@@ -11381,7 +10940,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropSelfBoolFieldIsTrue(rustContent);
                 rustContent = this.rustDropBoolBoxedIsTrue(rustContent);
-                rustContent = this.rustNativeBoolEquals(rustContent);
                 rustContent = this.rustNativeBoolIsTrue(rustContent);
                 rustContent = this.rustInlineLiteralIsEqual(rustContent);
                 // Last: element writes into a fresh dict local go native.
@@ -11402,7 +10960,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // afterwards moves instead of copying (B-32).
                 rustContent = this.dropDeadValueSlotClones(rustContent);
                 rustContent = this.rustNativeTruthAndEquality(rustContent);
-                rustContent = nativeBoolScalars(rustContent);
                 rustContent = nativeBoolCallee(rustContent);
                 // Last of all: native get_value on a receiver whose container shape
                 // the final text pins (needs the clone/write passes to be done).
@@ -11410,7 +10967,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = nativeContainerOps(rustContent);
                 // Typed locals run last, on the final text.
                 rustContent = rustTypedLocals(rustContent);
-                rustContent = rustStringNatives(rustContent);
                 rustContent = fieldChainInserts(rustContent);
                 rustContent = plainDictChains(rustContent);
                 // `safe_string*` locals whose only sink is a `format!` print a `String`.
@@ -12219,7 +11775,6 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropSelfBoolFieldIsTrue(finalFile);
         finalFile = this.rustDropBoolBoxedIsTrue(finalFile);
-        finalFile = this.rustNativeBoolEquals(finalFile);
         finalFile = this.rustNativeBoolIsTrue(finalFile);
         finalFile = this.rustInlineLiteralIsEqual(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
@@ -12230,13 +11785,11 @@ impl std::ops::DerefMut for ${coreName} {
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
         finalFile = this.rustNativeTruthAndEquality(finalFile);
-        finalFile = nativeBoolScalars(finalFile);
         finalFile = nativeBoolCallee(finalFile);
         // Last of all: native get_value on a pinned receiver.
         finalFile = nativeInserts(finalFile);
         finalFile = nativeContainerOps(finalFile);
         finalFile = rustTypedLocals(finalFile);
-        finalFile = rustStringNatives(finalFile);
         finalFile = fieldChainInserts(finalFile);
         finalFile = plainDictChains(finalFile);
         finalFile = narrowStrSinkLocals(finalFile);
@@ -14108,64 +13661,6 @@ impl std::ops::DerefMut for ${coreName} {
         return this.rustIsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
     }
 
-    /** Rewrites `is_equal(&X, &Value::Bool(b))` in a proven bool slot when X is bool-boxed. */
-    rustNativeBoolEquals(content: string): string {
-        if (!content.includes('is_equal(&') && !content.includes('is_true(&')) return content;
-        this.rustEmittedBoolReturnMethods(content, []);
-        const masked = this.maskStringsAndComments(content);
-        const own = new Set<string>();
-        for (const om of masked.matchAll(/\bfn\s+([a-z_][a-z0-9_]*)\s*(?:<[^>{}()]*>)?\s*\(/g)) own.add(om[1]);
-        const memo = new Map<string, boolean>();
-        const headers: number[] = [0];
-        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
-        headers.push(content.length);
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        for (let h = 0; h + 1 < headers.length; h++) {
-            const from = headers[h];
-            const region = masked.slice(from, headers[h + 1]);
-            const localOk = new Map<string, boolean>();
-            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_(?:equal|true)\(&/g)) {
-                const start = from + (sm.index as number);
-                const isTrue = sm[0].startsWith('is_true');
-                const open = start + (isTrue ? 'is_true(' : 'is_equal(').length - 1;
-                const close = this.closeParenAt(content, open);
-                if (close < 0 || close >= headers[h + 1]) continue;
-                const end = close + 1;
-                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
-                const args = isTrue ? [content.slice(open + 1, close), '&Value::Bool(true)'] : this.splitTopLevelCommas(content.slice(open + 1, close));
-                if (args.length !== 2) continue;
-                const lit = /^&(?:crate::)?Value::Bool\((true|false)\)$/.exec(args[1].trim());
-                if (lit === null || !args[0].trim().startsWith('&')) continue;
-                // `is_true` sites over non-locals stay with rustDropBoolBoxedIsTrue (already rewritten when proven).
-                if (isTrue && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(this.stripOuterParens(args[0].trim().slice(1).trim()))) continue;
-                const lead = content.slice(Math.max(0, start - 12), start);
-                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
-                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
-                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
-                if (slot === undefined) continue;
-                const inner = this.stripOuterParens(args[0].trim().slice(1).trim());
-                if (inner.includes('is_equal(')) continue;
-                if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(inner)) {
-                    const declAt = region.search(new RegExp(`let (?:mut )?${inner}\\b`));
-                    if (declAt < 0 || declAt > (sm.index as number)) continue;
-                    if (!localOk.has(inner)) localOk.set(inner, this.rustBoolBoxedLocal(inner, region, from, content, own, memo));
-                    if (!localOk.get(inner)) continue;
-                } else if (!this.rustIsBoolBoxedExpr(inner, content, own, memo)) continue;
-                const recv = /^[A-Za-z_][A-Za-z0-9_.]*$/.test(inner) ? inner : `(${inner})`;
-                const cmp = `${recv}.as_bool() == Some(${lit[1]})`;
-                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
-            }
-        }
-        if (rewrites.length === 0) return content;
-        let out = ''; let at = 0;
-        for (const r of rewrites) {
-            if (r.start < at) continue;
-            out += content.slice(at, r.start) + r.text;
-            at = r.end;
-        }
-        return out + content.slice(at);
-    }
-
     /** A printed expression that is a native Rust `bool`: `&&`/`||`/`!` over `X.as_str().is_some_and(|__s| __s.starts_with|ends_with("lit"))`
      *  and `X.as_bool() == Some(b)` atoms (`is_true` on a `bool` is the identity). */
     rustIsNativeBoolExpr(raw: string, depth = 0): boolean {
@@ -14693,8 +14188,8 @@ impl std::ops::DerefMut for ${coreName} {
 function rustPassesSelfTest(): string[] {
     const problems: string[] = [];
     const lists: Record<string, () => string[]> = {
-        nativeContainerOpsSelfTest, nativeBoolScalarsSelfTest, arrOnlyVecPushSelfTest, rustTypedLocalsSelfTest,
-        nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest, rustStringNativesSelfTest,
+        nativeContainerOpsSelfTest, arrOnlyVecPushSelfTest, rustTypedLocalsSelfTest,
+        nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest,
     };
     for (const [name, fn] of Object.entries(lists)) for (const p of fn()) problems.push(`${name}: ${p}`);
     if (mapParamDispatchSelfTest() !== 0) problems.push('mapParamDispatchSelfTest');
