@@ -5,27 +5,97 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetOhlc (params?: {}): Promise<implicitReturnType>;
-    publicGetServerExchangeinfo (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersTransactionsTrade (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersTransactionsCrypto (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersTransactionsFiat (params?: {}): Promise<implicitReturnType>;
-    privatePostOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    graphGetOhlcs (params?: {}): Promise<implicitReturnType>;
-    graphGetKlinesHistory (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetOrderbook (params = {}): Promise<Dict> {
+        return this.request ('orderbook', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetTicker (params = {}): Promise<Dict> {
+        return this.request ('ticker', [ 'public' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    publicGetTickerCurrency (params = {}): Promise<Dict> {
+        return this.request ('ticker/currency', [ 'public' ], 'GET', params, { 'cost': 0.1 });
+    }
+
+    publicGetTrades (params = {}): Promise<Dict> {
+        return this.request ('trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOhlc (params = {}): Promise<Dict> {
+        return this.request ('ohlc', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetServerExchangeinfo (params = {}): Promise<Dict> {
+        return this.request ('server/exchangeinfo', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUsersBalances (params = {}): Promise<Dict> {
+        return this.request ('users/balances', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('openOrders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAllOrders (params = {}): Promise<Dict> {
+        return this.request ('allOrders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ('order/{orderId}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUsersTransactionsTrade (params = {}): Promise<Dict> {
+        return this.request ('users/transactions/trade', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUsersTransactionsCrypto (params = {}): Promise<Dict> {
+        return this.request ('users/transactions/crypto', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUsersTransactionsFiat (params = {}): Promise<Dict> {
+        return this.request ('users/transactions/fiat', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetCryptoDepositDeclarations (params = {}): Promise<List> {
+        return this.request ('crypto-deposit-declarations', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostUsersTransactionsCrypto (params = {}): Promise<Dict> {
+        return this.request ('users/transactions/crypto', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUsersTransactionsFiat (params = {}): Promise<Dict> {
+        return this.request ('users/transactions/fiat', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('cancelOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCryptoDepositDeclarationsConfirm (params = {}): Promise<Dict> {
+        return this.request ('crypto-deposit-declarations/confirm', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    graphGetOhlcs (params = {}): Promise<List> {
+        return this.request ('ohlcs', [ 'graph' ], 'GET', params, { 'cost': 1 });
+    }
+
+    graphGetKlinesHistory (params = {}): Promise<Dict> {
+        return this.request ('klines/history', [ 'graph' ], 'GET', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

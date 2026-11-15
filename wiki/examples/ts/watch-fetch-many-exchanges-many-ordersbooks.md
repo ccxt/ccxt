@@ -1,8 +1,6 @@
-- [Watch Fetch Many Exchanges Many Ordersbooks](./examples/ts/)
+```javascript
+// @NO_AUTO_TRANSPILE
 
-
- ```javascript
- 
 'use strict';
 
 import ccxt from '../../js/ccxt.js';
@@ -34,7 +32,7 @@ async function main () {
             'BTC/USDT',
             'ETH/BTC',
         ],
-        'coinex': [
+        'gate': [
             'BTC/USDT',
             'ETH/BTC',
         ],
@@ -45,5 +43,5 @@ async function main () {
 }
 
 main ();
- 
+
 ```

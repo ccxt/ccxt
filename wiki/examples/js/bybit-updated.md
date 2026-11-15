@@ -1,8 +1,5 @@
-- [Bybit Updated](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+'use strict';
 
 const ccxt = require ('../../dist/cjs/ccxt.js');
 
@@ -155,5 +152,5 @@ async function main () {
 
 }
 
-main (); 
+main ();
 ```

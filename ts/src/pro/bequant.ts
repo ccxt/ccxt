@@ -1,17 +1,19 @@
 
 //  ---------------------------------------------------------------------------
 
-import hitbtc from './hitbtc.js';
+import hitbtc from '../abstract/pro/bequant.js';
 import bequantRest from '../bequant.js';
+import type { Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class bequant extends hitbtc {
-    describe (): any {
+    override describe (): Dict {
         // eslint-disable-next-line new-cap
         const restInstance = new bequantRest ();
         const restDescribe = restInstance.describe ();
-        const extended = this.deepExtend (super.describe (), restDescribe);
+        const parentWsDescribe = super.describeData ();
+        const extended = this.deepExtend (restDescribe, parentWsDescribe);
         return this.deepExtend (extended, {
             'id': 'bequant',
             'name': 'Bequant',

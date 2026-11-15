@@ -5,145 +5,561 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    v1PubGetHistKline (params?: {}): Promise<implicitReturnType>;
-    v1PubGetHistTrades (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetInfo (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetInfoSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetSystemInfo (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetToken (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetTokenNetwork (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetFundingRates (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetFundingRateSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetFundingRateHistory (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetFutures (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetFuturesSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetOrderbookSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PublicGetKline (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientToken (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetOrderOid (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientOrderClientOrderId (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetOrders (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientTradeTid (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetOrderOidTrades (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientTrades (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientHistTrades (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetStakingYieldHistory (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientHolding (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetAssetDeposit (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetAssetHistory (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetSubAccountAll (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetSubAccountAssetDetail (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetSubAccountIpRestriction (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetAssetMainSubTransferHistory (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetTokenInterest (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetTokenInterestToken (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetInterestHistory (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetInterestRepay (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetFundingFeeHistory (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetPositions (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetPositionSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientTransactionHistory (params?: {}): Promise<implicitReturnType>;
-    v1PrivateGetClientFuturesLeverage (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostOrder (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostOrderCancelAllAfter (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostAssetLtv (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostAssetInternalWithdraw (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostInterestRepay (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostClientAccountMode (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostClientPositionMode (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostClientLeverage (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostClientFuturesLeverage (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostClientIsolatedMargin (params?: {}): Promise<implicitReturnType>;
-    v1PrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
-    v1PrivateDeleteClientOrder (params?: {}): Promise<implicitReturnType>;
-    v1PrivateDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    v1PrivateDeleteAssetWithdraw (params?: {}): Promise<implicitReturnType>;
-    v2PrivateGetClientHolding (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetSystemInfo (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetInstruments (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetToken (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetTokenNetwork (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetTokenInfo (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetMarketTradesHistory (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetKline (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetKlineHistory (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetFutures (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetFundingRate (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetFundingRateHistory (params?: {}): Promise<implicitReturnType>;
-    v3PublicGetInsuranceFund (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetTradeOrder (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetTradeOrders (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetTradeAlgoOrder (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetTradeAlgoOrders (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetTradeTransaction (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetTradeTransactionHistory (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetTradeTradingFee (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAccountInfo (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAccountTokenConfig (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAccountSymbolConfig (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAccountSubAccountsAll (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAccountReferralSummary (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAccountReferralRewardHistory (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAccountCredentials (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAssetBalances (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAssetTokenHistory (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAssetTransferHistory (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAssetWalletHistory (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAssetWalletDeposit (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAssetStakingYieldHistory (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetFuturesPositions (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetFuturesLeverage (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetFuturesDefaultMarginMode (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetFuturesFundingFeeHistory (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetSpotMarginInterestRate (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetSpotMarginInterestHistory (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetSpotMarginMaxMargin (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAlgoOrderOid (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetAlgoOrders (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetPositions (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetBuypower (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetConvertExchangeInfo (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetConvertAssetInfo (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetConvertRfq (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetConvertTrade (params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetConvertTrades (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostTradeAlgoOrder (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostTradeCancelAllAfter (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostAccountTradingMode (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostAccountListenKey (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostAssetTransfer (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostAssetWalletWithdraw (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostSpotMarginLeverage (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostSpotMarginInterestRepay (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostAlgoOrder (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePostConvertRft (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutTradeOrder (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutTradeAlgoOrder (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutFuturesLeverage (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutFuturesPositionMode (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutOrderOid (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutOrderClientClientOrderId (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutAlgoOrderOid (params?: {}): Promise<implicitReturnType>;
-    v3PrivatePutAlgoOrderClientClientOrderId (params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteTradeOrder (params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteTradeOrders (params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteTradeAlgoOrder (params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteTradeAlgoOrders (params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteTradeAllOrders (params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteAlgoOrderOrderId (params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteAlgoOrdersPending (params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteAlgoOrdersPendingSymbol (params?: {}): Promise<implicitReturnType>;
-    v3PrivateDeleteOrdersPending (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    v1PubGetHistKline (params = {}): Promise<Dict> {
+        return this.request ('hist/kline', [ 'v1', 'pub' ], 'GET', params, { 'cost': 10 });
+    }
 
-export default Exchange
+    v1PubGetHistTrades (params = {}): Promise<Dict> {
+        return this.request ('hist/trades', [ 'v1', 'pub' ], 'GET', params, { 'cost': 10 });
+    }
+
+    v1PublicGetInfo (params = {}): Promise<Dict> {
+        return this.request ('info', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetInfoSymbol (params = {}): Promise<Dict> {
+        return this.request ('info/{symbol}', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetSystemInfo (params = {}): Promise<Dict> {
+        return this.request ('system_info', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetMarketTrades (params = {}): Promise<Dict> {
+        return this.request ('market_trades', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetToken (params = {}): Promise<Dict> {
+        return this.request ('token', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetTokenNetwork (params = {}): Promise<Dict> {
+        return this.request ('token_network', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetFundingRates (params = {}): Promise<Dict> {
+        return this.request ('funding_rates', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetFundingRateSymbol (params = {}): Promise<Dict> {
+        return this.request ('funding_rate/{symbol}', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetFundingRateHistory (params = {}): Promise<Dict> {
+        return this.request ('funding_rate_history', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetFutures (params = {}): Promise<Dict> {
+        return this.request ('futures', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetFuturesSymbol (params = {}): Promise<Dict> {
+        return this.request ('futures/{symbol}', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetOrderbookSymbol (params = {}): Promise<Dict> {
+        return this.request ('orderbook/{symbol}', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PublicGetKline (params = {}): Promise<Dict> {
+        return this.request ('kline', [ 'v1', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetClientToken (params = {}): Promise<Dict> {
+        return this.request ('client/token', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetOrderOid (params = {}): Promise<Dict> {
+        return this.request ('order/{oid}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetClientOrderClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('client/order/{client_order_id}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetClientTradeTid (params = {}): Promise<Dict> {
+        return this.request ('client/trade/{tid}', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetOrderOidTrades (params = {}): Promise<Dict> {
+        return this.request ('order/{oid}/trades', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetClientTrades (params = {}): Promise<Dict> {
+        return this.request ('client/trades', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetClientHistTrades (params = {}): Promise<Dict> {
+        return this.request ('client/hist_trades', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetStakingYieldHistory (params = {}): Promise<Dict> {
+        return this.request ('staking/yield_history', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetClientHolding (params = {}): Promise<Dict> {
+        return this.request ('client/holding', [ 'v1', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PrivateGetAssetDeposit (params = {}): Promise<Dict> {
+        return this.request ('asset/deposit', [ 'v1', 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    v1PrivateGetAssetHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/history', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivateGetSubAccountAll (params = {}): Promise<Dict> {
+        return this.request ('sub_account/all', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivateGetSubAccountAssets (params = {}): Promise<Dict> {
+        return this.request ('sub_account/assets', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivateGetSubAccountAssetDetail (params = {}): Promise<Dict> {
+        return this.request ('sub_account/asset_detail', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivateGetSubAccountIpRestriction (params = {}): Promise<Dict> {
+        return this.request ('sub_account/ip_restriction', [ 'v1', 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    v1PrivateGetAssetMainSubTransferHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/main_sub_transfer_history', [ 'v1', 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    v1PrivateGetTokenInterest (params = {}): Promise<Dict> {
+        return this.request ('token_interest', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivateGetTokenInterestToken (params = {}): Promise<Dict> {
+        return this.request ('token_interest/{token}', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivateGetInterestHistory (params = {}): Promise<Dict> {
+        return this.request ('interest/history', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivateGetInterestRepay (params = {}): Promise<Dict> {
+        return this.request ('interest/repay', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivateGetFundingFeeHistory (params = {}): Promise<Dict> {
+        return this.request ('funding_fee/history', [ 'v1', 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    v1PrivateGetPositions (params = {}): Promise<Dict> {
+        return this.request ('positions', [ 'v1', 'private' ], 'GET', params, { 'cost': 3.33 });
+    }
+
+    v1PrivateGetPositionSymbol (params = {}): Promise<Dict> {
+        return this.request ('position/{symbol}', [ 'v1', 'private' ], 'GET', params, { 'cost': 3.33 });
+    }
+
+    v1PrivateGetClientTransactionHistory (params = {}): Promise<Dict> {
+        return this.request ('client/transaction_history', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivateGetClientFuturesLeverage (params = {}): Promise<Dict> {
+        return this.request ('client/futures_leverage', [ 'v1', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v1PrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PrivatePostOrderCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ('order/cancel_all_after', [ 'v1', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PrivatePostAssetLtv (params = {}): Promise<Dict> {
+        return this.request ('asset/ltv', [ 'v1', 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    v1PrivatePostAssetInternalWithdraw (params = {}): Promise<Dict> {
+        return this.request ('asset/internal_withdraw', [ 'v1', 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    v1PrivatePostInterestRepay (params = {}): Promise<Dict> {
+        return this.request ('interest/repay', [ 'v1', 'private' ], 'POST', params, { 'cost': 60 });
+    }
+
+    v1PrivatePostClientAccountMode (params = {}): Promise<Dict> {
+        return this.request ('client/account_mode', [ 'v1', 'private' ], 'POST', params, { 'cost': 120 });
+    }
+
+    v1PrivatePostClientPositionMode (params = {}): Promise<Dict> {
+        return this.request ('client/position_mode', [ 'v1', 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    v1PrivatePostClientLeverage (params = {}): Promise<Dict> {
+        return this.request ('client/leverage', [ 'v1', 'private' ], 'POST', params, { 'cost': 120 });
+    }
+
+    v1PrivatePostClientFuturesLeverage (params = {}): Promise<Dict> {
+        return this.request ('client/futures_leverage', [ 'v1', 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    v1PrivatePostClientIsolatedMargin (params = {}): Promise<Dict> {
+        return this.request ('client/isolated_margin', [ 'v1', 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    v1PrivateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'v1', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v1PrivateDeleteClientOrder (params = {}): Promise<Dict> {
+        return this.request ('client/order', [ 'v1', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v1PrivateDeleteOrders (params = {}): Promise<List> {
+        return this.request ('orders', [ 'v1', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v1PrivateDeleteAssetWithdraw (params = {}): Promise<Dict> {
+        return this.request ('asset/withdraw', [ 'v1', 'private' ], 'DELETE', params, { 'cost': 120 });
+    }
+
+    v3PublicGetSystemInfo (params = {}): Promise<Dict> {
+        return this.request ('systemInfo', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetInstruments (params = {}): Promise<Dict> {
+        return this.request ('instruments', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetToken (params = {}): Promise<Dict> {
+        return this.request ('token', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetTokenNetwork (params = {}): Promise<Dict> {
+        return this.request ('tokenNetwork', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetTokenInfo (params = {}): Promise<Dict> {
+        return this.request ('tokenInfo', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetMarketTrades (params = {}): Promise<Dict> {
+        return this.request ('marketTrades', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetMarketTradesHistory (params = {}): Promise<Dict> {
+        return this.request ('marketTradesHistory', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetOrderbook (params = {}): Promise<Dict> {
+        return this.request ('orderbook', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetKline (params = {}): Promise<Dict> {
+        return this.request ('kline', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetKlineHistory (params = {}): Promise<Dict> {
+        return this.request ('klineHistory', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetFutures (params = {}): Promise<Dict> {
+        return this.request ('futures', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetFundingRate (params = {}): Promise<Dict> {
+        return this.request ('fundingRate', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetFundingRateHistory (params = {}): Promise<Dict> {
+        return this.request ('fundingRateHistory', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PublicGetInsuranceFund (params = {}): Promise<Dict> {
+        return this.request ('insuranceFund', [ 'v3', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetTradeOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/order', [ 'v3', 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    v3PrivateGetTradeOrders (params = {}): Promise<Dict> {
+        return this.request ('trade/orders', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetTradeAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/algoOrder', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetTradeAlgoOrders (params = {}): Promise<Dict> {
+        return this.request ('trade/algoOrders', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetTradeTransaction (params = {}): Promise<Dict> {
+        return this.request ('trade/transaction', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetTradeTransactionHistory (params = {}): Promise<Dict> {
+        return this.request ('trade/transactionHistory', [ 'v3', 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    v3PrivateGetTradeTradingFee (params = {}): Promise<Dict> {
+        return this.request ('trade/tradingFee', [ 'v3', 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    v3PrivateGetAccountInfo (params = {}): Promise<Dict> {
+        return this.request ('account/info', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetAccountTokenConfig (params = {}): Promise<Dict> {
+        return this.request ('account/tokenConfig', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetAccountSymbolConfig (params = {}): Promise<Dict> {
+        return this.request ('account/symbolConfig', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetAccountSubAccountsAll (params = {}): Promise<Dict> {
+        return this.request ('account/subAccounts/all', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetAccountReferralSummary (params = {}): Promise<Dict> {
+        return this.request ('account/referral/summary', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetAccountReferralRewardHistory (params = {}): Promise<Dict> {
+        return this.request ('account/referral/rewardHistory', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetAccountCredentials (params = {}): Promise<Dict> {
+        return this.request ('account/credentials', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetAssetBalances (params = {}): Promise<Dict> {
+        return this.request ('asset/balances', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetAssetTokenHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/token/history', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetAssetTransferHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/transfer/history', [ 'v3', 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    v3PrivateGetAssetWalletHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/wallet/history', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetAssetWalletDeposit (params = {}): Promise<Dict> {
+        return this.request ('asset/wallet/deposit', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetAssetStakingYieldHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/staking/yieldHistory', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetFuturesPositions (params = {}): Promise<Dict> {
+        return this.request ('futures/positions', [ 'v3', 'private' ], 'GET', params, { 'cost': 3.33 });
+    }
+
+    v3PrivateGetFuturesLeverage (params = {}): Promise<Dict> {
+        return this.request ('futures/leverage', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetFuturesDefaultMarginMode (params = {}): Promise<Dict> {
+        return this.request ('futures/defaultMarginMode', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetFuturesFundingFeeHistory (params = {}): Promise<Dict> {
+        return this.request ('futures/fundingFee/history', [ 'v3', 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    v3PrivateGetSpotMarginInterestRate (params = {}): Promise<Dict> {
+        return this.request ('spotMargin/interestRate', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetSpotMarginInterestHistory (params = {}): Promise<Dict> {
+        return this.request ('spotMargin/interestHistory', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetSpotMarginMaxMargin (params = {}): Promise<Dict> {
+        return this.request ('spotMargin/maxMargin', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetAlgoOrderOid (params = {}): Promise<Dict> {
+        return this.request ('algo/order/{oid}', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetAlgoOrders (params = {}): Promise<Dict> {
+        return this.request ('algo/orders', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetPositions (params = {}): Promise<Dict> {
+        return this.request ('positions', [ 'v3', 'private' ], 'GET', params, { 'cost': 3.33 });
+    }
+
+    v3PrivateGetBuypower (params = {}): Promise<Dict> {
+        return this.request ('buypower', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetConvertExchangeInfo (params = {}): Promise<Dict> {
+        return this.request ('convert/exchangeInfo', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetConvertAssetInfo (params = {}): Promise<Dict> {
+        return this.request ('convert/assetInfo', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetConvertRfq (params = {}): Promise<Dict> {
+        return this.request ('convert/rfq', [ 'v3', 'private' ], 'GET', params, { 'cost': 60 });
+    }
+
+    v3PrivateGetConvertTrade (params = {}): Promise<Dict> {
+        return this.request ('convert/trade', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivateGetConvertTrades (params = {}): Promise<Dict> {
+        return this.request ('convert/trades', [ 'v3', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v3PrivatePostTradeOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/order', [ 'v3', 'private' ], 'POST', params, { 'cost': 2 });
+    }
+
+    v3PrivatePostTradeAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/algoOrder', [ 'v3', 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    v3PrivatePostTradeCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ('trade/cancelAllAfter', [ 'v3', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v3PrivatePostAccountTradingMode (params = {}): Promise<Dict> {
+        return this.request ('account/tradingMode', [ 'v3', 'private' ], 'POST', params, { 'cost': 120 });
+    }
+
+    v3PrivatePostAccountListenKey (params = {}): Promise<Dict> {
+        return this.request ('account/listenKey', [ 'v3', 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    v3PrivatePostAssetTransfer (params = {}): Promise<Dict> {
+        return this.request ('asset/transfer', [ 'v3', 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    v3PrivatePostAssetWalletWithdraw (params = {}): Promise<Dict> {
+        return this.request ('asset/wallet/withdraw', [ 'v3', 'private' ], 'POST', params, { 'cost': 60 });
+    }
+
+    v3PrivatePostSpotMarginLeverage (params = {}): Promise<Dict> {
+        return this.request ('spotMargin/leverage', [ 'v3', 'private' ], 'POST', params, { 'cost': 120 });
+    }
+
+    v3PrivatePostSpotMarginInterestRepay (params = {}): Promise<Dict> {
+        return this.request ('spotMargin/interestRepay', [ 'v3', 'private' ], 'POST', params, { 'cost': 60 });
+    }
+
+    v3PrivatePostFuturesDefaultMarginModeReset (params = {}): Promise<Dict> {
+        return this.request ('futures/defaultMarginMode/reset', [ 'v3', 'private' ], 'POST', params, { 'cost': 60 });
+    }
+
+    v3PrivatePostIsolatedMarginMargin (params = {}): Promise<Dict> {
+        return this.request ('isolatedMargin/margin', [ 'v3', 'private' ], 'POST', params, { 'cost': 60 });
+    }
+
+    v3PrivatePostAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('algo/order', [ 'v3', 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    v3PrivatePostConvertRft (params = {}): Promise<Dict> {
+        return this.request ('convert/rft', [ 'v3', 'private' ], 'POST', params, { 'cost': 60 });
+    }
+
+    v3PrivatePutTradeOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/order', [ 'v3', 'private' ], 'PUT', params, { 'cost': 2 });
+    }
+
+    v3PrivatePutTradeAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/algoOrder', [ 'v3', 'private' ], 'PUT', params, { 'cost': 2 });
+    }
+
+    v3PrivatePutFuturesLeverage (params = {}): Promise<Dict> {
+        return this.request ('futures/leverage', [ 'v3', 'private' ], 'PUT', params, { 'cost': 60 });
+    }
+
+    v3PrivatePutFuturesPositionMode (params = {}): Promise<Dict> {
+        return this.request ('futures/positionMode', [ 'v3', 'private' ], 'PUT', params, { 'cost': 120 });
+    }
+
+    v3PrivatePutFuturesDefaultMarginMode (params = {}): Promise<Dict> {
+        return this.request ('futures/defaultMarginMode', [ 'v3', 'private' ], 'PUT', params, { 'cost': 60 });
+    }
+
+    v3PrivatePutFuturesDefaultMarginModeSymbol (params = {}): Promise<Dict> {
+        return this.request ('futures/defaultMarginMode/{symbol}', [ 'v3', 'private' ], 'PUT', params, { 'cost': 60 });
+    }
+
+    v3PrivatePutOrderOid (params = {}): Promise<Dict> {
+        return this.request ('order/{oid}', [ 'v3', 'private' ], 'PUT', params, { 'cost': 2 });
+    }
+
+    v3PrivatePutOrderClientClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('order/client/{client_order_id}', [ 'v3', 'private' ], 'PUT', params, { 'cost': 2 });
+    }
+
+    v3PrivatePutAlgoOrderOid (params = {}): Promise<Dict> {
+        return this.request ('algo/order/{oid}', [ 'v3', 'private' ], 'PUT', params, { 'cost': 2 });
+    }
+
+    v3PrivatePutAlgoOrderClientClientOrderId (params = {}): Promise<Dict> {
+        return this.request ('algo/order/client/{client_order_id}', [ 'v3', 'private' ], 'PUT', params, { 'cost': 2 });
+    }
+
+    v3PrivateDeleteTradeOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/order', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v3PrivateDeleteTradeOrders (params = {}): Promise<Dict> {
+        return this.request ('trade/orders', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v3PrivateDeleteTradeAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/algoOrder', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v3PrivateDeleteTradeAlgoOrders (params = {}): Promise<Dict> {
+        return this.request ('trade/algoOrders', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v3PrivateDeleteTradeAllOrders (params = {}): Promise<Dict> {
+        return this.request ('trade/allOrders', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v3PrivateDeleteAlgoOrderOrderId (params = {}): Promise<Dict> {
+        return this.request ('algo/order/{order_id}', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v3PrivateDeleteAlgoOrdersPending (params = {}): Promise<Dict> {
+        return this.request ('algo/orders/pending', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v3PrivateDeleteAlgoOrdersPendingSymbol (params = {}): Promise<Dict> {
+        return this.request ('algo/orders/pending/{symbol}', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v3PrivateDeleteOrdersPending (params = {}): Promise<Dict> {
+        return this.request ('orders/pending', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    v3PrivateDeleteAssetWalletWithdrawWithdrawId (params = {}): Promise<Dict> {
+        return this.request ('asset/wallet/withdraw/{withdrawId}', [ 'v3', 'private' ], 'DELETE', params, { 'cost': 60 });
+    }
+}
+
+export default Exchange;

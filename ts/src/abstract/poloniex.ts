@@ -5,112 +5,429 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetMarkets (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsSymbol (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencies (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrenciesCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetV2Currencies (params?: {}): Promise<implicitReturnType>;
-    publicGetV2CurrenciesCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetTimestamp (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsPrice (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsSymbolPrice (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsMarkPrice (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsSymbolMarkPrice (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsSymbolMarkPriceComponents (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsSymbolOrderBook (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsSymbolCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsSymbolTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsTicker24h (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsSymbolTicker24h (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsCollateralInfo (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsCurrencyCollateralInfo (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketsBorrowRatesInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsIdBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsActivity (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsTransfer (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsTransferId (params?: {}): Promise<implicitReturnType>;
-    privateGetFeeinfo (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsInterestHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetSubaccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetSubaccountsBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetSubaccountsIdBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetSubaccountsTransfer (params?: {}): Promise<implicitReturnType>;
-    privateGetSubaccountsTransferId (params?: {}): Promise<implicitReturnType>;
-    privateGetWalletsAddresses (params?: {}): Promise<implicitReturnType>;
-    privateGetWalletsAddressesCurrency (params?: {}): Promise<implicitReturnType>;
-    privateGetWalletsActivity (params?: {}): Promise<implicitReturnType>;
-    privateGetMarginAccountMargin (params?: {}): Promise<implicitReturnType>;
-    privateGetMarginBorrowStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetMarginMaxSize (params?: {}): Promise<implicitReturnType>;
-    privateGetOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersId (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersKillSwitchStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetSmartorders (params?: {}): Promise<implicitReturnType>;
-    privateGetSmartordersId (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetSmartordersHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetOrdersIdTrades (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountsTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostSubaccountsTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostWalletsAddress (params?: {}): Promise<implicitReturnType>;
-    privatePostWalletsWithdraw (params?: {}): Promise<implicitReturnType>;
-    privatePostV2WalletsWithdraw (params?: {}): Promise<implicitReturnType>;
-    privatePostOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersBatch (params?: {}): Promise<implicitReturnType>;
-    privatePostOrdersKillSwitch (params?: {}): Promise<implicitReturnType>;
-    privatePostSmartorders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersId (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrdersCancelByIds (params?: {}): Promise<implicitReturnType>;
-    privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
-    privateDeleteSmartordersId (params?: {}): Promise<implicitReturnType>;
-    privateDeleteSmartordersCancelByIds (params?: {}): Promise<implicitReturnType>;
-    privateDeleteSmartorders (params?: {}): Promise<implicitReturnType>;
-    privatePutOrdersId (params?: {}): Promise<implicitReturnType>;
-    privatePutSmartordersId (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketAllInstruments (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketInstruments (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketOrderBook (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketCandles (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketIndexPriceCandlesticks (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketPremiumIndexCandlesticks (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketMarkPriceCandlesticks (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketTrades (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketLiquidationOrder (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketTickers (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketMarkPrice (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketIndexPrice (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketIndexPriceComponents (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketFundingRate (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketOpenInterest (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketInsurance (params?: {}): Promise<implicitReturnType>;
-    swapPublicGetV3MarketRiskLimit (params?: {}): Promise<implicitReturnType>;
-    swapPrivateGetV3AccountBalance (params?: {}): Promise<implicitReturnType>;
-    swapPrivateGetV3AccountBills (params?: {}): Promise<implicitReturnType>;
-    swapPrivateGetV3TradeOrderOpens (params?: {}): Promise<implicitReturnType>;
-    swapPrivateGetV3TradeOrderTrades (params?: {}): Promise<implicitReturnType>;
-    swapPrivateGetV3TradeOrderHistory (params?: {}): Promise<implicitReturnType>;
-    swapPrivateGetV3TradePositionOpens (params?: {}): Promise<implicitReturnType>;
-    swapPrivateGetV3TradePositionHistory (params?: {}): Promise<implicitReturnType>;
-    swapPrivateGetV3PositionLeverages (params?: {}): Promise<implicitReturnType>;
-    swapPrivateGetV3PositionMode (params?: {}): Promise<implicitReturnType>;
-    swapPrivatePostV3TradeOrder (params?: {}): Promise<implicitReturnType>;
-    swapPrivatePostV3TradeOrders (params?: {}): Promise<implicitReturnType>;
-    swapPrivatePostV3TradePosition (params?: {}): Promise<implicitReturnType>;
-    swapPrivatePostV3TradePositionAll (params?: {}): Promise<implicitReturnType>;
-    swapPrivatePostV3PositionLeverage (params?: {}): Promise<implicitReturnType>;
-    swapPrivatePostV3PositionMode (params?: {}): Promise<implicitReturnType>;
-    swapPrivatePostV3TradePositionMargin (params?: {}): Promise<implicitReturnType>;
-    swapPrivateDeleteV3TradeOrder (params?: {}): Promise<implicitReturnType>;
-    swapPrivateDeleteV3TradeBatchOrders (params?: {}): Promise<implicitReturnType>;
-    swapPrivateDeleteV3TradeAllOrders (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetMarkets (params = {}): Promise<List> {
+        return this.request ('markets', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
 
-export default Exchange
+    publicGetMarketsSymbol (params = {}): Promise<List> {
+        return this.request ('markets/{symbol}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCurrencies (params = {}): Promise<List> {
+        return this.request ('currencies', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    publicGetCurrenciesCurrency (params = {}): Promise<Dict> {
+        return this.request ('currencies/{currency}', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    publicGetV2Currencies (params = {}): Promise<List> {
+        return this.request ('v2/currencies', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    publicGetV2CurrenciesCurrency (params = {}): Promise<Dict> {
+        return this.request ('v2/currencies/{currency}', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    publicGetTimestamp (params = {}): Promise<Dict> {
+        return this.request ('timestamp', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsPrice (params = {}): Promise<List> {
+        return this.request ('markets/price', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsSymbolPrice (params = {}): Promise<Dict> {
+        return this.request ('markets/{symbol}/price', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsMarkPrice (params = {}): Promise<List> {
+        return this.request ('markets/markPrice', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsSymbolMarkPrice (params = {}): Promise<Dict> {
+        return this.request ('markets/{symbol}/markPrice', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsSymbolMarkPriceComponents (params = {}): Promise<Dict> {
+        return this.request ('markets/{symbol}/markPriceComponents', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsSymbolOrderBook (params = {}): Promise<Dict> {
+        return this.request ('markets/{symbol}/orderBook', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsSymbolCandles (params = {}): Promise<List> {
+        return this.request ('markets/{symbol}/candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsSymbolTrades (params = {}): Promise<List> {
+        return this.request ('markets/{symbol}/trades', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    publicGetMarketsTicker24h (params = {}): Promise<List> {
+        return this.request ('markets/ticker24h', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    publicGetMarketsSymbolTicker24h (params = {}): Promise<Dict> {
+        return this.request ('markets/{symbol}/ticker24h', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    publicGetMarketsCollateralInfo (params = {}): Promise<List> {
+        return this.request ('markets/collateralInfo', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsCurrencyCollateralInfo (params = {}): Promise<Dict> {
+        return this.request ('markets/{currency}/collateralInfo', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetMarketsBorrowRatesInfo (params = {}): Promise<List> {
+        return this.request ('markets/borrowRatesInfo', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ('accounts', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetAccountsBalances (params = {}): Promise<Dict> {
+        return this.request ('accounts/balances', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetAccountsIdBalances (params = {}): Promise<List> {
+        return this.request ('accounts/{id}/balances', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetAccountsActivity (params = {}): Promise<List> {
+        return this.request ('accounts/activity', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetAccountsTransfer (params = {}): Promise<List> {
+        return this.request ('accounts/transfer', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetAccountsTransferId (params = {}): Promise<Dict> {
+        return this.request ('accounts/transfer/{id}', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetFeeinfo (params = {}): Promise<Dict> {
+        return this.request ('feeinfo', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetAccountsInterestHistory (params = {}): Promise<List> {
+        return this.request ('accounts/interest/history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetSubaccounts (params = {}): Promise<Dict> {
+        return this.request ('subaccounts', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetSubaccountsBalances (params = {}): Promise<List> {
+        return this.request ('subaccounts/balances', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetSubaccountsIdBalances (params = {}): Promise<List> {
+        return this.request ('subaccounts/{id}/balances', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetSubaccountsTransfer (params = {}): Promise<List> {
+        return this.request ('subaccounts/transfer', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetSubaccountsTransferId (params = {}): Promise<Dict> {
+        return this.request ('subaccounts/transfer/{id}', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetWalletsAddresses (params = {}): Promise<Dict> {
+        return this.request ('wallets/addresses', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetWalletsAddressesCurrency (params = {}): Promise<Dict> {
+        return this.request ('wallets/addresses/{currency}', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetWalletsActivity (params = {}): Promise<Dict> {
+        return this.request ('wallets/activity', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetMarginAccountMargin (params = {}): Promise<Dict> {
+        return this.request ('margin/accountMargin', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetMarginBorrowStatus (params = {}): Promise<List> {
+        return this.request ('margin/borrowStatus', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetMarginMaxSize (params = {}): Promise<Dict> {
+        return this.request ('margin/maxSize', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetOrders (params = {}): Promise<List> {
+        return this.request ('orders', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetOrdersId (params = {}): Promise<List> {
+        return this.request ('orders/{id}', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetOrdersKillSwitchStatus (params = {}): Promise<Dict> {
+        return this.request ('orders/killSwitchStatus', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetSmartorders (params = {}): Promise<List> {
+        return this.request ('smartorders', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetSmartordersId (params = {}): Promise<List> {
+        return this.request ('smartorders/{id}', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privateGetOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ('orders/history', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetSmartordersHistory (params = {}): Promise<List> {
+        return this.request ('smartorders/history', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    privateGetOrdersIdTrades (params = {}): Promise<List> {
+        return this.request ('orders/{id}/trades', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    privatePostAccountsTransfer (params = {}): Promise<Dict> {
+        return this.request ('accounts/transfer', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostSubaccountsTransfer (params = {}): Promise<Dict> {
+        return this.request ('subaccounts/transfer', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    privatePostWalletsAddress (params = {}): Promise<Dict> {
+        return this.request ('wallets/address', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    privatePostWalletsWithdraw (params = {}): Promise<Dict> {
+        return this.request ('wallets/withdraw', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    privatePostV2WalletsWithdraw (params = {}): Promise<Dict> {
+        return this.request ('v2/wallets/withdraw', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    privatePostOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostOrdersBatch (params = {}): Promise<List> {
+        return this.request ('orders/batch', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    privatePostOrdersKillSwitch (params = {}): Promise<Dict> {
+        return this.request ('orders/killSwitch', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privatePostSmartorders (params = {}): Promise<Dict> {
+        return this.request ('smartorders', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    privateDeleteOrdersId (params = {}): Promise<Dict> {
+        return this.request ('orders/{id}', [ 'private' ], 'DELETE', params, { 'cost': 4 });
+    }
+
+    privateDeleteOrdersCancelByIds (params = {}): Promise<List> {
+        return this.request ('orders/cancelByIds', [ 'private' ], 'DELETE', params, { 'cost': 20 });
+    }
+
+    privateDeleteOrders (params = {}): Promise<List> {
+        return this.request ('orders', [ 'private' ], 'DELETE', params, { 'cost': 20 });
+    }
+
+    privateDeleteSmartordersId (params = {}): Promise<Dict> {
+        return this.request ('smartorders/{id}', [ 'private' ], 'DELETE', params, { 'cost': 4 });
+    }
+
+    privateDeleteSmartordersCancelByIds (params = {}): Promise<List> {
+        return this.request ('smartorders/cancelByIds', [ 'private' ], 'DELETE', params, { 'cost': 20 });
+    }
+
+    privateDeleteSmartorders (params = {}): Promise<List> {
+        return this.request ('smartorders', [ 'private' ], 'DELETE', params, { 'cost': 20 });
+    }
+
+    privatePutOrdersId (params = {}): Promise<Dict> {
+        return this.request ('orders/{id}', [ 'private' ], 'PUT', params, { 'cost': 20 });
+    }
+
+    privatePutSmartordersId (params = {}): Promise<Dict> {
+        return this.request ('smartorders/{id}', [ 'private' ], 'PUT', params, { 'cost': 20 });
+    }
+
+    swapPublicGetV3MarketAllInstruments (params = {}): Promise<Dict> {
+        return this.request ('v3/market/allInstruments', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketInstruments (params = {}): Promise<Dict> {
+        return this.request ('v3/market/instruments', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketOrderBook (params = {}): Promise<Dict> {
+        return this.request ('v3/market/orderBook', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketCandles (params = {}): Promise<Dict> {
+        return this.request ('v3/market/candles', [ 'swapPublic' ], 'GET', params, { 'cost': 10 });
+    }
+
+    swapPublicGetV3MarketIndexPriceCandlesticks (params = {}): Promise<Dict> {
+        return this.request ('v3/market/indexPriceCandlesticks', [ 'swapPublic' ], 'GET', params, { 'cost': 10 });
+    }
+
+    swapPublicGetV3MarketPremiumIndexCandlesticks (params = {}): Promise<Dict> {
+        return this.request ('v3/market/premiumIndexCandlesticks', [ 'swapPublic' ], 'GET', params, { 'cost': 10 });
+    }
+
+    swapPublicGetV3MarketMarkPriceCandlesticks (params = {}): Promise<Dict> {
+        return this.request ('v3/market/markPriceCandlesticks', [ 'swapPublic' ], 'GET', params, { 'cost': 10 });
+    }
+
+    swapPublicGetV3MarketTrades (params = {}): Promise<Dict> {
+        return this.request ('v3/market/trades', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketLiquidationOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/market/liquidationOrder', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketTickers (params = {}): Promise<Dict> {
+        return this.request ('v3/market/tickers', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketMarkPrice (params = {}): Promise<Dict> {
+        return this.request ('v3/market/markPrice', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketIndexPrice (params = {}): Promise<Dict> {
+        return this.request ('v3/market/indexPrice', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketIndexPriceComponents (params = {}): Promise<Dict> {
+        return this.request ('v3/market/indexPriceComponents', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketFundingRate (params = {}): Promise<Dict> {
+        return this.request ('v3/market/fundingRate', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketFundingRateHistory (params = {}): Promise<Dict> {
+        return this.request ('v3/market/fundingRate/history', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketOpenInterest (params = {}): Promise<Dict> {
+        return this.request ('v3/market/openInterest', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketInsurance (params = {}): Promise<Dict> {
+        return this.request ('v3/market/insurance', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketRiskLimit (params = {}): Promise<Dict> {
+        return this.request ('v3/market/riskLimit', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPublicGetV3MarketLimitPrice (params = {}): Promise<Dict> {
+        return this.request ('v3/market/limitPrice', [ 'swapPublic' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    swapPrivateGetV3AccountBalance (params = {}): Promise<Dict> {
+        return this.request ('v3/account/balance', [ 'swapPrivate' ], 'GET', params, { 'cost': 4 });
+    }
+
+    swapPrivateGetV3AccountBills (params = {}): Promise<Dict> {
+        return this.request ('v3/account/bills', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivateGetV3TradeOrderOpens (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/order/opens', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivateGetV3TradeOrderTrades (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/order/trades', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivateGetV3TradeOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/order/history', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivateGetV3TradeOrderDetails (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/order/details', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivateGetV3TradePositionOpens (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/position/opens', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivateGetV3TradePositionHistory (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/position/history', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivateGetV3PositionLeverages (params = {}): Promise<Dict> {
+        return this.request ('v3/position/leverages', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivateGetV3PositionMode (params = {}): Promise<Dict> {
+        return this.request ('v3/position/mode', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivateGetV3PositionRiskLimit (params = {}): Promise<Dict> {
+        return this.request ('v3/position/riskLimit', [ 'swapPrivate' ], 'GET', params, { 'cost': 20 });
+    }
+
+    swapPrivatePostV3TradeOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/order', [ 'swapPrivate' ], 'POST', params, { 'cost': 4 });
+    }
+
+    swapPrivatePostV3TradeOrders (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/orders', [ 'swapPrivate' ], 'POST', params, { 'cost': 40 });
+    }
+
+    swapPrivatePostV3TradePosition (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/position', [ 'swapPrivate' ], 'POST', params, { 'cost': 20 });
+    }
+
+    swapPrivatePostV3TradePositionAll (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/positionAll', [ 'swapPrivate' ], 'POST', params, { 'cost': 100 });
+    }
+
+    swapPrivatePostV3PositionLeverage (params = {}): Promise<Dict> {
+        return this.request ('v3/position/leverage', [ 'swapPrivate' ], 'POST', params, { 'cost': 20 });
+    }
+
+    swapPrivatePostV3PositionMode (params = {}): Promise<Dict> {
+        return this.request ('v3/position/mode', [ 'swapPrivate' ], 'POST', params, { 'cost': 20 });
+    }
+
+    swapPrivatePostV3TradePositionMargin (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/position/margin', [ 'swapPrivate' ], 'POST', params, { 'cost': 20 });
+    }
+
+    swapPrivateDeleteV3TradeOrder (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/order', [ 'swapPrivate' ], 'DELETE', params, { 'cost': 2 });
+    }
+
+    swapPrivateDeleteV3TradeBatchOrders (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/batchOrders', [ 'swapPrivate' ], 'DELETE', params, { 'cost': 20 });
+    }
+
+    swapPrivateDeleteV3TradeAllOrders (params = {}): Promise<Dict> {
+        return this.request ('v3/trade/allOrders', [ 'swapPrivate' ], 'DELETE', params, { 'cost': 20 });
+    }
+}
+
+export default Exchange;

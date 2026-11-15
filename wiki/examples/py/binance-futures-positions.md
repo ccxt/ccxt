@@ -1,8 +1,5 @@
-- [Binance Futures Positions](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -17,7 +14,7 @@ exchange = ccxt.binance({
     'apiKey': 'YOUR_TESTNET_API_KEY',
     'secret': 'YOUR_TESTNET_API_SECRET',
     'options': {
-        'defaultType': 'future',
+        'defaultType': 'swap',
     },
 })
 
@@ -28,5 +25,5 @@ exchange.verbose = True  # debug output
 balance = exchange.fetch_balance()
 positions = balance['info']['positions']
 pprint(positions)
- 
+
 ```

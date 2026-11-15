@@ -1,8 +1,5 @@
-- [Binance Universal Transfer](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -21,7 +18,7 @@ def main():
     })
     binance.load_markets()
 
-    pprint(binance.transfer('USDT', 0.1, 'spot', 'future'))
+    pprint(binance.transfer('USDT', 0.1, 'spot', 'swap'))
     transfers = binance.fetch_transfers()
     pprint('there is ' + str(len(transfers)) + ' transfers')
     pprint(binance.transfer('USDT', 0.1, 'spot', 'cross'))  # For transfer to cross margin wallet
@@ -29,5 +26,5 @@ def main():
 
 
 main()
- 
+
 ```

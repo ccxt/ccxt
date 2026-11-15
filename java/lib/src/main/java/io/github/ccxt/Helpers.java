@@ -5,12 +5,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,8 +18,43 @@ import io.github.ccxt.base.JsonHelper;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Helpers {
 
-
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    /** Object literal `{ k1: v1, k2: v2 }` as a mutable map; args alternate key, value. */
+    public static HashMap<String, Object> newMap(Object... keysAndValues) {
+        HashMap<String, Object> map = new HashMap<>();
+        for (int i = 0; i + 1 < keysAndValues.length; i += 2) {
+            map.put((String) keysAndValues[i], keysAndValues[i + 1]);
+        }
+        return map;
+    }
+
+    // spawn tasks: the arguments are passed by value, so the call site captures no local
+    public interface Task1<A> { void run(A a) throws Exception; }
+    public interface Task2<A, B> { void run(A a, B b) throws Exception; }
+    public interface Task3<A, B, C> { void run(A a, B b, C c) throws Exception; }
+    public interface Task4<A, B, C, D> { void run(A a, B b, C c, D d) throws Exception; }
+    public interface Task5<A, B, C, D, E> { void run(A a, B b, C c, D d, E e) throws Exception; }
+    public interface Task6<A, B, C, D, E, F> { void run(A a, B b, C c, D d, E e, F f) throws Exception; }
+
+    private interface Body { void run() throws Exception; }
+
+    private static Runnable unchecked(Body body) {
+        return () -> {
+            try {
+                body.run();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    public static <A> Runnable task(Task1<A> f, A a) { return unchecked(() -> f.run(a)); }
+    public static <A, B> Runnable task(Task2<A, B> f, A a, B b) { return unchecked(() -> f.run(a, b)); }
+    public static <A, B, C> Runnable task(Task3<A, B, C> f, A a, B b, C c) { return unchecked(() -> f.run(a, b, c)); }
+    public static <A, B, C, D> Runnable task(Task4<A, B, C, D> f, A a, B b, C c, D d) { return unchecked(() -> f.run(a, b, c, d)); }
+    public static <A, B, C, D, E> Runnable task(Task5<A, B, C, D, E> f, A a, B b, C c, D d, E e) { return unchecked(() -> f.run(a, b, c, d, e)); }
+    public static <A, B, C, D, E, F> Runnable task(Task6<A, B, C, D, E, F> f, A a, B b, C c, D d, E e, F g) { return unchecked(() -> f.run(a, b, c, d, e, g)); }
 
     /**
      * Block on a CompletableFuture and rethrow any wrapped ccxt error directly.
@@ -48,7 +81,7 @@ public class Helpers {
      * the original typed exception (preserving class, message, stack trace,
      * and any subclass-specific fields).
      */
-    public static Object joinUnwrapped(CompletableFuture<Object> future) {
+    public static <T> T joinUnwrapped(CompletableFuture<T> future) {
         try {
             return future.join();
         } catch (CompletionException ce) {
@@ -110,87 +143,6 @@ public class Helpers {
             return Long.valueOf(((Integer) a).longValue());
         }
         return a;
-    }
-
-    // C# had "ref object a" + returns new value; in Java we mimic with AtomicReference<Object>
-    public static Object postFixIncrement(AtomicReference<Object> a) {
-        Object val = a.get();
-        if (val instanceof Long) {
-            a.set(((Long) val) + 1L);
-        } else if (val instanceof Integer) {
-            a.set(((Integer) val) + 1);
-        } else if (val instanceof Double) {
-            a.set(((Double) val) + 1.0);
-        } else if (val instanceof String) {
-            a.set(((String) val) + 1);
-        } else {
-            return null;
-        }
-        return a.get();
-    }
-
-    public static Object postFixDecrement(AtomicReference<Object> a) {
-        Object val = a.get();
-        if (val instanceof Long) {
-            a.set(((Long) val) - 1L);
-        } else if (val instanceof Integer) {
-            a.set(((Integer) val) - 1);
-        } else if (val instanceof Double) {
-            a.set(((Double) val) - 1.0);
-        } else {
-            return null;
-        }
-        return a.get();
-    }
-
-    public static Object prefixUnaryNeg(AtomicReference<Object> a) {
-        Object val = a.get();
-        if (val instanceof Long) {
-            a.set(-((Long) val));
-        } else if (val instanceof Integer) {
-            a.set(-((Integer) val));
-        } else if (val instanceof Double) {
-            a.set(-((Double) val));
-        } else if (val instanceof String) {
-            return null;
-        } else {
-            return null;
-        }
-        return a.get();
-    }
-
-    public static Object prefixUnaryPlus(AtomicReference<Object> a) {
-        Object val = a.get();
-        if (val instanceof Long) {
-            a.set(+((Long) val));
-        } else if (val instanceof Integer) {
-            a.set(+((Integer) val));
-        } else if (val instanceof Double) {
-            a.set(+((Double) val));
-        } else if (val instanceof String) {
-            return null;
-        } else {
-            return null;
-        }
-        return a.get();
-    }
-
-    public static Object plusEqual(Object a, Object value) {
-        a = normalizeIntIfNeeded(a);
-        value = normalizeIntIfNeeded(value);
-
-        if (value == null) return null;
-        if (a instanceof Long && value instanceof Long) {
-            return (Long) a + (Long) value;
-        } else if (a instanceof Integer && value instanceof Integer) {
-            return (Integer) a + (Integer) value;
-        } else if (a instanceof Double && value instanceof Double) {
-            return (Double) a + (Double) value;
-        } else if (a instanceof String && value instanceof String) {
-            return ((String) a) + ((String) value);
-        } else {
-            return null;
-        }
     }
 
     // In Java, wire up your preferred JSON lib and return Map/List accordingly.
@@ -255,27 +207,6 @@ public class Helpers {
      */
     public static boolean isArray(Object a) {
         return isArrayJs(a);
-    }
-
-    /**
-     * JS-style truthy `typeof o === 'object'` check. The TS source uses this
-     * to assert "I got back something object-shaped" without caring whether
-     * it's a Map, an array, or a typed wrapper. The ast-transpiler maps it
-     * to Java `instanceof java.util.Map` which is too strict — typed return
-     * types like WsOrderBook and Trade aren't Maps but ARE objects in the
-     * JS sense. Match the loose JS semantics: anything non-null and not a
-     * primitive boxed type or string.
-     *
-     * Used as a post-transpile rewrite target so the 150+ test assertion
-     * sites become permissive in one place.
-     */
-    public static boolean isObject(Object o) {
-        if (o == null) return false;
-        if (o instanceof String) return false;
-        if (o instanceof Number) return false;
-        if (o instanceof Boolean) return false;
-        if (o instanceof Character) return false;
-        return true;
     }
 
     public static boolean isEqual(Object a, Object b) {
@@ -475,6 +406,7 @@ public class Helpers {
         return false;
     }
 
+    // Printed by javaTranspiler's Math.min fallback; keep at 0 call sites.
     public static Object mathMin(Object a, Object b) {
         if (a == null || b == null) return null;
         double first = toDouble(a);
@@ -482,15 +414,7 @@ public class Helpers {
         return (first < second) ? a : b;
     }
 
-    public static double mathPow(Object base, Object exp) {
-        if (base instanceof Number && exp instanceof Number) {
-            double baseFloat = ((Number) base).doubleValue();
-            double expFloat = ((Number) exp).doubleValue();
-            return Math.pow(baseFloat, expFloat);
-        }
-        return 0;
-    }
-
+    // Printed by javaTranspiler's Math.max fallback; keep at 0 call sites.
     public static Object mathMax(Object a, Object b) {
         if (a == null || b == null) return null;
         double first = toDouble(a);
@@ -505,22 +429,6 @@ public class Helpers {
             return ((String) str).indexOf((String) target);
         } else {
             return -1;
-        }
-    }
-
-    public static Object parseInt(Object a) {
-        try {
-            return toLong(a);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    public static Object parseFloat(Object a) {
-        try {
-            return toDouble(a);
-        } catch (Exception ignored) {
-            return null;
         }
     }
 
@@ -633,31 +541,7 @@ public class Helpers {
         }
     }
 
-    public static Object toFixed(Object number, Object decimals) {
-        double n = toDouble(number);
-        int d = toInt(decimals);
-        BigDecimal bd = new BigDecimal(Double.toString(n)).setScale(d, RoundingMode.HALF_UP);
-        return bd.doubleValue();
-    }
-
-    // public static Object callDynamically(Object obj, Object methodName, Object[] args) {
-    //     if (args == null) args = new Object[]{};
-    //     if (args.length == 0) {
-    //         // C# code injected a null arg to help binder; Java doesn't need it.
-    //         // But to mirror behavior, we won't add a null here.
-    //     }
-    //     String name = (String) methodName;
-    //     Method m = findMethod(obj.getClass(), name, args.length);
-    //     try {
-    //         m.setAccessible(true);
-    //         return m.invoke(obj, args);
-    //     } catch (Exception e) {
-    //         throw new RuntimeException(e);
-    //     }
-    // }
-
-
-public static Object callDynamically(Object obj, Object methodName, Object[] args) {
+    public static Object callDynamically(Object obj, Object methodName, Object[] args) {
     if (args == null) args = new Object[]{};
 
     String name = (String) methodName;
@@ -666,7 +550,7 @@ public static Object callDynamically(Object obj, Object methodName, Object[] arg
     try {
         m.setAccessible(true);
 
-        Object[] invokeArgs = adaptForVarArgs(m, args);
+        Object[] invokeArgs = m.isVarArgs() ? adaptForVarArgs(m, args) : padArgs(m, args);
         coerceArgs(m, invokeArgs);
 
         return m.invoke(obj, invokeArgs);
@@ -674,6 +558,19 @@ public static Object callDynamically(Object obj, Object methodName, Object[] arg
     } catch (Exception e) {
         throw new RuntimeException(e);
     }
+}
+
+// omitted trailing arguments of a fixed-arity method: null (TS `undefined`), except a
+// params bag, which takes the TS default `{}`
+private static Object[] padArgs(Method m, Object[] args) {
+    int n = m.getParameterCount();
+    if (args.length == n) return args;
+    Object[] out = java.util.Arrays.copyOf(args, n);
+    Class<?>[] ptypes = m.getParameterTypes();
+    for (int i = args.length; i < n; i++) {
+        if (ptypes[i] == Map.class) out[i] = new HashMap<String, Object>();
+    }
+    return out;
 }
 
 /**
@@ -708,6 +605,14 @@ private static void coerceArgs(Method m, Object[] args) {
                 if (expected == Long.class) args[i] = Long.parseLong(s);
                 else args[i] = Double.parseDouble(s);
             } catch (NumberFormatException ignored) {}
+        }
+        // a String slot takes the value's string form (same as toStringArg)
+        if (expected == String.class && !(args[i] instanceof String)) {
+            args[i] = toStringArg(args[i]);
+        }
+        // a symbol list given as an array
+        else if (expected == List.class && args[i] instanceof Object[] arr) {
+            args[i] = new ArrayList<>(java.util.Arrays.asList(arr));
         }
     }
 }
@@ -746,22 +651,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     invokeArgs[fixedCount] = varArray;
     return invokeArgs;
 }
-
-    public static Object callDynamicallyAsync(Object obj, Object methodName, Object[] args) {
-        if (args == null) args = new Object[]{};
-        String name = (String) methodName;
-        Method m = findMethod(obj.getClass(), name, args.length);
-        try {
-            m.setAccessible(true);
-            Object res = m.invoke(obj, args);
-            if (res instanceof CompletableFuture) {
-                return ((CompletableFuture<?>) res).get();
-            }
-            return res;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public static boolean inOp(Object obj, Object key) { return InOp(obj, key); }
 
@@ -808,6 +697,7 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         }
     }
 
+    // Printed by javaTranspiler's x.concat(y) arm; keep at 0 call sites.
     public static Object concat(Object a, Object b) {
         if (a == null && b == null) return null;
         if (a == null) return b;
@@ -833,39 +723,38 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
 
     // --------- helpers ---------
 
+    // Every generated method has ONE signature: resolve by name, child class first. Among
+    // same-named methods (hand-written helpers, typed override bridges, surface defaults)
+    // prefer the fewest parameters that still take every argument, trailing ones padded.
     private static Method findMethod(Class<?> cls, String name, int argCount) {
-        // Search child-first (normal Java resolution order) but collect candidates.
-        // Prefer varargs methods over non-varargs when both match — varargs methods
-        // are the untyped transpiled methods (Object... params, CompletableFuture returns)
-        // while non-varargs are typed overloads (String/Long/Map params, sync returns)
-        // that don't work with callDynamically's Object[] args.
-        Method nonVarArgsMatch = null;
-
-        Class<?> cur = cls;
-        while (cur != null) {
+        Method best = null;
+        for (Class<?> cur = cls; cur != null && best == null; cur = cur.getSuperclass()) {
             for (Method m : cur.getDeclaredMethods()) {
-                if (!m.getName().equals(name)) continue;
-
-                // Varargs method that can accept this arg count: return immediately
-                if (m.isVarArgs() && argCount >= m.getParameterCount() - 1) {
-                    return m;
-                }
-
-                // Exact arg count match: save as fallback (typed overload)
-                if (m.getParameterCount() == argCount && nonVarArgsMatch == null) {
-                    nonVarArgsMatch = m;
+                if (!m.getName().equals(name) || m.isBridge() || m.isSynthetic()) continue;
+                int n = m.getParameterCount();
+                boolean fits = m.isVarArgs() ? argCount >= n - 1 : n >= argCount;
+                if (!fits) continue;
+                if (best == null || n < best.getParameterCount()
+                        || (n == best.getParameterCount() && isLooser(m, best))) {
+                    best = m;
                 }
             }
-            cur = cur.getSuperclass();
         }
-
-        if (nonVarArgsMatch != null) return nonVarArgsMatch;
-
-        // last resort: first by name
+        if (best != null) return best;
+        // interface default methods and public inherited members
         for (Method m : cls.getMethods()) {
-            if (m.getName().equals(name)) return m;
+            if (m.getName().equals(name) && (m.isVarArgs() || m.getParameterCount() >= argCount)) return m;
         }
         throw new RuntimeException("Method not found: " + name + " with " + argCount + " args on " + cls.getName());
+    }
+
+    // of two same-arity overloads (a typed core and its override bridge), the one declaring
+    // more Object slots accepts every argument the other does
+    private static boolean isLooser(Method a, Method b) {
+        int objectsA = 0, objectsB = 0;
+        for (Class<?> t : a.getParameterTypes()) if (t == Object.class) objectsA++;
+        for (Class<?> t : b.getParameterTypes()) if (t == Object.class) objectsB++;
+        return objectsA > objectsB;
     }
 
     private static Long toLong(Object o) {
@@ -876,6 +765,13 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         if (o instanceof BigDecimal) return ((BigDecimal) o).longValue();
         if (o instanceof String) return Long.parseLong((String) o);
         return Long.parseLong(String.valueOf(o));
+    }
+
+    // Public primitive coercion used by the Java transpiler to make `for`-loop
+    // indices that start from an Object-typed local (e.g. a running offset
+    // reassigned from this.sum(...)) usable with `++`. Returns a primitive long.
+    public static long toInt64(Object o) {
+        return toLong(o);
     }
 
     private static int toInt(Object o) {
@@ -945,18 +841,56 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         return v[index];
     }
 
+    // Slot readers for the generated `Object... optionalArgs` fronts: an omitted slot takes the
+    // default, an explicit null stays null, and any Number widens to Long.
+
+    /** a write into a typed `Long` parameter: null stays null, any Number widens to Long */
+    public static Long toLongOrNull(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        throw new ClassCastException("ccxt: expected a number, got " + value.getClass().getName());
+    }
+
+    /** a value passed to a typed `String` core parameter */
+    public static String toStringArg(Object value) {
+        return value == null ? null : (value instanceof String ? (String) value : String.valueOf(value));
+    }
+
+    /** a value passed to a typed `Map` core parameter */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> toMapArg(Object value) {
+        if (value == null || value instanceof Map) {
+            return (Map<String, Object>) value;
+        }
+        throw new ClassCastException("ccxt: expected a dictionary, got " + value.getClass().getName());
+    }
+
+    /** a value passed to a typed `List<String>` core parameter */
+    @SuppressWarnings("unchecked")
+    public static List<String> toStringListArg(Object value) {
+        if (value == null || value instanceof List) {
+            return (List<String>) value;
+        }
+        throw new ClassCastException("ccxt: expected a list of strings, got " + value.getClass().getName());
+    }
+
 
     /**
-     * Snapshot-copy of a Map's keys under the map's intrinsic lock, so concurrent
-     * put/remove from a WS-handler thread doesn't IOOBE the iteration. Used by
-     * the transpile of `Object.keys(x)` — see post-process in build/javaTranspiler.ts.
+     * Copy of a Map's keys. The caller owns the map or reads a published snapshot (an
+     * immutable map, or a null-free store's weakly consistent view), so the copy needs no
+     * monitor. Used by the transpile of `Object.keys(x)`.
      * For non-Map targets returns an empty list (matches JS Object.keys on non-objects).
      */
     public static List<Object> objectKeys(Object target) {
         if (target instanceof Map<?, ?> m) {
-            synchronized (m) {
-                return new ArrayList<>(m.keySet());
-            }
+            return new ArrayList<>(m.keySet());
         }
         return new ArrayList<>();
     }
@@ -964,9 +898,7 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     /** Same as {@link #objectKeys} but for values — transpile of `Object.values(x)`. */
     public static List<Object> objectValues(Object target) {
         if (target instanceof Map<?, ?> m) {
-            synchronized (m) {
-                return new ArrayList<>(m.values());
-            }
+            return new ArrayList<>(m.values());
         }
         return new ArrayList<>();
     }
@@ -977,19 +909,14 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
             if (args.length != 2)
                 throw new IllegalArgumentException("Map requires (key, value)");
             Map<Object, Object> m = (Map<Object, Object>) map;
-            // ConcurrentHashMap rejects null values. We use it for thread-safe
-            // shared state (Exchange.options); translate null put → remove
-            // there since TS `obj[key] = null` is semantically equivalent to
-            // "key is not set" (safeValue returns null either way).
-            // Other maps (request payloads, responses) keep explicit null
-            // entries — many static-request/response tests check for them.
-            // The synchronized block pairs with objectKeys() above: any reader
-            // taking the map's monitor sees a stable view of put/remove here.
-            synchronized (m) {
-                if (args[1] == null && m instanceof java.util.concurrent.ConcurrentHashMap) {
+            // JS keeps an explicit null entry; a null-free store spells the same write as a removal
+            if (args[1] != null || args[0] == null) {
+                m.put(args[0], args[1]);
+            } else {
+                try {
+                    m.put(args[0], null);
+                } catch (NullPointerException nullFree) {
                     m.remove(args[0]);
-                } else {
-                    m.put(args[0], args[1]);
                 }
             }
             return;
@@ -1018,28 +945,23 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
                 "List requires (value) to append or (index(Integer), value) to insert");
         }
 
-        // Fallback: set field via reflection for arbitrary objects (e.g., WsOrderBook).
-        // Sync on the target so a sequence of writes (e.g. timestamp + datetime updated
-        // together by an exchange's handler) appears atomic to readers that take the
-        // same monitor (see WsOrderBook.toMap, which synchronizes on `this`). Without
-        // it, apex/gate orderbooks showed datetime drift / null because the two writes
-        // weren't memory-visible together.
+        // Fallback: set a field via reflection on a plain object. The target is owned by the
+        // calling thread (every Map, including WsOrderBook, takes the branch above), so the
+        // write needs no monitor to be visible to that thread's later reads.
         if (args.length == 2 && args[0] instanceof String fieldName) {
-            synchronized (target) {
+            try {
+                java.lang.reflect.Field field = target.getClass().getField(fieldName);
+                field.setAccessible(true);
+                field.set(target, args[1]);
+                return;
+            } catch (NoSuchFieldException e) {
                 try {
-                    java.lang.reflect.Field field = target.getClass().getField(fieldName);
-                    field.setAccessible(true);
-                    field.set(target, args[1]);
+                    String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                    java.lang.reflect.Method method = target.getClass().getMethod(setter, Object.class);
+                    method.invoke(target, args[1]);
                     return;
-                } catch (NoSuchFieldException e) {
-                    try {
-                        String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-                        java.lang.reflect.Method method = target.getClass().getMethod(setter, Object.class);
-                        method.invoke(target, args[1]);
-                        return;
-                    } catch (Exception e2) { /* fall through */ }
-                } catch (Exception e) { /* fall through */ }
-            }
+                } catch (Exception e2) { /* fall through */ }
+            } catch (Exception e) { /* fall through */ }
         }
         throw new IllegalArgumentException("Target is neither Map nor List: " + typeName(target));
     }
@@ -1171,6 +1093,7 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
         return str.substring(0, length);
     }
 
+    // Printed by javaTranspiler's padStart fallback; keep at 0 call sites.
     public static String padStart(Object input, Object length2, Object padStr) {
         int length = toInt(length2);
         String str = toString(input);
@@ -1195,6 +1118,7 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
         }
     }
 
+    // Printed by javaTranspiler's Math.abs arm; keep at 0 call sites.
     public static Object mathAbs(Object val) {
         if (val == null) {
             return null;

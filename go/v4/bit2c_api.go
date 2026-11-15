@@ -7,94 +7,132 @@
 
 package ccxt
 
-func (this *Bit2cCore) PublicGetExchangesPairTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetExchangesPairTicker", args...)
+// PublicGetExchangesPairTicker returns a channel that yields a JSON object.
+func (this *Bit2c) PublicGetExchangesPairTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Exchanges/{pair}/Ticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PublicGetExchangesPairOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetExchangesPairOrderbook", args...)
+// PublicGetExchangesPairOrderbook returns a channel that yields a JSON object.
+func (this *Bit2c) PublicGetExchangesPairOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Exchanges/{pair}/orderbook", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PublicGetExchangesPairTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetExchangesPairTrades", args...)
+// PublicGetExchangesPairOrderbookTop returns a channel that yields a JSON object.
+func (this *Bit2c) PublicGetExchangesPairOrderbookTop(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Exchanges/{pair}/orderbook-top", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PublicGetExchangesPairLasttrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetExchangesPairLasttrades", args...)
+// PublicGetExchangesPairTrades returns a channel that yields a JSON array.
+func (this *Bit2c) PublicGetExchangesPairTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "Exchanges/{pair}/trades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostMerchantCreateCheckout(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMerchantCreateCheckout", args...)
+// PublicGetExchangesPairLasttrades returns a channel that yields a JSON array.
+func (this *Bit2c) PublicGetExchangesPairLasttrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "Exchanges/{pair}/lasttrades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostFundsAddCoinFundsRequest(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostFundsAddCoinFundsRequest", args...)
+// PrivatePostMerchantCreateCheckout returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostMerchantCreateCheckout(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Merchant/CreateCheckout", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddFund(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderAddFund", args...)
+// PrivatePostFundsAddCoinFundsRequest returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostFundsAddCoinFundsRequest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Funds/AddCoinFundsRequest", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderAddOrder", args...)
+// PrivatePostFundsWithdrawCoin returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostFundsWithdrawCoin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Funds/WithdrawCoin", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostOrderGetById(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderGetById", args...)
+// PrivatePostOrderAddFund returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostOrderAddFund(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/AddFund", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceBuy(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderAddOrderMarketPriceBuy", args...)
+// PrivatePostOrderAddOrder returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostOrderAddOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/AddOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddOrderMarketPriceSell(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderAddOrderMarketPriceSell", args...)
+// PrivatePostOrderGetById returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostOrderGetById(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/GetById", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostOrderCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderCancelOrder", args...)
+// PrivatePostOrderAddOrderMarketPriceBuy returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostOrderAddOrderMarketPriceBuy(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/AddOrderMarketPriceBuy", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddCoinFundsRequest(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderAddCoinFundsRequest", args...)
+// PrivatePostOrderAddOrderMarketPriceSell returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostOrderAddOrderMarketPriceSell(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/AddOrderMarketPriceSell", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostOrderAddStopOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderAddStopOrder", args...)
+// PrivatePostOrderCancelOrder returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostOrderCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/CancelOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostPaymentGetMyId(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPaymentGetMyId", args...)
+// PrivatePostOrderAddCoinFundsRequest returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostOrderAddCoinFundsRequest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/AddCoinFundsRequest", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostPaymentSend(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPaymentSend", args...)
+// PrivatePostOrderAddStopOrder returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostOrderAddStopOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/AddStopOrder", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivatePostPaymentPay(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPaymentPay", args...)
+// PrivatePostPaymentGetMyId returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostPaymentGetMyId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Payment/GetMyId", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivateGetAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBalance", args...)
+// PrivatePostPaymentSend returns a channel that yields a JSON object.
+func (this *Bit2c) PrivatePostPaymentSend(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Payment/Send", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivateGetAccountBalanceV2(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBalanceV2", args...)
+// PrivatePostPaymentPay returns a channel that yields a JSON scalar.
+func (this *Bit2c) PrivatePostPaymentPay(args ...any) <-chan EndpointResult[string] {
+	return Fetch2Result[string](this, "Payment/Pay", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivateGetOrderMyOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrderMyOrders", args...)
+// PrivateGetAccountBalance returns a channel that yields a JSON object.
+func (this *Bit2c) PrivateGetAccountBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Account/Balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivateGetOrderGetById(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrderGetById", args...)
+// PrivateGetAccountBalanceV2 returns a channel that yields a JSON object.
+func (this *Bit2c) PrivateGetAccountBalanceV2(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Account/Balance/v2", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivateGetOrderAccountHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrderAccountHistory", args...)
+// PrivateGetOrderMyOrders returns a channel that yields a JSON object.
+func (this *Bit2c) PrivateGetOrderMyOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/MyOrders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *Bit2cCore) PrivateGetOrderOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrderOrderHistory", args...)
+// PrivateGetOrderGetById returns a channel that yields a JSON object.
+func (this *Bit2c) PrivateGetOrderGetById(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "Order/GetById", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetOrderAccountHistory returns a channel that yields a JSON array.
+func (this *Bit2c) PrivateGetOrderAccountHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "Order/AccountHistory", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetOrderOrderHistory returns a channel that yields a JSON array.
+func (this *Bit2c) PrivateGetOrderOrderHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "Order/OrderHistory", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetOrderHistoryByOrderId returns a channel that yields a JSON array.
+func (this *Bit2c) PrivateGetOrderHistoryByOrderId(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "Order/HistoryByOrderId", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }

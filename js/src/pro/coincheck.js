@@ -53,16 +53,18 @@ export default class coincheck extends coincheckRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
             'type': 'subscribe',
-            'channel': market['id'] + '-orderbook',
+            'channel': this.safeString(market, 'id', '') + '-orderbook',
         };
         const message = this.extend(request, params);
         const orderbook = await this.watch(url, messageHash, message, messageHash);
@@ -89,19 +91,12 @@ export default class coincheck extends coincheckRest {
         //         }
         //     ]
         //
-        const symbol = this.symbol(this.safeString(message, 0));
-        const data = this.safeValue(message, 1, {});
+        const symbol = this.safeString(this.market(this.safeString(message, 0)), 'symbol', '');
+        const data = this.safeDict(message, 1, {});
         const timestamp = this.safeTimestamp(data, 'last_update_at');
         const snapshot = this.parseOrderBook(data, symbol, timestamp);
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook(snapshot);
-            this.orderbooks[symbol] = orderbook;
-        }
-        else {
-            orderbook = this.orderbooks[symbol];
-            orderbook.reset(snapshot);
-        }
+        const orderbook = this.orderBook(snapshot);
+        this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
@@ -117,21 +112,23 @@ export default class coincheck extends coincheckRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
-        symbol = market['symbol'];
         const messageHash = 'trade:' + market['symbol'];
         const url = this.urls['api']['ws'];
         const request = {
             'type': 'subscribe',
-            'channel': market['id'] + '-trades',
+            'channel': this.safeString(market, 'id', '') + '-trades',
         };
         const message = this.extend(request, params);
         const trades = await this.watch(url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(market['symbol'], limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -148,8 +145,8 @@ export default class coincheck extends coincheckRest {
         //         ]
         //     ]
         //
-        const first = this.safeValue(message, 0, []);
-        const symbol = this.symbol(this.safeString(first, 2));
+        const first = this.safeList(message, 0, []);
+        const symbol = this.safeString(this.market(this.safeString(first, 2)), 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -198,8 +195,8 @@ export default class coincheck extends coincheckRest {
             'fee': undefined,
         }, market);
     }
-    handleMessage(client, message) {
-        const data = this.safeValue(message, 0);
+    handleListMessage(client, message) {
+        const data = this.safeList(message, 0);
         if (!Array.isArray(data)) {
             this.handleOrderBook(client, message);
         }

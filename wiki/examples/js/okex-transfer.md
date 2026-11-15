@@ -1,8 +1,5 @@
-- [Okex Transfer](./examples/js/)
+```javascript
 
-
- ```javascript
- 
 
 import ccxt from '../../js/ccxt.js';
 
@@ -52,5 +49,5 @@ async function main () {
     console.log ('Funding:', fundingBalance[code], code)
 }
 
-main () 
+main ()
 ```

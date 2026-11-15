@@ -5,50 +5,193 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetGetValidPrimaryCurrencyCodes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetValidSecondaryCurrencyCodes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetValidLimitOrderTypes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetValidMarketOrderTypes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetValidOrderTypes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetValidTransactionTypes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetMarketSummary (params?: {}): Promise<implicitReturnType>;
-    publicGetGetOrderBook (params?: {}): Promise<implicitReturnType>;
-    publicGetGetAllOrders (params?: {}): Promise<implicitReturnType>;
-    publicGetGetTradeHistorySummary (params?: {}): Promise<implicitReturnType>;
-    publicGetGetRecentTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetGetFxRates (params?: {}): Promise<implicitReturnType>;
-    publicGetGetOrderMinimumVolumes (params?: {}): Promise<implicitReturnType>;
-    publicGetGetCryptoWithdrawalFees (params?: {}): Promise<implicitReturnType>;
-    publicGetGetCryptoWithdrawalFees2 (params?: {}): Promise<implicitReturnType>;
-    publicGetGetNetworks (params?: {}): Promise<implicitReturnType>;
-    publicGetGetPrimaryCurrencyConfig2 (params?: {}): Promise<implicitReturnType>;
-    privatePostGetOpenOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostGetClosedOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostGetClosedFilledOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostGetOrderDetails (params?: {}): Promise<implicitReturnType>;
-    privatePostGetAccounts (params?: {}): Promise<implicitReturnType>;
-    privatePostGetTransactions (params?: {}): Promise<implicitReturnType>;
-    privatePostGetFiatBankAccounts (params?: {}): Promise<implicitReturnType>;
-    privatePostGetDigitalCurrencyDepositAddress (params?: {}): Promise<implicitReturnType>;
-    privatePostGetDigitalCurrencyDepositAddress2 (params?: {}): Promise<implicitReturnType>;
-    privatePostGetDigitalCurrencyDepositAddresses (params?: {}): Promise<implicitReturnType>;
-    privatePostGetDigitalCurrencyDepositAddresses2 (params?: {}): Promise<implicitReturnType>;
-    privatePostGetTrades (params?: {}): Promise<implicitReturnType>;
-    privatePostGetBrokerageFees (params?: {}): Promise<implicitReturnType>;
-    privatePostGetDigitalCurrencyWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceLimitOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPlaceMarketOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostSynchDigitalCurrencyDepositAddressWithBlockchain (params?: {}): Promise<implicitReturnType>;
-    privatePostRequestFiatWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawFiatCurrency (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawDigitalCurrency (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawCrypto (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetGetValidPrimaryCurrencyCodes (params = {}): Promise<List> {
+        return this.request ('GetValidPrimaryCurrencyCodes', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetGetValidSecondaryCurrencyCodes (params = {}): Promise<List> {
+        return this.request ('GetValidSecondaryCurrencyCodes', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetValidLimitOrderTypes (params = {}): Promise<List> {
+        return this.request ('GetValidLimitOrderTypes', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetValidMarketOrderTypes (params = {}): Promise<List> {
+        return this.request ('GetValidMarketOrderTypes', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetValidOrderTypes (params = {}): Promise<List> {
+        return this.request ('GetValidOrderTypes', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetValidTransactionTypes (params = {}): Promise<List> {
+        return this.request ('GetValidTransactionTypes', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetMarketSummary (params = {}): Promise<Dict> {
+        return this.request ('GetMarketSummary', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetOrderBook (params = {}): Promise<Dict> {
+        return this.request ('GetOrderBook', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetAllOrders (params = {}): Promise<Dict> {
+        return this.request ('GetAllOrders', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetTradeHistorySummary (params = {}): Promise<Dict> {
+        return this.request ('GetTradeHistorySummary', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetRecentTrades (params = {}): Promise<Dict> {
+        return this.request ('GetRecentTrades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetFxRates (params = {}): Promise<List> {
+        return this.request ('GetFxRates', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetOrderMinimumVolumes (params = {}): Promise<Dict> {
+        return this.request ('GetOrderMinimumVolumes', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetDepositFees (params = {}): Promise<List> {
+        return this.request ('GetDepositFees', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetFiatWithdrawalFees (params = {}): Promise<List> {
+        return this.request ('GetFiatWithdrawalFees', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetCryptoWithdrawalFees (params = {}): Promise<Dict> {
+        return this.request ('GetCryptoWithdrawalFees', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetCryptoWithdrawalFees2 (params = {}): Promise<List> {
+        return this.request ('GetCryptoWithdrawalFees2', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetNetworks (params = {}): Promise<List> {
+        return this.request ('GetNetworks', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetGetPrimaryCurrencyConfig2 (params = {}): Promise<List> {
+        return this.request ('GetPrimaryCurrencyConfig2', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostGetOpenOrders (params = {}): Promise<Dict> {
+        return this.request ('GetOpenOrders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetClosedOrders (params = {}): Promise<Dict> {
+        return this.request ('GetClosedOrders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetClosedFilledOrders (params = {}): Promise<Dict> {
+        return this.request ('GetClosedFilledOrders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetOrderDetails (params = {}): Promise<Dict> {
+        return this.request ('GetOrderDetails', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetAccounts (params = {}): Promise<List> {
+        return this.request ('GetAccounts', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetTransactions (params = {}): Promise<Dict> {
+        return this.request ('GetTransactions', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetFiatBankAccounts (params = {}): Promise<List> {
+        return this.request ('GetFiatBankAccounts', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetDigitalCurrencyDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('GetDigitalCurrencyDepositAddress', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetDigitalCurrencyDepositAddress2 (params = {}): Promise<List> {
+        return this.request ('GetDigitalCurrencyDepositAddress2', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetDigitalCurrencyDepositAddresses (params = {}): Promise<Dict> {
+        return this.request ('GetDigitalCurrencyDepositAddresses', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetDigitalCurrencyDepositAddresses2 (params = {}): Promise<Dict> {
+        return this.request ('GetDigitalCurrencyDepositAddresses2', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetTrades (params = {}): Promise<Dict> {
+        return this.request ('GetTrades', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetTradesByOrder (params = {}): Promise<Dict> {
+        return this.request ('GetTradesByOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetBrokerageFees (params = {}): Promise<List> {
+        return this.request ('GetBrokerageFees', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetDigitalCurrencyWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('GetDigitalCurrencyWithdrawal', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetFiatWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('GetFiatWithdrawal', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetDepositLimits (params = {}): Promise<Dict> {
+        return this.request ('GetDepositLimits', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostGetWithdrawalLimits (params = {}): Promise<Dict> {
+        return this.request ('GetWithdrawalLimits', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPlaceLimitOrder (params = {}): Promise<Dict> {
+        return this.request ('PlaceLimitOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostPlaceMarketOrder (params = {}): Promise<Dict> {
+        return this.request ('PlaceMarketOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('CancelOrder', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostCancelOrders (params = {}): Promise<Dict> {
+        return this.request ('CancelOrders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSynchDigitalCurrencyDepositAddressWithBlockchain (params = {}): Promise<Dict> {
+        return this.request ('SynchDigitalCurrencyDepositAddressWithBlockchain', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostRequestFiatWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('RequestFiatWithdrawal', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWithdrawFiatCurrency (params = {}): Promise<Dict> {
+        return this.request ('WithdrawFiatCurrency', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWithdrawDigitalCurrency (params = {}): Promise<Dict> {
+        return this.request ('WithdrawDigitalCurrency', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWithdrawCrypto (params = {}): Promise<Dict> {
+        return this.request ('WithdrawCrypto', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

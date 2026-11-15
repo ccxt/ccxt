@@ -1,8 +1,5 @@
-- [Margin Loan Borrow Buy Sell Repay](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // Note, this is just an example and might not yet work on other exchanges, which are being still unified.
 function example() {
     // ########## user inputs ##########
@@ -111,5 +107,5 @@ function example() {
 
 
 \React\Async\await(example());
- 
+
 ```

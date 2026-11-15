@@ -1,8 +1,5 @@
-- [Binance Conditional Orders](./examples/py/)
-
-
- ```python
- import ccxt
+```python
+import ccxt
 from pprint import pprint
 
 print('CCXT Version:', ccxt.__version__)
@@ -46,5 +43,5 @@ print('---------------------------------------------------------------------')
 take_profit_params = {'stopPrice': order1_price * 1.6}
 order3 = exchange.create_order(symbol, 'take_profit_market', 'sell', amount, None, take_profit_params)
 pprint(order3)
- 
+
 ```

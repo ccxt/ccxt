@@ -1,8 +1,5 @@
-- [Gateio Watch Trades](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
 import ccxt.pro
@@ -27,5 +24,5 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
- 
+
 ```

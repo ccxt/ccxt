@@ -5,14 +5,14 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { ed25519 } from '@noble/curves/ed25519.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/woofipro.js';
-import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 // ---------------------------------------------------------------------------
 /**
  * @class woofipro
@@ -23,13 +23,12 @@ export default class woofipro extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'woofipro',
             'name': 'WOOFI PRO',
-            'countries': ['KY'],
+            'countries': ['KY'], // Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
             'pro': true,
             'dex': true,
-            'hostname': 'dex.woo.org',
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -37,7 +36,7 @@ export default class woofipro extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
@@ -54,6 +53,7 @@ export default class woofipro extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
@@ -64,6 +64,7 @@ export default class woofipro extends Exchange {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
@@ -97,12 +98,15 @@ export default class woofipro extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
+                'fetchMarginModes': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
@@ -116,8 +120,8 @@ export default class woofipro extends Exchange {
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -126,11 +130,12 @@ export default class woofipro extends Exchange {
                 'fetchTransfers': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -160,7 +165,7 @@ export default class woofipro extends Exchange {
                 },
                 'www': 'https://dex.woo.org',
                 'doc': [
-                    'https://orderly.network/docs/build-on-omnichain/building-on-evm',
+                    'https://orderly.network/docs/build-on-omnichain/building-on-omnichain',
                 ],
                 'fees': [
                     'https://dex.woo.org/en/orderly',
@@ -174,133 +179,173 @@ export default class woofipro extends Exchange {
                 'v1': {
                     'public': {
                         'get': {
-                            'public/volume/stats': 1,
-                            'public/broker/name': 1,
-                            'public/chain_info/{broker_id}': 1,
-                            'public/system_info': 1,
-                            'public/vault_balance': 1,
-                            'public/insurancefund': 1,
-                            'public/chain_info': 1,
-                            'faucet/usdc': 1,
-                            'public/account': 1,
-                            'get_account': 1,
-                            'registration_nonce': 1,
-                            'get_orderly_key': 1,
-                            'public/liquidation': 1,
-                            'public/liquidated_positions': 1,
-                            'public/config': 1,
-                            'public/campaign/ranking': 10,
-                            'public/campaign/stats': 10,
-                            'public/campaign/user': 10,
-                            'public/campaign/stats/details': 10,
-                            'public/campaigns': 10,
-                            'public/points/leaderboard': 1,
-                            'client/points': 1,
-                            'public/points/epoch': 1,
-                            'public/points/epoch_dates': 1,
-                            'public/referral/check_ref_code': 1,
-                            'public/referral/verify_ref_code': 1,
-                            'referral/admin_info': 1,
-                            'referral/info': 1,
-                            'referral/referee_info': 1,
-                            'referral/referee_rebate_summary': 1,
-                            'referral/referee_history': 1,
-                            'referral/referral_history': 1,
-                            'referral/rebate_summary': 1,
-                            'client/distribution_history': 1,
-                            'tv/config': 1,
-                            'tv/history': 1,
-                            'tv/symbol_info': 1,
-                            'public/funding_rate_history': 1,
-                            'public/funding_rate/{symbol}': 0.33,
-                            'public/funding_rates': 1,
-                            'public/info': 1,
-                            'public/info/{symbol}': 1,
-                            'public/market_trades': 1,
-                            'public/token': 1,
-                            'public/futures': 1,
-                            'public/futures/{symbol}': 1,
+                            'public/volume/stats': { 'cost': 1 },
+                            'public/broker/name': { 'cost': 1 },
+                            'public/chain_info/{broker_id}': { 'cost': 1 },
+                            'public/system_info': { 'cost': 1 },
+                            'public/vault_balance': { 'cost': 1 },
+                            'public/insurancefund': { 'cost': 1 },
+                            'public/chain_info': { 'cost': 1 },
+                            'faucet/usdc': { 'cost': 1 },
+                            'public/account': { 'cost': 1 },
+                            'get_account': { 'cost': 1 },
+                            'registration_nonce': { 'cost': 1 },
+                            'get_orderly_key': { 'cost': 1 },
+                            'public/liquidation': { 'cost': 1 },
+                            'public/liquidated_positions': { 'cost': 1 },
+                            'public/config': { 'cost': 1 },
+                            'public/campaign/ranking': { 'cost': 10 },
+                            'public/campaign/stats': { 'cost': 10 },
+                            'public/campaign/user': { 'cost': 10 },
+                            'public/campaign/stats/details': { 'cost': 10 },
+                            'public/campaigns': { 'cost': 10 },
+                            'public/points/leaderboard': { 'cost': 1 },
+                            'client/points': { 'cost': 1 },
+                            'public/points/epoch': { 'cost': 1 },
+                            'public/points/epoch_dates': { 'cost': 1 },
+                            'public/points/rankings': { 'cost': 1 },
+                            'public/points/stages': { 'cost': 1 },
+                            'public/referral/check_ref_code': { 'cost': 1 },
+                            'public/referral/verify_ref_code': { 'cost': 1 },
+                            'referral/admin_info': { 'cost': 1 },
+                            'referral/info': { 'cost': 1 },
+                            'referral/referee_info': { 'cost': 1 },
+                            'referral/referee_rebate_summary': { 'cost': 1 },
+                            'referral/referee_history': { 'cost': 1 },
+                            'referral/referral_history': { 'cost': 1 },
+                            'referral/rebate_summary': { 'cost': 1 },
+                            'client/distribution_history': { 'cost': 1 },
+                            'tv/config': { 'cost': 1 },
+                            'tv/history': { 'cost': 1 },
+                            'tv/symbol_info': { 'cost': 1 },
+                            'tv/kline_history': { 'cost': 1 },
+                            'public/funding_rate_history': { 'cost': 1 },
+                            'public/funding_rate/{symbol}': { 'cost': 0.33 },
+                            'public/funding_rates': { 'cost': 1 },
+                            'public/info': { 'cost': 1 },
+                            'public/info/{symbol}': { 'cost': 1 },
+                            'public/market_trades': { 'cost': 1 },
+                            'public/token': { 'cost': 1 },
+                            'public/futures': { 'cost': 1 },
+                            'public/futures/{symbol}': { 'cost': 1 },
+                            'staking/valor2/batch_info': { 'cost': 1 },
+                            'staking/valor2/pool_info': { 'cost': 1 },
+                            'staking/valor2/revenue_buyback': { 'cost': 1 },
                         },
                         'post': {
-                            'register_account': 1,
+                            'register_account': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'client/key_info': 6,
-                            'client/orderly_key_ip_restriction': 6,
-                            'order/{oid}': 1,
-                            'client/order/{client_order_id}': 1,
-                            'algo/order/{oid}': 1,
-                            'algo/client/order/{client_order_id}': 1,
-                            'orders': 1,
-                            'algo/orders': 1,
-                            'trade/{tid}': 1,
-                            'trades': 1,
-                            'order/{oid}/trades': 1,
-                            'client/liquidator_liquidations': 1,
-                            'liquidations': 1,
-                            'asset/history': 60,
-                            'client/holding': 1,
-                            'withdraw_nonce': 1,
-                            'settle_nonce': 1,
-                            'pnl_settlement/history': 1,
-                            'volume/user/daily': 60,
-                            'volume/user/stats': 60,
-                            'client/statistics': 60,
-                            'client/info': 60,
-                            'client/statistics/daily': 60,
-                            'positions': 3.33,
-                            'position/{symbol}': 3.33,
-                            'funding_fee/history': 30,
-                            'notification/inbox/notifications': 60,
-                            'notification/inbox/unread': 60,
-                            'volume/broker/daily': 60,
-                            'broker/fee_rate/default': 10,
-                            'broker/user_info': 10,
-                            'orderbook/{symbol}': 1,
-                            'kline': 1,
+                            'client/key_info': { 'cost': 6 },
+                            'client/orderly_key_ip_restriction': { 'cost': 6 },
+                            'order/{oid}': { 'cost': 1 },
+                            'client/order/{client_order_id}': { 'cost': 1 },
+                            'algo/order/{oid}': { 'cost': 1 },
+                            'algo/client/order/{client_order_id}': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'algo/orders': { 'cost': 1 },
+                            'trade/{tid}': { 'cost': 1 },
+                            'trades': { 'cost': 1 },
+                            'order/{oid}/trades': { 'cost': 1 },
+                            'client/liquidator_liquidations': { 'cost': 1 },
+                            'liquidations': { 'cost': 1 },
+                            'asset/history': { 'cost': 60 },
+                            'client/holding': { 'cost': 1 },
+                            'withdraw_nonce': { 'cost': 1 },
+                            'settle_nonce': { 'cost': 1 },
+                            'transfer_nonce': { 'cost': 1 },
+                            'pnl_settlement/history': { 'cost': 1 },
+                            'volume/user/daily': { 'cost': 60 },
+                            'volume/user/stats': { 'cost': 60 },
+                            'client/statistics': { 'cost': 60 },
+                            'client/info': { 'cost': 60 },
+                            'client/statistics/daily': { 'cost': 60 },
+                            'positions': { 'cost': 3.33 },
+                            'position/{symbol}': { 'cost': 3.33 },
+                            'funding_fee/history': { 'cost': 30 },
+                            'notification/inbox/notifications': { 'cost': 60 },
+                            'notification/inbox/unread': { 'cost': 60 },
+                            'volume/broker/daily': { 'cost': 60 },
+                            'broker/fee_rate/default': { 'cost': 10 },
+                            'broker/user_info': { 'cost': 10 },
+                            'broker/daily_fee_revenue': { 'cost': 10 },
+                            'orderbook/{symbol}': { 'cost': 1 },
+                            'kline': { 'cost': 1 },
+                            'client/margin_modes': { 'cost': 1 },
+                            'client/leverages': { 'cost': 1 },
+                            'client/points/user_statistics': { 'cost': 1 },
+                            'staking/valor2/redeem': { 'cost': 1 },
+                            'referral/multi_level/admin': { 'cost': 1 },
+                            'referral/multi_level/admin/info': { 'cost': 1 },
+                            'referral/multi_level/admin/referee_list': { 'cost': 1 },
+                            'referral/multi_level/admin/summary': { 'cost': 1 },
+                            'referral/multi_level/max_rebate_rate': { 'cost': 1 },
+                            'referral/multi_level/rebate_info': { 'cost': 1 },
+                            'referral/multi_level/referee_list': { 'cost': 1 },
+                            'referral/multi_level/statistics': { 'cost': 1 },
+                            'referral/multi_level/volume_prerequisite': { 'cost': 1 },
                         },
                         'post': {
-                            'orderly_key': 1,
-                            'client/set_orderly_key_ip_restriction': 6,
-                            'client/reset_orderly_key_ip_restriction': 6,
-                            'order': 1,
-                            'batch-order': 10,
-                            'algo/order': 1,
-                            'liquidation': 1,
-                            'claim_insurance_fund': 1,
-                            'withdraw_request': 1,
-                            'settle_pnl': 1,
-                            'notification/inbox/mark_read': 60,
-                            'notification/inbox/mark_read_all': 60,
-                            'client/leverage': 120,
-                            'client/maintenance_config': 60,
-                            'delegate_signer': 10,
-                            'delegate_orderly_key': 10,
-                            'delegate_settle_pnl': 10,
-                            'delegate_withdraw_request': 10,
-                            'broker/fee_rate/set': 10,
-                            'broker/fee_rate/set_default': 10,
-                            'broker/fee_rate/default': 10,
-                            'referral/create': 10,
-                            'referral/update': 10,
-                            'referral/bind': 10,
-                            'referral/edit_split': 10,
+                            'orderly_key': { 'cost': 1 },
+                            'client/set_orderly_key_ip_restriction': { 'cost': 6 },
+                            'client/reset_orderly_key_ip_restriction': { 'cost': 6 },
+                            'order': { 'cost': 1 },
+                            'batch-order': { 'cost': 10 },
+                            'algo/order': { 'cost': 1 },
+                            'liquidation': { 'cost': 1 },
+                            'claim_insurance_fund': { 'cost': 1 },
+                            'withdraw_request': { 'cost': 1 },
+                            'settle_pnl': { 'cost': 1 },
+                            'notification/inbox/mark_read': { 'cost': 60 },
+                            'notification/inbox/mark_read_all': { 'cost': 60 },
+                            'client/leverage': { 'cost': 120 },
+                            'client/leverages': { 'cost': 120 },
+                            'client/margin_mode': { 'cost': 1 },
+                            'position_margin': { 'cost': 1 },
+                            'client/maintenance_config': { 'cost': 60 },
+                            'delegate_signer': { 'cost': 10 },
+                            'delegate_orderly_key': { 'cost': 10 },
+                            'delegate_settle_pnl': { 'cost': 10 },
+                            'delegate_withdraw_request': { 'cost': 10 },
+                            'broker/fee_rate/set': { 'cost': 10 },
+                            'broker/fee_rate/set_default': { 'cost': 10 },
+                            'broker/fee_rate/default': { 'cost': 10 },
+                            'referral/create': { 'cost': 10 },
+                            'referral/update': { 'cost': 10 },
+                            'referral/bind': { 'cost': 10 },
+                            'referral/edit_split': { 'cost': 10 },
+                            'referral/edit_referee_description': { 'cost': 10 },
+                            'referral/multi_level/admin': { 'cost': 10 },
+                            'referral/multi_level/admin/create/affiliate': { 'cost': 10 },
+                            'referral/multi_level/admin/reset/affiliate': { 'cost': 10 },
+                            'referral/multi_level/admin/update': { 'cost': 10 },
+                            'referral/multi_level/admin/update/affiliate': { 'cost': 10 },
+                            'referral/multi_level/claim_code': { 'cost': 10 },
+                            'referral/multi_level/rebate_rate/set_default': { 'cost': 10 },
+                            'referral/multi_level/rebate_rate/update': { 'cost': 10 },
                         },
                         'put': {
-                            'order': 1,
-                            'algo/order': 1,
+                            'order': { 'cost': 1 },
+                            'algo/order': { 'cost': 1 },
                         },
                         'delete': {
-                            'order': 1,
-                            'algo/order': 1,
-                            'client/order': 1,
-                            'algo/client/order': 1,
-                            'algo/orders': 1,
-                            'orders': 1,
-                            'batch-order': 1,
-                            'client/batch-order': 1,
+                            'order': { 'cost': 1 },
+                            'algo/order': { 'cost': 1 },
+                            'client/order': { 'cost': 1 },
+                            'algo/client/order': { 'cost': 1 },
+                            'algo/orders': { 'cost': 1 },
+                            'orders': { 'cost': 1 },
+                            'batch-order': { 'cost': 1 },
+                            'client/batch-order': { 'cost': 1 },
+                        },
+                    },
+                },
+                'v2': {
+                    'private': {
+                        'post': {
+                            'internal_transfer': { 'cost': 1 },
                         },
                     },
                 },
@@ -332,8 +377,8 @@ export default class woofipro extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo by triggerPrice
+                        'takeProfitPrice': false, // todo by triggerPrice
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -343,7 +388,7 @@ export default class woofipro extends Exchange {
                         },
                         'hedged': false,
                         'trailing': true,
-                        'leverage': true,
+                        'leverage': true, // todo implement
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
@@ -416,29 +461,29 @@ export default class woofipro extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': ExchangeError,
-                    '-1001': AuthenticationError,
-                    '-1002': AuthenticationError,
-                    '-1003': RateLimitExceeded,
-                    '-1004': BadRequest,
-                    '-1005': BadRequest,
-                    '-1006': InvalidOrder,
-                    '-1007': BadRequest,
-                    '-1008': InvalidOrder,
-                    '-1009': InsufficientFunds,
-                    '-1011': NetworkError,
-                    '-1012': BadRequest,
-                    '-1101': InsufficientFunds,
-                    '-1102': InvalidOrder,
-                    '-1103': InvalidOrder,
-                    '-1104': InvalidOrder,
-                    '-1105': InvalidOrder,
-                    '-1201': BadRequest,
-                    '-1202': BadRequest,
-                    '29': BadRequest,
-                    '9': AuthenticationError,
-                    '3': AuthenticationError,
-                    '2': BadRequest,
+                    '-1000': ExchangeError, // UNKNOWN The data does not exist
+                    '-1001': AuthenticationError, // INVALID_SIGNATURE The api key or secret is in wrong format.
+                    '-1002': AuthenticationError, // UNAUTHORIZED API key or secret is invalid, it may because key have insufficient permission or the key is expired/revoked.
+                    '-1003': RateLimitExceeded, // TOO_MANY_REQUEST Rate limit exceed.
+                    '-1004': BadRequest, // UNKNOWN_PARAM An unknown parameter was sent.
+                    '-1005': BadRequest, // INVALID_PARAM Some parameters are in wrong format for api.
+                    '-1006': InvalidOrder, // RESOURCE_NOT_FOUND The data is not found in server. For example, when client try canceling a CANCELLED order, will raise this error.
+                    '-1007': BadRequest, // DUPLICATE_REQUEST The data is already exists or your request is duplicated.
+                    '-1008': InvalidOrder, // QUANTITY_TOO_HIGH The quantity of settlement is too high than you can request.
+                    '-1009': InsufficientFunds, // CAN_NOT_WITHDRAWAL Can not request withdrawal settlement, you need to deposit other arrears first.
+                    '-1011': NetworkError, // RPC_NOT_CONNECT Can not place/cancel orders, it may because internal network error. Please try again in a few seconds.
+                    '-1012': BadRequest, // RPC_REJECT The place/cancel order request is rejected by internal module, it may because the account is in liquidation or other internal errors. Please try again in a few seconds.
+                    '-1101': InsufficientFunds, // RISK_TOO_HIGH The risk exposure for client is too high, it may cause by sending too big order or the leverage is too low. please refer to client info to check the current exposure.
+                    '-1102': InvalidOrder, // MIN_NOTIONAL The order value (price * size) is too small.
+                    '-1103': InvalidOrder, // PRICE_FILTER The order price is not following the tick size rule for the symbol.
+                    '-1104': InvalidOrder, // SIZE_FILTER The order quantity is not following the step size rule for the symbol.
+                    '-1105': InvalidOrder, // PERCENTAGE_FILTER Price is X% too high or X% too low from the mid price.
+                    '-1201': BadRequest, // LIQUIDATION_REQUEST_RATIO_TOO_SMALL total notional < 10000, least req ratio should = 1
+                    '-1202': BadRequest, // LIQUIDATION_STATUS_ERROR No need to liquidation because user margin is enough.
+                    '29': BadRequest, // {"success":false,"code":29,"message":"Verify contract is invalid"}
+                    '9': AuthenticationError, // {"success":false,"code":9,"message":"Address and signature do not match"}
+                    '3': AuthenticationError, // {"success":false,"code":3,"message":"Signature error"}
+                    '2': BadRequest, // {"success":false,"code":2,"message":"Timestamp expired"}
                     '15': BadRequest, // {"success":false,"code":15,"message":"BrokerId is not exist"}
                 },
                 'broad': {},
@@ -454,7 +499,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -493,7 +538,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -540,16 +585,22 @@ export default class woofipro extends Exchange {
         //   }
         //
         const marketId = this.safeString(market, 'symbol');
+        if (marketId === undefined) {
+            throw new ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('_');
         const marketType = 'swap';
         const baseId = this.safeString(parts, 1);
         const quoteId = this.safeString(parts, 2);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const settleId = this.safeString(parts, 2);
         const settle = this.safeCurrencyCode(settleId);
-        const symbol = base + '/' + quote + ':' + settle;
-        return {
+        const symbol = base + '/' + quote + ':' + quote;
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -597,13 +648,13 @@ export default class woofipro extends Exchange {
             },
             'created': this.safeInteger(market, 'created_time'),
             'info': market,
-        };
+        });
     }
     /**
      * @method
      * @name woofipro#fetchMarkets
      * @description retrieves data on all markets for woofipro
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -652,8 +703,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -692,6 +743,9 @@ export default class woofipro extends Exchange {
         for (let i = 0; i < tokenRows.length; i++) {
             const token = tokenRows[i];
             const parsed = this.parseCurrency({ '_token': token, '_indexedChains': indexedChains });
+            if (parsed === undefined) {
+                throw new ExchangeError(this.id + ' fetchCurrencies() could not resolve parsed');
+            }
             result[parsed['code']] = parsed;
         }
         return result;
@@ -699,7 +753,7 @@ export default class woofipro extends Exchange {
     parseCurrency(rawCurrency) {
         const token = this.safeDict(rawCurrency, '_token', {});
         const currencyId = this.safeString(token, 'token');
-        const networks = this.safeList(token, 'chain_details');
+        const networks = this.safeList(token, 'chain_details', []);
         const code = this.safeCurrencyCode(currencyId);
         const indexedChains = this.safeDict(rawCurrency, '_indexedChains', {});
         const resultingNetworks = {};
@@ -707,28 +761,30 @@ export default class woofipro extends Exchange {
             const networkEntry = networks[j];
             const networkId = this.safeString(networkEntry, 'chain_id');
             const networkRow = this.safeDict(indexedChains, networkId);
-            const networkName = this.safeString(networkRow, 'name');
+            const networkName = this.safeString(networkRow, 'name', networkId);
             const networkCode = this.networkIdToCode(networkName, code);
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'decimals'))),
-                'info': { 'network': networkEntry, 'networkRow': networkRow },
-            };
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber(networkEntry, 'withdrawal_fee'),
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'decimals'))),
+                    'info': { 'network': networkEntry, 'networkRow': networkRow },
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -797,17 +853,12 @@ export default class woofipro extends Exchange {
         const isFromFetchOrder = ('id' in trade);
         const timestamp = this.safeInteger(trade, 'executed_timestamp');
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString(trade, 'executed_price');
         const amount = this.safeString(trade, 'executed_quantity');
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
-        const feeCost = this.safeString(fee, 'cost');
-        if (feeCost !== undefined) {
-            fee['cost'] = feeCost;
-        }
-        const cost = Precise.stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');
         let takerOrMaker = undefined;
@@ -823,19 +874,19 @@ export default class woofipro extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': Precise.stringMul(price, amount),
             'order': order_id,
             'takerOrMaker': takerOrMaker,
             'type': undefined,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
      * @name woofipro#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -843,7 +894,9 @@ export default class woofipro extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -884,7 +937,7 @@ export default class woofipro extends Exchange {
         //         }
         //
         const symbol = this.safeString(fundingRate, 'symbol');
-        market = this.market(symbol);
+        const marketResolved = this.market(symbol);
         const nextFundingTimestamp = this.safeInteger(fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger(fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'last_funding_rate_timestamp');
@@ -893,7 +946,7 @@ export default class woofipro extends Exchange {
         const millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': this.parseNumber('0'),
@@ -926,7 +979,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -938,13 +991,15 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -972,14 +1027,16 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchFundingRates
      * @description fetch the current funding rate for multiple markets
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
         const response = await this.v1PublicGetPublicFundingRates(params);
         //
         // {
@@ -1000,13 +1057,268 @@ export default class woofipro extends Exchange {
         //
         const data = this.safeDict(response, 'data', {});
         const rows = this.safeList(data, 'rows', []);
-        return this.parseFundingRates(rows, symbols);
+        return this.parseFundingRates(rows, symbolsNormalized);
+    }
+    parseTicker(ticker, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        const marketId = this.safeString(ticker, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(ticker, 'timestamp');
+        return this.safeTicker({
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeString(ticker, '24h_high'),
+            'low': this.safeString(ticker, '24h_low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString(ticker, '24h_open'),
+            'close': this.safeString(ticker, '24h_close'),
+            'last': this.safeString(ticker, '24h_close'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString(ticker, '24h_volume'),
+            'quoteVolume': this.safeString(ticker, '24h_amount'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'info': ticker,
+        }, marketResolved);
+    }
+    /**
+     * @method
+     * @name woofipro#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTicker(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, params));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "sum_unitary_funding": 26522.3,
+        //         "est_funding_rate": 0.0001,
+        //         "last_funding_rate": 0.00010041,
+        //         "next_funding_time": 1786032000000,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        data['timestamp'] = this.safeInteger(response, 'timestamp');
+        return this.parseTicker(data, market);
+    }
+    /**
+     * @method
+     * @name woofipro#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const response = await this.v1PublicGetPublicFutures(params);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "sum_unitary_funding": 26522.3,
+        //             "est_funding_rate": 0.0001,
+        //             "last_funding_rate": 0.00010041,
+        //             "next_funding_time": 1786032000000,
+        //             "open_interest": 110.64612,
+        //             "24h_open": 64105.6,
+        //             "24h_close": 64180.0,
+        //             "24h_high": 64941.0,
+        //             "24h_low": 63837.6,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString(row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const ticker = this.extend({ 'timestamp': timestamp }, row);
+            result.push(this.parseTicker(ticker));
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_open": 64105.6,
+        //         "24h_close": 64180.0,
+        //         "24h_high": 64941.0,
+        //         "24h_low": 63837.6,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        //
+        const marketId = this.safeString(interest, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(interest, 'timestamp');
+        const amount = this.safeNumber2(interest, 'open_interest', 'openInterest');
+        return this.safeOpenInterest({
+            'symbol': marketResolved['symbol'],
+            'openInterestAmount': amount,
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        }, marketResolved);
+    }
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, params));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 64185.4,
+        //         "mark_price": 64171.0,
+        //         "open_interest": 110.64612,
+        //         "24h_volume": 102.2817,
+        //         "24h_amount": 6595662.199482
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        data['timestamp'] = this.safeInteger(response, 'timestamp');
+        return this.parseOpenInterest(data, market);
+    }
+    /**
+     * @method
+     * @name woofipro#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const response = await this.v1PublicGetPublicFutures(params);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1786022130191,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "index_price": 64185.4,
+        //             "mark_price": 64171.0,
+        //             "open_interest": 110.64612,
+        //             "24h_volume": 102.2817,
+        //             "24h_amount": 6595662.199482
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString(row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const interest = this.extend({ 'timestamp': timestamp }, row);
+            result.push(this.parseOpenInterest(interest));
+        }
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     /**
      * @method
      * @name woofipro#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1016,23 +1328,25 @@ export default class woofipro extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        let request = {};
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'page', 25);
+        }
+        const request = {};
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        [request, params] = this.handleUntilOption('end_t', request, params, 0.001);
-        const response = await this.v1PublicGetPublicFundingRateHistory(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_t', request, paramsPaginate, 0.001);
+        const response = await this.v1PublicGetPublicFundingRateHistory(this.extend(requestUntil, paramsUntil));
         //
         // {
         //     "success": true,
@@ -1068,7 +1382,7 @@ export default class woofipro extends Exchange {
             });
         }
         const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
     parseIncome(income, market = undefined) {
         //
@@ -1106,7 +1420,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1115,11 +1429,12 @@ export default class woofipro extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500);
+            return await this.fetchPaginatedCallIncremental('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'page', 500);
         }
         const request = {};
         let market = undefined;
@@ -1130,15 +1445,15 @@ export default class woofipro extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const until = this.safeInteger(params, 'until'); // unified in milliseconds
-        params = this.omit(params, ['until']);
+        const until = this.safeInteger(paramsPaginate, 'until'); // unified in milliseconds
+        const paramsOmitted = this.omit(paramsPaginate, ['until']);
         if (until !== undefined) {
             request['end_t'] = until;
         }
         if (limit !== undefined) {
             request['size'] = Math.min(limit, 500);
         }
-        const response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, params));
+        const response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, paramsOmitted));
         //
         // {
         //     "success": true,
@@ -1170,12 +1485,14 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetClientInfo(params);
         //
         // {
@@ -1208,8 +1525,9 @@ export default class woofipro extends Exchange {
         const maker = this.safeString(data, 'futures_maker_fee_rate');
         const taker = this.safeString(data, 'futures_taker_fee_rate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1225,21 +1543,22 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            limit = Math.min(limit, 1000);
-            request['max_level'] = limit;
+            request['max_level'] = Math.min(limit, 1000);
         }
         const response = await this.v1PrivateGetOrderbookSymbol(this.extend(request, params));
         //
@@ -1276,7 +1595,7 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#fetchOHLCV
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1286,7 +1605,9 @@ export default class woofipro extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1370,35 +1691,34 @@ export default class woofipro extends Exchange {
         const orderId = this.safeStringN(order, ['order_id', 'orderId', 'algoOrderId']);
         const clientOrderId = this.omitZero(this.safeString2(order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2(order, 'order_price', 'price');
         const amount = this.safeString2(order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2(order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2(order, 'order_type', 'type');
-        let status = this.safeValue2(order, 'status', 'algoStatus');
+        let status = this.safeString2(order, 'status', 'algoStatus');
         const success = this.safeBool(order, 'success');
         if (success !== undefined) {
             status = (success) ? 'NEW' : 'REJECTED';
         }
         const side = this.safeStringLower(order, 'side');
-        const filled = this.omitZero(this.safeValue2(order, 'executed', 'totalExecutedQuantity'));
+        const filled = this.safeStringN(order, ['total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed']);
         const average = this.omitZero(this.safeString2(order, 'average_executed_price', 'averageExecutedPrice'));
-        const remaining = Precise.stringSub(cost, filled);
         const fee = this.safeValue2(order, 'total_fee', 'totalFee');
         const feeCurrency = this.safeString2(order, 'fee_asset', 'feeAsset');
-        const transactions = this.safeValue(order, 'Transactions');
+        const transactions = this.safeList(order, 'Transactions');
         const triggerPrice = this.safeNumber(order, 'triggerPrice');
         let takeProfitPrice = undefined;
         let stopLossPrice = undefined;
-        const childOrders = this.safeValue(order, 'childOrders');
+        const childOrders = this.safeList(order, 'childOrders');
         if (childOrders !== undefined) {
-            const first = this.safeValue(childOrders, 0);
-            const innerChildOrders = this.safeValue(first, 'childOrders', []);
+            const first = this.safeDict(childOrders, 0);
+            const innerChildOrders = this.safeList(first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeValue(innerChildOrders, 0);
-                const stopLossOrder = this.safeValue(innerChildOrders, 1);
+                const takeProfitOrder = this.safeDict(innerChildOrders, 0);
+                const stopLossOrder = this.safeDict(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, 'triggerPrice');
                 stopLossPrice = this.safeNumber(stopLossOrder, 'triggerPrice');
             }
@@ -1415,7 +1735,7 @@ export default class woofipro extends Exchange {
             'symbol': symbol,
             'type': this.parseOrderType(orderType),
             'timeInForce': this.parseTimeInForce(orderType),
-            'postOnly': undefined,
+            'postOnly': undefined, // TO_DO
             'reduceOnly': this.safeBool(order, 'reduce_only'),
             'side': side,
             'price': price,
@@ -1425,7 +1745,7 @@ export default class woofipro extends Exchange {
             'average': average,
             'amount': amount,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': Precise.stringSub(amount, filled), // TO_DO
             'cost': cost,
             'trades': transactions,
             'fee': {
@@ -1433,7 +1753,7 @@ export default class woofipro extends Exchange {
                 'currency': feeCurrency,
             },
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     parseTimeInForce(timeInForce) {
         const timeInForces = {
@@ -1458,7 +1778,7 @@ export default class woofipro extends Exchange {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {
@@ -1469,6 +1789,12 @@ export default class woofipro extends Exchange {
         return this.safeStringLower(types, type, type);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1484,6 +1810,9 @@ export default class woofipro extends Exchange {
          */
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase();
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrderRequest() requires a side argument');
+        }
         const market = this.market(symbol);
         const orderSide = side.toUpperCase();
         const request = {
@@ -1491,12 +1820,13 @@ export default class woofipro extends Exchange {
             'side': orderSide,
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString(params, 'algoType');
-        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue(params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -1515,7 +1845,7 @@ export default class woofipro extends Exchange {
                 request['order_type'] = 'IOC';
             }
         }
-        if (reduceOnly) {
+        if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
         if (price !== undefined) {
@@ -1537,16 +1867,10 @@ export default class woofipro extends Exchange {
         }
         else if (hasStopLoss || hasTakeProfit) {
             request['algo_type'] = 'TP_SL';
-            const outterOrder = {
-                'symbol': market['id'],
-                'reduce_only': false,
-                'algo_type': 'POSITIONAL_TP_SL',
-                'child_orders': [],
-            };
-            const childOrders = outterOrder['child_orders'];
+            const childOrders = [];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
             if (hasStopLoss) {
-                const stopLossPrice = this.safeNumber2(stopLoss, 'triggerPrice', 'price', stopLoss);
+                const stopLossPrice = this.safeValue2(stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
@@ -1557,7 +1881,7 @@ export default class woofipro extends Exchange {
                 childOrders.push(stopLossOrder);
             }
             if (hasTakeProfit) {
-                const takeProfitPrice = this.safeNumber2(takeProfit, 'triggerPrice', 'price', takeProfit);
+                const takeProfitPrice = this.safeValue2(takeProfit, 'triggerPrice', 'price', takeProfit);
                 const takeProfitOrder = {
                     'side': closeSide,
                     'algo_type': 'TP_SL',
@@ -1565,19 +1889,25 @@ export default class woofipro extends Exchange {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder.push(takeProfitOrder);
+                childOrders.push(takeProfitOrder);
             }
+            const outterOrder = {
+                'symbol': market['id'],
+                'reduce_only': false,
+                'algo_type': 'POSITIONAL_TP_SL',
+                'child_orders': childOrders,
+            };
             request['child_orders'] = [outterOrder];
         }
-        params = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
-        return this.extend(request, params);
+        const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
+        return this.extend(request, paramsOmitted);
     }
     /**
      * @method
      * @name woofipro#createOrder
      * @description create a trade order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1595,13 +1925,16 @@ export default class woofipro extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeValue(params, 'stopLoss');
-        const takeProfit = this.safeValue(params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const stopLoss = this.safeDict(params, 'stopLoss');
+        const takeProfit = this.safeDict(params, 'takeProfit');
+        const paramsChildOrders = this.safeList(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (paramsChildOrders !== undefined);
         let response = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder(request);
@@ -1636,7 +1969,7 @@ export default class woofipro extends Exchange {
             // }
             //
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         data['timestamp'] = this.safeInteger(response, 'timestamp');
         const order = this.parseOrder(data, market);
         order['type'] = type;
@@ -1646,16 +1979,18 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#createOrders
      * @description *contract only* create a list of trade orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
@@ -1663,9 +1998,10 @@ export default class woofipro extends Exchange {
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
-            const stopLoss = this.safeValue(orderParams, 'stopLoss');
-            const takeProfit = this.safeValue(orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(orderParams, 'childOrders') !== undefined);
+            const stopLoss = this.safeDict(orderParams, 'stopLoss');
+            const takeProfit = this.safeDict(orderParams, 'takeProfit');
+            const paramsChildOrders = this.safeList(orderParams, 'childOrders');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (paramsChildOrders !== undefined);
             if (isConditional) {
                 throw new NotSupported(this.id + ' createOrders() only support non-stop order');
             }
@@ -1701,8 +2037,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#editOrder
      * @description edit a trade order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1716,7 +2052,9 @@ export default class woofipro extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -1725,7 +2063,8 @@ export default class woofipro extends Exchange {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        const isConditional = (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const isConditional = (triggerPrice !== undefined) || (paramsChildOrders !== undefined);
         const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
         const priceKey = isConditional ? 'price' : 'order_price';
         if (price !== undefined) {
@@ -1734,18 +2073,19 @@ export default class woofipro extends Exchange {
         if (amount !== undefined) {
             request[orderQtyKey] = this.amountToPrecision(symbol, amount);
         }
-        params = this.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent']);
+        const paramsOmitted = this.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent']);
         let response = undefined;
+        this.checkRequiredArgument('editOrder', side, 'side');
         if (isConditional) {
-            response = await this.v1PrivatePutAlgoOrder(this.extend(request, params));
+            response = await this.v1PrivatePutAlgoOrder(this.extend(request, paramsOmitted));
         }
         else {
             request['symbol'] = market['id'];
             request['side'] = side.toUpperCase();
             const orderType = type.toUpperCase();
-            const timeInForce = this.safeStringLower(params, 'timeInForce');
+            const timeInForce = this.safeStringLower(paramsOmitted, 'timeInForce');
             const isMarket = orderType === 'MARKET';
-            const postOnly = this.isPostOnly(isMarket, undefined, params);
+            const postOnly = this.isPostOnly(isMarket, undefined, paramsOmitted);
             if (postOnly) {
                 request['order_type'] = 'POST_ONLY';
             }
@@ -1758,14 +2098,14 @@ export default class woofipro extends Exchange {
             else {
                 request['order_type'] = orderType;
             }
-            const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-            params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce']);
+            const clientOrderId = this.safeStringN(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
+            const paramsOmitted2 = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce']);
             if (clientOrderId !== undefined) {
                 request['client_order_id'] = clientOrderId;
             }
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
-            response = await this.v1PrivatePutOrder(this.extend(request, params));
+            response = await this.v1PrivatePutOrder(this.extend(request, paramsOmitted2));
         }
         //
         // {
@@ -1783,10 +2123,10 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#cancelOrder
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1797,42 +2137,44 @@ export default class woofipro extends Exchange {
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
-        params = this.omit(params, ['stop', 'trigger']);
-        if (!trigger && (symbol === undefined)) {
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
+        if ((!trigger) && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
         const request = {
-            'symbol': market['id'],
+            'symbol': this.safeString(market, 'id'),
         };
-        const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
+        const clientOrderIdUnified = this.safeString2(paramsOmitted, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
         if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
-                params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-                response = await this.v1PrivateDeleteAlgoClientOrder(this.extend(request, params));
+                const paramsOmitted2 = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
+                response = await this.v1PrivateDeleteAlgoClientOrder(this.extend(request, paramsOmitted2));
             }
             else {
                 request['order_id'] = id;
-                response = await this.v1PrivateDeleteAlgoOrder(this.extend(request, params));
+                response = await this.v1PrivateDeleteAlgoOrder(this.extend(request, paramsOmitted));
             }
         }
         else {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
-                params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-                response = await this.v1PrivateDeleteClientOrder(this.extend(request, params));
+                const paramsOmitted3 = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
+                response = await this.v1PrivateDeleteClientOrder(this.extend(request, paramsOmitted3));
             }
             else {
                 request['order_id'] = id;
-                response = await this.v1PrivateDeleteOrder(this.extend(request, params));
+                response = await this.v1PrivateDeleteOrder(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -1858,7 +2200,8 @@ export default class woofipro extends Exchange {
             extendParams['id'] = id;
         }
         if (trigger) {
-            return this.extend(this.parseOrder(response), extendParams);
+            const parsedResponse = (response === undefined) ? {} : response;
+            return this.extend(this.parseOrder(parsedResponse), extendParams);
         }
         const data = this.safeDict(response, 'data', {});
         return this.extend(this.parseOrder(data), extendParams);
@@ -1867,8 +2210,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#cancelOrders
      * @description cancel multiple orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1876,18 +2219,20 @@ export default class woofipro extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
-        params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
+        const paramsOmitted = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const request = {};
         let response = undefined;
-        if (clientOrderIds) {
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join(',');
-            response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, params));
+            response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, paramsOmitted));
         }
         else {
             request['order_ids'] = ids.join(',');
-            response = await this.v1PrivateDeleteBatchOrder(this.extend(request, params));
+            response = await this.v1PrivateDeleteBatchOrder(this.extend(request, paramsOmitted));
         }
         //
         // {
@@ -1905,29 +2250,31 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#cancelAllOrders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
      * @description cancel all open orders in a market
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        params = this.omit(params, ['stop', 'trigger']);
+        const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         const request = {};
         if (symbol !== undefined) {
             const market = this.market(symbol);
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        if (trigger) {
-            response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, params));
+        if (trigger === true) {
+            response = await this.v1PrivateDeleteAlgoOrders(this.extend(request, paramsOmitted));
         }
         else {
-            response = await this.v1PrivateDeleteOrders(this.extend(request, params));
+            response = await this.v1PrivateDeleteOrders(this.extend(request, paramsOmitted));
         }
         // trigger
         // {
@@ -1953,10 +2300,10 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#fetchOrder
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1966,7 +2313,9 @@ export default class woofipro extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1974,26 +2323,26 @@ export default class woofipro extends Exchange {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
-        params = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
+        const paramsOmitted = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
         let response = undefined;
         if (trigger) {
-            if (clientOrderId) {
+            if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
-                response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, params));
+                response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, paramsOmitted));
             }
             else {
                 request['oid'] = id;
-                response = await this.v1PrivateGetAlgoOrderOid(this.extend(request, params));
+                response = await this.v1PrivateGetAlgoOrderOid(this.extend(request, paramsOmitted));
             }
         }
         else {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
-                response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, params));
+                response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, paramsOmitted));
             }
             else {
                 request['oid'] = id;
-                response = await this.v1PrivateGetOrderOid(this.extend(request, params));
+                response = await this.v1PrivateGetOrderOid(this.extend(request, paramsOmitted));
             }
         }
         //
@@ -2023,15 +2372,18 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        const orders = this.safeDict(response, 'data', response);
-        return this.parseOrder(orders, market);
+        let parsedOrders = this.safeDict(response, 'data', response);
+        if (parsedOrders === undefined) {
+            parsedOrders = {};
+        }
+        return this.parseOrder(parsedOrders, market);
     }
     /**
      * @method
      * @name woofipro#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2044,17 +2396,18 @@ export default class woofipro extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let paginate = false;
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         const maxLimit = (isTrigger) ? 100 : 500;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchOrders', symbol, since, limit, params, 'page', maxLimit);
+            return await this.fetchPaginatedCallIncremental('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit);
         }
-        let request = {};
+        const request = {};
         let market = undefined;
-        params = this.omit(params, ['stop', 'trigger']);
+        const paramsOmitted = this.omit(paramsPaginate, ['stop', 'trigger']);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
@@ -2071,13 +2424,13 @@ export default class woofipro extends Exchange {
         if (isTrigger) {
             request['algo_type'] = 'STOP';
         }
-        [request, params] = this.handleUntilOption('end_t', request, params);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_t', request, paramsOmitted);
         let response = undefined;
         if (isTrigger) {
-            response = await this.v1PrivateGetAlgoOrders(this.extend(request, params));
+            response = await this.v1PrivateGetAlgoOrders(this.extend(requestUntil, paramsUntil));
         }
         else {
-            response = await this.v1PrivateGetOrders(this.extend(request, params));
+            response = await this.v1PrivateGetOrders(this.extend(requestUntil, paramsUntil));
         }
         //
         //     {
@@ -2113,7 +2466,7 @@ export default class woofipro extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', response);
+        const data = this.safeDict(response, 'data', response);
         const orders = this.safeList(data, 'rows');
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2121,8 +2474,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2135,7 +2488,9 @@ export default class woofipro extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'INCOMPLETE' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -2143,8 +2498,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2157,7 +2512,9 @@ export default class woofipro extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const extendedParams = this.extend(params, { 'status': 'COMPLETED' });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
@@ -2165,7 +2522,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2174,7 +2531,9 @@ export default class woofipro extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2211,7 +2570,7 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#fetchMyTrades
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2222,13 +2581,14 @@ export default class woofipro extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let paginate = false;
-        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchMyTrades', symbol, since, limit, params, 'page', 500);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        let request = {};
+        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental('fetchMyTrades', symbol, since, limit, paramsPaginate, 'page', 500);
+        }
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2243,8 +2603,8 @@ export default class woofipro extends Exchange {
         else {
             request['size'] = 500;
         }
-        [request, params] = this.handleUntilOption('end_t', request, params);
-        const response = await this.v1PrivateGetTrades(this.extend(request, params));
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_t', request, paramsPaginate);
+        const response = await this.v1PrivateGetTrades(this.extend(requestUntil, paramsUntil));
         //
         // {
         //     "success": true,
@@ -2273,7 +2633,7 @@ export default class woofipro extends Exchange {
         //
         const data = this.safeDict(response, 'data', {});
         const trades = this.safeList(data, 'rows', []);
-        return this.parseTrades(trades, market, since, limit, params);
+        return this.parseTrades(trades, market, since, limit, paramsUntil);
     }
     parseBalance(response) {
         const result = {
@@ -2281,12 +2641,14 @@ export default class woofipro extends Exchange {
         };
         const balances = this.safeList(response, 'holding', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const code = this.safeCurrencyCode(this.safeString(balance, 'token'));
             const account = this.account();
             account['total'] = this.safeString(balance, 'holding');
-            account['frozen'] = this.safeString(balance, 'frozen');
-            result[code] = account;
+            account['used'] = this.safeString(balance, 'frozen');
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2294,12 +2656,14 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetClientHolding(params);
         //
         // {
@@ -2316,16 +2680,18 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseBalance(data);
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['balance_token'] = currency['id'];
+            request['balance_token'] = this.safeString(currency, 'id');
         }
         if (since !== undefined) {
             request['start_t'] = since;
@@ -2334,11 +2700,11 @@ export default class woofipro extends Exchange {
             request['pageSize'] = limit;
         }
         const transactionType = this.safeString(params, 'type');
-        params = this.omit(params, 'type');
+        const paramsOmitted = this.omit(params, 'type');
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const response = await this.v1PrivateGetAssetHistory(this.extend(request, params));
+        const response = await this.v1PrivateGetAssetHistory(this.extend(request, paramsOmitted));
         //
         // {
         //     "success": true,
@@ -2370,7 +2736,7 @@ export default class woofipro extends Exchange {
     parseLedgerEntry(item, currency = undefined) {
         const currencyId = this.safeString(item, 'token');
         const code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        const currencyResolved = this.safeCurrency(currencyId, currency);
         const amount = this.safeNumber(item, 'amount');
         const side = this.safeString(item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
@@ -2392,11 +2758,11 @@ export default class woofipro extends Exchange {
             'datetime': this.iso8601(timestamp),
             'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
             'info': item,
-        }, currency);
+        }, currencyResolved);
     }
     parseLedgerEntryType(type) {
         const types = {
-            'BALANCE': 'transaction',
+            'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
         };
         return this.safeString(types, type, type);
@@ -2405,7 +2771,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2466,7 +2832,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2483,7 +2849,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2500,7 +2866,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2523,7 +2889,11 @@ export default class woofipro extends Exchange {
         //         "success":true
         //     }
         //
-        return this.parseTransactions(rows, currency, since, limit, params);
+        let rowsList = [];
+        if (rows !== undefined) {
+            rowsList = rows;
+        }
+        return this.parseTransactions(rowsList, currency, since, limit, params);
     }
     async getWithdrawNonce(params = {}) {
         const response = await this.v1PrivateGetWithdrawNonce(params);
@@ -2540,12 +2910,13 @@ export default class woofipro extends Exchange {
         return this.safeNumber(data, 'withdraw_nonce');
     }
     hashMessage(message) {
-        return '0x' + this.hash(message, keccak, 'hex');
+        const hashed = this.hash(message, keccak, 'hex');
+        return '0x' + hashed;
     }
     signHash(hash, privateKey) {
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -2556,24 +2927,24 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#withdraw
      * @description make a withdrawal
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets();
-        this.checkAddress(address);
-        if (code !== undefined) {
-            code = code.toUpperCase();
-            if (code !== 'USDC') {
-                throw new NotSupported(this.id + ' withdraw() only support USDC');
-            }
+    async withdraw(code, amount, address, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
         }
-        const currency = this.currency(code);
+        this.checkAddress(address);
+        const codeUpper = code.toUpperCase();
+        if (codeUpper !== 'USDC') {
+            throw new NotSupported(this.id + ' withdraw() only support USDC');
+        }
+        const currency = this.currency(codeUpper);
         const verifyingContractAddress = this.safeString(this.options, 'verifyingContractAddress');
         const chainId = this.safeString(params, 'chainId');
         const currencyNetworks = this.safeDict(currency, 'networks', {});
@@ -2605,8 +2976,8 @@ export default class woofipro extends Exchange {
             'brokerId': this.safeString(this.options, 'keyBrokerId', 'woofi_pro'),
             'chainId': this.parseToInt(chainId),
             'receiver': address,
-            'token': code,
-            'amount': amount.toString(),
+            'token': codeUpper,
+            'amount': this.numberToString(amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         };
@@ -2618,8 +2989,8 @@ export default class woofipro extends Exchange {
             'verifyingContract': verifyingContractAddress,
             'message': withdrawRequest,
         };
-        params = this.omit(params, 'chainId');
-        const response = await this.v1PrivatePostWithdrawRequest(this.extend(request, params));
+        const paramsOmitted = this.omit(params, 'chainId');
+        const response = await this.v1PrivatePostWithdrawRequest(this.extend(request, paramsOmitted));
         //
         //     {
         //         "success": true,
@@ -2632,11 +3003,194 @@ export default class woofipro extends Exchange {
         const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
+    parseMarginMode(marginMode, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "default_margin_mode": "CROSS"
+        //     }
+        //
+        const marketId = this.safeString(marginMode, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        return {
+            'info': marginMode,
+            'symbol': marketResolved['symbol'],
+            'marginMode': this.safeStringLower(marginMode, 'default_margin_mode'),
+        };
+    }
+    /**
+     * @method
+     * @name woofipro#fetchMarginModes
+     * @description fetches the set margin mode of every contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginModes(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const response = await this.v1PrivateGetClientMarginModes(params);
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "rows": [{
+        //             "symbol": "PERP_BTC_USDC",
+        //             "default_margin_mode": "CROSS"
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        return this.parseMarginModes(rows, symbolsNormalized, 'symbol');
+    }
+    /**
+     * @method
+     * @name woofipro#fetchMarginMode
+     * @description fetches the set margin mode of a contract market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginMode(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const marginModes = await this.fetchMarginModes([market['symbol']], params);
+        const marginMode = this.safeDict(marginModes, market['symbol']);
+        if (marginMode === undefined) {
+            throw new BadSymbol(this.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol']);
+        }
+        return marginMode;
+    }
+    /**
+     * @method
+     * @name woofipro#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated' for a market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const marginModeValue = marginMode.toLowerCase();
+        if (marginModeValue !== 'cross' && marginModeValue !== 'isolated') {
+            throw new BadRequest(this.id + ' setMarginMode() marginMode must be either cross or isolated');
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'default_margin_mode': marginModeValue.toUpperCase(),
+        };
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989
+        // }
+        //
+        return await this.v1PrivatePostClientMarginMode(this.extend(request, params));
+    }
+    parseMarginModification(data, market = undefined) {
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1702989203989
+        //     }
+        //
+        const timestamp = this.safeInteger(data, 'timestamp');
+        const success = this.safeBool(data, 'success', false);
+        return {
+            'info': data,
+            'symbol': this.safeString(market, 'symbol'),
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeString(market, 'settle'),
+            'status': (success) ? 'ok' : 'failed',
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    /**
+     * @method
+     * @ignore
+     * @name woofipro#modifyMarginHelper
+     * @description add or reduce isolated position margin
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add or reduce
+     * @param {string} type 'ADD' or 'REDUCE'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    async modifyMarginHelper(symbol, amount, type, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+            'amount': this.numberToString(amount),
+            'type': type,
+        };
+        const response = await this.v1PrivatePostPositionMargin(this.extend(request, params));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989
+        // }
+        //
+        const modification = this.parseMarginModification(response, market);
+        modification['type'] = (type === 'ADD') ? 'add' : 'reduce';
+        modification['amount'] = this.parseNumber(this.numberToString(amount));
+        return modification;
+    }
+    /**
+     * @method
+     * @name woofipro#addMargin
+     * @description add margin to an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     */
+    async addMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'ADD', params);
+    }
+    /**
+     * @method
+     * @name woofipro#reduceMargin
+     * @description remove margin from an isolated position
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     */
+    async reduceMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'REDUCE', params);
+    }
     parseLeverage(leverage, market = undefined) {
         const leverageValue = this.safeInteger(leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -2646,13 +3200,15 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const response = await this.v1PrivateGetClientInfo(params);
         //
@@ -2689,14 +3245,16 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#setLeverage
      * @description set the level of leverage for a market
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
      * @param {int} [leverage] the rate of leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if ((leverage < 1) || (leverage > 50)) {
             throw new BadRequest(this.id + ' leverage should be between 1 and 50');
         }
@@ -2729,7 +3287,7 @@ export default class woofipro extends Exchange {
         // }
         //
         const contract = this.safeString(position, 'symbol');
-        market = this.safeMarket(contract, market);
+        const marketResolved = this.safeMarket(contract, market);
         let size = this.safeString(position, 'position_qty');
         let side = undefined;
         if (Precise.stringGt(size, '0')) {
@@ -2738,7 +3296,7 @@ export default class woofipro extends Exchange {
         else {
             side = 'short';
         }
-        const contractSize = this.safeString(market, 'contractSize');
+        const contractSize = this.safeString(marketResolved, 'contractSize');
         const markPrice = this.safeString(position, 'mark_price');
         const timestamp = this.safeInteger(position, 'timestamp');
         const entryPrice = this.safeString(position, 'average_open_price');
@@ -2748,7 +3306,7 @@ export default class woofipro extends Exchange {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastUpdateTimestamp': undefined,
@@ -2768,7 +3326,6 @@ export default class woofipro extends Exchange {
             'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
-            'marginType': undefined,
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
@@ -2779,14 +3336,16 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#fetchPosition
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2818,20 +3377,22 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parsePosition(data, market);
     }
     /**
      * @method
      * @name woofipro#fetchPositions
      * @description fetch all open positions
-     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v1PrivateGetPositions(params);
         //
         // {
@@ -2878,18 +3439,22 @@ export default class woofipro extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
-        let url = this.implodeHostname(this.urls['api'][access]);
-        url += '/' + version + '/';
-        params = this.omit(params, this.extractParams(path));
-        params = this.keysort(params);
+        const apiUrl = this.safeString(this.urls['api'], access);
+        if (apiUrl === undefined) {
+            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + version + '/';
+        let requestParams = this.keysort(this.omit(params, this.extractParams(path)));
+        let requestBody = undefined;
+        let requestHeaders = undefined;
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys(params).length) {
-                url += '?' + this.urlencode(params);
+            if (Object.keys(requestParams).length > 0) {
+                url += '?' + this.urlencode(requestParams);
             }
         }
         else {
@@ -2899,64 +3464,65 @@ export default class woofipro extends Exchange {
                 if (!isSandboxMode) {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
                     if (path === 'batch-order') {
-                        const ordersList = this.safeList(params, 'orders', []);
+                        const ordersList = this.safeList(requestParams, 'orders', []);
                         for (let i = 0; i < ordersList.length; i++) {
-                            params['orders'][i]['order_tag'] = brokerId;
+                            requestParams['orders'][i]['order_tag'] = brokerId;
                         }
                     }
                     else {
-                        params['order_tag'] = brokerId;
+                        requestParams['order_tag'] = brokerId;
                     }
                 }
-                params = this.keysort(params);
+                requestParams = this.keysort(requestParams);
             }
             let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
             let apiKey = this.apiKey;
-            if (apiKey.indexOf('ed25519:') < 0) {
-                apiKey = 'ed25519:' + apiKey;
+            if (this.apiKey.indexOf('ed25519:') < 0) {
+                apiKey = 'ed25519:' + this.apiKey;
             }
-            headers = {
+            const authHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
             auth = ts + method + '/' + version + '/' + pathWithParams;
             if (method === 'POST' || method === 'PUT') {
-                body = this.json(params);
-                auth += body;
-                headers['content-type'] = 'application/json';
+                requestBody = this.json(requestParams);
+                auth += requestBody;
+                authHeaders['content-type'] = 'application/json';
             }
             else {
-                if (Object.keys(params).length) {
-                    url += '?' + this.urlencode(params);
-                    auth += '?' + this.rawencode(params);
+                if (Object.keys(requestParams).length > 0) {
+                    url += '?' + this.urlencode(requestParams);
+                    auth += '?' + this.rawencode(requestParams);
                 }
-                headers['content-type'] = 'application/x-www-form-urlencoded';
+                authHeaders['content-type'] = 'application/x-www-form-urlencoded';
                 if (method === 'DELETE') {
-                    body = '';
+                    requestBody = '';
                 }
             }
             let secret = this.secret;
-            if (secret.indexOf('ed25519:') >= 0) {
-                const parts = secret.split('ed25519:');
+            if (this.secret.indexOf('ed25519:') >= 0) {
+                const parts = this.secret.split('ed25519:');
                 secret = parts[1];
             }
             const signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
-            headers['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
+            authHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
+            requestHeaders = authHeaders;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
             return undefined; // fallback to default error handler
         }
         //
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeBool(response, 'success');
+        const success = this.safeBool(response, 'success', false);
         const errorCode = this.safeString(response, 'code');
         if (!success) {
             const feedback = this.id + ' ' + this.json(response);

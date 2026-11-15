@@ -5,63 +5,233 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetBookCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    publicGetChartWeek (params?: {}): Promise<implicitReturnType>;
-    publicGetChartWeekCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencyAvailable (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencyQuotes (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencyCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetPair (params?: {}): Promise<implicitReturnType>;
-    publicGetPairAvailable (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerBaseQuote (params?: {}): Promise<implicitReturnType>;
-    publicGetTime (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeHistoryCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeFeeCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    publicGetTradeFeeLevels (params?: {}): Promise<implicitReturnType>;
-    publicGetTransactionBindings (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthAccount (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthAccountCurrencyCurrencyType (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthOrderGetOrderId (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthStopOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthStopOrderGetOrderId (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthStopOrderPairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthStopOrderPairCurrencyQuoteActive (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTrade (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTradePairCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTradeFeeCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTransaction (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTransactionBindings (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTransactionBindingsCurrency (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTransactionId (params?: {}): Promise<implicitReturnType>;
-    privateGetAuthTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthOrderCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthOrderCancelAll (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthOrderCancelAllCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthOrderPlace (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthSpotDeposit (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthSpotWithdraw (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthStopOrderCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthStopOrderCancelAll (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthStopOrderCancelAllCurrencyQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthStopOrderPlace (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransactionDepositAddress (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransactionWithdraw (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransactionWithdrawCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransactionWithdrawConfirm (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransactionWithdrawResendCode (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransferEmail (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransferId (params?: {}): Promise<implicitReturnType>;
-    privatePostAuthTransferPhone (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetBookCurrencyQuote (params = {}): Promise<Dict> {
+        return this.request ('book/{currency}/{quote}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetChartWeek (params = {}): Promise<Dict> {
+        return this.request ('chart/week', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetChartWeekCurrencyQuote (params = {}): Promise<Dict> {
+        return this.request ('chart/week/{currency}/{quote}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCurrency (params = {}): Promise<List> {
+        return this.request ('currency', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCurrencyAvailable (params = {}): Promise<List> {
+        return this.request ('currency/available', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCurrencyQuotes (params = {}): Promise<List> {
+        return this.request ('currency/quotes', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetCurrencyCurrency (params = {}): Promise<Dict> {
+        return this.request ('currency/{currency}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetPair (params = {}): Promise<List> {
+        return this.request ('pair', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetPairAvailable (params = {}): Promise<List> {
+        return this.request ('pair/available', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTicker (params = {}): Promise<List> {
+        return this.request ('ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTickerBaseQuote (params = {}): Promise<Dict> {
+        return this.request ('ticker/{base}/{quote}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTime (params = {}): Promise<Dict> {
+        return this.request ('time', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTradeHistoryCurrencyQuote (params = {}): Promise<List> {
+        return this.request ('trade/history/{currency}/{quote}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTradeFeeCurrencyQuote (params = {}): Promise<Dict> {
+        return this.request ('trade/fee/{currency}/{quote}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTradeFeeLevels (params = {}): Promise<List> {
+        return this.request ('trade/feeLevels', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTransactionBindings (params = {}): Promise<List> {
+        return this.request ('transaction/bindings', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthAccount (params = {}): Promise<List> {
+        return this.request ('auth/account', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthAccountCurrencyCurrencyType (params = {}): Promise<List> {
+        return this.request ('auth/account/currency/{currency}/{type}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthAccountFiltered (params = {}): Promise<List> {
+        return this.request ('auth/account/filtered', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthOrder (params = {}): Promise<List> {
+        return this.request ('auth/order', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthOrderActive (params = {}): Promise<List> {
+        return this.request ('auth/order/active', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthOrderGetOrderId (params = {}): Promise<Dict> {
+        return this.request ('auth/order/getOrder/{id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthOrderPairCurrencyQuote (params = {}): Promise<List> {
+        return this.request ('auth/order/pair/{currency}/{quote}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthOrderPairCurrencyQuoteActive (params = {}): Promise<List> {
+        return this.request ('auth/order/pair/{currency}/{quote}/active', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthStopOrder (params = {}): Promise<List> {
+        return this.request ('auth/stopOrder', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthStopOrderGetOrderId (params = {}): Promise<Dict> {
+        return this.request ('auth/stopOrder/getOrder/{id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthStopOrderPairCurrencyQuote (params = {}): Promise<List> {
+        return this.request ('auth/stopOrder/pair/{currency}/{quote}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthStopOrderPairCurrencyQuoteActive (params = {}): Promise<List> {
+        return this.request ('auth/stopOrder/pair/{currency}/{quote}/active', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthTrade (params = {}): Promise<List> {
+        return this.request ('auth/trade', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthTradePairCurrencyQuote (params = {}): Promise<List> {
+        return this.request ('auth/trade/pair/{currency}/{quote}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthTradeFeeCurrencyQuote (params = {}): Promise<Dict> {
+        return this.request ('auth/trade/fee/{currency}/{quote}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthTransaction (params = {}): Promise<Dict> {
+        return this.request ('auth/transaction', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthTransactionBindings (params = {}): Promise<Dict> {
+        return this.request ('auth/transaction/bindings', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthTransactionBindingsCurrency (params = {}): Promise<List> {
+        return this.request ('auth/transaction/bindings/{currency}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthTransactionId (params = {}): Promise<Dict> {
+        return this.request ('auth/transaction/{id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAuthTransfer (params = {}): Promise<Dict> {
+        return this.request ('auth/transfer', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostAuthOrderCancel (params = {}): Promise<Dict> {
+        return this.request ('auth/order/cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthOrderCancelAll (params = {}): Promise<Dict> {
+        return this.request ('auth/order/cancelAll', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthOrderCancelAllCurrencyQuote (params = {}): Promise<Dict> {
+        return this.request ('auth/order/cancelAll/{currency}/{quote}', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthOrderCancelBulk (params = {}): Promise<Dict> {
+        return this.request ('auth/order/cancelBulk', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthOrderPlace (params = {}): Promise<Dict> {
+        return this.request ('auth/order/place', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthOrderPlaceBulk (params = {}): Promise<Dict> {
+        return this.request ('auth/order/placeBulk', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthSpotDeposit (params = {}): Promise<Dict> {
+        return this.request ('auth/spot/deposit', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthSpotWithdraw (params = {}): Promise<Dict> {
+        return this.request ('auth/spot/withdraw', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthStopOrderCancel (params = {}): Promise<Dict> {
+        return this.request ('auth/stopOrder/cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthStopOrderCancelAll (params = {}): Promise<Dict> {
+        return this.request ('auth/stopOrder/cancelAll', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthStopOrderCancelAllCurrencyQuote (params = {}): Promise<Dict> {
+        return this.request ('auth/stopOrder/cancelAll/{currency}/{quote}', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthStopOrderPlace (params = {}): Promise<Dict> {
+        return this.request ('auth/stopOrder/place', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthTransactionDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('auth/transaction/depositAddress', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthTransactionWithdraw (params = {}): Promise<Dict> {
+        return this.request ('auth/transaction/withdraw', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthTransactionWithdrawCancel (params = {}): Promise<Dict> {
+        return this.request ('auth/transaction/withdraw/cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthTransactionWithdrawConfirm (params = {}): Promise<Dict> {
+        return this.request ('auth/transaction/withdraw/confirm', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthTransactionWithdrawResendCode (params = {}): Promise<Dict> {
+        return this.request ('auth/transaction/withdraw/resendCode', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthTransferEmail (params = {}): Promise<Dict> {
+        return this.request ('auth/transfer/email', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthTransferId (params = {}): Promise<Dict> {
+        return this.request ('auth/transfer/id', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostAuthTransferPhone (params = {}): Promise<Dict> {
+        return this.request ('auth/transfer/phone', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

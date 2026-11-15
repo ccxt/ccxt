@@ -7,46 +7,62 @@
 
 package ccxt
 
-func (this *BtcboxCore) PublicGetDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDepth", args...)
+// PublicGetDepth returns a channel that yields a JSON object.
+func (this *Btcbox) PublicGetDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "depth", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) PublicGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrders", args...)
+// PublicGetOrders returns a channel that yields a JSON array.
+func (this *Btcbox) PublicGetOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "orders", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker", args...)
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *Btcbox) PublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) PublicGetTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickers", args...)
+// PublicGetTickers returns a channel that yields a JSON object.
+func (this *Btcbox) PublicGetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tickers", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) PrivatePostBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBalance", args...)
+// PrivatePostBalance returns a channel that yields a JSON object.
+func (this *Btcbox) PrivatePostBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "balance", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) PrivatePostTradeAdd(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeAdd", args...)
+// PrivatePostOrderHistory returns a channel that yields a JSON array.
+func (this *Btcbox) PrivatePostOrderHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order_history", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) PrivatePostTradeCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeCancel", args...)
+// PrivatePostTradeAdd returns a channel that yields a JSON object.
+func (this *Btcbox) PrivatePostTradeAdd(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade_add", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) PrivatePostTradeList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeList", args...)
+// PrivatePostTradeCancel returns a channel that yields a JSON object.
+func (this *Btcbox) PrivatePostTradeCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade_cancel", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) PrivatePostTradeView(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostTradeView", args...)
+// PrivatePostTradeList returns a channel that yields a JSON array.
+func (this *Btcbox) PrivatePostTradeList(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trade_list", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) PrivatePostWallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWallet", args...)
+// PrivatePostTradeView returns a channel that yields a JSON object.
+func (this *Btcbox) PrivatePostTradeView(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade_view", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *BtcboxCore) WebApiGetAjaxCoinCoinInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("webApiGetAjaxCoinCoinInfo", args...)
+// PrivatePostWallet returns a channel that yields a JSON object.
+func (this *Btcbox) PrivatePostWallet(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "wallet", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// WebApiGetAjaxCoinCoinInfo returns a channel that yields a JSON object.
+func (this *Btcbox) WebApiGetAjaxCoinCoinInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ajax/coin/coinInfo", []string{"webApi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }

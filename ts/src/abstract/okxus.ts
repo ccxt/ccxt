@@ -5,444 +5,1893 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import _okx from '../okx.js';
 
-interface okx {
-    publicGetMarketTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketBooks (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketBooksFull (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketHistoryCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketHistoryTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketOptionInstrumentFamilyTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketPlatform24Volume (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketCallAuctionDetail (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketCallAuctionDetails (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketBooksSbe (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketBlockTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketBlockTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketSprdTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketSprdCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketSprdHistoryCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketIndexTickers (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketIndexCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketHistoryIndexCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketMarkPriceCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketHistoryMarkPriceCandles (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketExchangeRate (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketIndexComponents (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketOpenOracle (params?: {}): Promise<implicitReturnType>;
-    publicGetMarketBooksLite (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicOptionTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicBlockTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicInstruments (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicEstimatedPrice (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicDeliveryExerciseHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicEstimatedSettlementInfo (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicSettlementHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicFundingRate (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicFundingRateHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicOpenInterest (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicPriceLimit (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicOptSummary (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicDiscountRateInterestFreeQuota (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicTime (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicMarkPrice (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicPositionTiers (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicInterestRateLoanQuota (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicUnderlying (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicInsuranceFund (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicConvertContractCoin (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicInstrumentTickBands (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicPremiumHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicEconomicCalendar (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicMarketDataHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicEventContractEvents (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicEventContractMarkets (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicEventContractSeries (params?: {}): Promise<implicitReturnType>;
-    publicGetPublicVipInterestRateLoanQuota (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatTradingDataSupportCoin (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatContractsOpenInterestHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatTakerVolume (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatTakerVolumeContract (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatMarginLoanRatio (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatContractsLongShortAccountRatioContractTopTrader (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatContractsLongShortPositionRatioContractTopTrader (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatContractsLongShortAccountRatioContract (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatContractsLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatContractsOpenInterestVolume (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatOptionOpenInterestVolume (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatOptionOpenInterestVolumeRatio (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatOptionOpenInterestVolumeExpiry (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatOptionOpenInterestVolumeStrike (params?: {}): Promise<implicitReturnType>;
-    publicGetRubikStatOptionTakerBlockVolume (params?: {}): Promise<implicitReturnType>;
-    publicGetSystemStatus (params?: {}): Promise<implicitReturnType>;
-    publicGetSprdSpreads (params?: {}): Promise<implicitReturnType>;
-    publicGetSprdBooks (params?: {}): Promise<implicitReturnType>;
-    publicGetSprdPublicTrades (params?: {}): Promise<implicitReturnType>;
-    publicGetSprdTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTradingBotGridAiParam (params?: {}): Promise<implicitReturnType>;
-    publicGetTradingBotGridMinInvestment (params?: {}): Promise<implicitReturnType>;
-    publicGetTradingBotPublicRsiBackTesting (params?: {}): Promise<implicitReturnType>;
-    publicGetTradingBotGridGridQuantity (params?: {}): Promise<implicitReturnType>;
-    publicGetAssetExchangeList (params?: {}): Promise<implicitReturnType>;
-    publicGetFinanceStakingDefiEthApyHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetFinanceStakingDefiSolApyHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetFinanceSavingsLendingRateSummary (params?: {}): Promise<implicitReturnType>;
-    publicGetFinanceSavingsLendingRateHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetFinanceFixedLoanLendingOffers (params?: {}): Promise<implicitReturnType>;
-    publicGetFinanceFixedLoanLendingApyHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetFinanceFixedLoanPendingLendingVolume (params?: {}): Promise<implicitReturnType>;
-    publicGetFinanceSfpDcdProducts (params?: {}): Promise<implicitReturnType>;
-    publicGetCopytradingPublicConfig (params?: {}): Promise<implicitReturnType>;
-    publicGetCopytradingPublicLeadTraders (params?: {}): Promise<implicitReturnType>;
-    publicGetCopytradingPublicWeeklyPnl (params?: {}): Promise<implicitReturnType>;
-    publicGetCopytradingPublicPnl (params?: {}): Promise<implicitReturnType>;
-    publicGetCopytradingPublicStats (params?: {}): Promise<implicitReturnType>;
-    publicGetCopytradingPublicPreferenceCurrency (params?: {}): Promise<implicitReturnType>;
-    publicGetCopytradingPublicCurrentSubpositions (params?: {}): Promise<implicitReturnType>;
-    publicGetCopytradingPublicSubpositionsHistory (params?: {}): Promise<implicitReturnType>;
-    publicGetCopytradingPublicCopyTraders (params?: {}): Promise<implicitReturnType>;
-    publicGetSupportAnnouncements (params?: {}): Promise<implicitReturnType>;
-    publicGetSupportAnnouncementsTypes (params?: {}): Promise<implicitReturnType>;
-    publicGetSupportAnnouncementTypes (params?: {}): Promise<implicitReturnType>;
-    publicPostTradingBotGridMinInvestment (params?: {}): Promise<implicitReturnType>;
-    privateGetRfqCounterparties (params?: {}): Promise<implicitReturnType>;
-    privateGetRfqMakerInstrumentSettings (params?: {}): Promise<implicitReturnType>;
-    privateGetRfqMmpConfig (params?: {}): Promise<implicitReturnType>;
-    privateGetRfqRfqs (params?: {}): Promise<implicitReturnType>;
-    privateGetRfqQuotes (params?: {}): Promise<implicitReturnType>;
-    privateGetRfqTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetRfqPublicTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetSprdOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetSprdOrdersPending (params?: {}): Promise<implicitReturnType>;
-    privateGetSprdOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetSprdOrdersHistoryArchive (params?: {}): Promise<implicitReturnType>;
-    privateGetSprdTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOrdersPending (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOrdersHistoryArchive (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeFills (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeFillsHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeFillsArchive (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeEasyConvertCurrencyList (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeEasyConvertHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOneClickRepayCurrencyList (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOneClickRepayCurrencyListV2 (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOneClickRepayHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeOneClickRepayHistoryV2 (params?: {}): Promise<implicitReturnType>;
-    privateGetTradeAccountRateLimit (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetCurrencies (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetNonTradableAssets (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetAssetValuation (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetTransferState (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetBills (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetBillsHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetDepositLightning (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetDepositAddress (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetDepositWithdrawStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetMonthlyStatement (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetConvertCurrencies (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetConvertCurrencyPair (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetConvertHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountInstruments (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountPositions (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountPositionsHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountAccountPositionRisk (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBills (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBillsArchive (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBillsHistoryArchive (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountConfig (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountSubtypes (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountMaxSize (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountMaxAvailSize (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountLeverageInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountAdjustLeverageInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountMaxLoan (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountTradeFee (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountInterestAccrued (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountInterestRate (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountMaxWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountRiskState (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountInterestLimits (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountSpotBorrowRepayHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountGreeks (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountPositionTiers (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountSetAccountSwitchPrecheck (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountCollateralAssets (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountMmpConfig (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountMovePositionsHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountPrecheckSetDeltaNeutral (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountQuickMarginBorrowRepayHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountBorrowRepayHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountVipInterestAccrued (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountVipInterestDeducted (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountVipLoanOrderList (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountVipLoanOrderDetail (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountFixedLoanBorrowingLimit (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountFixedLoanBorrowingQuote (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountFixedLoanBorrowingOrdersList (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountSpotManualBorrowRepay (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountSetAutoRepay (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetSubaccountBalances (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountSubaccountMaxWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetSubaccountBills (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetSubaccountManagedSubaccountBills (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersEntrustSubaccountList (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountSubaccountInterestLimits (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotGridOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotGridOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotGridOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotGridSubOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotGridPositions (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotGridAiParam (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotSignalSignals (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotSignalOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotSignalOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotSignalOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotSignalPositions (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotSignalPositionsHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotSignalSubOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotSignalEventHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotRecurringOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotRecurringOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotRecurringOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotRecurringSubOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotDcaOngoingList (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotDcaHistoryList (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotDcaOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotDcaPositionDetails (params?: {}): Promise<implicitReturnType>;
-    privateGetTradingBotDcaCycleList (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceSavingsBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceSavingsLendingHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceStakingDefiOffers (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceStakingDefiOrdersActive (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceStakingDefiOrdersHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceStakingDefiEthProductInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceStakingDefiEthBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceStakingDefiEthPurchaseRedeemHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceStakingDefiSolProductInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceStakingDefiSolBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceStakingDefiSolPurchaseRedeemHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceFlexibleLoanBorrowCurrencies (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceFlexibleLoanCollateralAssets (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceFlexibleLoanLoanInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceFlexibleLoanLoanHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceFlexibleLoanInterestAccrued (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingCurrentSubpositions (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingSubpositionsHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingInstruments (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingProfitSharingDetails (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingTotalProfitSharing (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingUnrealizedProfitSharingDetails (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingTotalUnrealizedProfitSharing (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingConfig (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingCopySettings (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingCurrentLeadTraders (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingBatchLeverageInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetCopytradingLeadTradersHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerDmaSubaccountInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerDmaSubaccountTradeFee (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerDmaSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerDmaRebatePerOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerFdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerFdIfRebate (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerNdInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerNdSubaccountInfo (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerNdSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetBrokerNdSubaccountDepositAddress (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetBrokerNdSubaccountDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAssetBrokerNdSubaccountWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerNdRebateDaily (params?: {}): Promise<implicitReturnType>;
-    privateGetBrokerNdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceSfpDcdOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceSfpDcdOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceSfpDcdCurrencyPair (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceSfpDcdOrderStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetFinanceSfpDcdOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privateGetAffiliateInviteeDetail (params?: {}): Promise<implicitReturnType>;
-    privateGetUsersPartnerIfRebate (params?: {}): Promise<implicitReturnType>;
-    privateGetSupportAnnouncements (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqCreateRfq (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqCancelRfq (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqCancelBatchRfqs (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqCancelAllRfqs (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqExecuteQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqMakerInstrumentSettings (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqMmpReset (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqMmpConfig (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqCreateQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqCancelQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqCancelBatchQuotes (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqCancelAllQuotes (params?: {}): Promise<implicitReturnType>;
-    privatePostRfqCancelAllAfter (params?: {}): Promise<implicitReturnType>;
-    privatePostSprdOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostSprdCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostSprdMassCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostSprdAmendOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostSprdCancelAllAfter (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeCancelBatchOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeAmendOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeAmendBatchOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeClosePosition (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeFillsArchive (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeCancelAdvanceAlgos (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeEasyConvert (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeOneClickRepay (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeOneClickRepayV2 (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeMassCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeCancelAllAfter (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeOrderPrecheck (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeCancelAlgos (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeAmendAlgos (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetWithdrawalLightning (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetCancelWithdrawal (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetConvertDustAssets (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetMonthlyStatement (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetConvertEstimateQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetConvertTrade (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountBillsHistoryArchive (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetPositionMode (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetLeverage (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountPositionMarginBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetFeeType (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetGreeks (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetIsolatedMode (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSpotManualBorrowRepay (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetAutoRepay (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountQuickMarginBorrowRepay (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountBorrowRepay (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSimulatedMargin (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountPositionBuilder (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountPositionBuilderGraph (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetRiskOffsetType (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetRiskOffsetAmt (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountActivateOption (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetAutoLoan (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountAccountLevelSwitchPreset (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetAccountLevel (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetCollateralAssets (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountMmpReset (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountMmpConfig (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountFixedLoanBorrowingOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountFixedLoanAmendBorrowingOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountFixedLoanManualReborrow (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountFixedLoanRepayBorrowingOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountMovePositions (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetAutoEarn (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetSettleCurrency (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSetTradingConfig (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountDemoAdjustBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
-    privatePostAccountSubaccountSetLoanAllocation (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersSubaccountCreateSubaccount (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersSubaccountSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersSubaccountDeleteApikey (params?: {}): Promise<implicitReturnType>;
-    privatePostUsersSubaccountSetTransferOut (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridCopyOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridAmendAlgoBasicParam (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridAmendOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridStopOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridClosePosition (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridCancelCloseOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridOrderInstantTrigger (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridWithdrawIncome (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridComputeMarginBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridMarginBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridMinInvestment (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotGridAdjustInvestment (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotSignalCreateSignal (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotSignalOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotSignalStopOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotSignalMarginBalance (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotSignalAmendTPSL (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotSignalSetInstruments (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotSignalClosePosition (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotSignalSubOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotSignalCancelSubOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotRecurringOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotRecurringAmendOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotRecurringStopOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotDcaCreate (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotDcaAmendOrderAlgo (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotDcaStop (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotDcaOrdersManualBuy (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotDcaSettingsReinvestment (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotDcaSettingsTakeProfit (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotDcaMarginAdd (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotDcaMarginReduce (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotRecurringAddInvestment (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotRecurringAmendPriceRange (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotRecurringAmendRecurringAmount (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotRecurringAmendRecurringTime (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotRecurringPause (params?: {}): Promise<implicitReturnType>;
-    privatePostTradingBotRecurringRestart (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceSavingsPurchaseRedempt (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceSavingsSetLendingRate (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceStakingDefiPurchase (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceStakingDefiRedeem (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceStakingDefiCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceStakingDefiEthPurchase (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceStakingDefiEthRedeem (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceStakingDefiEthCancelRedeem (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceStakingDefiSolPurchase (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceStakingDefiSolRedeem (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceStakingDefiSolCancelRedeem (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceFlexibleLoanMaxLoan (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceFlexibleLoanAdjustCollateral (params?: {}): Promise<implicitReturnType>;
-    privatePostCopytradingAlgoOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostCopytradingCloseSubposition (params?: {}): Promise<implicitReturnType>;
-    privatePostCopytradingSetInstruments (params?: {}): Promise<implicitReturnType>;
-    privatePostCopytradingAmendProfitSharingRatio (params?: {}): Promise<implicitReturnType>;
-    privatePostCopytradingFirstCopySettings (params?: {}): Promise<implicitReturnType>;
-    privatePostCopytradingAmendCopySettings (params?: {}): Promise<implicitReturnType>;
-    privatePostCopytradingStopCopyTrading (params?: {}): Promise<implicitReturnType>;
-    privatePostCopytradingBatchSetLeverage (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdCreateSubaccount (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdDeleteSubaccount (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdSubaccountModifyApikey (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdSubaccountDeleteApikey (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdSetSubaccountLevel (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdSetSubaccountFeeRate (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdSetSubaccountAssets (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetBrokerNdSubaccountDepositAddress (params?: {}): Promise<implicitReturnType>;
-    privatePostAssetBrokerNdModifySubaccountDepositAddress (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceSfpDcdQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceSfpDcdOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceSfpDcdTrade (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceSfpDcdRedeemQuote (params?: {}): Promise<implicitReturnType>;
-    privatePostFinanceSfpDcdRedeem (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerNdReportSubaccountIp (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerDmaSubaccountApikey (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerDmaTrades (params?: {}): Promise<implicitReturnType>;
-    privatePostBrokerFdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
-}
-abstract class okx extends _okx {}
+abstract class okx extends _okx {
+    override publicGetMarketTickers (params = {}): Promise<Dict> {
+        return this.request ('market/tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default okx
+    override publicGetMarketTicker (params = {}): Promise<Dict> {
+        return this.request ('market/ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketBooks (params = {}): Promise<Dict> {
+        return this.request ('market/books', [ 'public' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    override publicGetMarketBooksFull (params = {}): Promise<Dict> {
+        return this.request ('market/books-full', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetMarketBooksRpi (params = {}): Promise<Dict> {
+        return this.request ('market/books-rpi', [ 'public' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    override publicGetMarketCandles (params = {}): Promise<Dict> {
+        return this.request ('market/candles', [ 'public' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    override publicGetMarketHistoryCandles (params = {}): Promise<Dict> {
+        return this.request ('market/history-candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketTrades (params = {}): Promise<Dict> {
+        return this.request ('market/trades', [ 'public' ], 'GET', params, { 'cost': 0.2 });
+    }
+
+    override publicGetMarketHistoryTrades (params = {}): Promise<Dict> {
+        return this.request ('market/history-trades', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetMarketOptionInstrumentFamilyTrades (params = {}): Promise<Dict> {
+        return this.request ('market/option/instrument-family-trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketPlatform24Volume (params = {}): Promise<Dict> {
+        return this.request ('market/platform-24-volume', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetMarketCallAuctionDetail (params = {}): Promise<Dict> {
+        return this.request ('market/call-auction-detail', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketCallAuctionDetails (params = {}): Promise<Dict> {
+        return this.request ('market/call-auction-details', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketBooksSbe (params = {}): Promise<Dict> {
+        return this.request ('market/books-sbe', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetMarketBlockTickers (params = {}): Promise<Dict> {
+        return this.request ('market/block-tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketBlockTicker (params = {}): Promise<Dict> {
+        return this.request ('market/block-ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketSprdTicker (params = {}): Promise<Dict> {
+        return this.request ('market/sprd-ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketSprdCandles (params = {}): Promise<Dict> {
+        return this.request ('market/sprd-candles', [ 'public' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    override publicGetMarketSprdHistoryCandles (params = {}): Promise<Dict> {
+        return this.request ('market/sprd-history-candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketIndexTickers (params = {}): Promise<Dict> {
+        return this.request ('market/index-tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketIndexCandles (params = {}): Promise<Dict> {
+        return this.request ('market/index-candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketHistoryIndexCandles (params = {}): Promise<Dict> {
+        return this.request ('market/history-index-candles', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetMarketMarkPriceCandles (params = {}): Promise<Dict> {
+        return this.request ('market/mark-price-candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketHistoryMarkPriceCandles (params = {}): Promise<Dict> {
+        return this.request ('market/history-mark-price-candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketExchangeRate (params = {}): Promise<Dict> {
+        return this.request ('market/exchange-rate', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override publicGetMarketIndexComponents (params = {}): Promise<Dict> {
+        return this.request ('market/index-components', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetMarketOpenOracle (params = {}): Promise<Dict> {
+        return this.request ('market/open-oracle', [ 'public' ], 'GET', params, { 'cost': 50 });
+    }
+
+    override publicGetMarketBooksLite (params = {}): Promise<Dict> {
+        return this.request ('market/books-lite', [ 'public' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override publicGetPublicOptionTrades (params = {}): Promise<Dict> {
+        return this.request ('public/option-trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicBlockTrades (params = {}): Promise<Dict> {
+        return this.request ('public/block-trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicInstruments (params = {}): Promise<Dict> {
+        return this.request ('public/instruments', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicEstimatedPrice (params = {}): Promise<Dict> {
+        return this.request ('public/estimated-price', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetPublicDeliveryExerciseHistory (params = {}): Promise<Dict> {
+        return this.request ('public/delivery-exercise-history', [ 'public' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    override publicGetPublicEstimatedSettlementInfo (params = {}): Promise<Dict> {
+        return this.request ('public/estimated-settlement-info', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetPublicSettlementHistory (params = {}): Promise<Dict> {
+        return this.request ('public/settlement-history', [ 'public' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    override publicGetPublicFundingRate (params = {}): Promise<Dict> {
+        return this.request ('public/funding-rate', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetPublicFundingRateHistory (params = {}): Promise<Dict> {
+        return this.request ('public/funding-rate-history', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetPublicOpenInterest (params = {}): Promise<Dict> {
+        return this.request ('public/open-interest', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicPriceLimit (params = {}): Promise<Dict> {
+        return this.request ('public/price-limit', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicOptSummary (params = {}): Promise<Dict> {
+        return this.request ('public/opt-summary', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicDiscountRateInterestFreeQuota (params = {}): Promise<Dict> {
+        return this.request ('public/discount-rate-interest-free-quota', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicTime (params = {}): Promise<Dict> {
+        return this.request ('public/time', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetPublicMarkPrice (params = {}): Promise<Dict> {
+        return this.request ('public/mark-price', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetPublicPositionTiers (params = {}): Promise<Dict> {
+        return this.request ('public/position-tiers', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetPublicInterestRateLoanQuota (params = {}): Promise<Dict> {
+        return this.request ('public/interest-rate-loan-quota', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicUnderlying (params = {}): Promise<Dict> {
+        return this.request ('public/underlying', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicInsuranceFund (params = {}): Promise<Dict> {
+        return this.request ('public/insurance-fund', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetPublicConvertContractCoin (params = {}): Promise<Dict> {
+        return this.request ('public/convert-contract-coin', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetPublicInstrumentTickBands (params = {}): Promise<Dict> {
+        return this.request ('public/instrument-tick-bands', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetPublicPremiumHistory (params = {}): Promise<Dict> {
+        return this.request ('public/premium-history', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicEconomicCalendar (params = {}): Promise<Dict> {
+        return this.request ('public/economic-calendar', [ 'public' ], 'GET', params, { 'cost': 50 });
+    }
+
+    override publicGetPublicMarketDataHistory (params = {}): Promise<Dict> {
+        return this.request ('public/market-data-history', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetPublicEventContractEvents (params = {}): Promise<Dict> {
+        return this.request ('public/event-contract/events', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicEventContractMarkets (params = {}): Promise<Dict> {
+        return this.request ('public/event-contract/markets', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicEventContractSeries (params = {}): Promise<Dict> {
+        return this.request ('public/event-contract/series', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicVipInterestRateLoanQuota (params = {}): Promise<Dict> {
+        return this.request ('public/vip-interest-rate-loan-quota', [ 'public' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override publicGetPublicMmInstrumentTypes (params = {}): Promise<Dict> {
+        return this.request ('public/mm-instrument-types', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetPublicDeltaHedgeCurrencies (params = {}): Promise<Dict> {
+        return this.request ('public/delta-hedge-currencies', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetPublicCorporateActions (params = {}): Promise<Dict> {
+        return this.request ('public/corporate-actions', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetRubikStatTradingDataSupportCoin (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/trading-data/support-coin', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatContractsOpenInterestHistory (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/contracts/open-interest-history', [ 'public' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override publicGetRubikStatTakerVolume (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/taker-volume', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatTakerVolumeContract (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/taker-volume-contract', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatMarginLoanRatio (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/margin/loan-ratio', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatContractsLongShortAccountRatioContractTopTrader (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/contracts/long-short-account-ratio-contract-top-trader', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatContractsLongShortPositionRatioContractTopTrader (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/contracts/long-short-position-ratio-contract-top-trader', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatContractsLongShortAccountRatioContract (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/contracts/long-short-account-ratio-contract', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatContractsLongShortAccountRatio (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/contracts/long-short-account-ratio', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatContractsOpenInterestVolume (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/contracts/open-interest-volume', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatOptionOpenInterestVolume (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/option/open-interest-volume', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatOptionOpenInterestVolumeRatio (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/option/open-interest-volume-ratio', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatOptionOpenInterestVolumeExpiry (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/option/open-interest-volume-expiry', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatOptionOpenInterestVolumeStrike (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/option/open-interest-volume-strike', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetRubikStatOptionTakerBlockVolume (params = {}): Promise<Dict> {
+        return this.request ('rubik/stat/option/taker-block-volume', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetSystemStatus (params = {}): Promise<Dict> {
+        return this.request ('system/status', [ 'public' ], 'GET', params, { 'cost': 50 });
+    }
+
+    override publicGetSprdSpreads (params = {}): Promise<Dict> {
+        return this.request ('sprd/spreads', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetSprdBooks (params = {}): Promise<Dict> {
+        return this.request ('sprd/books', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetSprdPublicTrades (params = {}): Promise<Dict> {
+        return this.request ('sprd/public-trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetSprdTicker (params = {}): Promise<Dict> {
+        return this.request ('sprd/ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetTradingBotGridAiParam (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/ai-param', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetTradingBotGridMinInvestment (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/min-investment', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetTradingBotPublicRsiBackTesting (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/public/rsi-back-testing', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override publicGetTradingBotGridGridQuantity (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/grid-quantity', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetAssetExchangeList (params = {}): Promise<Dict> {
+        return this.request ('asset/exchange-list', [ 'public' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override publicGetFinanceStakingDefiEthApyHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/eth/apy-history', [ 'public' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override publicGetFinanceStakingDefiSolApyHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/sol/apy-history', [ 'public' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override publicGetFinanceSavingsLendingRateSummary (params = {}): Promise<Dict> {
+        return this.request ('finance/savings/lending-rate-summary', [ 'public' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override publicGetFinanceSavingsLendingRateHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/savings/lending-rate-history', [ 'public' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override publicGetFinanceFixedLoanLendingOffers (params = {}): Promise<Dict> {
+        return this.request ('finance/fixed-loan/lending-offers', [ 'public' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override publicGetFinanceFixedLoanLendingApyHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/fixed-loan/lending-apy-history', [ 'public' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override publicGetFinanceFixedLoanPendingLendingVolume (params = {}): Promise<Dict> {
+        return this.request ('finance/fixed-loan/pending-lending-volume', [ 'public' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override publicGetFinanceSfpDcdProducts (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/products', [ 'public' ], 'GET', params, { 'cost': 0.6666666666666666 });
+    }
+
+    override publicGetCopytradingPublicConfig (params = {}): Promise<Dict> {
+        return this.request ('copytrading/public-config', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetCopytradingPublicLeadTraders (params = {}): Promise<Dict> {
+        return this.request ('copytrading/public-lead-traders', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetCopytradingPublicWeeklyPnl (params = {}): Promise<Dict> {
+        return this.request ('copytrading/public-weekly-pnl', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetCopytradingPublicPnl (params = {}): Promise<Dict> {
+        return this.request ('copytrading/public-pnl', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetCopytradingPublicStats (params = {}): Promise<Dict> {
+        return this.request ('copytrading/public-stats', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetCopytradingPublicPreferenceCurrency (params = {}): Promise<Dict> {
+        return this.request ('copytrading/public-preference-currency', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetCopytradingPublicCurrentSubpositions (params = {}): Promise<Dict> {
+        return this.request ('copytrading/public-current-subpositions', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetCopytradingPublicSubpositionsHistory (params = {}): Promise<Dict> {
+        return this.request ('copytrading/public-subpositions-history', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetCopytradingPublicCopyTraders (params = {}): Promise<Dict> {
+        return this.request ('copytrading/public-copy-traders', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetSupportAnnouncements (params = {}): Promise<Dict> {
+        return this.request ('support/announcements', [ 'public' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override publicGetSupportAnnouncementsTypes (params = {}): Promise<Dict> {
+        return this.request ('support/announcements-types', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override publicGetSupportAnnouncementTypes (params = {}): Promise<Dict> {
+        return this.request ('support/announcement-types', [ 'public' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override publicPostTradingBotGridMinInvestment (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/min-investment', [ 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privateGetRfqCounterparties (params = {}): Promise<Dict> {
+        return this.request ('rfq/counterparties', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetRfqMakerInstrumentSettings (params = {}): Promise<Dict> {
+        return this.request ('rfq/maker-instrument-settings', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetRfqMmpConfig (params = {}): Promise<Dict> {
+        return this.request ('rfq/mmp-config', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetRfqRfqs (params = {}): Promise<Dict> {
+        return this.request ('rfq/rfqs', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetRfqQuotes (params = {}): Promise<Dict> {
+        return this.request ('rfq/quotes', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetRfqTrades (params = {}): Promise<Dict> {
+        return this.request ('rfq/trades', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetRfqPublicTrades (params = {}): Promise<Dict> {
+        return this.request ('rfq/public-trades', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetSprdOrder (params = {}): Promise<Dict> {
+        return this.request ('sprd/order', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetSprdOrdersPending (params = {}): Promise<Dict> {
+        return this.request ('sprd/orders-pending', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetSprdOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ('sprd/orders-history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetSprdOrdersHistoryArchive (params = {}): Promise<Dict> {
+        return this.request ('sprd/orders-history-archive', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetSprdTrades (params = {}): Promise<Dict> {
+        return this.request ('sprd/trades', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradeOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/order', [ 'private' ], 'GET', params, { 'cost': 0.3333333333333333 });
+    }
+
+    override privateGetTradeOrdersPending (params = {}): Promise<Dict> {
+        return this.request ('trade/orders-pending', [ 'private' ], 'GET', params, { 'cost': 0.3333333333333333 });
+    }
+
+    override privateGetTradeOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ('trade/orders-history', [ 'private' ], 'GET', params, { 'cost': 0.5 });
+    }
+
+    override privateGetTradeOrdersHistoryArchive (params = {}): Promise<Dict> {
+        return this.request ('trade/orders-history-archive', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradeFills (params = {}): Promise<Dict> {
+        return this.request ('trade/fills', [ 'private' ], 'GET', params, { 'cost': 0.3333333333333333 });
+    }
+
+    override privateGetTradeFillsHistory (params = {}): Promise<Dict> {
+        return this.request ('trade/fills-history', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetTradeFillsArchive (params = {}): Promise<Dict> {
+        return this.request ('trade/fills-archive', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetTradeOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('trade/order-algo', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradeOrdersAlgoPending (params = {}): Promise<Dict> {
+        return this.request ('trade/orders-algo-pending', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradeOrdersAlgoHistory (params = {}): Promise<Dict> {
+        return this.request ('trade/orders-algo-history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradeEasyConvertCurrencyList (params = {}): Promise<Dict> {
+        return this.request ('trade/easy-convert-currency-list', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override privateGetTradeEasyConvertHistory (params = {}): Promise<Dict> {
+        return this.request ('trade/easy-convert-history', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override privateGetTradeOneClickRepayCurrencyList (params = {}): Promise<Dict> {
+        return this.request ('trade/one-click-repay-currency-list', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override privateGetTradeOneClickRepayCurrencyListV2 (params = {}): Promise<Dict> {
+        return this.request ('trade/one-click-repay-currency-list-v2', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override privateGetTradeOneClickRepayHistory (params = {}): Promise<Dict> {
+        return this.request ('trade/one-click-repay-history', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override privateGetTradeOneClickRepayHistoryV2 (params = {}): Promise<Dict> {
+        return this.request ('trade/one-click-repay-history-v2', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override privateGetTradeAccountRateLimit (params = {}): Promise<Dict> {
+        return this.request ('trade/account-rate-limit', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAssetCurrencies (params = {}): Promise<Dict> {
+        return this.request ('asset/currencies', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetBalances (params = {}): Promise<Dict> {
+        return this.request ('asset/balances', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetNonTradableAssets (params = {}): Promise<Dict> {
+        return this.request ('asset/non-tradable-assets', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetAssetValuation (params = {}): Promise<Dict> {
+        return this.request ('asset/asset-valuation', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetAssetTransferState (params = {}): Promise<Dict> {
+        return this.request ('asset/transfer-state', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAssetBills (params = {}): Promise<Dict> {
+        return this.request ('asset/bills', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetBillsHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/bills-history', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetAssetDepositLightning (params = {}): Promise<Dict> {
+        return this.request ('asset/deposit-lightning', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    override privateGetAssetDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('asset/deposit-address', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetDepositHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/deposit-history', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetWithdrawalHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/withdrawal-history', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetDepositWithdrawStatus (params = {}): Promise<Dict> {
+        return this.request ('asset/deposit-withdraw-status', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override privateGetAssetMonthlyStatement (params = {}): Promise<Dict> {
+        return this.request ('asset/monthly-statement', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAssetConvertCurrencies (params = {}): Promise<Dict> {
+        return this.request ('asset/convert/currencies', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetConvertCurrencyPair (params = {}): Promise<Dict> {
+        return this.request ('asset/convert/currency-pair', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetConvertHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/convert/history', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetFiatDepositPaymentMethods (params = {}): Promise<Dict> {
+        return this.request ('fiat/deposit-payment-methods', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFiatWithdrawalPaymentMethods (params = {}): Promise<Dict> {
+        return this.request ('fiat/withdrawal-payment-methods', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFiatDepositOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('fiat/deposit-order-history', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFiatDeposit (params = {}): Promise<Dict> {
+        return this.request ('fiat/deposit', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFiatWithdrawalOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('fiat/withdrawal-order-history', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFiatWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('fiat/withdrawal', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFiatBuySellCurrencies (params = {}): Promise<Dict> {
+        return this.request ('fiat/buy-sell/currencies', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetFiatBuySellCurrencyPair (params = {}): Promise<Dict> {
+        return this.request ('fiat/buy-sell/currency-pair', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetFiatBuySellHistory (params = {}): Promise<Dict> {
+        return this.request ('fiat/buy-sell/history', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAccountInstruments (params = {}): Promise<Dict> {
+        return this.request ('account/instruments', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAccountBalance (params = {}): Promise<Dict> {
+        return this.request ('account/balance', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAccountPositions (params = {}): Promise<Dict> {
+        return this.request ('account/positions', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAccountPositionsHistory (params = {}): Promise<Dict> {
+        return this.request ('account/positions-history', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAccountAccountPositionRisk (params = {}): Promise<Dict> {
+        return this.request ('account/account-position-risk', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAccountBills (params = {}): Promise<Dict> {
+        return this.request ('account/bills', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAccountBillsArchive (params = {}): Promise<Dict> {
+        return this.request ('account/bills-archive', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountBillsHistoryArchive (params = {}): Promise<Dict> {
+        return this.request ('account/bills-history-archive', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAccountConfig (params = {}): Promise<Dict> {
+        return this.request ('account/config', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountSubtypes (params = {}): Promise<Dict> {
+        return this.request ('account/subtypes', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountMaxSize (params = {}): Promise<Dict> {
+        return this.request ('account/max-size', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAccountMaxAvailSize (params = {}): Promise<Dict> {
+        return this.request ('account/max-avail-size', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAccountLeverageInfo (params = {}): Promise<Dict> {
+        return this.request ('account/leverage-info', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAccountAdjustLeverageInfo (params = {}): Promise<Dict> {
+        return this.request ('account/adjust-leverage-info', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountMaxLoan (params = {}): Promise<Dict> {
+        return this.request ('account/max-loan', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAccountTradeFee (params = {}): Promise<Dict> {
+        return this.request ('account/trade-fee', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountInterestAccrued (params = {}): Promise<Dict> {
+        return this.request ('account/interest-accrued', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountInterestRate (params = {}): Promise<Dict> {
+        return this.request ('account/interest-rate', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountMaxWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('account/max-withdrawal', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAccountRiskState (params = {}): Promise<Dict> {
+        return this.request ('account/risk-state', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAccountInterestLimits (params = {}): Promise<Dict> {
+        return this.request ('account/interest-limits', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountSpotBorrowRepayHistory (params = {}): Promise<Dict> {
+        return this.request ('account/spot-borrow-repay-history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountGreeks (params = {}): Promise<Dict> {
+        return this.request ('account/greeks', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAccountPositionTiers (params = {}): Promise<Dict> {
+        return this.request ('account/position-tiers', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAccountSetAccountSwitchPrecheck (params = {}): Promise<Dict> {
+        return this.request ('account/set-account-switch-precheck', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountCollateralAssets (params = {}): Promise<Dict> {
+        return this.request ('account/collateral-assets', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountMmpConfig (params = {}): Promise<Dict> {
+        return this.request ('account/mmp-config', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountMovePositionsHistory (params = {}): Promise<Dict> {
+        return this.request ('account/move-positions-history', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetAccountPrecheckSetDeltaNeutral (params = {}): Promise<Dict> {
+        return this.request ('account/precheck-set-delta-neutral', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override privateGetAccountQuickMarginBorrowRepayHistory (params = {}): Promise<Dict> {
+        return this.request ('account/quick-margin-borrow-repay-history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountBorrowRepayHistory (params = {}): Promise<Dict> {
+        return this.request ('account/borrow-repay-history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountVipInterestAccrued (params = {}): Promise<Dict> {
+        return this.request ('account/vip-interest-accrued', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountVipInterestDeducted (params = {}): Promise<Dict> {
+        return this.request ('account/vip-interest-deducted', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountVipLoanOrderList (params = {}): Promise<Dict> {
+        return this.request ('account/vip-loan-order-list', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountVipLoanOrderDetail (params = {}): Promise<Dict> {
+        return this.request ('account/vip-loan-order-detail', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountFixedLoanBorrowingLimit (params = {}): Promise<Dict> {
+        return this.request ('account/fixed-loan/borrowing-limit', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAccountFixedLoanBorrowingQuote (params = {}): Promise<Dict> {
+        return this.request ('account/fixed-loan/borrowing-quote', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    override privateGetAccountFixedLoanBorrowingOrdersList (params = {}): Promise<Dict> {
+        return this.request ('account/fixed-loan/borrowing-orders-list', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    override privateGetAccountSpotManualBorrowRepay (params = {}): Promise<Dict> {
+        return this.request ('account/spot-manual-borrow-repay', [ 'private' ], 'GET', params, { 'cost': 30 });
+    }
+
+    override privateGetAccountSetAutoRepay (params = {}): Promise<Dict> {
+        return this.request ('account/set-auto-repay', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetUsersSubaccountList (params = {}): Promise<Dict> {
+        return this.request ('users/subaccount/list', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetAccountSubaccountBalances (params = {}): Promise<Dict> {
+        return this.request ('account/subaccount/balances', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetAssetSubaccountBalances (params = {}): Promise<Dict> {
+        return this.request ('asset/subaccount/balances', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetAccountSubaccountMaxWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('account/subaccount/max-withdrawal', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAssetSubaccountBills (params = {}): Promise<Dict> {
+        return this.request ('asset/subaccount/bills', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetSubaccountManagedSubaccountBills (params = {}): Promise<Dict> {
+        return this.request ('asset/subaccount/managed-subaccount-bills', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetUsersEntrustSubaccountList (params = {}): Promise<Dict> {
+        return this.request ('users/entrust-subaccount-list', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetAccountSubaccountInterestLimits (params = {}): Promise<Dict> {
+        return this.request ('account/subaccount/interest-limits', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetUsersSubaccountApikey (params = {}): Promise<Dict> {
+        return this.request ('users/subaccount/apikey', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetTradingBotGridOrdersAlgoPending (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/orders-algo-pending', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotGridOrdersAlgoHistory (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/orders-algo-history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotGridOrdersAlgoDetails (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/orders-algo-details', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotGridSubOrders (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/sub-orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotGridPositions (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/positions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotGridAiParam (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/ai-param', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotSignalSignals (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/signals', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotSignalOrdersAlgoDetails (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/orders-algo-details', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotSignalOrdersAlgoPending (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/orders-algo-pending', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotSignalOrdersAlgoHistory (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/orders-algo-history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotSignalPositions (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/positions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotSignalPositionsHistory (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/positions-history', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetTradingBotSignalSubOrders (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/sub-orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotSignalEventHistory (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/event-history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotRecurringOrdersAlgoPending (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/orders-algo-pending', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotRecurringOrdersAlgoHistory (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/orders-algo-history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotRecurringOrdersAlgoDetails (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/orders-algo-details', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotRecurringSubOrders (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/sub-orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotDcaOngoingList (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/ongoing-list', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotDcaHistoryList (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/history-list', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotDcaOrders (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotDcaPositionDetails (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/position-details', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetTradingBotDcaCycleList (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/cycle-list', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetFinanceSavingsBalance (params = {}): Promise<Dict> {
+        return this.request ('finance/savings/balance', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetFinanceSavingsLendingHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/savings/lending-history', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetFinanceStakingDefiOffers (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/offers', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFinanceStakingDefiOrdersActive (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/orders-active', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFinanceStakingDefiOrdersHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/orders-history', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFinanceStakingDefiEthProductInfo (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/eth/product-info', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFinanceStakingDefiEthBalance (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/eth/balance', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetFinanceStakingDefiEthPurchaseRedeemHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/eth/purchase-redeem-history', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetFinanceStakingDefiSolProductInfo (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/sol/product-info', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetFinanceStakingDefiSolBalance (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/sol/balance', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetFinanceStakingDefiSolPurchaseRedeemHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/sol/purchase-redeem-history', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetFinanceFlexibleLoanBorrowCurrencies (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/borrow-currencies', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceFlexibleLoanCollateralAssets (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/collateral-assets', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceFlexibleLoanMaxCollateralRedeemAmount (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/max-collateral-redeem-amount', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceFlexibleLoanLoanInfo (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/loan-info', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceFlexibleLoanLoanHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/loan-history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceFlexibleLoanInterestAccrued (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/interest-accrued', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceFlexibleLoanEmodeInfo (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/emode-info', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceOkusdLimits (params = {}): Promise<Dict> {
+        return this.request ('finance/okusd/limits', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetFinanceOkusdAccount (params = {}): Promise<Dict> {
+        return this.request ('finance/okusd/account', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetFinanceOkusdSubscribeHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/okusd/subscribe/history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceOkusdRedeemHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/okusd/redeem/history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceOkusdRewardsHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/okusd/rewards/history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceOkusdRateHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/okusd/rate/history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceStableRewardsProductInfo (params = {}): Promise<Dict> {
+        return this.request ('finance/stable-rewards/product-info', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceStableRewardsBalance (params = {}): Promise<Dict> {
+        return this.request ('finance/stable-rewards/balance', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetFinanceStableRewardsApyHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/stable-rewards/apy-history', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetUsersGlpTodayperformance (params = {}): Promise<Dict> {
+        return this.request ('users/glp/todayperformance', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetUsersGlpHistoricalperformance (params = {}): Promise<Dict> {
+        return this.request ('users/glp/historicalperformance', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingCurrentSubpositions (params = {}): Promise<Dict> {
+        return this.request ('copytrading/current-subpositions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetCopytradingSubpositionsHistory (params = {}): Promise<Dict> {
+        return this.request ('copytrading/subpositions-history', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetCopytradingInstruments (params = {}): Promise<Dict> {
+        return this.request ('copytrading/instruments', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingProfitSharingDetails (params = {}): Promise<Dict> {
+        return this.request ('copytrading/profit-sharing-details', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingTotalProfitSharing (params = {}): Promise<Dict> {
+        return this.request ('copytrading/total-profit-sharing', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingUnrealizedProfitSharingDetails (params = {}): Promise<Dict> {
+        return this.request ('copytrading/unrealized-profit-sharing-details', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingTotalUnrealizedProfitSharing (params = {}): Promise<Dict> {
+        return this.request ('copytrading/total-unrealized-profit-sharing', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingConfig (params = {}): Promise<Dict> {
+        return this.request ('copytrading/config', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingCopySettings (params = {}): Promise<Dict> {
+        return this.request ('copytrading/copy-settings', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingCurrentLeadTraders (params = {}): Promise<Dict> {
+        return this.request ('copytrading/current-lead-traders', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingBatchLeverageInfo (params = {}): Promise<Dict> {
+        return this.request ('copytrading/batch-leverage-info', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetCopytradingLeadTradersHistory (params = {}): Promise<Dict> {
+        return this.request ('copytrading/lead-traders-history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetBrokerDmaSubaccountInfo (params = {}): Promise<Dict> {
+        return this.request ('broker/dma/subaccount-info', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetBrokerDmaSubaccountTradeFee (params = {}): Promise<Dict> {
+        return this.request ('broker/dma/subaccount-trade-fee', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetBrokerDmaSubaccountApikey (params = {}): Promise<Dict> {
+        return this.request ('broker/dma/subaccount/apikey', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetBrokerDmaRebatePerOrders (params = {}): Promise<Dict> {
+        return this.request ('broker/dma/rebate-per-orders', [ 'private' ], 'GET', params, { 'cost': 300 });
+    }
+
+    override privateGetBrokerFdRebatePerOrders (params = {}): Promise<Dict> {
+        return this.request ('broker/fd/rebate-per-orders', [ 'private' ], 'GET', params, { 'cost': 300 });
+    }
+
+    override privateGetBrokerFdIfRebate (params = {}): Promise<Dict> {
+        return this.request ('broker/fd/if-rebate', [ 'private' ], 'GET', params, { 'cost': 5 });
+    }
+
+    override privateGetBrokerNdInfo (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/info', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetBrokerNdSubaccountInfo (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/subaccount-info', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetBrokerNdSubaccountApikey (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/subaccount/apikey', [ 'private' ], 'GET', params, { 'cost': 10 });
+    }
+
+    override privateGetAssetBrokerNdSubaccountDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('asset/broker/nd/subaccount-deposit-address', [ 'private' ], 'GET', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privateGetAssetBrokerNdSubaccountDepositHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/broker/nd/subaccount-deposit-history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetAssetBrokerNdSubaccountWithdrawalHistory (params = {}): Promise<Dict> {
+        return this.request ('asset/broker/nd/subaccount-withdrawal-history', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privateGetBrokerNdRebateDaily (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/rebate-daily', [ 'private' ], 'GET', params, { 'cost': 100 });
+    }
+
+    override privateGetBrokerNdRebatePerOrders (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/rebate-per-orders', [ 'private' ], 'GET', params, { 'cost': 300 });
+    }
+
+    override privateGetFinanceSfpDcdOrder (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/order', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetFinanceSfpDcdOrders (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/orders', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetFinanceSfpDcdCurrencyPair (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/currency-pair', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetFinanceSfpDcdOrderStatus (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/order-status', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetFinanceSfpDcdOrderHistory (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/order-history', [ 'private' ], 'GET', params, { 'cost': 2 });
+    }
+
+    override privateGetAffiliateInviteeDetail (params = {}): Promise<Dict> {
+        return this.request ('affiliate/invitee/detail', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetAffiliatePerformanceSummary (params = {}): Promise<Dict> {
+        return this.request ('affiliate/performance/summary', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetAffiliateInviteeList (params = {}): Promise<Dict> {
+        return this.request ('affiliate/invitee/list', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetAffiliateLinkList (params = {}): Promise<Dict> {
+        return this.request ('affiliate/link/list', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetAffiliateCoInviterList (params = {}): Promise<Dict> {
+        return this.request ('affiliate/co-inviter/list', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetAffiliateSubAffiliateList (params = {}): Promise<Dict> {
+        return this.request ('affiliate/sub-affiliate/list', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privateGetUsersPartnerIfRebate (params = {}): Promise<Dict> {
+        return this.request ('users/partner/if-rebate', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    override privateGetSupportAnnouncements (params = {}): Promise<Dict> {
+        return this.request ('support/announcements', [ 'private' ], 'GET', params, { 'cost': 4 });
+    }
+
+    override privatePostRfqCreateRfq (params = {}): Promise<Dict> {
+        return this.request ('rfq/create-rfq', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostRfqCancelRfq (params = {}): Promise<Dict> {
+        return this.request ('rfq/cancel-rfq', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostRfqCancelBatchRfqs (params = {}): Promise<Dict> {
+        return this.request ('rfq/cancel-batch-rfqs', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostRfqCancelAllRfqs (params = {}): Promise<Dict> {
+        return this.request ('rfq/cancel-all-rfqs', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostRfqExecuteQuote (params = {}): Promise<Dict> {
+        return this.request ('rfq/execute-quote', [ 'private' ], 'POST', params, { 'cost': 15 });
+    }
+
+    override privatePostRfqMakerInstrumentSettings (params = {}): Promise<Dict> {
+        return this.request ('rfq/maker-instrument-settings', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostRfqMmpReset (params = {}): Promise<Dict> {
+        return this.request ('rfq/mmp-reset', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostRfqMmpConfig (params = {}): Promise<Dict> {
+        return this.request ('rfq/mmp-config', [ 'private' ], 'POST', params, { 'cost': 100 });
+    }
+
+    override privatePostRfqCreateQuote (params = {}): Promise<Dict> {
+        return this.request ('rfq/create-quote', [ 'private' ], 'POST', params, { 'cost': 0.4 });
+    }
+
+    override privatePostRfqCancelQuote (params = {}): Promise<Dict> {
+        return this.request ('rfq/cancel-quote', [ 'private' ], 'POST', params, { 'cost': 0.4 });
+    }
+
+    override privatePostRfqCancelBatchQuotes (params = {}): Promise<Dict> {
+        return this.request ('rfq/cancel-batch-quotes', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostRfqCancelAllQuotes (params = {}): Promise<Dict> {
+        return this.request ('rfq/cancel-all-quotes', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostRfqCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ('rfq/cancel-all-after', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostSprdOrder (params = {}): Promise<Dict> {
+        return this.request ('sprd/order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostSprdCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('sprd/cancel-order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostSprdMassCancel (params = {}): Promise<Dict> {
+        return this.request ('sprd/mass-cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostSprdAmendOrder (params = {}): Promise<Dict> {
+        return this.request ('sprd/amend-order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostSprdCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ('sprd/cancel-all-after', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostTradeOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/order', [ 'private' ], 'POST', params, { 'cost': 0.3333333333333333 });
+    }
+
+    override privatePostTradeBatchOrders (params = {}): Promise<Dict> {
+        return this.request ('trade/batch-orders', [ 'private' ], 'POST', params, { 'cost': 0.06666666666666667 });
+    }
+
+    override privatePostTradeCancelOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/cancel-order', [ 'private' ], 'POST', params, { 'cost': 0.3333333333333333 });
+    }
+
+    override privatePostTradeCancelBatchOrders (params = {}): Promise<Dict> {
+        return this.request ('trade/cancel-batch-orders', [ 'private' ], 'POST', params, { 'cost': 0.06666666666666667 });
+    }
+
+    override privatePostTradeAmendOrder (params = {}): Promise<Dict> {
+        return this.request ('trade/amend-order', [ 'private' ], 'POST', params, { 'cost': 0.3333333333333333 });
+    }
+
+    override privatePostTradeAmendBatchOrders (params = {}): Promise<Dict> {
+        return this.request ('trade/amend-batch-orders', [ 'private' ], 'POST', params, { 'cost': 0.006666666666666667 });
+    }
+
+    override privatePostTradeClosePosition (params = {}): Promise<Dict> {
+        return this.request ('trade/close-position', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradeFillsArchive (params = {}): Promise<Dict> {
+        return this.request ('trade/fills-archive', [ 'private' ], 'POST', params, { 'cost': 172800 });
+    }
+
+    override privatePostTradeCancelAdvanceAlgos (params = {}): Promise<Dict> {
+        return this.request ('trade/cancel-advance-algos', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradeEasyConvert (params = {}): Promise<Dict> {
+        return this.request ('trade/easy-convert', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    override privatePostTradeOneClickRepay (params = {}): Promise<Dict> {
+        return this.request ('trade/one-click-repay', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    override privatePostTradeOneClickRepayV2 (params = {}): Promise<Dict> {
+        return this.request ('trade/one-click-repay-v2', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    override privatePostTradeMassCancel (params = {}): Promise<Dict> {
+        return this.request ('trade/mass-cancel', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostTradeCancelAllAfter (params = {}): Promise<Dict> {
+        return this.request ('trade/cancel-all-after', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostTradeOrderPrecheck (params = {}): Promise<Dict> {
+        return this.request ('trade/order-precheck', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostTradeOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('trade/order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradeCancelAlgos (params = {}): Promise<Dict> {
+        return this.request ('trade/cancel-algos', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradeAmendAlgos (params = {}): Promise<Dict> {
+        return this.request ('trade/amend-algos', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostAssetTransfer (params = {}): Promise<Dict> {
+        return this.request ('asset/transfer', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostAssetWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('asset/withdrawal', [ 'private' ], 'POST', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privatePostAssetWithdrawalLightning (params = {}): Promise<Dict> {
+        return this.request ('asset/withdrawal-lightning', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostAssetCancelWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('asset/cancel-withdrawal', [ 'private' ], 'POST', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privatePostAssetConvertDustAssets (params = {}): Promise<Dict> {
+        return this.request ('asset/convert-dust-assets', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostAssetMonthlyStatement (params = {}): Promise<Dict> {
+        return this.request ('asset/monthly-statement', [ 'private' ], 'POST', params, { 'cost': 1296000 });
+    }
+
+    override privatePostAssetConvertEstimateQuote (params = {}): Promise<Dict> {
+        return this.request ('asset/convert/estimate-quote', [ 'private' ], 'POST', params, { 'cost': 50 });
+    }
+
+    override privatePostAssetConvertTrade (params = {}): Promise<Dict> {
+        return this.request ('asset/convert/trade', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostFiatCreateWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('fiat/create-withdrawal', [ 'private' ], 'POST', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privatePostFiatCancelWithdrawal (params = {}): Promise<Dict> {
+        return this.request ('fiat/cancel-withdrawal', [ 'private' ], 'POST', params, { 'cost': 3.3333333333333335 });
+    }
+
+    override privatePostFiatBuySellQuote (params = {}): Promise<Dict> {
+        return this.request ('fiat/buy-sell/quote', [ 'private' ], 'POST', params, { 'cost': 50 });
+    }
+
+    override privatePostFiatBuySellTrade (params = {}): Promise<Dict> {
+        return this.request ('fiat/buy-sell/trade', [ 'private' ], 'POST', params, { 'cost': 50 });
+    }
+
+    override privatePostAccountBillsHistoryArchive (params = {}): Promise<Dict> {
+        return this.request ('account/bills-history-archive', [ 'private' ], 'POST', params, { 'cost': 72000 });
+    }
+
+    override privatePostAccountSetPositionMode (params = {}): Promise<Dict> {
+        return this.request ('account/set-position-mode', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountSetLeverage (params = {}): Promise<Dict> {
+        return this.request ('account/set-leverage', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostAccountPositionMarginBalance (params = {}): Promise<Dict> {
+        return this.request ('account/position/margin-balance', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostAccountSetFeeType (params = {}): Promise<Dict> {
+        return this.request ('account/set-fee-type', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountSetGreeks (params = {}): Promise<Dict> {
+        return this.request ('account/set-greeks', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountSetIsolatedMode (params = {}): Promise<Dict> {
+        return this.request ('account/set-isolated-mode', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountSpotManualBorrowRepay (params = {}): Promise<Dict> {
+        return this.request ('account/spot-manual-borrow-repay', [ 'private' ], 'POST', params, { 'cost': 30 });
+    }
+
+    override privatePostAccountSetAutoRepay (params = {}): Promise<Dict> {
+        return this.request ('account/set-auto-repay', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountQuickMarginBorrowRepay (params = {}): Promise<Dict> {
+        return this.request ('account/quick-margin-borrow-repay', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountBorrowRepay (params = {}): Promise<Dict> {
+        return this.request ('account/borrow-repay', [ 'private' ], 'POST', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privatePostAccountSimulatedMargin (params = {}): Promise<Dict> {
+        return this.request ('account/simulated_margin', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostAccountPositionBuilder (params = {}): Promise<Dict> {
+        return this.request ('account/position-builder', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostAccountPositionBuilderGraph (params = {}): Promise<Dict> {
+        return this.request ('account/position-builder-graph', [ 'private' ], 'POST', params, { 'cost': 50 });
+    }
+
+    override privatePostAccountSetRiskOffsetType (params = {}): Promise<Dict> {
+        return this.request ('account/set-riskOffset-type', [ 'private' ], 'POST', params, { 'cost': 2 });
+    }
+
+    override privatePostAccountSetRiskOffsetAmt (params = {}): Promise<Dict> {
+        return this.request ('account/set-riskOffset-amt', [ 'private' ], 'POST', params, { 'cost': 2 });
+    }
+
+    override privatePostAccountActivateOption (params = {}): Promise<Dict> {
+        return this.request ('account/activate-option', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountSetAutoLoan (params = {}): Promise<Dict> {
+        return this.request ('account/set-auto-loan', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountAccountLevelSwitchPreset (params = {}): Promise<Dict> {
+        return this.request ('account/account-level-switch-preset', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountSetAccountLevel (params = {}): Promise<Dict> {
+        return this.request ('account/set-account-level', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountSetCollateralAssets (params = {}): Promise<Dict> {
+        return this.request ('account/set-collateral-assets', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountMmpReset (params = {}): Promise<Dict> {
+        return this.request ('account/mmp-reset', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostAccountMmpConfig (params = {}): Promise<Dict> {
+        return this.request ('account/mmp-config', [ 'private' ], 'POST', params, { 'cost': 50 });
+    }
+
+    override privatePostAccountFixedLoanBorrowingOrder (params = {}): Promise<Dict> {
+        return this.request ('account/fixed-loan/borrowing-order', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostAccountFixedLoanAmendBorrowingOrder (params = {}): Promise<Dict> {
+        return this.request ('account/fixed-loan/amend-borrowing-order', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostAccountFixedLoanManualReborrow (params = {}): Promise<Dict> {
+        return this.request ('account/fixed-loan/manual-reborrow', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostAccountFixedLoanRepayBorrowingOrder (params = {}): Promise<Dict> {
+        return this.request ('account/fixed-loan/repay-borrowing-order', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostAccountMovePositions (params = {}): Promise<Dict> {
+        return this.request ('account/move-positions', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostAccountSetAutoEarn (params = {}): Promise<Dict> {
+        return this.request ('account/set-auto-earn', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostAccountSetSettleCurrency (params = {}): Promise<Dict> {
+        return this.request ('account/set-settle-currency', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostAccountSetTradingConfig (params = {}): Promise<Dict> {
+        return this.request ('account/set-trading-config', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    override privatePostAccountDemoAdjustBalance (params = {}): Promise<Dict> {
+        return this.request ('account/demo-adjust-balance', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    override privatePostAssetSubaccountTransfer (params = {}): Promise<Dict> {
+        return this.request ('asset/subaccount/transfer', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostAccountSubaccountSetLoanAllocation (params = {}): Promise<Dict> {
+        return this.request ('account/subaccount/set-loan-allocation', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostUsersSubaccountCreateSubaccount (params = {}): Promise<Dict> {
+        return this.request ('users/subaccount/create-subaccount', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostUsersSubaccountApikey (params = {}): Promise<Dict> {
+        return this.request ('users/subaccount/apikey', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostUsersSubaccountModifyApikey (params = {}): Promise<Dict> {
+        return this.request ('users/subaccount/modify-apikey', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostUsersSubaccountSubaccountApikey (params = {}): Promise<Dict> {
+        return this.request ('users/subaccount/subaccount-apikey', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostUsersSubaccountDeleteApikey (params = {}): Promise<Dict> {
+        return this.request ('users/subaccount/delete-apikey', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostUsersSubaccountSetTransferOut (params = {}): Promise<Dict> {
+        return this.request ('users/subaccount/set-transfer-out', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostTradingBotGridOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridCopyOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/copy-order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridAmendAlgoBasicParam (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/amend-algo-basic-param', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridAmendOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/amend-order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridStopOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/stop-order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridClosePosition (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/close-position', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridCancelCloseOrder (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/cancel-close-order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridOrderInstantTrigger (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/order-instant-trigger', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridWithdrawIncome (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/withdraw-income', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridComputeMarginBalance (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/compute-margin-balance', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridMarginBalance (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/margin-balance', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridMinInvestment (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/min-investment', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotGridAdjustInvestment (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/grid/adjust-investment', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotSignalCreateSignal (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/create-signal', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotSignalOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotSignalStopOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/stop-order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotSignalMarginBalance (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/margin-balance', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotSignalAmendTPSL (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/amendTPSL', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotSignalSetInstruments (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/set-instruments', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotSignalClosePosition (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/close-position', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotSignalSubOrder (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/sub-order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotSignalCancelSubOrder (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/signal/cancel-sub-order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotRecurringOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotRecurringAmendOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/amend-order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotRecurringStopOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/stop-order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotDcaCreate (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/create', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotDcaAmendOrderAlgo (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/amend-order-algo', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotDcaStop (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/stop', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotDcaOrdersManualBuy (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/orders/manual-buy', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotDcaSettingsReinvestment (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/settings/reinvestment', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotDcaSettingsTakeProfit (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/settings/take-profit', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotDcaMarginAdd (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/margin/add', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotDcaMarginReduce (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/dca/margin/reduce', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotRecurringAddInvestment (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/add-investment', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotRecurringAmendPriceRange (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/amend-price-range', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotRecurringAmendRecurringAmount (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/amend-recurring-amount', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotRecurringAmendRecurringTime (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/amend-recurring-time', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotRecurringPause (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/pause', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostTradingBotRecurringRestart (params = {}): Promise<Dict> {
+        return this.request ('tradingBot/recurring/restart', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostFinanceSavingsPurchaseRedempt (params = {}): Promise<Dict> {
+        return this.request ('finance/savings/purchase-redempt', [ 'private' ], 'POST', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privatePostFinanceSavingsSetLendingRate (params = {}): Promise<Dict> {
+        return this.request ('finance/savings/set-lending-rate', [ 'private' ], 'POST', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privatePostFinanceStakingDefiPurchase (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/purchase', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostFinanceStakingDefiRedeem (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/redeem', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostFinanceStakingDefiCancel (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/cancel', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostFinanceStakingDefiEthPurchase (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/eth/purchase', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostFinanceStakingDefiEthRedeem (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/eth/redeem', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostFinanceStakingDefiEthCancelRedeem (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/eth/cancel-redeem', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostFinanceStakingDefiSolPurchase (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/sol/purchase', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostFinanceStakingDefiSolRedeem (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/sol/redeem', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostFinanceStakingDefiSolCancelRedeem (params = {}): Promise<Dict> {
+        return this.request ('finance/staking-defi/sol/cancel-redeem', [ 'private' ], 'POST', params, { 'cost': 5 });
+    }
+
+    override privatePostFinanceFlexibleLoanMaxLoan (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/max-loan', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostFinanceFlexibleLoanAdjustCollateral (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/adjust-collateral', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostFinanceFlexibleLoanBorrow (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/borrow', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostFinanceFlexibleLoanRepay (params = {}): Promise<Dict> {
+        return this.request ('finance/flexible-loan/repay', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostFinanceOkusdSubscribe (params = {}): Promise<Dict> {
+        return this.request ('finance/okusd/subscribe', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    override privatePostFinanceOkusdRedeem (params = {}): Promise<Dict> {
+        return this.request ('finance/okusd/redeem', [ 'private' ], 'POST', params, { 'cost': 20 });
+    }
+
+    override privatePostCopytradingAlgoOrder (params = {}): Promise<Dict> {
+        return this.request ('copytrading/algo-order', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostCopytradingCloseSubposition (params = {}): Promise<Dict> {
+        return this.request ('copytrading/close-subposition', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostCopytradingSetInstruments (params = {}): Promise<Dict> {
+        return this.request ('copytrading/set-instruments', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostCopytradingAmendProfitSharingRatio (params = {}): Promise<Dict> {
+        return this.request ('copytrading/amend-profit-sharing-ratio', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostCopytradingFirstCopySettings (params = {}): Promise<Dict> {
+        return this.request ('copytrading/first-copy-settings', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostCopytradingAmendCopySettings (params = {}): Promise<Dict> {
+        return this.request ('copytrading/amend-copy-settings', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostCopytradingStopCopyTrading (params = {}): Promise<Dict> {
+        return this.request ('copytrading/stop-copy-trading', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostCopytradingBatchSetLeverage (params = {}): Promise<Dict> {
+        return this.request ('copytrading/batch-set-leverage', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostBrokerNdCreateSubaccount (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/create-subaccount', [ 'private' ], 'POST', params, { 'cost': 0.25 });
+    }
+
+    override privatePostBrokerNdDeleteSubaccount (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/delete-subaccount', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostBrokerNdSubaccountApikey (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/subaccount/apikey', [ 'private' ], 'POST', params, { 'cost': 0.25 });
+    }
+
+    override privatePostBrokerNdSubaccountModifyApikey (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/subaccount/modify-apikey', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostBrokerNdSubaccountDeleteApikey (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/subaccount/delete-apikey', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostBrokerNdSetSubaccountLevel (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/set-subaccount-level', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostBrokerNdSetSubaccountFeeRate (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/set-subaccount-fee-rate', [ 'private' ], 'POST', params, { 'cost': 4 });
+    }
+
+    override privatePostBrokerNdSetSubaccountAssets (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/set-subaccount-assets', [ 'private' ], 'POST', params, { 'cost': 0.25 });
+    }
+
+    override privatePostAssetBrokerNdSubaccountDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('asset/broker/nd/subaccount-deposit-address', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    override privatePostAssetBrokerNdModifySubaccountDepositAddress (params = {}): Promise<Dict> {
+        return this.request ('asset/broker/nd/modify-subaccount-deposit-address', [ 'private' ], 'POST', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privatePostBrokerNdRebatePerOrders (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/rebate-per-orders', [ 'private' ], 'POST', params, { 'cost': 36000 });
+    }
+
+    override privatePostFinanceSfpDcdQuote (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/quote', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostFinanceSfpDcdOrder (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/order', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostFinanceSfpDcdTrade (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/trade', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostFinanceSfpDcdRedeemQuote (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/redeem-quote', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostFinanceSfpDcdRedeem (params = {}): Promise<Dict> {
+        return this.request ('finance/sfp/dcd/redeem', [ 'private' ], 'POST', params, { 'cost': 10 });
+    }
+
+    override privatePostBrokerNdReportSubaccountIp (params = {}): Promise<Dict> {
+        return this.request ('broker/nd/report-subaccount-ip', [ 'private' ], 'POST', params, { 'cost': 0.25 });
+    }
+
+    override privatePostBrokerDmaSubaccountApikey (params = {}): Promise<Dict> {
+        return this.request ('broker/dma/subaccount/apikey', [ 'private' ], 'POST', params, { 'cost': 0.25 });
+    }
+
+    override privatePostBrokerDmaTrades (params = {}): Promise<Dict> {
+        return this.request ('broker/dma/trades', [ 'private' ], 'POST', params, { 'cost': 36000 });
+    }
+
+    override privatePostBrokerFdRebatePerOrders (params = {}): Promise<Dict> {
+        return this.request ('broker/fd/rebate-per-orders', [ 'private' ], 'POST', params, { 'cost': 36000 });
+    }
+}
+
+export default okx;

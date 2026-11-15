@@ -7,118 +7,157 @@
 
 package ccxt
 
-func (this *HollaexCore) PublicGetHealth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetHealth", args...)
+// PublicGetHealth returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetHealth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "health", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetConstants(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetConstants", args...)
+// PublicGetConstants returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetConstants(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "constants", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetKit(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetKit", args...)
+// PublicGetKit returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetKit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "kit", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetTiers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTiers", args...)
+// PublicGetTiers returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetTiers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tiers", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker", args...)
+// PublicGetTicker returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "ticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickers", args...)
+// PublicGetTickers returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tickers", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderbook", args...)
+// PublicGetOrderbook returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbook", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetOrderbooks(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderbooks", args...)
+// PublicGetOrderbooks returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetOrderbooks(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbooks", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTrades", args...)
+// PublicGetTrades returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trades", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetChart(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetChart", args...)
+// PublicGetChart returns a channel that yields a JSON array.
+func (this *Hollaex) PublicGetChart(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "chart", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetCharts(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCharts", args...)
+// PublicGetCharts returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetCharts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "charts", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetMinicharts(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMinicharts", args...)
+// PublicGetMinicharts returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetMinicharts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "minicharts", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetOraclePrices(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOraclePrices", args...)
+// PublicGetOraclePrices returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetOraclePrices(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "oracle/prices", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetQuickTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetQuickTrade", args...)
+// PublicGetQuickTrade returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetQuickTrade(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "quick-trade", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetUdfConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUdfConfig", args...)
+// PublicGetUdfConfig returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetUdfConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "udf/config", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetUdfHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUdfHistory", args...)
+// PublicGetUdfHistory returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetUdfHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "udf/history", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PublicGetUdfSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUdfSymbols", args...)
+// PublicGetUdfSymbols returns a channel that yields a JSON object.
+func (this *Hollaex) PublicGetUdfSymbols(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "udf/symbols", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateGetUser(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUser", args...)
+// PrivateGetUser returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateGetUser(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateGetUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUserBalance", args...)
+// PrivateGetUserBalance returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateGetUserBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateGetUserDeposits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUserDeposits", args...)
+// PrivateGetUserDeposits returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateGetUserDeposits(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/deposits", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateGetUserWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUserWithdrawals", args...)
+// PrivateGetUserWithdrawals returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateGetUserWithdrawals(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/withdrawals", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateGetUserWithdrawalFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUserWithdrawalFee", args...)
+// PrivateGetUserWithdrawalFee returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateGetUserWithdrawalFee(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/withdrawal/fee", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateGetUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUserTrades", args...)
+// PrivateGetSubaccounts returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateGetSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrders", args...)
+// PrivateGetUserTrades returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateGetUserTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateGetOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetOrder", args...)
+// PrivateGetOrders returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateGetOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivatePostUserWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUserWithdrawal", args...)
+// PrivateGetOrder returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateGetOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivatePostOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrder", args...)
+// PrivatePostUserWithdrawal returns a channel that yields a JSON object.
+func (this *Hollaex) PrivatePostUserWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "user/withdrawal", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateDeleteOrderAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrderAll", args...)
+// PrivatePostSubaccountTransfer returns a channel that yields a JSON object.
+func (this *Hollaex) PrivatePostSubaccountTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccount/transfer", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *HollaexCore) PrivateDeleteOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteOrder", args...)
+// PrivatePostOrder returns a channel that yields a JSON object.
+func (this *Hollaex) PrivatePostOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteOrderAll returns a channel that yields a JSON array.
+func (this *Hollaex) PrivateDeleteOrderAll(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order/all", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteOrder returns a channel that yields a JSON object.
+func (this *Hollaex) PrivateDeleteOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }

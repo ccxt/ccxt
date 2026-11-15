@@ -42,13 +42,15 @@
 * [fetchConvertQuote](#fetchconvertquote)
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
-* [fetchPositionADLRank](#fetchpositionadlrank)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 * [watchOHLCV](#watchohlcv)
+* [unWatchTrades](#unwatchtrades)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchMyTrades](#watchmytrades)
 * [watchOrders](#watchorders)
 
@@ -68,7 +70,7 @@ retrieves data on all markets for phemex
 
 
 ```javascript
-phemex.fetchMarkets ([params])
+phemex.fetchMarkets (params?)
 ```
 
 
@@ -87,7 +89,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-phemex.fetchCurrencies ([params])
+phemex.fetchCurrencies (params?)
 ```
 
 
@@ -97,7 +99,7 @@ phemex.fetchCurrencies ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook  
 
@@ -109,7 +111,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-phemex.fetchOrderBook (symbol[, limit, params])
+phemex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -138,7 +140,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-phemex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+phemex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -159,7 +161,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-phemex.fetchTicker (symbol[, params])
+phemex.fetchTicker (symbol, params?)
 ```
 
 
@@ -185,7 +187,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-phemex.fetchTickers (symbols[, params])
+phemex.fetchTickers (symbols, params?)
 ```
 
 
@@ -208,7 +210,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-phemex.fetchTrades (symbol[, since, limit, params])
+phemex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -235,7 +237,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-phemex.fetchBalance ([params])
+phemex.fetchBalance (params?)
 ```
 
 
@@ -271,7 +273,7 @@ create a trade order
 
 
 ```javascript
-phemex.createOrder (symbol, type, side, amount[, price, params])
+phemex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -298,7 +300,7 @@ edit a trade order
 
 
 ```javascript
-phemex.editOrder (id, symbol, type, side, amount[, price, params])
+phemex.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -321,7 +323,7 @@ cancels an open order
 
 
 ```javascript
-phemex.cancelOrder (id, symbol[, params])
+phemex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -342,7 +344,7 @@ cancel all open orders in a market
 
 
 ```javascript
-phemex.cancelAllOrders (symbol[, params])
+phemex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -364,7 +366,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-phemex.fetchOrder (id, symbol[, params])
+phemex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -387,7 +389,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-phemex.fetchOrders (symbol[, since, limit, params])
+phemex.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -415,7 +417,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-phemex.fetchOpenOrders (symbol[, since, limit, params])
+phemex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -445,7 +447,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-phemex.fetchClosedOrders (symbol[, since, limit, params])
+phemex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -473,7 +475,7 @@ fetch all trades made by the user
 
 
 ```javascript
-phemex.fetchMyTrades (symbol[, since, limit, params])
+phemex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -494,7 +496,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-phemex.fetchDepositAddress (code[, params])
+phemex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -516,7 +518,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-phemex.fetchDeposits (code[, since, limit, params])
+phemex.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -538,7 +540,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-phemex.fetchWithdrawals (code[, since, limit, params])
+phemex.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -562,11 +564,11 @@ fetch all open positions
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.code | <code>string</code> | No | the currency code to fetch positions for, USD, BTC or USDT, USDT is the default |
-| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions' |
 
 
 ```javascript
-phemex.fetchPositions ([symbols, params])
+phemex.fetchPositions (symbols?, params?)
 ```
 
 
@@ -585,12 +587,12 @@ fetches historical positions
 | symbol | <code>string</code> | Yes | unified contract symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum amount of records to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch positions for |
 
 
 ```javascript
-phemex.fetchPositionHistory (symbol[, since, limit, params])
+phemex.fetchPositionHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -613,7 +615,7 @@ fetch the history of funding payments paid and received on this account
 
 
 ```javascript
-phemex.fetchFundingHistory (symbol[, since, limit, params])
+phemex.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -633,7 +635,7 @@ fetch the current funding rate
 
 
 ```javascript
-phemex.fetchFundingRate (symbol[, params])
+phemex.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -655,7 +657,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 
 
 ```javascript
-phemex.setMargin (symbol, amount[, params])
+phemex.setMargin (symbol, amount, params?)
 ```
 
 
@@ -677,7 +679,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-phemex.setMarginMode (marginMode, symbol[, params])
+phemex.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -694,12 +696,12 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by binance setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-phemex.setPositionMode (hedged, symbol[, params])
+phemex.setPositionMode (hedged, symbol, params?)
 ```
 
 
@@ -719,7 +721,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 
 
 ```javascript
-phemex.fetchLeverageTiers (symbols[, params])
+phemex.fetchLeverageTiers (symbols, params?)
 ```
 
 
@@ -744,7 +746,7 @@ set the level of leverage for a market
 
 
 ```javascript
-phemex.setLeverage (leverage, symbol[, params])
+phemex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -773,7 +775,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-phemex.transfer (code, amount, fromAccount, toAccount[, params])
+phemex.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -796,7 +798,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-phemex.fetchTransfers (code[, since, limit, params])
+phemex.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -821,7 +823,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-phemex.fetchFundingRateHistory (symbol[, since, limit, params])
+phemex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -840,13 +842,13 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
-| params | <code>object</code> | No | extra parameters specific to the phemex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.network | <code>string</code> | No | unified network code |
 
 
 ```javascript
-phemex.withdraw (code, amount, address, tag[, params])
+phemex.withdraw (code, amount, address, params?)
 ```
 
 
@@ -867,7 +869,7 @@ retrieves the open interest of a trading pair
 
 
 ```javascript
-phemex.fetchOpenInterest (symbol[, params])
+phemex.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -890,7 +892,7 @@ fetch a quote for converting from one currency to another
 
 
 ```javascript
-phemex.fetchConvertQuote (fromCode, toCode, amount[, params])
+phemex.fetchConvertQuote (fromCode, toCode, amount, params?)
 ```
 
 
@@ -914,7 +916,7 @@ convert from one currency to another
 
 
 ```javascript
-phemex.createConvertTrade (id, fromCode, toCode[, amount, params])
+phemex.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
@@ -940,13 +942,13 @@ fetch the users history of conversion trades
 
 
 ```javascript
-phemex.fetchConvertTradeHistory ([code, since, limit, params])
+phemex.fetchConvertTradeHistory (code?, since?, limit?, params?)
 ```
 
 
-<a name="fetchPositionADLRank" id="fetchpositionadlrank"></a>
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
 
-### fetchPositionADLRank{docsify-ignore}
+### fetchPositionsADLRank{docsify-ignore}
 fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
@@ -964,11 +966,11 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.code | <code>string</code> | No | the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default |
-| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions' |
 
 
 ```javascript
-phemex.fetchPositionADLRank ([symbols, params])
+phemex.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -994,7 +996,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-phemex.watchBalance ([params])
+phemex.watchBalance (params?)
 ```
 
 
@@ -1020,7 +1022,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-phemex.watchTicker (symbol[, params])
+phemex.watchTicker (symbol, params?)
 ```
 
 
@@ -1047,7 +1049,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-phemex.watchTickers ([symbols, params])
+phemex.watchTickers (symbols?, params?)
 ```
 
 
@@ -1075,7 +1077,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-phemex.watchTrades (symbol[, since, limit, params])
+phemex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1085,7 +1087,7 @@ phemex.watchTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -1103,7 +1105,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-phemex.watchOrderBook (symbol[, limit, params])
+phemex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1132,7 +1134,60 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-phemex.watchOHLCV (symbol, timeframe[, since, limit, params])
+phemex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unWatches from the stream channel
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**
+
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unwatch the trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+phemex.unWatchTrades (symbol, params?)
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**
+
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unwatch the candles for |
+| timeframe | <code>string</code> | No | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+phemex.unWatchOHLCV (symbol, timeframe?, params?)
 ```
 
 
@@ -1154,7 +1209,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-phemex.watchMyTrades (symbol[, since, limit, params])
+phemex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1176,6 +1231,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-phemex.watchOrders (symbol[, since, limit, params])
+phemex.watchOrders (symbol, since?, limit?, params?)
 ```
 

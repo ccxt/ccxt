@@ -27,10 +27,13 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
     method = 'watchTickers'
     now = exchange.milliseconds()
     ends = now + 15000
-    while now < ends:
-        response = None
+    max_idle_time = 5000
+    idle = False
+    while (now < ends) and not idle:
+        response = {}
         success = True
         should_return = False
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_tickers(arg_symbols, arg_params)
         except Exception as e:
@@ -45,13 +48,12 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
                 should_return = True
             elif not test_shared_methods.is_temporary_failure(e):
                 raise e
-            now = exchange.milliseconds()
-            # continue;
             success = False
+        now = exchange.milliseconds()
         if should_return:
             return False
         if success:
-            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
+            assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return a dictionary. ' + exchange.json(response)
             values = list(response.values())
             checked_symbol = None
             if arg_symbols is not None and len(arg_symbols) == 1:
@@ -59,6 +61,14 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
             test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values, checked_symbol)
             for i in range(0, len(values)):
                 ticker = values[i]
-                test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
-            now = exchange.milliseconds()
+                try:
+                    test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+                except Exception as ex:
+                    ohlcv = None
+                    ticker_symbol = ticker['symbol']
+                    if (ticker_symbol is not None) and test_shared_methods.ticker_exception_needs_ohlcv(ex, exchange, ticker):
+                        ohlcv = await exchange.fetch_ohlcv(ticker_symbol, '1d', None, 5)
+                    test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker, ohlcv)
+            if (now - start_time) > max_idle_time:
+                idle = True
     return True

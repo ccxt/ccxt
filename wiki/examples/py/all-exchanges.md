@@ -1,8 +1,5 @@
-- [All Exchanges](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -21,5 +18,5 @@ for exchange_id in ccxt.exchanges:
         # do what you want with this exchange
         # pprint(dir(exchange))
     except Exception as e:
-        print(e) 
+        print(e)
 ```

@@ -2,22 +2,22 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var binance = require('./binance.js');
-var binanceus$1 = require('../binanceus.js');
+var binanceus$1 = require('../abstract/pro/binanceus.js');
+var binanceus$2 = require('../binanceus.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binanceus extends binance["default"] {
+class binanceus extends binanceus$1["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new binanceus$1["default"]();
+        const restInstance = new binanceus$2["default"]();
         const restDescribe = restInstance.describe();
         const parentWsDescribe = super.describeData();
         const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',
-            'countries': ['US'],
+            'countries': ['US'], // US
             'certified': false,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',

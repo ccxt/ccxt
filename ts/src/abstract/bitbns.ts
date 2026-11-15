@@ -5,47 +5,173 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    wwwGetOrderFetchMarkets (params?: {}): Promise<implicitReturnType>;
-    wwwGetOrderFetchTickers (params?: {}): Promise<implicitReturnType>;
-    wwwGetOrderFetchOrderbook (params?: {}): Promise<implicitReturnType>;
-    wwwGetOrderGetTickerWithVolume (params?: {}): Promise<implicitReturnType>;
-    wwwGetExchangeDataOhlc (params?: {}): Promise<implicitReturnType>;
-    wwwGetExchangeDataOrderBook (params?: {}): Promise<implicitReturnType>;
-    wwwGetExchangeDataTradedetails (params?: {}): Promise<implicitReturnType>;
-    v1GetPlatformStatus (params?: {}): Promise<implicitReturnType>;
-    v1GetTickers (params?: {}): Promise<implicitReturnType>;
-    v1GetOrderbookSellSymbol (params?: {}): Promise<implicitReturnType>;
-    v1GetOrderbookBuySymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostCurrentCoinBalanceEVERYTHING (params?: {}): Promise<implicitReturnType>;
-    v1PostGetApiUsageStatusUSAGE (params?: {}): Promise<implicitReturnType>;
-    v1PostGetOrderSocketTokenUSAGE (params?: {}): Promise<implicitReturnType>;
-    v1PostCurrentCoinBalanceSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostOrderStatusSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostDepositHistorySymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostWithdrawHistorySymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostWithdrawHistoryAllSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostDepositHistoryAllSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostListOpenOrdersSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostListOpenStopOrdersSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostGetCoinAddressSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceSellOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceBuyOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostBuyStopLossSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostSellStopLossSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostCancelOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostCancelStopLossOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostListExecutedOrdersSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceMarketOrderSymbol (params?: {}): Promise<implicitReturnType>;
-    v1PostPlaceMarketOrderQntySymbol (params?: {}): Promise<implicitReturnType>;
-    v2PostOrders (params?: {}): Promise<implicitReturnType>;
-    v2PostCancel (params?: {}): Promise<implicitReturnType>;
-    v2PostGetordersnew (params?: {}): Promise<implicitReturnType>;
-    v2PostMarginOrders (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    wwwGetOrderFetchMarkets (params = {}): Promise<List> {
+        return this.request ('order/fetchMarkets', [ 'www' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    wwwGetOrderFetchTickers (params = {}): Promise<Dict> {
+        return this.request ('order/fetchTickers', [ 'www' ], 'GET', params, { 'cost': 1 });
+    }
+
+    wwwGetOrderFetchOrderbook (params = {}): Promise<Dict> {
+        return this.request ('order/fetchOrderbook', [ 'www' ], 'GET', params, { 'cost': 1 });
+    }
+
+    wwwGetOrderGetTickerWithVolume (params = {}): Promise<Dict> {
+        return this.request ('order/getTickerWithVolume', [ 'www' ], 'GET', params, { 'cost': 1 });
+    }
+
+    wwwGetExchangeDataOhlc (params = {}): Promise<List> {
+        return this.request ('exchangeData/ohlc', [ 'www' ], 'GET', params, { 'cost': 1 });
+    }
+
+    wwwGetExchangeDataOrderBook (params = {}): Promise<Dict> {
+        return this.request ('exchangeData/orderBook', [ 'www' ], 'GET', params, { 'cost': 1 });
+    }
+
+    wwwGetExchangeDataTradedetails (params = {}): Promise<List> {
+        return this.request ('exchangeData/tradedetails', [ 'www' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1GetPlatformStatus (params = {}): Promise<Dict> {
+        return this.request ('platform/status', [ 'v1' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1GetTickers (params = {}): Promise<Dict> {
+        return this.request ('tickers', [ 'v1' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1GetOrderbookSellSymbol (params = {}): Promise<Dict> {
+        return this.request ('orderbook/sell/{symbol}', [ 'v1' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1GetOrderbookBuySymbol (params = {}): Promise<Dict> {
+        return this.request ('orderbook/buy/{symbol}', [ 'v1' ], 'GET', params, { 'cost': 1 });
+    }
+
+    v1PostCurrentCoinBalanceEVERYTHING (params = {}): Promise<Dict> {
+        return this.request ('currentCoinBalance/EVERYTHING', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostGetApiUsageStatusUSAGE (params = {}): Promise<Dict> {
+        return this.request ('getApiUsageStatus/USAGE', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostGetOrderSocketTokenUSAGE (params = {}): Promise<Dict> {
+        return this.request ('getOrderSocketToken/USAGE', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostCurrentCoinBalanceSymbol (params = {}): Promise<Dict> {
+        return this.request ('currentCoinBalance/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostOrderStatusSymbol (params = {}): Promise<Dict> {
+        return this.request ('orderStatus/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostDepositHistorySymbol (params = {}): Promise<Dict> {
+        return this.request ('depositHistory/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostWithdrawHistorySymbol (params = {}): Promise<Dict> {
+        return this.request ('withdrawHistory/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostWithdrawHistoryAllSymbol (params = {}): Promise<Dict> {
+        return this.request ('withdrawHistoryAll/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostDepositHistoryAllSymbol (params = {}): Promise<Dict> {
+        return this.request ('depositHistoryAll/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostUserHistoryNew (params = {}): Promise<Dict> {
+        return this.request ('userHistoryNew', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostListOpenOrdersSymbol (params = {}): Promise<Dict> {
+        return this.request ('listOpenOrders/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostListOpenOrdersOtherSymbol (params = {}): Promise<Dict> {
+        return this.request ('listOpenOrdersOther/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostListOpenStopOrdersSymbol (params = {}): Promise<Dict> {
+        return this.request ('listOpenStopOrders/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostGetCoinAddressSymbol (params = {}): Promise<Dict> {
+        return this.request ('getCoinAddress/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostPlaceSellOrderSymbol (params = {}): Promise<Dict> {
+        return this.request ('placeSellOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostPlaceSellOrderOtherSymbol (params = {}): Promise<Dict> {
+        return this.request ('placeSellOrderOther/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostPlaceBuyOrderSymbol (params = {}): Promise<Dict> {
+        return this.request ('placeBuyOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostPlaceBuyOrderOtherSymbol (params = {}): Promise<Dict> {
+        return this.request ('placeBuyOrderOther/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostBuyStopLossSymbol (params = {}): Promise<Dict> {
+        return this.request ('buyStopLoss/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostSellStopLossSymbol (params = {}): Promise<Dict> {
+        return this.request ('sellStopLoss/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostCancelOrderSymbol (params = {}): Promise<Dict> {
+        return this.request ('cancelOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostCancelOrderOtherSymbol (params = {}): Promise<Dict> {
+        return this.request ('cancelOrderOther/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostCancelStopLossOrderSymbol (params = {}): Promise<Dict> {
+        return this.request ('cancelStopLossOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostListExecutedOrdersSymbol (params = {}): Promise<Dict> {
+        return this.request ('listExecutedOrders/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostPlaceMarketOrderSymbol (params = {}): Promise<Dict> {
+        return this.request ('placeMarketOrder/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v1PostPlaceMarketOrderQntySymbol (params = {}): Promise<Dict> {
+        return this.request ('placeMarketOrderQnty/{symbol}', [ 'v1' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PostOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'v2' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PostCancel (params = {}): Promise<Dict> {
+        return this.request ('cancel', [ 'v2' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PostGetordersnew (params = {}): Promise<Dict> {
+        return this.request ('getordersnew', [ 'v2' ], 'POST', params, { 'cost': 1 });
+    }
+
+    v2PostMarginOrders (params = {}): Promise<Dict> {
+        return this.request ('marginOrders', [ 'v2' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

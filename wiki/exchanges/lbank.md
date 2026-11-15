@@ -32,16 +32,6 @@
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchTransactionFees](#fetchtransactionfees)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
-* [fetchOHLCVWs](#fetchohlcvws)
-* [watchOHLCV](#watchohlcv)
-* [fetchTickerWs](#fetchtickerws)
-* [watchTicker](#watchticker)
-* [fetchTradesWs](#fetchtradesws)
-* [watchTrades](#watchtrades)
-* [watchOrders](#watchorders)
-* [watchBalance](#watchbalance)
-* [fetchOrderBookWs](#fetchorderbookws)
-* [watchOrderBook](#watchorderbook)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -63,7 +53,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-lbank.fetchTime ([params])
+lbank.fetchTime (params?)
 ```
 
 
@@ -82,7 +72,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-lbank.fetchCurrencies ([params])
+lbank.fetchCurrencies (params?)
 ```
 
 
@@ -106,7 +96,7 @@ retrieves data on all markets for lbank
 
 
 ```javascript
-lbank.fetchMarkets ([params])
+lbank.fetchMarkets (params?)
 ```
 
 
@@ -127,7 +117,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-lbank.fetchTicker (symbol[, params])
+lbank.fetchTicker (symbol, params?)
 ```
 
 
@@ -152,7 +142,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-lbank.fetchTickers (symbols[, params])
+lbank.fetchTickers (symbols, params?)
 ```
 
 
@@ -162,7 +152,7 @@ lbank.fetchTickers (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -178,7 +168,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-lbank.fetchOrderBook (symbol[, limit, params])
+lbank.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -205,7 +195,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-lbank.fetchTrades (symbol[, since, limit, params])
+lbank.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -229,7 +219,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-lbank.fetchOHLCV (symbol, timeframe[, since, limit, params])
+lbank.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -250,7 +240,7 @@ fetch the current funding rate
 
 
 ```javascript
-lbank.fetchFundingRate (symbol[, params])
+lbank.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -271,7 +261,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-lbank.fetchFundingRates (symbols[, params])
+lbank.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -296,7 +286,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-lbank.fetchBalance ([params])
+lbank.fetchBalance (params?)
 ```
 
 
@@ -317,7 +307,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-lbank.fetchTradingFee (symbol[, params])
+lbank.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -337,7 +327,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-lbank.fetchTradingFees ([params])
+lbank.fetchTradingFees (params?)
 ```
 
 
@@ -363,7 +353,7 @@ create a market buy order by providing the symbol and cost
 
 
 ```javascript
-lbank.createMarketBuyOrderWithCost (symbol, cost[, params])
+lbank.createMarketBuyOrderWithCost (symbol, cost, params?)
 ```
 
 
@@ -392,7 +382,7 @@ create a trade order
 
 
 ```javascript
-lbank.createOrder (symbol, type, side, amount[, price, params])
+lbank.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -418,7 +408,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-lbank.fetchOrder (id, symbol[, params])
+lbank.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -441,7 +431,7 @@ fetch all trades made by the user
 
 
 ```javascript
-lbank.fetchMyTrades (symbol[, since, limit, params])
+lbank.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -464,7 +454,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-lbank.fetchOrders (symbol[, since, limit, params])
+lbank.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -487,7 +477,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-lbank.fetchOpenOrders (symbol[, since, limit, params])
+lbank.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -509,7 +499,7 @@ cancels an open order
 
 
 ```javascript
-lbank.cancelOrder (id, symbol[, params])
+lbank.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -530,7 +520,7 @@ cancel all open orders in a market
 
 
 ```javascript
-lbank.cancelAllOrders (symbol[, params])
+lbank.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -555,7 +545,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-lbank.fetchDepositAddress (code[, params])
+lbank.fetchDepositAddress (code, params?)
 ```
 
 
@@ -574,12 +564,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-lbank.withdraw (code, amount, address, tag[, params])
+lbank.withdraw (code, amount, address, params?)
 ```
 
 
@@ -602,7 +592,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-lbank.fetchDeposits (code[, since, limit, params])
+lbank.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -625,7 +615,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-lbank.fetchWithdrawals (code[, since, limit, params])
+lbank.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -642,12 +632,12 @@ please use fetchDepositWithdrawFees instead
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by lbank fetchTransactionFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchTransactionFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-lbank.fetchTransactionFees (codes[, params])
+lbank.fetchTransactionFees (codes, params?)
 ```
 
 
@@ -672,229 +662,6 @@ when using private endpoint, only returns information for currencies with non-ze
 
 
 ```javascript
-lbank.fetchDepositWithdrawFees ([codes, params])
-```
-
-
-<a name="fetchOHLCVWs" id="fetchohlcvws"></a>
-
-### fetchOHLCVWs{docsify-ignore}
-watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-lbank.fetchOHLCVWs (symbol, timeframe[, since, limit, params])
-```
-
-
-<a name="watchOHLCV" id="watchohlcv"></a>
-
-### watchOHLCV{docsify-ignore}
-watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-lbank.watchOHLCV (symbol, timeframe[, since, limit, params])
-```
-
-
-<a name="fetchTickerWs" id="fetchtickerws"></a>
-
-### fetchTickerWs{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
-
-**See**: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
-
-
-```javascript
-lbank.fetchTickerWs (symbol[, params])
-```
-
-
-<a name="watchTicker" id="watchticker"></a>
-
-### watchTicker{docsify-ignore}
-watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/en/latest/manual.html#ticker-structure)
-
-**See**: https://www.lbank.com/en-US/docs/index.html#market  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| symbol | <code>string</code> | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | extra parameters specific to the lbank api endpoint |
-
-
-```javascript
-lbank.watchTicker (symbol, params[])
-```
-
-
-<a name="fetchTradesWs" id="fetchtradesws"></a>
-
-### fetchTradesWs{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-lbank.fetchTradesWs (symbol[, since, limit, params])
-```
-
-
-<a name="watchTrades" id="watchtrades"></a>
-
-### watchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://www.lbank.com/en-US/docs/index.html#trade-record  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-lbank.watchTrades (symbol[, since, limit, params])
-```
-
-
-<a name="watchOrders" id="watchorders"></a>
-
-### watchOrders{docsify-ignore}
-get the list of trades associated with the user
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
-
-**See**: https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified symbol of the market to fetch trades for |
-| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the lbank api endpoint |
-
-
-```javascript
-lbank.watchOrders ([symbol, since, limit, params])
-```
-
-
-<a name="watchBalance" id="watchbalance"></a>
-
-### watchBalance{docsify-ignore}
-watch balance and get the amount of funds available for trading or funds locked in orders
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
-
-**See**: https://www.lbank.com/docs/index.html#update-subscribed-asset  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-lbank.watchBalance ([params])
-```
-
-
-<a name="fetchOrderBookWs" id="fetchorderbookws"></a>
-
-### fetchOrderBookWs{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/en/latest/manual.html#order-book-structure) indexed by market symbols
-
-**See**: https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| symbol | <code>string</code> | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code>, <code>undefined</code> | the maximum amount of order book entries to return |
-| params | <code>object</code> | extra parameters specific to the lbank api endpoint |
-
-
-```javascript
-lbank.fetchOrderBookWs (symbol, limit, params[])
-```
-
-
-<a name="watchOrderBook" id="watchorderbook"></a>
-
-### watchOrderBook{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>lbank</code>](#lbank)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/en/latest/manual.html#order-book-structure) indexed by market symbols
-
-**See**: https://www.lbank.com/en-US/docs/index.html#market-depth  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| symbol | <code>string</code> | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code>, <code>undefined</code> | the maximum amount of order book entries to return |
-| params | <code>object</code> | extra parameters specific to the lbank api endpoint |
-
-
-```javascript
-lbank.watchOrderBook (symbol, limit, params[])
+lbank.fetchDepositWithdrawFees (codes?, params?)
 ```
 

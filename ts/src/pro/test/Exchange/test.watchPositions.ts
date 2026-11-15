@@ -3,16 +3,20 @@ import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
+import type { NullableDict } from '../../../base/types.js';
 
 async function testWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchPositions';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response: any = undefined;
         let success = true;
         try {
             response = await exchange.watchPositions ([ symbol ]);
+            if (response === undefined) {
+                throw new Error (exchange.id + ' watch returned undefined response');
+            }
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
@@ -21,7 +25,10 @@ async function testWatchPositions (exchange: Exchange, skippedProperties: object
             // continue;
             success = false;
         }
-        if (success === true) {
+        if (success) {
+            if (response === undefined) {
+                throw new Error (exchange.id + ' watch returned undefined response');
+            }
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
             now = exchange.milliseconds ();
             for (let i = 0; i < response.length; i++) {
@@ -33,7 +40,7 @@ async function testWatchPositions (exchange: Exchange, skippedProperties: object
         //
         // Test with specific symbol
         //
-        let positionsForSymbols = undefined;
+        let positionsForSymbols: NullableDict = undefined;
         let success2 = true;
         try {
             positionsForSymbols = await exchange.watchPositions ([ symbol ]);
@@ -45,7 +52,7 @@ async function testWatchPositions (exchange: Exchange, skippedProperties: object
             // continue;
             success2 = false;
         }
-        if (success2 === true) {
+        if (success2) {
             assert (Array.isArray (positionsForSymbols), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbols));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert (positionsForSymbols.length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json (positionsForSymbols));

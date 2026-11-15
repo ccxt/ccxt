@@ -7,78 +7,152 @@
 
 package ccxt
 
-func (this *OnetradingCore) PublicGetCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrencies", args...)
+// PublicGetCurrencies returns a channel that yields a JSON array.
+func (this *Onetrading) PublicGetCurrencies(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "currencies", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PublicGetCandlesticksInstrumentCode(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCandlesticksInstrumentCode", args...)
+// PublicGetCandlesticksInstrumentCode returns a channel that yields a JSON object.
+func (this *Onetrading) PublicGetCandlesticksInstrumentCode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "candlesticks/{instrument_code}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PublicGetFees(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFees", args...)
+// PublicGetFees returns a channel that yields a JSON array.
+func (this *Onetrading) PublicGetFees(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "fees", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PublicGetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetInstruments", args...)
+// PublicGetInstruments returns a channel that yields a JSON array.
+func (this *Onetrading) PublicGetInstruments(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "instruments", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PublicGetOrderBookInstrumentCode(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderBookInstrumentCode", args...)
+// PublicGetOrderBookInstrumentCode returns a channel that yields a JSON object.
+func (this *Onetrading) PublicGetOrderBookInstrumentCode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order-book/{instrument_code}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PublicGetMarketTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketTicker", args...)
+// PublicGetMarketTicker returns a channel that yields a JSON array.
+func (this *Onetrading) PublicGetMarketTicker(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "market-ticker", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PublicGetMarketTickerInstrumentCode(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketTickerInstrumentCode", args...)
+// PublicGetMarketTickerInstrumentCode returns a channel that yields a JSON object.
+func (this *Onetrading) PublicGetMarketTickerInstrumentCode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market-ticker/{instrument_code}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PublicGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTime", args...)
+// PublicGetTime returns a channel that yields a JSON object.
+func (this *Onetrading) PublicGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "time", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateGetAccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountBalances", args...)
+// PublicGetFundingRate returns a channel that yields a JSON array.
+func (this *Onetrading) PublicGetFundingRate(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "funding-rate", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateGetAccountFees(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountFees", args...)
+// PublicGetFundingRateHistory returns a channel that yields a JSON object.
+func (this *Onetrading) PublicGetFundingRateHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "funding-rate/history", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateGetAccountOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountOrders", args...)
+// PublicGetFundingRateSettings returns a channel that yields a JSON array.
+func (this *Onetrading) PublicGetFundingRateSettings(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "funding-rate/settings", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateGetAccountOrdersOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountOrdersOrderId", args...)
+// PrivateGetAccountBalances returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/balances", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateGetAccountOrdersOrderIdTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountOrdersOrderIdTrades", args...)
+// PrivateGetAccountFees returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountFees(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/fees", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateGetAccountTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountTrades", args...)
+// PrivateGetAccountOrders returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/orders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateGetAccountTradesTradeId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountTradesTradeId", args...)
+// PrivateGetAccountOrdersOrderId returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountOrdersOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/orders/{order_id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivatePostAccountOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountOrders", args...)
+// PrivateGetAccountOrdersClientClientId returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountOrdersClientClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/orders/client/{client_id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateDeleteAccountOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteAccountOrders", args...)
+// PrivateGetAccountOrdersOrderIdTrades returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountOrdersOrderIdTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/orders/{order_id}/trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateDeleteAccountOrdersOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteAccountOrdersOrderId", args...)
+// PrivateGetAccountTrades returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-func (this *OnetradingCore) PrivateDeleteAccountOrdersClientClientId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteAccountOrdersClientClientId", args...)
+// PrivateGetAccountTradeTradeId returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountTradeTradeId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/trade/{trade_id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetAccountFuturesSummary returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountFuturesSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/futures/summary", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetAccountFuturesPositions returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountFuturesPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/futures/positions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetAccountFuturesPositionsHistory returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountFuturesPositionsHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/futures/positions-history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetAccountFuturesPositionsPositionIdTrades returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountFuturesPositionsPositionIdTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/futures/positions/{position_id}/trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetAccountFuturesPositionsPositionIdFundingPayments returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountFuturesPositionsPositionIdFundingPayments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/futures/positions/{position_id}/funding-payments", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateGetAccountFuturesFundingPayments returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateGetAccountFuturesFundingPayments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/futures/funding-payments", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostAccountOrders returns a channel that yields a JSON object.
+func (this *Onetrading) PrivatePostAccountOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/orders", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivatePostSubaccountsTransfers returns a channel that yields a JSON object.
+func (this *Onetrading) PrivatePostSubaccountsTransfers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccounts/transfers", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteAccountOrders returns a channel that yields a JSON array.
+func (this *Onetrading) PrivateDeleteAccountOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "account/orders", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteAccountOrdersOrderId returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateDeleteAccountOrdersOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/orders/{order_id}", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+}
+
+// PrivateDeleteAccountOrdersClientClientId returns a channel that yields a JSON object.
+func (this *Onetrading) PrivateDeleteAccountOrdersClientClientId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/orders/client/{client_id}", []string{"private"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }

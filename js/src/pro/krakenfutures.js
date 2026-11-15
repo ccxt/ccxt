@@ -5,12 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
 export default class krakenfutures extends krakenfuturesRest {
     describe() {
@@ -35,7 +34,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchBalance': true,
-                // 'watchStatus': true, // https://docs.futures.kraken.com/#websocket-api-public-feeds-heartbeat
+                // 'watchStatus': true, // https://docs.kraken.com/exchange/api-reference/futures-websocket/heartbeat
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': true,
@@ -52,8 +51,8 @@ export default class krakenfutures extends krakenfuturesRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
-                'connectionLimit': 100,
-                'requestLimit': 100,
+                'connectionLimit': 100, // https://docs.kraken.com/exchange/api-reference/futures-websocket
+                'requestLimit': 100, // per second
                 'fetchBalance': {
                     'type': undefined,
                 },
@@ -67,7 +66,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @ignore
      * @method
      * @description authenticates the user to access private web socket channels
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
      * @returns {object} response from exchange
      */
     async authenticate(params = {}) {
@@ -95,11 +94,11 @@ export default class krakenfutures extends krakenfuturesRest {
      * @method
      * @name krakenfutures#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const orderbook = await this.watchMultiHelper('orderbook', 'book', symbols, { 'limit': limit }, params);
@@ -115,7 +114,9 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {object} data from the websocket stream
      */
     async subscribePublic(name, symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const subscribe = {
             'event': 'subscribe',
@@ -123,17 +124,15 @@ export default class krakenfutures extends krakenfuturesRest {
         };
         const marketIds = [];
         let messageHash = name;
-        if (symbols === undefined) {
-            symbols = [];
-        }
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const symbolsValue = symbols;
+        for (let i = 0; i < symbolsValue.length; i++) {
+            const symbol = symbolsValue[i];
             marketIds.push(this.marketId(symbol));
         }
-        const length = symbols.length;
+        const length = symbolsValue.length;
         if (length === 1) {
             const market = this.market(marketIds[0]);
-            messageHash = messageHash + ':' + market['symbol'];
+            messageHash += ':' + market['symbol'];
         }
         subscribe['product_ids'] = marketIds;
         const request = this.extend(subscribe, params);
@@ -149,7 +148,9 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {object} data from the websocket stream
      */
     async subscribePrivate(name, messageHash, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const url = this.urls['api']['ws'];
         const subscribe = {
@@ -166,41 +167,48 @@ export default class krakenfutures extends krakenfuturesRest {
      * @method
      * @name krakenfutures#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
-        symbol = this.symbol(symbol);
-        const tickers = await this.watchTickers([symbol], params);
-        return tickers[symbol];
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolValue = this.symbol(symbol);
+        const tickers = await this.watchTickers([symbolValue], params);
+        return tickers[symbolValue];
     }
     /**
      * @method
      * @name krakenfutures#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, false);
-        const ticker = await this.watchMultiHelper('ticker', 'ticker', symbols, undefined, params);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
+        const ticker = await this.watchMultiHelper('ticker', 'ticker', symbolsNormalized, undefined, params);
         if (this.newUpdates) {
             const result = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString(ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.tickers, 'symbol', symbolsNormalized);
     }
     /**
      * @method
      * @name krakenfutures#watchBidsAsks
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker_lite
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -210,7 +218,10 @@ export default class krakenfutures extends krakenfuturesRest {
         const ticker = await this.watchMultiHelper('bidask', 'ticker_lite', symbols, undefined, params);
         if (this.newUpdates) {
             const result = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString(ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbols);
@@ -219,20 +230,20 @@ export default class krakenfutures extends krakenfuturesRest {
      * @method
      * @name krakenfutures#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
      * @name krakenfutures#watchTradesForSymbols
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
      * @description get the list of most recent trades for a list of symbols
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -242,30 +253,31 @@ export default class krakenfutures extends krakenfuturesRest {
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
+        const first = this.safeDict(trades, 0);
+        const tradeSymbol = this.safeString(first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeList(trades, 0);
-            const tradeSymbol = this.safeString(first, 'symbol');
-            limit = trades.getLimit(tradeSymbol, limit);
+            limitResolved = trades.getLimit(tradeSymbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
      * @name krakenfutures#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by krakenfutures watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook(symbol, limit = undefined, params = {}) {
-        return await this.watchOrderBookForSymbols([symbol], limit, params);
+    watchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
      * @name krakenfutures#watchPositions
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_position
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
@@ -274,18 +286,20 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = '';
-        symbols = this.marketSymbols(symbols);
-        if (!this.isEmpty(symbols)) {
-            messageHash = '::' + symbols.join(',');
+        const symbolsNormalized = this.marketSymbols(symbols);
+        if ((symbolsNormalized !== undefined) && !this.isEmpty(symbolsNormalized)) {
+            messageHash = '::' + symbolsNormalized.join(',');
         }
         messageHash = 'positions' + messageHash;
         const newPositions = await this.subscribePrivate('open_positions', messageHash, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
     handlePositions(client, message) {
         //
@@ -315,17 +329,24 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         if (this.positions === undefined) {
-            this.positions = new ArrayCacheBySymbolById();
+            // krakenfutures positions carry no id (parseWsPosition always sets
+            // 'id': undefined), so key by symbol + side instead of by-id, see
+            // https://github.com/ccxt/ccxt/issues/29709
+            this.positions = new ArrayCacheBySymbolBySide();
         }
         const cache = this.positions;
-        const rawPositions = this.safeValue(message, 'positions', []);
+        const rawPositions = this.safeList(message, 'positions');
+        if (rawPositions === undefined) {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
-            const position = this.parseWsPosition(rawPosition);
             const timestamp = this.safeInteger(message, 'timestamp');
-            position['timestamp'] = timestamp;
-            position['datetime'] = this.iso8601(timestamp);
+            const position = this.parseWsPosition(rawPosition, undefined, timestamp);
             newPositions.push(position);
             cache.append(position);
         }
@@ -342,7 +363,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         client.resolve(newPositions, 'positions');
     }
-    parseWsPosition(position, market = undefined) {
+    parseWsPosition(position, market = undefined, timestamp = undefined) {
         //
         //        {
         //            instrument: 'PF_LTCUSD',
@@ -386,8 +407,8 @@ export default class krakenfutures extends krakenfuturesRest {
             'markPrice': this.safeNumber(position, 'mark_price'),
             'side': side,
             'hedged': hedged,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'maintenanceMargin': this.safeNumber(position, 'maintenance_margin'),
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
@@ -401,33 +422,50 @@ export default class krakenfutures extends krakenfuturesRest {
      * @method
      * @name krakenfutures#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders_verbose
      * @param {string} symbol not used by krakenfutures watchOrders
      * @param {int} [since] not used by krakenfutures watchOrders
      * @param {int} [limit] not used by krakenfutures watchOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.verbose] whether to subscribe to the open_orders_verbose feed
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const name = 'open_orders';
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [verbose, paramsVerbose] = this.handleOptionBoolAndParams(params, 'watchOrders', 'verbose', false);
+        let name = 'open_orders';
         let messageHash = 'orders';
+        if (verbose) {
+            name = 'open_orders_verbose';
+            messageHash = 'orders:verbose';
+        }
+        const feed = this.safeString(paramsVerbose, 'feed');
+        if (feed !== undefined) {
+            name = feed;
+            messageHash = 'orders';
+            if (feed === 'open_orders_verbose') {
+                messageHash = 'orders:verbose';
+            }
+        }
         if (symbol !== undefined) {
             const market = this.market(symbol);
             messageHash += ':' + market['symbol'];
         }
-        const orders = await this.subscribePrivate(name, messageHash, params);
+        const orders = await this.subscribePrivate(name, messageHash, paramsVerbose);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(orders, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
      * @name krakenfutures#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/fills
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -435,41 +473,45 @@ export default class krakenfutures extends krakenfuturesRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'fills';
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHash += ':' + market['symbol'];
+            messageHash = 'myTrades' + ':' + market['symbol'];
         }
         const trades = await this.subscribePrivate(name, messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
      * @name krakenfutures#watchBalance
      * @description watches information on the user's account balance
-     * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure} of the account type the message updated ('cash', 'futures' margin, or 'flex_futures')
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'balances';
         let messageHash = name;
-        let account = undefined;
-        [account, params] = this.handleOptionAndParams(params, 'watchBalance', 'account');
+        const [account, paramsAccount] = this.handleOptionStringAndParams(params, 'watchBalance', 'account');
         if (account !== undefined) {
             if (account !== 'futures' && account !== 'flex_futures') {
                 throw new ArgumentsRequired(this.id + ' watchBalance account must be either \'futures\' or \'flex_futures\'');
             }
             messageHash += ':' + account;
         }
-        return await this.subscribePrivate(name, messageHash, params);
+        return await this.subscribePrivate(name, messageHash, paramsAccount);
     }
     handleTrade(client, message) {
         //
@@ -514,17 +556,20 @@ export default class krakenfutures extends krakenfuturesRest {
             const market = this.market(marketId);
             const symbol = market['symbol'];
             const messageHash = this.getMessageHash('trade', undefined, symbol);
-            if (this.safeList(this.trades, symbol) === undefined) {
+            // safeValue, not safeList: the values are ArrayCache instances, and
+            // the typed accessor casts them to a plain list in c#, which throws
+            let tradesArray = this.safeValue(this.trades, symbol);
+            if (tradesArray === undefined) {
                 const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
-                this.trades[symbol] = new ArrayCache(tradesLimit);
+                tradesArray = new ArrayCache(tradesLimit);
+                this.trades[symbol] = tradesArray;
             }
-            const tradesArray = this.trades[symbol];
             if (channel === 'trade_snapshot') {
                 const trades = this.safeList(message, 'trades', []);
                 const length = trades.length;
                 for (let i = 0; i < length; i++) {
-                    const index = length - 1 - i; // need reverse to correct chronology
-                    const item = trades[index];
+                    // need reverse to correct chronology
+                    const item = trades[length - 1 - i];
                     const trade = this.parseWsTrade(item);
                     tradesArray.append(trade);
                 }
@@ -566,12 +611,12 @@ export default class krakenfutures extends krakenfuturesRest {
         //     }
         //
         const marketId = this.safeString(trade, 'product_id');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 'time');
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'uid'),
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'order': undefined,
@@ -586,7 +631,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 'cost': undefined,
                 'currency': undefined,
             },
-        }, market);
+        }, marketResolved);
     }
     parseWsOrderTrade(trade, market = undefined) {
         //
@@ -630,7 +675,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'side': this.safeString(trade, 'side'),
             'takerOrMaker': this.safeString(trade, 'matchRole'),
             'price': this.safeString2(trade, 'price', 'limit_price'),
-            'amount': this.safeString(trade, 'tradeAmount'),
+            'amount': this.safeString(trade, 'tradeAmount'), // ? tradeQty?
             'cost': undefined,
             'fee': {
                 'rate': undefined,
@@ -714,14 +759,18 @@ export default class krakenfutures extends krakenfuturesRest {
             orders = new ArrayCacheBySymbolById(limit);
             this.orders = orders;
         }
-        const order = this.safeValue(message, 'order');
+        const order = this.safeDict(message, 'order');
         if (order !== undefined) {
             const marketId = this.safeString(order, 'instrument');
-            const messageHash = 'orders';
+            const feed = this.safeString(message, 'feed');
+            let messageHash = 'orders';
+            if (feed === 'open_orders_verbose') {
+                messageHash = 'orders:verbose';
+            }
             const symbol = this.safeSymbol(marketId);
             const orderId = this.safeString(order, 'order_id');
-            const previousOrders = this.safeValue(orders.hashmap, symbol, {});
-            const previousOrder = this.safeValue(previousOrders, orderId);
+            const previousOrders = this.safeDict(orders.hashmap, symbol, {});
+            const previousOrder = this.safeDict(previousOrders, orderId);
             const reason = this.safeString(message, 'reason');
             if ((previousOrder === undefined) || (reason === 'edited_by_user')) {
                 const parsed = this.parseWsOrder(order);
@@ -738,7 +787,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                 let totalCost = '0';
                 let totalAmount = '0';
-                const trades = previousOrder['trades'];
+                const trades = this.safeList(previousOrder, 'trades', []);
                 for (let i = 0; i < trades.length; i++) {
                     const currentTrade = trades[i];
                     totalCost = Precise.stringAdd(totalCost, this.numberToString(currentTrade['cost']));
@@ -759,12 +808,13 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['fee'] = {
                         'rate': undefined,
                         'cost': '0',
-                        'currency': this.numberToString(trade['fee']['currency']),
+                        'currency': this.numberToString(this.safeString(trade['fee'], 'currency')),
                     };
                 }
-                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                    const stringOrderCost = this.numberToString(previousOrder['fee']['cost']);
-                    const stringTradeCost = this.numberToString(trade['fee']['cost']);
+                const previousFee = this.safeDict(previousOrder, 'fee', {});
+                if ((previousFee['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
+                    const stringOrderCost = this.numberToString(previousFee['cost']);
+                    const stringTradeCost = this.numberToString(this.safeNumber(trade['fee'], 'cost'));
                     previousOrder['fee']['cost'] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
@@ -774,17 +824,37 @@ export default class krakenfutures extends krakenfuturesRest {
             }
         }
         else {
-            const isCancel = this.safeValue(message, 'is_cancel');
+            const isCancel = this.safeBool(message, 'is_cancel', false);
             if (isCancel) {
+                // Kraken documents is_cancel as "fully filled, cancelled, or
+                // rejected". Derive unified status from `reason` instead of
+                // mapping every removal to canceled. Preserve reason on info
+                // so consumers can tell a user cancel from liquidation, etc.
+                const reason = this.safeString(message, 'reason');
+                let status = 'canceled';
+                if (reason === 'full_fill') {
+                    status = 'closed';
+                }
+                const feed = this.safeString(message, 'feed');
+                let messageHash = 'orders';
+                if (feed === 'open_orders_verbose') {
+                    messageHash = 'orders:verbose';
+                }
                 // get order without symbol
+                const cancelledOrderId = this.safeString(message, 'order_id');
                 for (let i = 0; i < orders.length; i++) {
                     const currentOrder = orders[i];
-                    if (currentOrder['id'] === message['order_id']) {
-                        orders[i] = this.extend(currentOrder, {
-                            'status': 'canceled',
+                    const currentOrderId = this.safeString(currentOrder, 'id');
+                    if (currentOrderId === cancelledOrderId) {
+                        const info = this.extend(this.safeDict(currentOrder, 'info', {}), {
+                            'reason': reason,
                         });
-                        client.resolve(orders, 'orders');
-                        client.resolve(orders, 'orders:' + currentOrder['symbol']);
+                        orders[i] = this.extend(currentOrder, {
+                            'status': status,
+                            'info': info,
+                        });
+                        client.resolve(orders, messageHash);
+                        client.resolve(orders, messageHash + ':' + this.safeString(currentOrder, 'symbol', ''));
                         break;
                     }
                 }
@@ -840,26 +910,70 @@ export default class krakenfutures extends krakenfuturesRest {
         //            ...
         //        ]
         //    }
-        const orders = this.safeValue(message, 'orders', []);
-        const limit = this.safeInteger(this.options, 'ordersLimit');
-        this.orders = new ArrayCacheBySymbolById(limit);
+        const orders = this.safeList(message, 'orders', []);
+        // reuse the existing cache: replacing it would orphan consumers holding
+        // a reference to the old one across a reconnect snapshot
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit');
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        const feed = this.safeString(message, 'feed');
+        let messageHash = 'orders';
+        if (feed === 'open_orders_verbose_snapshot') {
+            messageHash = 'orders:verbose';
+        }
         const symbols = {};
         const cachedOrders = this.orders;
+        const snapshotIds = {};
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const parsed = this.parseWsOrder(order);
-            const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            const symbol = this.safeString(parsed, 'symbol');
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
+            const parsedId = this.safeString(parsed, 'id');
+            if (parsedId !== undefined) {
+                snapshotIds[parsedId] = true;
+            }
             cachedOrders.append(parsed);
+        }
+        // reconcile the reused cache with the snapshot: the snapshot lists every
+        // currently open order, so an order cached as open but missing from it is
+        // no longer open on the venue - it filled or was cancelled while we were
+        // disconnected. the snapshot does not say which, so mark it canceled
+        // instead of leaving it open in the cache forever
+        const cachedSymbols = Object.keys(cachedOrders.hashmap);
+        for (let i = 0; i < cachedSymbols.length; i++) {
+            const cachedSymbol = cachedSymbols[i];
+            const ordersById = this.safeDict(cachedOrders.hashmap, cachedSymbol, {});
+            const cachedIds = Object.keys(ordersById);
+            for (let j = 0; j < cachedIds.length; j++) {
+                const cachedId = cachedIds[j];
+                if (!(cachedId in snapshotIds)) {
+                    const cachedOrder = this.safeDict(ordersById, cachedId, {});
+                    const cachedStatus = this.safeString(cachedOrder, 'status');
+                    // parseWsOrder leaves status undefined for snapshot and
+                    // non-cancel updates, so undefined means open here
+                    if ((cachedStatus === undefined) || (cachedStatus === 'open')) {
+                        cachedOrder['status'] = 'canceled';
+                        // write the updated order back through append: the cache
+                        // rows are copies in the value-type runtimes (php), and
+                        // append also feeds the newUpdates accounting
+                        cachedOrders.append(cachedOrder);
+                        symbols[cachedSymbol] = true;
+                    }
+                }
+            }
         }
         const length = this.orders.length;
         if (length > 0) {
-            client.resolve(this.orders, 'orders');
+            client.resolve(this.orders, messageHash);
             const keys = Object.keys(symbols);
             for (let i = 0; i < keys.length; i++) {
                 const symbol = keys[i];
-                const messageHash = 'orders:' + symbol;
-                client.resolve(this.orders, messageHash);
+                const symbolMessageHash = messageHash + ':' + symbol;
+                client.resolve(this.orders, symbolMessageHash);
             }
         }
     }
@@ -902,12 +1016,12 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "reduce_only": false
         //    }
         //
-        const isCancelled = this.safeValue(order, 'is_cancel');
+        const isCancelled = this.safeBool(order, 'is_cancel');
         let unparsedOrder = order;
         let status = undefined;
         if (isCancelled !== undefined) {
-            unparsedOrder = this.safeValue(order, 'order');
-            if (isCancelled === true) {
+            unparsedOrder = this.safeDict(order, 'order');
+            if (isCancelled) {
                 status = 'cancelled';
             }
         }
@@ -978,8 +1092,10 @@ export default class krakenfutures extends krakenfuturesRest {
         const marketId = this.safeString(message, 'product_id');
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker(message);
-            const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
+            const symbol = this.safeString(ticker, 'symbol');
+            if (symbol !== undefined) {
+                this.tickers[symbol] = ticker;
+            }
             const messageHash = this.getMessageHash('ticker', undefined, symbol);
             client.resolve(ticker, messageHash);
         }
@@ -1004,8 +1120,10 @@ export default class krakenfutures extends krakenfuturesRest {
         const marketId = this.safeString(message, 'product_id');
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker(message);
-            const symbol = ticker['symbol'];
-            this.bidsasks[symbol] = ticker;
+            const symbol = this.safeString(ticker, 'symbol');
+            if (symbol !== undefined) {
+                this.bidsasks[symbol] = ticker;
+            }
             const messageHash = this.getMessageHash('bidask', undefined, symbol);
             client.resolve(ticker, messageHash);
         }
@@ -1060,8 +1178,8 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const marketId = this.safeString(ticker, 'product_id');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.parse8601(this.safeString(ticker, 'lastTime'));
         const last = this.safeString(ticker, 'last');
         return this.safeTicker({
@@ -1120,33 +1238,25 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const marketId = this.safeString(message, 'product_id');
-        const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol(marketId);
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
         const subscription = this.safeDict(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
         const timestamp = this.safeInteger(message, 'timestamp');
-        this.orderbooks[symbol] = this.orderBook({}, limit);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({}, limit);
+        }
         const orderbook = this.orderbooks[symbol];
         const bids = this.safeList(message, 'bids');
+        if (bids === undefined) {
+            return;
+        }
         const asks = this.safeList(message, 'asks');
-        for (let i = 0; i < bids.length; i++) {
-            const bid = bids[i];
-            const price = this.safeNumber(bid, 'price');
-            const qty = this.safeNumber(bid, 'qty');
-            const bidsSide = orderbook['bids'];
-            bidsSide.store(price, qty);
+        if (asks === undefined) {
+            return;
         }
-        for (let i = 0; i < asks.length; i++) {
-            const ask = asks[i];
-            const price = this.safeNumber(ask, 'price');
-            const qty = this.safeNumber(ask, 'qty');
-            const asksSide = orderbook['asks'];
-            asksSide.store(price, qty);
-        }
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601(timestamp);
-        orderbook['symbol'] = symbol;
+        const snapshot = this.parseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'qty');
+        orderbook.reset(snapshot);
         client.resolve(orderbook, messageHash);
     }
     handleOrderBook(client, message) {
@@ -1162,8 +1272,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //    }
         //
         const marketId = this.safeString(message, 'product_id');
-        const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeSymbol(marketId);
         const messageHash = this.getMessageHash('orderbook', undefined, symbol);
         const orderbook = this.orderbooks[symbol];
         const side = this.safeString(message, 'side');
@@ -1328,76 +1437,127 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "seq": 2
         //    }
         //
-        const holding = this.safeValue(message, 'holding');
-        const futures = this.safeValue(message, 'futures');
-        const flexFutures = this.safeValue(message, 'flex_futures');
+        // merge updates into the existing per-account balance objects instead of
+        // building fresh ones: a consumer awakened by an earlier message holds a
+        // reference to this.balance['cash'/'margin'/'flex'], and Client.resolve
+        // is a no-op while nobody is awaiting, so a replaced object would make
+        // updates landing in that window invisible to the consumer forever
+        // (same class of bug as kraken issue #26773)
+        const holding = this.safeDict(message, 'holding');
+        const futures = this.safeDict(message, 'futures');
+        const flexFutures = this.safeDict(message, 'flex_futures');
         const messageHash = 'balances';
         const timestamp = this.safeInteger(message, 'timestamp');
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        let updatedBalance = undefined;
         if (holding !== undefined) {
             const holdingKeys = Object.keys(holding); // cashAccount
-            const holdingResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-            };
+            this.balance['cash'] = this.safeDict(this.balance, 'cash', {});
+            this.balance['cash']['info'] = message;
+            this.balance['cash']['timestamp'] = timestamp;
+            this.balance['cash']['datetime'] = this.iso8601(timestamp);
+            const holdingCodes = {};
             for (let i = 0; i < holdingKeys.length; i++) {
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode(key);
                 const newAccount = this.account();
                 newAccount['total'] = this.safeString(holding, key);
-                holdingResult[code] = newAccount;
+                if (code !== undefined) {
+                    holdingCodes[code] = true;
+                    this.balance['cash'][code] = newAccount;
+                }
             }
-            this.balance['cash'] = holdingResult;
+            this.balance['cash'] = this.pruneStaleBalanceKeys(this.balance['cash'], holdingCodes);
             this.balance['cash'] = this.safeBalance(this.balance['cash']);
-            client.resolve(holdingResult, messageHash);
+            updatedBalance = this.balance['cash'];
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys(futures); // marginAccount
-            const futuresResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-            };
+            this.balance['margin'] = this.safeDict(this.balance, 'margin', {});
+            this.balance['margin']['info'] = message;
+            this.balance['margin']['timestamp'] = timestamp;
+            this.balance['margin']['datetime'] = this.iso8601(timestamp);
+            const futuresSymbols = {};
             for (let i = 0; i < futuresKeys.length; i++) {
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol(key);
                 const newAccount = this.account();
-                const future = this.safeValue(futures, key);
+                const future = this.safeDict(futures, key);
                 const currencyId = this.safeString(future, 'unit');
                 const code = this.safeCurrencyCode(currencyId);
                 newAccount['free'] = this.safeString(future, 'available');
                 newAccount['used'] = this.safeString(future, 'initial_margin');
                 newAccount['total'] = this.safeString(future, 'balance');
-                futuresResult[symbol] = {};
-                futuresResult[symbol][code] = newAccount;
+                const symbolAccounts = {};
+                if ((symbol !== undefined) && (code !== undefined)) {
+                    futuresSymbols[symbol] = true;
+                    symbolAccounts[code] = newAccount;
+                }
+                this.balance['margin'][symbol] = symbolAccounts;
             }
-            this.balance['margin'] = futuresResult;
+            this.balance['margin'] = this.pruneStaleBalanceKeys(this.balance['margin'], futuresSymbols);
             this.balance['margin'] = this.safeBalance(this.balance['margin']);
-            client.resolve(this.balance['margin'], messageHash + 'futures');
+            client.resolve(this.balance['margin'], messageHash + ':futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['margin'];
+            }
         }
         if (flexFutures !== undefined) {
-            const flexFutureCurrencies = this.safeValue(flexFutures, 'currencies', {});
+            const flexFutureCurrencies = this.safeDict(flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys(flexFutureCurrencies); // multi-collateral margin account
-            const flexFuturesResult = {
-                'info': message,
-                'timestamp': timestamp,
-                'datetime': this.iso8601(timestamp),
-            };
+            this.balance['flex'] = this.safeDict(this.balance, 'flex', {});
+            this.balance['flex']['info'] = message;
+            this.balance['flex']['timestamp'] = timestamp;
+            this.balance['flex']['datetime'] = this.iso8601(timestamp);
+            const flexCodes = {};
             for (let i = 0; i < flexFuturesKeys.length; i++) {
                 const key = flexFuturesKeys[i];
-                const flexFuture = this.safeValue(flexFutureCurrencies, key);
+                const flexFuture = this.safeDict(flexFutureCurrencies, key);
                 const code = this.safeCurrencyCode(key);
                 const newAccount = this.account();
                 newAccount['free'] = this.safeString(flexFuture, 'available');
                 newAccount['used'] = this.safeString(flexFuture, 'collateral_value');
                 newAccount['total'] = this.safeString(flexFuture, 'quantity');
-                flexFuturesResult[code] = newAccount;
+                if (code !== undefined) {
+                    flexCodes[code] = true;
+                    this.balance['flex'][code] = newAccount;
+                }
             }
-            this.balance['flex'] = flexFuturesResult;
+            this.balance['flex'] = this.pruneStaleBalanceKeys(this.balance['flex'], flexCodes);
             this.balance['flex'] = this.safeBalance(this.balance['flex']);
-            client.resolve(this.balance['flex'], messageHash + 'flex_futures');
+            client.resolve(this.balance['flex'], messageHash + ':flex_futures');
+            if (updatedBalance === undefined) {
+                updatedBalance = this.balance['flex'];
+            }
         }
-        client.resolve(this.balance, messageHash);
+        // resolve the plain hash exactly once per message, with the unified
+        // balance of the account the message updated (cash first, matching the
+        // legacy behaviour): a second resolve on the same hash is not portable
+        // (the rust client hands the consumer the LAST resolved value)
+        if (updatedBalance !== undefined) {
+            client.resolve(updatedBalance, messageHash);
+        }
+    }
+    /**
+     * @ignore
+     * @method
+     * @description removes currency/symbol keys that disappeared from a full-state balance message, keeping the cached object itself alive for consumers holding a reference to it
+     * @param {object} balanceObject the cached per-account balance object, mutated in place
+     * @param {object} seenKeys the currency codes / symbols present in the current message
+     * @returns {object} the pruned balance object (assign it back: php passes arrays by value)
+     */
+    pruneStaleBalanceKeys(balanceObject, seenKeys) {
+        const reserved = ['info', 'timestamp', 'datetime', 'free', 'used', 'total', 'debt'];
+        const keys = Object.keys(balanceObject);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!(key in seenKeys) && !this.inArray(key, reserved)) {
+                delete balanceObject[key];
+            }
+        }
+        return balanceObject;
     }
     handleMyTrades(client, message) {
         //
@@ -1425,7 +1585,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        const trades = this.safeValue(message, 'fills', []);
+        const trades = this.safeList(message, 'fills', []);
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -1436,7 +1596,10 @@ export default class krakenfutures extends krakenfuturesRest {
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
             const parsedTrade = this.parseWsMyTrade(trade);
-            tradeSymbols[parsedTrade['symbol']] = true;
+            const tradeSymbol = this.safeString(parsedTrade, 'symbol');
+            if (tradeSymbol !== undefined) {
+                tradeSymbols[tradeSymbol] = true;
+            }
             stored.append(parsedTrade);
         }
         const tradeSymbolKeys = Object.keys(tradeSymbols);
@@ -1468,15 +1631,15 @@ export default class krakenfutures extends krakenfuturesRest {
         //
         const timestamp = this.safeInteger(trade, 'time');
         const marketId = this.safeString(trade, 'instrument');
-        market = this.safeMarket(marketId, market);
-        const isBuy = this.safeValue(trade, 'buy');
+        const marketResolved = this.safeMarket(marketId, market);
+        const isBuy = this.safeBool(trade, 'buy', false);
         const feeCurrencyId = this.safeString(trade, 'fee_currency');
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'fill_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'order': this.safeString(trade, 'order_id'),
             'type': this.safeString(trade, 'type'),
             'side': isBuy ? 'buy' : 'sell',
@@ -1492,16 +1655,18 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
     async watchMultiHelper(unifiedName, channelName, symbols = undefined, subscriptionArgs = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         // symbols are required
-        symbols = this.marketSymbols(symbols, undefined, false, true, false);
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, false);
         const messageHashes = [];
         const rawSubs = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const messageHash = this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i]));
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const messageHash = this.getMessageHash(unifiedName, undefined, this.symbol(symbolsNormalized[i]));
             messageHashes.push(messageHash);
-            const market = this.market(symbols[i]);
+            const market = this.market(symbolsNormalized[i]);
             if (!this.subscriptionExistsForHash(url, messageHash)) {
                 rawSubs.push(market['id']);
             }
@@ -1606,7 +1771,7 @@ export default class krakenfutures extends krakenfuturesRest {
         /**
          * @ignore
          * @method
-         * @see https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-sign-challenge-challenge
+         * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
          */
         //
         //    {
@@ -1614,7 +1779,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
         //    }
         //
-        const event = this.safeValue(message, 'event');
+        const event = this.safeString(message, 'event');
         const messageHash = 'challenge';
         if (event !== 'error') {
             const challenge = this.safeValue(message, 'message');

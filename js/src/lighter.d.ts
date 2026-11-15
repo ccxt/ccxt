@@ -1,14 +1,15 @@
 import Exchange from './abstract/lighter.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status } from './base/types.js';
 /**
  * @class lighter
  * @augments Exchange
  */
 export default class lighter extends Exchange {
-    describe(): any;
-    loadAccount(chainId: any, privateKey: any, apiKeyIndex: string, accountIndex: string, params?: {}): Promise<any>;
+    describe(): Dict;
+    loadAccount(chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params?: Dict): Promise<any>;
+    setAuthEntry(accIdx: string, keyIdx: string, entry: Dict): void;
     initAuthObject(strAccountIndex: string, strApiKeyIndex: string): void;
-    getLighterPrivateKey(strAccountIndex: string, strApiKeyIndex: string): any;
+    getLighterPrivateKey(strAccountIndex: string, strApiKeyIndex: string): Str;
     /**
      * @method
      * @name lighter#preLoadLighterLibrary
@@ -16,21 +17,23 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
-    preLoadLighterLibrary(params?: {}): Promise<boolean>;
-    handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): any[];
-    handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<any[]>;
-    createSubAccount(name: string, params?: {}): Promise<any>;
-    createAuth(params?: {}): string;
-    pow(n: string, m: string): string;
+    preLoadLighterLibrary(params?: Dict): Promise<boolean>;
+    handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): [Int, Dict];
+    handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<[Int, Dict]>;
+    createSubAccount(name: string, params?: Dict): Promise<Dict>;
+    createAuth(params?: Dict): Str;
+    pow(n: string, m: string): Str;
     hashMessage(message: string): string;
-    signHash(hash: any, privateKey: any): string;
-    signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: any): string;
+    signHash(hash: string, privateKey: string): string;
+    signL1AndPrepareTxInfo(txInfo: string, message: string, privateKey: string): string;
     handleBuilderFeeApproval(accountIndex: number, apiKeyIndex: number): Promise<boolean>;
-    approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: object): Promise<any>;
-    changeApiKey(params?: object): Promise<any>;
+    checkIfStandardTier(accountIndex: number): Promise<boolean>;
+    approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: Dict): Promise<Dict>;
+    changeApiKey(params?: Dict): Promise<any>;
     setSandboxMode(enable: boolean): void;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any[];
-    fetchNonce(accountIndex: any, apiKeyIndex: any, params?: {}): Promise<number>;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict[];
+    fetchNonce(accountIndex: any, apiKeyIndex: any, params?: Dict): Promise<Int>;
+    signAndCreateOrder(method: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name lighter#createOrder
@@ -51,7 +54,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.orderExpiry] orderExpiry
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name lighter#editOrder
@@ -67,7 +70,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name lighter#fetchStatus
@@ -76,13 +79,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    fetchStatus(params?: {}): Promise<{
-        status: string;
-        updated: any;
-        eta: any;
-        url: any;
-        info: any;
-    }>;
+    fetchStatus(params?: Dict): Promise<Status>;
     /**
      * @method
      * @name lighter#fetchTime
@@ -91,7 +88,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<Int>;
+    fetchTime(params?: Dict): Promise<Int>;
     /**
      * @method
      * @name lighter#fetchMarkets
@@ -100,7 +97,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarkets(params?: Dict): Promise<Market[]>;
     /**
      * @method
      * @name lighter#fetchCurrencies
@@ -109,8 +106,8 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name lighter#fetchOrderBook
@@ -119,9 +116,9 @@ export default class lighter extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -132,7 +129,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name lighter#fetchTickers
@@ -142,7 +139,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -157,7 +154,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     /**
      * @method
@@ -168,10 +165,10 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     /**
      * @method
-     * @name ligher#fetchBalance
+     * @name lighter#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.lighter.xyz/reference/account-1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -180,7 +177,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.type] 'spot', 'swap', default is 'swap'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name lighter#fetchPosition
@@ -192,7 +189,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    fetchPosition(symbol: string, params?: Dict): Promise<Position>;
     /**
      * @method
      * @name lighter#fetchPositions
@@ -204,7 +201,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -216,13 +213,8 @@ export default class lighter extends Exchange {
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
      */
-    fetchAccounts(params?: {}): Promise<Account[]>;
-    parseAccount(account: any): {
-        id: string;
-        type: string;
-        code: any;
-        info: any;
-    };
+    fetchAccounts(params?: Dict): Promise<Account[]>;
+    parseAccount(account: Dict): Account;
     /**
      * @method
      * @name lighter#fetchOpenOrders
@@ -235,7 +227,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.accountIndex] account index
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name lighter#fetchClosedOrders
@@ -248,13 +240,13 @@ export default class lighter extends Exchange {
      * @param {string} [params.accountIndex] account index
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
-    parseOrderType(type: any): string;
-    parseOrderTypeInteger(typeInteger: any): string;
-    parseOrderTimeInForce(tif: any): string;
-    parseOrderTimeInForceInteger(tifInteger: any): string;
+    parseOrderStatus(status: Str): Str;
+    parseOrderType(type: Str): Str;
+    parseOrderTypeInteger(typeInteger: Int): Str;
+    parseOrderTimeInForce(tif: Str): Str;
+    parseOrderTimeInForceInteger(tifInteger: number): Str;
     /**
      * @method
      * @name lighter#transfer
@@ -270,7 +262,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.memo] hex encoding memo
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     /**
      * @method
      * @name lighter#fetchTransfers
@@ -284,7 +276,7 @@ export default class lighter extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     /**
      * @method
@@ -300,7 +292,7 @@ export default class lighter extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name lighter#fetchWithdrawals
@@ -314,9 +306,9 @@ export default class lighter extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name lighter#withdraw
@@ -324,14 +316,26 @@ export default class lighter extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
+    /**
+     * @method
+     * @name lighter#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/reference/recenttrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name lighter#fetchMyTrades
@@ -346,7 +350,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -360,7 +364,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name lighter#setMarginMode
@@ -373,8 +377,9 @@ export default class lighter extends Exchange {
      * @param {int} [params.leverage] required leverage
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
-    modifyLeverageAndMarginMode(leverage: int, marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
+    modifyLeverageAndMarginMode(leverage: int, marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
+    signAndCancelOrder(method: string, id: string, symbol?: Str, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name lighter#cancelOrder
@@ -386,7 +391,8 @@ export default class lighter extends Exchange {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
+    signAndCancelAllOrders(method: string, symbol?: Str, params?: Dict): Promise<any[]>;
     /**
      * @method
      * @name lighter#cancelAllOrders
@@ -397,7 +403,7 @@ export default class lighter extends Exchange {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name lighter#cancelAllOrdersAfter
@@ -406,7 +412,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
+    cancelAllOrdersAfter(timeout: Int, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name lighter#addMargin
@@ -416,7 +422,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name lighter#reduceMargin
@@ -426,25 +432,30 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name lighter#setMargin
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    setMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: any;
+    sign(path: string, api?: string[], method?: string, params?: {}): {
+        url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: {};
+        headers: Dict;
+    } | {
+        url: string;
+        method: string;
+        body: undefined;
+        headers: NullableDict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

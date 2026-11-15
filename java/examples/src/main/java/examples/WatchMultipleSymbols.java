@@ -26,7 +26,7 @@ public class WatchMultipleSymbols {
         System.out.println("Watching tickers for " + symbols + " (10 updates)...\n");
 
         for (int i = 0; i < 10; i++) {
-            Tickers tickers = exchange.watchTickers(symbols, null);
+            Tickers tickers = exchange.watchTickers(symbols, null).join();
 
             System.out.println("=== Update #" + (i + 1) + " ===");
             System.out.printf("%-12s %12s %12s %12s %10s%n",

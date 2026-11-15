@@ -2,16 +2,16 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var bybit = require('./bybit.js');
+var bybiteu$1 = require('./abstract/bybiteu.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bybiteu extends bybit["default"] {
+class bybiteu extends bybiteu$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bybiteu',
             'name': 'Bybit EU',
-            'countries': ['EU'],
+            'countries': ['EU'], // European Union
             'version': 'v5',
             'rateLimit': 20,
             'hostname': 'bybit.eu',
@@ -56,6 +56,13 @@ class bybiteu extends bybit["default"] {
                 'swap': false,
                 'future': false,
                 'option': undefined,
+            },
+            'options': {
+                'mica': true,
+                'defaultType': 'spot',
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
             },
         });
     }

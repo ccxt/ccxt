@@ -1,8 +1,5 @@
-- [Binance Set Futures Leverage](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -16,7 +13,7 @@ $exchange = new $exchange_class(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
     'options' => array(
-        'defaultType' => 'future'
+        'defaultType' => 'swap'
     ),
 ));
 
@@ -37,5 +34,5 @@ $params = array(
 // https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods
 $response = $exchange->fapiPrivate_post_leverage($params);
 
-print_r ($response); 
+print_r ($response);
 ```

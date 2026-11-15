@@ -18,6 +18,7 @@
 * [createOrder](#createorder)
 * [cancelOrders](#cancelorders)
 * [cancelOrder](#cancelorder)
+* [calculateFee](#calculatefee)
 * [fetchOrder](#fetchorder)
 * [fetchOrders](#fetchorders)
 * [fetchOpenOrders](#fetchopenorders)
@@ -44,7 +45,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-btcmarkets.fetchDepositsWithdrawals ([code, since, limit, params])
+btcmarkets.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -67,7 +68,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-btcmarkets.fetchDeposits (code[, since, limit, params])
+btcmarkets.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -90,7 +91,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-btcmarkets.fetchWithdrawals (code[, since, limit, params])
+btcmarkets.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -110,7 +111,7 @@ retrieves data on all markets for btcmarkets
 
 
 ```javascript
-btcmarkets.fetchMarkets ([params])
+btcmarkets.fetchMarkets (params?)
 ```
 
 
@@ -130,7 +131,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-btcmarkets.fetchTime ([params])
+btcmarkets.fetchTime (params?)
 ```
 
 
@@ -150,7 +151,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-btcmarkets.fetchBalance ([params])
+btcmarkets.fetchBalance (params?)
 ```
 
 
@@ -174,7 +175,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-btcmarkets.fetchOHLCV (symbol, timeframe[, since, limit, params])
+btcmarkets.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -184,7 +185,7 @@ btcmarkets.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>btcmarkets</code>](#btcmarkets)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.btcmarkets.net/v3/#tag/Market-Data-APIs/paths/~1v3~1markets~1{marketId}~1orderbook/get  
 
@@ -196,7 +197,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-btcmarkets.fetchOrderBook (symbol[, limit, params])
+btcmarkets.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -217,7 +218,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-btcmarkets.fetchTicker (symbol[, params])
+btcmarkets.fetchTicker (symbol, params?)
 ```
 
 
@@ -240,7 +241,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-btcmarkets.fetchTrades (symbol[, since, limit, params])
+btcmarkets.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -266,7 +267,7 @@ create a trade order
 
 
 ```javascript
-btcmarkets.createOrder (symbol, type, side, amount[, price, params])
+btcmarkets.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -283,12 +284,12 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by btcmarkets cancelOrders () |
+| symbol | <code>string</code> | Yes | not used by cancelOrders () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-btcmarkets.cancelOrders (ids, symbol[, params])
+btcmarkets.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -305,12 +306,37 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by btcmarket cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-btcmarkets.cancelOrder (id, symbol[, params])
+btcmarkets.cancelOrder (id, symbol, params?)
+```
+
+
+<a name="calculateFee" id="calculatefee"></a>
+
+### calculateFee{docsify-ignore}
+calculates the presumptive fee that would be charged for an order
+
+**Kind**: instance method of [<code>btcmarkets</code>](#btcmarkets)  
+**Returns**: <code>object</code> - contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified market symbol |
+| type | <code>string</code> | not used by btcmarkets.calculateFee |
+| side | <code>string</code> | not used by btcmarkets.calculateFee |
+| amount | <code>float</code> | how much you want to trade, in units of the base currency on most exchanges, or number of contracts |
+| price | <code>float</code> | the price for the order to be filled at, in units of the quote currency |
+| takerOrMaker | <code>string</code> | 'taker' or 'maker' |
+| params | <code>object</code> |  |
+
+
+```javascript
+btcmarkets.calculateFee (symbol, type, side, amount, price, takerOrMaker, params)
 ```
 
 
@@ -332,7 +358,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-btcmarkets.fetchOrder (id, symbol[, params])
+btcmarkets.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -355,7 +381,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-btcmarkets.fetchOrders (symbol[, since, limit, params])
+btcmarkets.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -378,7 +404,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-btcmarkets.fetchOpenOrders (symbol[, since, limit, params])
+btcmarkets.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -401,7 +427,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-btcmarkets.fetchClosedOrders (symbol[, since, limit, params])
+btcmarkets.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -424,7 +450,7 @@ fetch all trades made by the user
 
 
 ```javascript
-btcmarkets.fetchMyTrades (symbol[, since, limit, params])
+btcmarkets.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -443,11 +469,11 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-btcmarkets.withdraw (code, amount, address, tag[, params])
+btcmarkets.withdraw (code, amount, address, params?)
 ```
 

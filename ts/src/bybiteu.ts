@@ -1,12 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import bybit from './bybit.js';
+import bybit from './abstract/bybiteu.js';
+import type { Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class bybiteu extends bybit {
-    describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bybiteu',
             'name': 'Bybit EU',
@@ -55,6 +56,13 @@ export default class bybiteu extends bybit {
                 'swap': false,
                 'future': false,
                 'option': undefined,
+            },
+            'options': {
+                'mica': true,
+                'defaultType': 'spot',
+                'fetchMarkets': {
+                    'types': [ 'spot' ],
+                },
             },
         });
     }

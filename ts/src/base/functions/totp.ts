@@ -1,5 +1,5 @@
-import { base16, base32 } from '../../static_dependencies/scure-base/index.js';
-import { sha1 } from '../../static_dependencies/noble-hashes/sha1.js';
+import { hex as base16, base32 } from '@scure/base';
+import { sha1 } from '@noble/hashes/legacy.js';
 import { hmac } from './crypto.js';
 
 function totp (secret: string) {

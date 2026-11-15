@@ -1,9 +1,10 @@
-- [Multiple Exchanges Watch Orderbook Continuously](./examples/py/)
-
-
- ```python
- import ccxt.pro
+```python
+import ccxt.pro
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import time
 
 
@@ -23,7 +24,7 @@ async def watch_book(exchange, ticker):
 
 
 async def main():
-    exchange_ids = ['coinbasepro', 'okcoin', 'bittrex']
+    exchange_ids = ['coinbaseexchange', 'okcoin', 'kucoin']
     exchanges = [getattr(ccxt.pro, exchange_id)() for exchange_id in exchange_ids]
     try:
         done, pending = await asyncio.wait({watch_book(exchange, 'CELO/USD') for exchange in exchanges}, return_when=asyncio.FIRST_EXCEPTION)
@@ -35,6 +36,6 @@ async def main():
         await asyncio.gather(*[exchange.close() for exchange in exchanges])
 
 
-asyncio.run(main())
- 
+run(main())
+
 ```

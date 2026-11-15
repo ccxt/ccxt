@@ -63,6 +63,112 @@ def test_sort_by_1():
 }])
     empty_array = exchange.sort_by([], 'x')
     test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', empty_array, [])
+    # regression: keys crossing a digit-count boundary must sort numerically, a lexicographic comparison yields 1, 10, 2 .. 9
+    arr_two_digits = [{
+    'x': 10,
+}, {
+    'x': 1,
+}, {
+    'x': 3,
+}, {
+    'x': 7,
+}, {
+    'x': 2,
+}, {
+    'x': 9,
+}, {
+    'x': 5,
+}, {
+    'x': 8,
+}, {
+    'x': 4,
+}, {
+    'x': 6,
+}]
+    sorted_two_digits = exchange.sort_by(arr_two_digits, 'x')
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', sorted_two_digits, [{
+    'x': 1,
+}, {
+    'x': 2,
+}, {
+    'x': 3,
+}, {
+    'x': 4,
+}, {
+    'x': 5,
+}, {
+    'x': 6,
+}, {
+    'x': 7,
+}, {
+    'x': 8,
+}, {
+    'x': 9,
+}, {
+    'x': 10,
+}])
+    # immutability - original array should not be modified (ascending)
+    original = [{
+    'x': 5,
+}, {
+    'x': 2,
+}, {
+    'x': 4,
+}, {
+    'x': 0,
+}, {
+    'x': 1,
+}, {
+    'x': 3,
+}]
+    exchange.sort_by(original, 'x')
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', original, [{
+    'x': 5,
+}, {
+    'x': 2,
+}, {
+    'x': 4,
+}, {
+    'x': 0,
+}, {
+    'x': 1,
+}, {
+    'x': 3,
+}])
+    # immutability - original array should not be modified (descending)
+    original_descending = [{
+    'x': 5,
+}, {
+    'x': 2,
+}, {
+    'x': 4,
+}, {
+    'x': 0,
+}, {
+    'x': 1,
+}, {
+    'x': 3,
+}]
+    exchange.sort_by(original_descending, 'x', True)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', original_descending, [{
+    'x': 5,
+}, {
+    'x': 2,
+}, {
+    'x': 4,
+}, {
+    'x': 0,
+}, {
+    'x': 1,
+}, {
+    'x': 3,
+}])
+    # immutability - array rows (orderbook-style numeric keys) should not be modified
+    original_rows = [[3000.5, 1], [2900.5, 2], [2950.5, 3]]
+    exchange.sort_by(original_rows, 0)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', original_rows, [[3000.5, 1], [2900.5, 2], [2950.5, 3]])
+    exchange.sort_by(original_rows, 0, True)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', original_rows, [[3000.5, 1], [2900.5, 2], [2950.5, 3]])
 
 
 def test_sort_by_2():
@@ -218,6 +324,62 @@ def test_sort_by_2():
     # empty array
     empty_array = exchange.sort_by_2([], 'x', 'y')
     test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', empty_array, [])
+    # immutability - original array should not be modified (ascending)
+    original = [{
+    'x': 3,
+    'y': 1,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 2,
+    'y': 3,
+}, {
+    'x': 0,
+    'y': 4,
+}]
+    exchange.sort_by_2(original, 'x', 'y')
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', original, [{
+    'x': 3,
+    'y': 1,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 2,
+    'y': 3,
+}, {
+    'x': 0,
+    'y': 4,
+}])
+    # immutability - original array should not be modified (descending)
+    original_descending = [{
+    'x': 3,
+    'y': 1,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 2,
+    'y': 3,
+}, {
+    'x': 0,
+    'y': 4,
+}]
+    exchange.sort_by_2(original_descending, 'x', 'y', True)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', original_descending, [{
+    'x': 3,
+    'y': 1,
+}, {
+    'x': 1,
+    'y': 2,
+}, {
+    'x': 2,
+    'y': 3,
+}, {
+    'x': 0,
+    'y': 4,
+}])
 
 
 def test_sort_by():

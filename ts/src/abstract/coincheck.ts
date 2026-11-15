@@ -5,40 +5,137 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetExchangeOrdersRate (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderBooks (params?: {}): Promise<implicitReturnType>;
-    publicGetRatePair (params?: {}): Promise<implicitReturnType>;
-    publicGetTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetAccountsLeverageBalance (params?: {}): Promise<implicitReturnType>;
-    privateGetBankAccounts (params?: {}): Promise<implicitReturnType>;
-    privateGetDepositMoney (params?: {}): Promise<implicitReturnType>;
-    privateGetExchangeOrdersOpens (params?: {}): Promise<implicitReturnType>;
-    privateGetExchangeOrdersTransactions (params?: {}): Promise<implicitReturnType>;
-    privateGetExchangeOrdersTransactionsPagination (params?: {}): Promise<implicitReturnType>;
-    privateGetExchangeLeveragePositions (params?: {}): Promise<implicitReturnType>;
-    privateGetLendingBorrowsMatches (params?: {}): Promise<implicitReturnType>;
-    privateGetSendMoney (params?: {}): Promise<implicitReturnType>;
-    privateGetWithdraws (params?: {}): Promise<implicitReturnType>;
-    privatePostBankAccounts (params?: {}): Promise<implicitReturnType>;
-    privatePostDepositMoneyIdFast (params?: {}): Promise<implicitReturnType>;
-    privatePostExchangeOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostExchangeTransfersToLeverage (params?: {}): Promise<implicitReturnType>;
-    privatePostExchangeTransfersFromLeverage (params?: {}): Promise<implicitReturnType>;
-    privatePostLendingBorrows (params?: {}): Promise<implicitReturnType>;
-    privatePostLendingBorrowsIdRepay (params?: {}): Promise<implicitReturnType>;
-    privatePostSendMoney (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdraws (params?: {}): Promise<implicitReturnType>;
-    privateDeleteBankAccountsId (params?: {}): Promise<implicitReturnType>;
-    privateDeleteExchangeOrdersId (params?: {}): Promise<implicitReturnType>;
-    privateDeleteWithdrawsId (params?: {}): Promise<implicitReturnType>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetExchangeOrdersRate (params = {}): Promise<Dict> {
+        return this.request ('exchange/orders/rate', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetExchangeStatus (params = {}): Promise<Dict> {
+        return this.request ('exchange_status', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetOrderBooks (params = {}): Promise<Dict> {
+        return this.request ('order_books', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetRatePair (params = {}): Promise<Dict> {
+        return this.request ('rate/{pair}', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTicker (params = {}): Promise<Dict> {
+        return this.request ('ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTrades (params = {}): Promise<Dict> {
+        return this.request ('trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccounts (params = {}): Promise<Dict> {
+        return this.request ('accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccountsBalance (params = {}): Promise<Dict> {
+        return this.request ('accounts/balance', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetAccountsLeverageBalance (params = {}): Promise<Dict> {
+        return this.request ('accounts/leverage_balance', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetBankAccounts (params = {}): Promise<Dict> {
+        return this.request ('bank_accounts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetDepositMoney (params = {}): Promise<Dict> {
+        return this.request ('deposit_money', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetExchangeOrdersId (params = {}): Promise<Dict> {
+        return this.request ('exchange/orders/{id}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetExchangeOrdersOpens (params = {}): Promise<Dict> {
+        return this.request ('exchange/orders/opens', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetExchangeOrdersCancelStatus (params = {}): Promise<Dict> {
+        return this.request ('exchange/orders/cancel_status', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetExchangeOrdersTransactions (params = {}): Promise<Dict> {
+        return this.request ('exchange/orders/transactions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetExchangeOrdersTransactionsPagination (params = {}): Promise<Dict> {
+        return this.request ('exchange/orders/transactions_pagination', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetExchangeLeveragePositions (params = {}): Promise<Dict> {
+        return this.request ('exchange/leverage/positions', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetLendingBorrowsMatches (params = {}): Promise<Dict> {
+        return this.request ('lending/borrows/matches', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetSendMoney (params = {}): Promise<Dict> {
+        return this.request ('send_money', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetWithdraws (params = {}): Promise<Dict> {
+        return this.request ('withdraws', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostBankAccounts (params = {}): Promise<Dict> {
+        return this.request ('bank_accounts', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostDepositMoneyIdFast (params = {}): Promise<Dict> {
+        return this.request ('deposit_money/{id}/fast', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostExchangeOrders (params = {}): Promise<Dict> {
+        return this.request ('exchange/orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostExchangeTransfersToLeverage (params = {}): Promise<Dict> {
+        return this.request ('exchange/transfers/to_leverage', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostExchangeTransfersFromLeverage (params = {}): Promise<Dict> {
+        return this.request ('exchange/transfers/from_leverage', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostLendingBorrows (params = {}): Promise<Dict> {
+        return this.request ('lending/borrows', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostLendingBorrowsIdRepay (params = {}): Promise<Dict> {
+        return this.request ('lending/borrows/{id}/repay', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostSendMoney (params = {}): Promise<Dict> {
+        return this.request ('send_money', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWithdraws (params = {}): Promise<Dict> {
+        return this.request ('withdraws', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privateDeleteBankAccountsId (params = {}): Promise<Dict> {
+        return this.request ('bank_accounts/{id}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteExchangeOrdersId (params = {}): Promise<Dict> {
+        return this.request ('exchange/orders/{id}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteWithdrawsId (params = {}): Promise<Dict> {
+        return this.request ('withdraws/{id}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

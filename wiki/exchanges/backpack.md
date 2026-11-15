@@ -7,6 +7,8 @@
 
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
+* [fetchConvertQuote](#fetchconvertquote)
+* [createConvertTrade](#createconverttrade)
 * [fetchTickers](#fetchtickers)
 * [fetchTicker](#fetchticker)
 * [fetchOrderBook](#fetchorderbook)
@@ -27,6 +29,7 @@
 * [createOrders](#createorders)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchOpenOrder](#fetchopenorder)
+* [fetchOrder](#fetchorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrders](#fetchorders)
@@ -52,13 +55,15 @@
 * [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
 * [watchOrders](#watchorders)
 * [unWatchOrders](#unwatchorders)
+* [watchBalance](#watchbalance)
+* [unWatchBalance](#unwatchbalance)
 * [watchPositions](#watchpositions)
 * [unWatchPositions](#unwatchpositions)
 
 <a name="fetchCurrencies" id="fetchcurrencies"></a>
 
 ### fetchCurrencies{docsify-ignore}
-fetches all available currencies on an exchange
+fetches available crypto and tokenized stock currencies from the assets endpoint
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
@@ -68,37 +73,100 @@ fetches all available currencies on an exchange
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | return tokenized stock assets only |
 
 
 ```javascript
-backpack.fetchCurrencies ([params])
+backpack.fetchCurrencies (params?)
 ```
 
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ### fetchMarkets{docsify-ignore}
-retrieves data on all markets for bitbank
+retrieves venue markets and tokenized stock RFQ markets discovered from securities
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://docs.backpack.exchange/#tag/Markets/operation/get_markets  
+**See**
+
+- https://docs.backpack.exchange/#tag/Markets/operation/get_markets
+- https://docs.backpack.exchange/#tag/Stocks/operation/get_securities
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | return tokenized stock markets only |
+| params.marketType | <code>string</code>, <code>Array&lt;string&gt;</code> | No | market types to discover: spot, swap or stock |
 
 
 ```javascript
-backpack.fetchMarkets ([params])
+backpack.fetchMarkets (params?)
+```
+
+
+<a name="fetchConvertQuote" id="fetchconvertquote"></a>
+
+### fetchConvertQuote{docsify-ignore}
+fetches an indicative quote for converting between a tokenized stock and its quote currency
+
+**Kind**: instance method of [<code>backpack</code>](#backpack)  
+**Returns**: <code>object</code> - indicative conversion estimate; the price is a bound and is not guaranteed
+
+**See**: https://docs.backpack.exchange/#tag/Stocks/operation/get_stock_indicative_quote  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| fromCode | <code>string</code> | Yes | the currency to convert from |
+| toCode | <code>string</code> | Yes | the currency to convert to |
+| amount | <code>float</code> | Yes | amount in units of the from currency |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.price | <code>float</code> | No | optional limit price when converting quote currency to stock |
+
+
+```javascript
+backpack.fetchConvertQuote (fromCode, toCode, amount, params?)
+```
+
+
+<a name="createConvertTrade" id="createconverttrade"></a>
+
+### createConvertTrade{docsify-ignore}
+converts between a tokenized stock and its quote currency through a bounded RFQ
+
+**Kind**: instance method of [<code>backpack</code>](#backpack)  
+**Returns**: <code>object</code> - conversion result; RFQ submission may remain open and is not necessarily a fill
+
+**See**
+
+- https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+- https://docs.backpack.exchange/#tag/RFQ/operation/accept_quote
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | RFQ identifier when accepting a quote, or a numeric client identifier for a new RFQ |
+| fromCode | <code>string</code> | Yes | the currency to convert from |
+| toCode | <code>string</code> | Yes | the currency to convert to |
+| amount | <code>float</code> | No | amount in units of the from currency |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.quoteId | <code>string</code> | No | accept this quote for RFQ id supplied as id |
+| params.price | <code>float</code> | No | price bound from fetchConvertQuote; required when buying stock |
+| params.baseAmount | <code>float</code> | No | stock quantity when converting quote currency to stock |
+| params.clientOrderId | <code>int</code> | No | requester client identifier for a newly submitted RFQ |
+
+
+```javascript
+backpack.createConvertTrade (id, fromCode, toCode, amount?, params?)
 ```
 
 
 <a name="fetchTickers" id="fetchtickers"></a>
 
 ### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+fetches venue or external provider statistics, not executable RFQ prices
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
@@ -109,17 +177,20 @@ fetches price tickers for multiple markets, statistical information calculated o
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | return tokenized stock tickers only; inferred from requested symbols when omitted |
+| params.source | <code>string</code> | No | Venue or External; RFQ symbols default to External, other symbols default to Venue |
+| params.interval | <code>string</code> | No | ticker interval, External requires 1d |
 
 
 ```javascript
-backpack.fetchTickers (symbols[, params])
+backpack.fetchTickers (symbols, params?)
 ```
 
 
 <a name="fetchTicker" id="fetchticker"></a>
 
 ### fetchTicker{docsify-ignore}
-fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+fetches underlying venue or external stock statistics, not an executable RFQ quote
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
@@ -130,42 +201,47 @@ fetches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock data; inferred from symbol when omitted |
+| params.source | <code>string</code> | No | Venue or External; RFQ symbols default to External |
+| params.interval | <code>string</code> | No | ticker interval, External requires 1d |
 
 
 ```javascript
-backpack.fetchTicker (symbol[, params])
+backpack.fetchTicker (symbol, params?)
 ```
 
 
 <a name="fetchOrderBook" id="fetchorderbook"></a>
 
 ### fetchOrderBook{docsify-ignore}
-fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+fetches venue order-book depth, RFQ and external provider depth are not supported
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Markets/operation/get_depth  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return (default 100, max 200) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return (default 100, max 500) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects a tokenized stock spot order book; inferred from symbol when omitted |
+| params.source | <code>string</code> | No | Venue, External provider depth is not supported |
 
 
 ```javascript
-backpack.fetchOrderBook (symbol[, limit, params])
+backpack.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
 <a name="fetchOHLCV" id="fetchohlcv"></a>
 
 ### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+fetches venue or external stock candlestick data for the underlying market
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - a list of candles ordered as timestamp, open, high, low, close, volume
 
 **See**: https://docs.backpack.exchange/#tag/Markets/operation/get_klines  
 
@@ -173,13 +249,18 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in seconds of the earliest candle to fetch |
+| since | <code>int</code> | No | timestamp in milliseconds of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch (default 100) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock data; inferred from symbol when omitted |
+| params.source | <code>string</code> | No | Venue or External; RFQ symbols default to External |
+| params.price | <code>string</code> | No | last, mark or index, External requires last |
+| params.priceType | <code>string</code> | No | Last, Mark or Index, External requires Last |
+| params.until | <code>int</code> | No | latest candle timestamp in milliseconds |
 
 
 ```javascript
-backpack.fetchOHLCV (symbol, timeframe[, since, limit, params])
+backpack.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -200,7 +281,7 @@ fetch the current funding rate
 
 
 ```javascript
-backpack.fetchFundingRate (symbol[, params])
+backpack.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -221,7 +302,7 @@ Retrieves the open interest of a derivative trading pair
 
 
 ```javascript
-backpack.fetchOpenInterest (symbol[, params])
+backpack.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -244,14 +325,14 @@ fetches historical funding rate prices
 
 
 ```javascript
-backpack.fetchFundingRateHistory (symbol[, since, limit, params])
+backpack.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
 <a name="fetchTrades" id="fetchtrades"></a>
 
 ### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbol
+gets recent venue order-book trades, not public RFQ or external provider fills
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
@@ -269,35 +350,45 @@ get the list of most recent trades for a particular symbol
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.offset | <code>int</code> | No | the number of trades to skip, default is 0 |
+| params.stock | <code>boolean</code> | No | selects tokenized stock spot trades; inferred from symbol when omitted |
 
 
 ```javascript
-backpack.fetchTrades (symbol[, since, limit, params])
+backpack.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
 <a name="fetchMyTrades" id="fetchmytrades"></a>
 
 ### fetchMyTrades{docsify-ignore}
-fetch all trades made by the user
+fetches venue fills or requester RFQ fills, combining stock records when no symbol is supplied
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://docs.backpack.exchange/#tag/History/operation/get_fills  
+**See**
+
+- https://docs.backpack.exchange/#tag/History/operation/get_fills
+- https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_fill_history
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| since | <code>int</code> | No | the earliest time in ms to fetch trades for, locally filtered for RFQ history pages |
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve (default 100, max 1000) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
-| params.fillType | <code>string</code> | No | 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation' |
+| params.until | <code>int</code> | No | the latest time in ms to fetch trades for, locally filtered for RFQ history pages |
+| params.stock | <code>boolean</code> | No | selects tokenized stock fills; inferred from symbol when omitted |
+| params.rfq | <code>boolean</code> | No | selects requester RFQ fills only, inferred from RFQ symbols |
+| params.offset | <code>int</code> | No | exchange history pagination offset |
+| params.sortDirection | <code>string</code> | No | Asc or Desc |
+| params.deferredSettlement | <code>boolean</code> | No | selects deferred or immediate RFQ settlement records |
+| params.fillType | <code>string</code> | No | User or CollateralConversion for RFQs, additional exchange-specific types for venue fills |
 
 
 ```javascript
-backpack.fetchMyTrades (symbol[, since, limit, params])
+backpack.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -317,7 +408,7 @@ the latest known information on the availability of the exchange API
 
 
 ```javascript
-backpack.fetchStatus ([params])
+backpack.fetchStatus (params?)
 ```
 
 
@@ -337,14 +428,14 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-backpack.fetchTime ([params])
+backpack.fetchTime (params?)
 ```
 
 
 <a name="fetchBalance" id="fetchbalance"></a>
 
 ### fetchBalance{docsify-ignore}
-query for balance and get the amount of funds available for trading or funds locked in orders
+queries the capital account, optionally filtering tokenized stock assets locally
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
@@ -354,10 +445,11 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | return tokenized stock holdings only, without quote-currency cash |
 
 
 ```javascript
-backpack.fetchBalance ([params])
+backpack.fetchBalance (params?)
 ```
 
 
@@ -381,7 +473,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-backpack.fetchDeposits (code[, since, limit, params])
+backpack.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -405,7 +497,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-backpack.fetchWithdrawals (code[, since, limit, params])
+backpack.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -424,13 +516,13 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.network | <code>string</code> | Yes | the network to withdraw on (mandatory) |
 
 
 ```javascript
-backpack.withdraw (code, amount, address, tag[, params])
+backpack.withdraw (code, amount, address, params?)
 ```
 
 
@@ -452,59 +544,66 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-backpack.fetchDepositAddress (code[, params])
+backpack.fetchDepositAddress (code, params?)
 ```
 
 
 <a name="createOrder" id="createorder"></a>
 
 ### createOrder{docsify-ignore}
-create a trade order
+creates a venue order or bounded requester RFQ for a tokenized stock
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.backpack.exchange/#tag/Order/operation/execute_order  
+**See**
+
+- https://docs.backpack.exchange/#tag/Order/operation/execute_order
+- https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
 | type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
-| price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
+| amount | <code>float</code> | Yes | quantity in base currency, RFQs require base quantity |
+| price | <code>float</code> | No | limit price, ignored for venue market orders but an optional execution bound for market RFQs |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the quote currency (could be used instead of amount) |
+| params.cost | <code>float</code> | No | venue market orders only, quote-currency cost instead of amount |
+| params.stock | <code>boolean</code> | No | selects tokenized stock spot or RFQ execution; inferred from symbol when omitted |
+| params.executionMode | <code>string</code> | No | RFQ only, Immediate (default) or AwaitAccept for manually accepted limit RFQs |
+| params.orderExpiryTime | <code>int</code> | No | RFQ only, resting Immediate RFQ expiry in milliseconds |
 | params.clientOrderId | <code>int</code> | No | a unique id for the order |
-| params.postOnly | <code>boolean</code> | No | true to place a post only order |
-| params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK' or 'PO' |
-| params.reduceOnly | <code>bool</code> | No | *contract only* Indicates if this order is to reduce the size of a position |
-| params.selfTradePrevention | <code>string</code> | No | one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH |
-| params.autoLend | <code>bool</code> | No | *spot margin only* if true then the order can lend |
-| params.autoLendRedeem | <code>bool</code> | No | *spot margin only* if true then the order can redeem a lend if required |
-| params.autoBorrow | <code>bool</code> | No | *spot margin only* if true then the order can borrow |
-| params.autoBorrowRepay | <code>bool</code> | No | *spot margin only* if true then the order can repay a borrow |
-| params.triggerPrice | <code>float</code> | No | the price that a trigger order is triggered at |
-| params.takeProfit | <code>object</code> | No | *swap markets only - takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
+| params.postOnly | <code>boolean</code> | No | venue orders only, true to place a post only order |
+| params.timeInForce | <code>string</code> | No | venue orders only, GTC, IOC, FOK or PO |
+| params.reduceOnly | <code>bool</code> | No | contracts only, reduces a position |
+| params.selfTradePrevention | <code>string</code> | No | venue orders only, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH |
+| params.autoLend | <code>bool</code> | No | lend if required |
+| params.autoLendRedeem | <code>bool</code> | No | redeem a lend if required |
+| params.autoBorrow | <code>bool</code> | No | borrow if required |
+| params.autoBorrowRepay | <code>bool</code> | No | repay a borrow if required |
+| params.triggerPrice | <code>float</code> | No | venue orders only, trigger price |
+| params.takeProfit | <code>object</code> | No | swap markets only, attached take profit order |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
-| params.takeProfit.price | <code>float</code> | No | take profit order price (if not provided the order will be a market order) |
-| params.stopLoss | <code>object</code> | No | *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
+| params.takeProfit.price | <code>float</code> | No | take profit limit price, omitted for a market order |
+| params.stopLoss | <code>object</code> | No | swap markets only, attached stop loss order |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
-| params.stopLoss.price | <code>float</code> | No | stop loss order price (if not provided the order will be a market order) |
+| params.stopLoss.price | <code>float</code> | No | stop loss limit price, omitted for a market order |
 
 
 ```javascript
-backpack.createOrder (symbol, type, side, amount[, price, params])
+backpack.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
 <a name="createOrders" id="createorders"></a>
 
 ### createOrders{docsify-ignore}
-create a list of trade orders
+creates venue order-book orders, RFQ batches are not supported
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch  
 
@@ -512,22 +611,27 @@ create a list of trade orders
 | --- | --- | --- | --- |
 | orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock spot execution for all orders, otherwise inferred per symbol |
 
 
 ```javascript
-backpack.createOrders (orders[, params])
+backpack.createOrders (orders, params?)
 ```
 
 
 <a name="fetchOpenOrders" id="fetchopenorders"></a>
 
 ### fetchOpenOrders{docsify-ignore}
-fetch all unfilled currently open orders
+fetches open venue orders or RFQs with their candidate quotes
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.backpack.exchange/#tag/Order/operation/get_open_orders  
+**See**
+
+- https://docs.backpack.exchange/#tag/Order/operation/get_open_orders
+- https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -535,105 +639,161 @@ fetch all unfilled currently open orders
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records |
+| params.rfq | <code>boolean</code> | No | selects requester RFQs only, inferred from RFQ symbols |
+| params.deferredSettlement | <code>boolean</code> | No | selects deferred or immediate RFQ records |
 
 
 ```javascript
-backpack.fetchOpenOrders (symbol[, since, limit, params])
+backpack.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
 <a name="fetchOpenOrder" id="fetchopenorder"></a>
 
 ### fetchOpenOrder{docsify-ignore}
-fetch an open order by it's id
+fetches an open venue order or requester RFQ by identifier
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.backpack.exchange/#tag/Order/operation/get_order  
+**See**
+
+- https://docs.backpack.exchange/#tag/Order/operation/get_order
+- https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by hollaex fetchOpenOrder () |
+| id | <code>string</code> | Yes | order or requester RFQ identifier |
+| symbol | <code>string</code> | Yes | unified market symbol, required |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock orders; inferred from symbol when omitted |
 
 
 ```javascript
-backpack.fetchOpenOrder (id, symbol[, params])
+backpack.fetchOpenOrder (id, symbol, params?)
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches an order from filtered history with an open-order fallback
+
+**Kind**: instance method of [<code>backpack</code>](#backpack)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://docs.backpack.exchange/#tag/History
+- https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
+- https://docs.backpack.exchange/#tag/RFQ/operation/get_open_rfqs
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order or requester RFQ identifier |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra exchange-specific parameters |
+| params.stock | <code>boolean</code> | No | selects tokenized stock orders; inferred from symbol when omitted |
+
+
+```javascript
+backpack.fetchOrder (id, symbol, params?)
 ```
 
 
 <a name="cancelOrder" id="cancelorder"></a>
 
 ### cancelOrder{docsify-ignore}
-cancels an open order
+cancels a venue order or requests RFQ cancellation without assuming immediate cancellation
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.backpack.exchange/#tag/Order/operation/cancel_order  
+**See**
+
+- https://docs.backpack.exchange/#tag/Order/operation/cancel_order
+- https://docs.backpack.exchange/#tag/RFQ/operation/cancel_rfq
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| id | <code>string</code> | Yes | order id |
+| id | <code>string</code> | Yes | order or requester RFQ identifier |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock orders; inferred from symbol when omitted |
+| params.clientOrderId | <code>int</code> | No | RFQ client identifier instead of id |
 
 
 ```javascript
-backpack.cancelOrder (id, symbol[, params])
+backpack.cancelOrder (id, symbol, params?)
 ```
 
 
 <a name="cancelAllOrders" id="cancelallorders"></a>
 
 ### cancelAllOrders{docsify-ignore}
-cancel all open orders
+cancels venue orders, bulk RFQ cancellation is not supported
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders  
+**See**
+
+- https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
+- https://docs.backpack.exchange/#tag/RFQ
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | Yes | unified market symbol, required |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock orders; inferred from symbol when omitted |
 
 
 ```javascript
-backpack.cancelAllOrders (symbol[, params])
+backpack.cancelAllOrders (symbol, params?)
 ```
 
 
 <a name="fetchOrders" id="fetchorders"></a>
 
 ### fetchOrders{docsify-ignore}
-fetches information on multiple orders made by the user
+fetches venue or requester RFQ order history
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://github.com/ccxt/ccxt/wiki/Manual#order-structure)
 
-**See**: https://docs.backpack.exchange/#tag/History/operation/get_order_history  
+**See**
+
+- https://docs.backpack.exchange/#tag/History/operation/get_order_history
+- https://docs.backpack.exchange/#tag/RFQ/operation/get_rfq_history
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of  orde structures to retrieve (default 100, max 1000) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for, locally filtered on retrieved pages |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve (default 100, max 1000) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock orders; inferred from symbol when provided, otherwise selects both venue/RFQ records |
+| params.rfq | <code>boolean</code> | No | selects requester RFQ history only, inferred from RFQ symbols |
+| params.offset | <code>int</code> | No | exchange history pagination offset |
+| params.sortDirection | <code>string</code> | No | Asc or Desc |
+| params.deferredSettlement | <code>boolean</code> | No | selects deferred or immediate RFQ history |
 
 
 ```javascript
-backpack.fetchOrders (symbol[, since, limit, params])
+backpack.fetchOrders (symbol?, since?, limit?, params?)
 ```
 
 
 <a name="fetchPositions" id="fetchpositions"></a>
 
 ### fetchPositions{docsify-ignore}
-fetch all open positions
+fetches derivative positions
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
@@ -647,7 +807,7 @@ fetch all open positions
 
 
 ```javascript
-backpack.fetchPositions (symbols[, params])
+backpack.fetchPositions (symbols, params?)
 ```
 
 
@@ -671,7 +831,7 @@ fetches the history of funding payments
 
 
 ```javascript
-backpack.fetchFundingHistory (symbol[, since, limit, params])
+backpack.fetchFundingHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -689,10 +849,14 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock data; inferred from symbol when omitted |
+| params.source | <code>string</code> | No | Venue or External; RFQ ticker symbols default to External |
+| params.interval | <code>string</code> | No | External ticker interval, must be 1d |
+| params.channel | <code>string</code> | No | stockPrice or stockIndicativeQuote for quotes instead of statistics |
 
 
 ```javascript
-backpack.watchTicker (symbol[, params])
+backpack.watchTicker (symbol, params?)
 ```
 
 
@@ -710,10 +874,14 @@ unWatches a price ticker, a statistical calculation with the information calcula
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock data; inferred from symbol when omitted |
+| params.source | <code>string</code> | No | Venue or External, matching the subscription |
+| params.interval | <code>string</code> | No | External ticker interval, must be 1d |
+| params.channel | <code>string</code> | No | stockPrice or stockIndicativeQuote, matching the subscription |
 
 
 ```javascript
-backpack.unWatchTicker (symbol[, params])
+backpack.unWatchTicker (symbol, params?)
 ```
 
 
@@ -731,10 +899,14 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock markets only; inferred from symbols when omitted |
+| params.source | <code>string</code> | No | Venue or External; RFQ ticker symbols default to External |
+| params.interval | <code>string</code> | No | External ticker interval, must be 1d |
+| params.channel | <code>string</code> | No | stockPrice or stockIndicativeQuote for quotes instead of statistics |
 
 
 ```javascript
-backpack.watchTickers (symbols[, params])
+backpack.watchTickers (symbols, params?)
 ```
 
 
@@ -752,10 +924,14 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock markets only; inferred from symbols when omitted |
+| params.source | <code>string</code> | No | Venue or External, matching the subscription |
+| params.interval | <code>string</code> | No | External ticker interval, must be 1d |
+| params.channel | <code>string</code> | No | stockPrice or stockIndicativeQuote, matching the subscription |
 
 
 ```javascript
-backpack.unWatchTickers (symbols[, params])
+backpack.unWatchTickers (symbols, params?)
 ```
 
 
@@ -773,10 +949,14 @@ watches best bid & ask for symbols
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock quotes; inferred from symbols when omitted |
+| params.source | <code>string</code> | No | Venue or External; RFQ quotes default to indicative quotes |
+| params.interval | <code>string</code> | No | External data interval, must be 1d |
+| params.channel | <code>string</code> | No | stockPrice or stockIndicativeQuote, unavailable prices remain undefined |
 
 
 ```javascript
-backpack.watchBidsAsks (symbols[, params])
+backpack.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -793,10 +973,14 @@ unWatches best bid & ask for symbols
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock markets only; inferred from symbols when omitted |
+| params.source | <code>string</code> | No | Venue or External, matching the subscription |
+| params.interval | <code>string</code> | No | External data interval, must be 1d |
+| params.channel | <code>string</code> | No | stockPrice or stockIndicativeQuote, matching the subscription |
 
 
 ```javascript
-backpack.unWatchBidsAsks (symbols[, params])
+backpack.unWatchBidsAsks (symbols, params?)
 ```
 
 
@@ -817,10 +1001,12 @@ watches historical candlestick data containing the open, high, low, close price,
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects stock spot order-book candles, RFQ candles are unsupported |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.watchOHLCV (symbol, timeframe[, since, limit, params])
+backpack.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -839,10 +1025,12 @@ watches historical candlestick data containing the open, high, low, and close pr
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects stock spot order-book candles |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.unWatchOHLCV (symbol, timeframe[, params])
+backpack.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -862,10 +1050,12 @@ watches historical candlestick data containing the open, high, low, close price,
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires stock spot order-book markets, not RFQ markets |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+backpack.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -883,10 +1073,12 @@ unWatches historical candlestick data containing the open, high, low, and close 
 | --- | --- | --- | --- |
 | symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires stock spot order-book markets |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
+backpack.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 ```
 
 
@@ -906,10 +1098,12 @@ watches information on multiple trades made in a market
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires a stock spot order-book market, RFQ public trades are unsupported |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.watchTrades (symbol[, since, limit, params])
+backpack.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -927,10 +1121,12 @@ unWatches from the stream channel
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires a stock spot order-book market |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.unWatchTrades (symbol[, params])
+backpack.unWatchTrades (symbol, params?)
 ```
 
 
@@ -950,10 +1146,12 @@ watches information on multiple trades made in a market
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires stock spot order-book markets, not RFQ markets |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.watchTradesForSymbols (symbols[, since, limit, params])
+backpack.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -971,10 +1169,12 @@ unWatches from the stream channel
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch trades for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires stock spot order-book markets |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.unWatchTradesForSymbols (symbols[, params])
+backpack.unWatchTradesForSymbols (symbols, params?)
 ```
 
 
@@ -984,7 +1184,7 @@ backpack.unWatchTradesForSymbols (symbols[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Depth  
 
@@ -993,10 +1193,12 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires a stock spot order-book market, not an RFQ market |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.watchOrderBook (symbol[, limit, params])
+backpack.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1006,7 +1208,7 @@ backpack.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Depth  
 
@@ -1015,11 +1217,13 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires stock spot order-book markets, not RFQ markets |
+| params.source | <code>string</code> | No | Venue only |
 | params.method | <code>string</code> | No | either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2' |
 
 
 ```javascript
-backpack.watchOrderBookForSymbols (symbols[, limit, params])
+backpack.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1029,17 +1233,19 @@ backpack.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified array of symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires a stock spot order-book market |
+| params.source | <code>string</code> | No | Venue only |
 
 
 ```javascript
-backpack.unWatchOrderBook (symbol[, params])
+backpack.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1049,18 +1255,20 @@ backpack.unWatchOrderBook (symbol[, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | requires stock spot order-book markets |
+| params.source | <code>string</code> | No | Venue only |
 | params.method | <code>string</code> | No | either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2' |
 
 
 ```javascript
-backpack.unWatchOrderBookForSymbols (symbols[, params])
+backpack.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -1080,10 +1288,11 @@ watches information on multiple orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock orders, RFQ markets use account.rfqUpdate |
 
 
 ```javascript
-backpack.watchOrders ([symbol, since, limit, params])
+backpack.watchOrders (symbol?, since?, limit?, params?)
 ```
 
 
@@ -1101,10 +1310,53 @@ unWatches information on multiple orders made by the user
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stock | <code>boolean</code> | No | selects tokenized stock order subscriptions |
 
 
 ```javascript
-backpack.unWatchOrders ([symbol, params])
+backpack.unWatchOrders (symbol?, params?)
+```
+
+
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+watches absolute capital-account asset updates accumulated since subscription, without an initial snapshot
+
+**Kind**: instance method of [<code>backpack</code>](#backpack)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://docs.backpack.exchange/#tag/Streams/Private/Balance-update  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra exchange-specific parameters |
+| params.stock | <code>boolean</code> | No | return tokenized stock assets only; explicit because this method has no symbol |
+
+
+```javascript
+backpack.watchBalance (params?)
+```
+
+
+<a name="unWatchBalance" id="unwatchbalance"></a>
+
+### unWatchBalance{docsify-ignore}
+unsubscribes from all capital-account asset updates
+
+**Kind**: instance method of [<code>backpack</code>](#backpack)  
+**Returns**: <code>object</code> - unsubscription result
+
+**See**: https://docs.backpack.exchange/#tag/Streams/Private/Balance-update  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra exchange-specific parameters |
+| params.stock | <code>boolean</code> | No | accepts the tokenized stock view selector; explicit because this method has no symbol |
+
+
+```javascript
+backpack.unWatchBalance (params?)
 ```
 
 
@@ -1127,7 +1379,7 @@ watch all open positions
 
 
 ```javascript
-backpack.watchPositions ([symbols, since, limit, params])
+backpack.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -1148,6 +1400,6 @@ unWatches from the stream channel
 
 
 ```javascript
-backpack.unWatchPositions ([symbols, params])
+backpack.unWatchPositions (symbols?, params)
 ```
 

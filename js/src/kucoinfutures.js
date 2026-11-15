@@ -5,9 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import kucoin from './kucoin.js';
+import kucoin from './abstract/kucoinfutures.js';
 import { BadRequest } from './base/errors.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class kucoinfutures
+ * @augments kucoin
+ */
 export default class kucoinfutures extends kucoin {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -25,7 +29,9 @@ export default class kucoinfutures extends kucoin {
                 'swap': true,
                 'future': true,
                 'option': undefined,
+                'editOrder': false,
                 'fetchBidsAsks': true,
+                'transfer': true,
             },
             'options': {
                 'fetchMarkets': {
@@ -49,7 +55,8 @@ export default class kucoinfutures extends kucoin {
         const request = {
             'method': 'futuresPublicGetAllTickers',
         };
-        return await this.fetchTickers(symbols, this.extend(request, params));
+        const extendedRequest = this.extend(request, params);
+        return await this.fetchTickers(symbols, extendedRequest);
     }
     /**
      * @method
@@ -63,7 +70,9 @@ export default class kucoinfutures extends kucoin {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
         const request = {
@@ -71,7 +80,7 @@ export default class kucoinfutures extends kucoin {
             'amount': amountToPrecision,
         };
         const toAccountString = this.parseTransferType(toAccount);
-        let response = undefined;
+        let response;
         if (toAccountString === 'TRADE' || toAccountString === 'MAIN') {
             request['recAccountType'] = toAccountString;
             response = await this.futuresPrivatePostTransferOut(this.extend(request, params));

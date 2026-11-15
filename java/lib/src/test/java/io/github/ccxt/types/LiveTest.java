@@ -79,7 +79,7 @@ public class LiveTest {
 
         // 6. Fetch OHLCV (using typed wrapper with optional params)
         System.out.println("[5] Fetching BTC/USDT OHLCV...");
-        List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 3L, null);
+        List<OHLCV> candles = exchange.fetchOHLCVAsync("BTC/USDT", "1h", null, 3L, null).join();
         check(candles != null && !candles.isEmpty(), "candles should not be empty");
         System.out.println("    got " + candles.size() + " candles");
         OHLCV c = candles.get(0);

@@ -14,8 +14,8 @@ function test_in_array() {
         'id' => 'regirock',
     ));
     $array = [1, 2, 3];
-    assert($exchange->in_array(1, $array) === true);
-    assert($exchange->in_array(2, $array) === true);
-    assert($exchange->in_array(3, $array) === true);
-    assert($exchange->in_array(4, $array) === false);
+    assert($exchange->in_array(1, $array));
+    assert($exchange->in_array(2, $array));
+    assert($exchange->in_array(3, $array));
+    assert(!$exchange->in_array(4, $array));
 }

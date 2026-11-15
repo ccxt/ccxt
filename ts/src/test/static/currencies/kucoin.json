@@ -294,7 +294,7 @@
                     }
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "chainName": "ARBITRUM",
                     "withdrawalMinSize": "0.0005",
@@ -316,7 +316,7 @@
                 },
                 "id": "arbitrum",
                 "name": "ARBITRUM",
-                "code": "ARBONE",
+                "code": "ARBITRUM",
                 "active": false,
                 "fee": 0.0001,
                 "deposit": false,
@@ -1358,7 +1358,7 @@
                     }
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "chainName": "ARBITRUM",
                     "withdrawalMinSize": "5",
@@ -1380,7 +1380,7 @@
                 },
                 "id": "arbitrum",
                 "name": "ARBITRUM",
-                "code": "ARBONE",
+                "code": "ARBITRUM",
                 "active": true,
                 "fee": 1,
                 "deposit": true,
@@ -1916,7 +1916,7 @@
                     }
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "chainName": "ARBITRUM",
                     "withdrawalMinSize": "0.0004",
@@ -1938,7 +1938,7 @@
                 },
                 "id": "arbitrum",
                 "name": "ARBITRUM",
-                "code": "ARBONE",
+                "code": "ARBITRUM",
                 "active": true,
                 "fee": 0.0002,
                 "deposit": true,
@@ -2845,7 +2845,7 @@
                     }
                 }
             },
-            "ARBONE": {
+            "ARBITRUM": {
                 "info": {
                     "chainName": "ARBITRUM",
                     "withdrawalMinSize": "5",
@@ -2865,7 +2865,7 @@
                 },
                 "id": "arbitrum",
                 "name": "ARBITRUM",
-                "code": "ARBONE",
+                "code": "ARBITRUM",
                 "active": true,
                 "fee": 1,
                 "deposit": true,

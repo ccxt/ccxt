@@ -1,8 +1,5 @@
-- [Fetch Ohlcv Cex](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -38,5 +35,5 @@ def print_chart(exchange, symbol, timeframe):
 
 last = print_chart(exchange, symbol, '1m')
 print("\n" + exchange.name + " ₿ = $" + str(last) + "\n")  # print last closing price
- 
+
 ```

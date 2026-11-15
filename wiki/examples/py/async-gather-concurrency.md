@@ -1,10 +1,11 @@
-- [Async Gather Concurrency](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 
@@ -67,12 +68,12 @@ async def main():
         # wait for some exchange to finish before adding a new one
         if len(tasks) >= max_concurrency:
             _done, tasks = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-        tasks.add(loop.create_task(work(exchange_id)))
+        tasks.add(asyncio.create_task(work(exchange_id)))
 
     # wait for the remaining exchanges to finish
     await asyncio.wait(tasks)
 
 
-asyncio.run(main())
- 
+run(main())
+
 ```

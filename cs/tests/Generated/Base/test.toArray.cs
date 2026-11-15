@@ -12,24 +12,24 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object obj1 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj1 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "b", 3 },
                 { "c", 2 },
             };
-            object obj2 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj2 = new Dictionary<string, object>() {
                 { "a", "x" },
                 { "b", 2 },
             };
-            object result1 = exchange.toArray(obj1);
-            object result2 = exchange.toArray(obj2);
+            IList<object> result1 = exchange.toArray(obj1);
+            IList<object> result2 = exchange.toArray(obj2);
             // we can't guarantee order of values in GO lang
             // AssertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
             // AssertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
             //
-            Assert(isEqual(getArrayLength(result1), 3), "testToArray: length of result1 should be 3");
-            Assert(isEqual(getArrayLength(result2), 2), "testToArray: length of result2 should be 2");
-            Assert(isTrue(isTrue(exchange.inArray(1, result1)) && isTrue(exchange.inArray(3, result1))) && isTrue(exchange.inArray(2, result1)), "testToArray: result1 should include 1, 3, and 2");
+            Assert(((result1?.Count ?? 0) == 3), "testToArray: length of result1 should be 3");
+            Assert(((result2?.Count ?? 0) == 2), "testToArray: length of result2 should be 2");
+            Assert(isTrue(exchange.inArray(1, result1)) && isTrue(exchange.inArray(3, result1)) && isTrue(exchange.inArray(2, result1)), "testToArray: result1 should include 1, 3, and 2");
             Assert(isTrue(exchange.inArray("x", result2)) && isTrue(exchange.inArray(2, result2)), "testToArray: result2 should include \"x\" and 2");
         }
 }

@@ -1,27 +1,47 @@
+import { Int, Str, Dict, Dictionary, Num } from '../types.js';
 interface CustomArray extends Array<any> {
-    hashmap: object;
+    hashmap: Dictionary<any>;
 }
 declare class BaseCache extends Array {
-    constructor(maxSize?: any);
+    maxSize: Int;
+    constructor(maxSize?: Int);
     clear(): void;
+    removeAt(index: Int): any;
 }
 declare class ArrayCache extends BaseCache implements CustomArray {
-    hashmap: object;
-    constructor(maxSize?: any);
-    getLimit(symbol: any, limit: any): any;
-    append(item: any): void;
+    hashmap: Dictionary<any>;
+    nestedNewUpdatesBySymbol: boolean;
+    newUpdatesBySymbol: Dictionary<number>;
+    seenUpdatesBySymbol: Dictionary<Set<any>>;
+    seenUpdatesAll: Dictionary<Set<any>>;
+    clearUpdatesBySymbol: Dictionary<boolean>;
+    allNewUpdates: number;
+    clearAllUpdates: boolean;
+    constructor(maxSize?: Int);
+    getLimit(symbol: Str, limit: Int): Int;
+    clear(): void;
+    append(item: Dict): void;
 }
 declare class ArrayCacheByTimestamp extends BaseCache {
-    constructor(maxSize?: any);
-    getLimit(symbol: any, limit: any): any;
-    append(item: any): void;
+    hashmap: Dictionary<any>;
+    sizeTracker: Set<any>;
+    newUpdates: number;
+    clearUpdates: boolean;
+    constructor(maxSize?: Int);
+    getLimit(symbol: Str, limit: Int): Int;
+    clear(): void;
+    append(item: Num[]): void;
 }
 declare class ArrayCacheBySymbolById extends ArrayCache {
-    constructor(maxSize?: any);
-    append(item: any): void;
+    keyField: Str;
+    constructor(maxSize?: Int);
+    append(item: Dict): void;
+}
+declare class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
+    constructor(maxSize?: Int);
 }
 declare class ArrayCacheBySymbolBySide extends ArrayCache {
     constructor();
-    append(item: any): void;
+    append(item: Dict): void;
 }
-export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, };
+export { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheByOutcomeById, ArrayCacheBySymbolBySide, };

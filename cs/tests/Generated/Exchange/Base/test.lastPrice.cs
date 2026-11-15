@@ -7,9 +7,9 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testLastPrice(Exchange exchange, object skippedProperties, object method, object entry, object symbol)
+    public static void testLastPrice(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "ETH/BTC" },
             { "timestamp", 1502962946216 },
@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
             { "price", exchange.parseNumber("1.234") },
             { "side", "buy" },
         };
-        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "side", "price"}; // binance sometimes provides empty prices for old pairs
+        List<object> emptyAllowedFor = new List<object>() {"timestamp", "datetime", "side", "price"}; // binance sometimes provides empty prices for old pairs
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         //

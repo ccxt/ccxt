@@ -8,10 +8,12 @@ import (
 	"math/rand/v2"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
 	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
@@ -55,7 +57,9 @@ func benchmarks(exchangeName string) {
 	settings := make(map[string]any)
 	settings["markets"] = marketsContent.(map[string]any)
 	suc := true
-	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+	if isPredictionExchange(exchangeName) {
+		exchange, suc = ccxtprediction.DynamicallyCreateInstance(exchangeName, settings)
+	} else if slices.Contains(ccxtpro.Exchanges, exchangeName) {
 		exchange, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, settings)
 	} else {
 		exchange, suc = ccxt.DynamicallyCreateInstance(exchangeName, settings)
@@ -411,6 +415,19 @@ func SetCredentials(instance ccxt.ICoreExchange) {
 	}
 }
 
+// isPredictionExchange reports whether id should resolve from the prediction namespace:
+// regular ids win for ids present in both (e.g. hyperliquid); --prediction / -p forces
+// the prediction namespace, and prediction is the fallback for prediction-only ids
+func isPredictionExchange(exchangeName string) bool {
+	if !slices.Contains(ccxtprediction.Exchanges, exchangeName) {
+		return false
+	}
+	if containsStr(os.Args, "--prediction") || containsStr(os.Args, "-p") {
+		return true
+	}
+	return !slices.Contains(ccxt.Exchanges, exchangeName)
+}
+
 func main() {
 
 	args := os.Args
@@ -434,8 +451,12 @@ func main() {
 	exchangeIds := IoFileRead(exchangeFile, true)
 	exchangeIdsMap := exchangeIds.(map[string]any)
 	exchangeIdsList := exchangeIdsMap["ids"].([]any)
+	predictionIdsList := []any{}
+	if predictionRaw, ok := exchangeIdsMap["prediction"]; ok {
+		predictionIdsList = predictionRaw.([]any)
+	}
 
-	if !contains(exchangeIdsList, exchangeName) {
+	if !contains(exchangeIdsList, exchangeName) && !contains(predictionIdsList, exchangeName) {
 		panic(Red + "Exchange not found in exchanges.json" + Reset)
 	}
 
@@ -465,6 +486,9 @@ func main() {
 				parameters = append(parameters, true)
 			} else if arg == "false" {
 				parameters = append(parameters, false)
+			} else if numeric, isNumeric := parseNumericArg(arg); isNumeric {
+				// mirror the ts cli: "123" -> int, "0.5" -> float, so the typed args (amount, price, since, limit) are accepted
+				parameters = append(parameters, numeric)
 			} else {
 				parameters = append(parameters, arg)
 			}
@@ -491,7 +515,9 @@ func main() {
 	cmdSettings := InitOptions(flags)
 	var instance ccxt.ICoreExchange
 	suc := true
-	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+	if isPredictionExchange(exchangeName) {
+		instance, suc = ccxtprediction.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	} else if slices.Contains(ccxtpro.Exchanges, exchangeName) {
 		instance, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
 	} else {
 		instance, suc = ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
@@ -506,12 +532,20 @@ func main() {
 		SetCredentials(instance)
 	}
 
-	<-instance.LoadMarkets()
+	loaded := <-instance.LoadMarketsAsync()
+	if loaded.Err != nil {
+		fmt.Println(Red + loaded.Err.Error() + Reset)
+		os.Exit(1)
+	}
 
 	before := time.Now().UnixMilli()
 	for true {
 		res := <-instance.CallInternal(method, parameters...)
-		PrettyPrintData(res)
+		if res.Err != nil {
+			fmt.Println(Red + res.Err.Error() + Reset)
+		} else {
+			PrettyPrintData(res.Value)
+		}
 
 		if !strings.HasPrefix(method, "watch") {
 			break
@@ -521,4 +555,30 @@ func main() {
 
 	fmt.Println("Execution time: ", Yellow, after-before, "ms", Reset)
 
+}
+
+// parseNumericArg converts a positional cli argument that looks like a number, like the ts cli does
+func parseNumericArg(arg string) (any, bool) {
+	if arg == "" {
+		return nil, false
+	}
+	if isDigitsOnly(arg) {
+		if asInt, err := strconv.ParseInt(arg, 10, 64); err == nil {
+			return asInt, true
+		}
+		return nil, false
+	}
+	if asFloat, err := strconv.ParseFloat(arg, 64); err == nil {
+		return asFloat, true
+	}
+	return nil, false
+}
+
+func isDigitsOnly(arg string) bool {
+	for _, c := range arg {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
 }

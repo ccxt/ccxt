@@ -8,8 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class okxus extends \ccxt\pro\okx {
-
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'okxus',
             'name' => 'OKX (US)',
@@ -17,7 +16,7 @@ class okxus extends \ccxt\pro\okx {
             'urls' => array(
                 'api' => array(
                     'rest' => 'https://{hostname}',
-                    'ws' => 'wss://wsus.okx.com:8443/ws/v5',
+                    'ws' => 'wss://wsus.okx.com:443/ws/v5',
                 ),
                 'www' => 'https://app.okx.com',
                 'doc' => 'https://app.okx.com/docs-v5/en/#overview',
@@ -27,11 +26,11 @@ class okxus extends \ccxt\pro\okx {
                     'discount' => 0.2,
                 ),
                 'test' => array(
-                    'ws' => 'wss://wsuspap.okx.com:8443/ws/v5',
+                    'ws' => 'wss://wsuspap.okx.com:443/ws/v5',
                 ),
             ),
             'has' => array(
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
             ),

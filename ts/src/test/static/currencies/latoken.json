@@ -340,5 +340,35 @@
                 "max": null
             }
         }
+    },
+    "Unobtanium": {
+        "info": {
+            "id": "cd8789a9-f715-4a7f-a390-a1f3cf408ef1",
+            "status": "CURRENCY_STATUS_ACTIVE",
+            "type": "CURRENCY_TYPE_CRYPTO",
+            "name": "Unobtanium",
+            "tag": "UNO",
+            "description": "Unobtanium",
+            "logo": "",
+            "decimals": 8,
+            "created": 1601980941166,
+            "tier": 3,
+            "assetClass": "ASSET_CLASS_UNKNOWN",
+            "minTransferAmount": 0
+        },
+        "id": "cd8789a9-f715-4a7f-a390-a1f3cf408ef1",
+        "code": "Unobtanium",
+        "precision": 1e-08,
+        "type": "crypto",
+        "name": "Unobtanium",
+        "active": true,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": 0
+            },
+            "withdraw": {}
+        }
     }
 }

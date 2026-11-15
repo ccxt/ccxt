@@ -344,7 +344,7 @@
                                     }
                                 }
                             },
-                            "ARB": {
+                            "ARBITRUM": {
                                 "info": {
                                     "network_id": "ARB",
                                     "withdrawal_fee": "1.18000000",
@@ -354,7 +354,7 @@
                                     "confirmation_required": "10"
                                 },
                                 "id": "ARB",
-                                "network": "ARB",
+                                "network": "ARBITRUM",
                                 "active": null,
                                 "deposit": true,
                                 "withdraw": true,
@@ -1945,6 +1945,32 @@
                         "USD": 29.01316839415396
                     }
                 }
+            },
+            {
+                "description": "fetchBalance for an unfunded account, data is an empty array",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "id": 1793260909580,
+                    "method": "private/user-balance",
+                    "code": 0,
+                    "result": {
+                        "data": []
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": 1793260909580,
+                        "method": "private/user-balance",
+                        "code": 0,
+                        "result": {
+                            "data": []
+                        }
+                    },
+                    "free": {},
+                    "used": {},
+                    "total": {}
+                }
             }
         ],
         "fetchPositions": [
@@ -1994,13 +2020,14 @@
                         "timestamp": 1700838000031,
                         "datetime": "2023-11-24T15:00:00.031Z",
                         "hedged": null,
-                        "side": "buy",
-                        "contracts": "4.7",
+                        "side": "long",
+                        "contracts": 4.7,
                         "contractSize": 1,
                         "entryPrice": null,
                         "markPrice": null,
                         "notional": null,
                         "leverage": null,
+                        "positionMargin": null,
                         "collateral": 310.16670833333336,
                         "initialMargin": 330.598,
                         "maintenanceMargin": null,
@@ -2009,7 +2036,7 @@
                         "unrealizedPnl": 14.721750955418,
                         "liquidationPrice": null,
                         "marginMode": null,
-                        "percentage": null,
+                        "percentage": 4.45,
                         "marginRatio": null,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
@@ -2305,13 +2332,14 @@
                   "timestamp": 1712055034409,
                   "datetime": "2024-04-02T10:50:34.409Z",
                   "hedged": null,
-                  "side": "buy",
-                  "contracts": "0.1",
+                  "side": "long",
+                  "contracts": 0.1,
                   "contractSize": 1,
                   "entryPrice": null,
                   "markPrice": null,
                   "notional": null,
                   "leverage": null,
+                  "positionMargin": null,
                   "collateral": 9.9728,
                   "initialMargin": 9.9728,
                   "maintenanceMargin": null,
@@ -2320,7 +2348,7 @@
                   "unrealizedPnl": -0.003390752,
                   "liquidationPrice": null,
                   "marginMode": null,
-                  "percentage": null,
+                  "percentage": -0.03,
                   "marginRatio": null,
                   "stopLossPrice": null,
                   "takeProfitPrice": null

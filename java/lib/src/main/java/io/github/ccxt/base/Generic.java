@@ -43,7 +43,7 @@ public class Generic {
 
     // ---------- sortBy ----------
 
-    public static List<Object> sortBy(Object array, Object value1, Object desc2, Object defaultValue2) {
+    public static <T> List<T> sortBy(Object array, Object value1, Object desc2, Object defaultValue2) {
         boolean desc = (desc2 instanceof Boolean b) ? b : false;
         Object defaultValue = (defaultValue2 != null) ? defaultValue2 : "";
         List<Object> lst = (List<Object>) array;
@@ -65,7 +65,7 @@ public class Generic {
             });
         }
         if (desc) Collections.reverse(sorted);
-        return sorted;
+        return (List<T>) (List<?>) sorted;
     }
 
     /**
@@ -106,7 +106,7 @@ public class Generic {
         }
     }
 
-    public static List<Object> sortBy2(Object array, Object key1, Object key2, Object desc2) {
+    public static <T> List<T> sortBy2(Object array, Object key1, Object key2, Object desc2) {
         boolean desc = (desc2 instanceof Boolean b) ? b : false;
         List<Object> lst = (List<Object>) array;
 
@@ -123,14 +123,14 @@ public class Generic {
                 }, Comparator.nullsFirst(Comparator.naturalOrder()))
             );
             if (desc) Collections.reverse(sorted);
-            return sorted;
+            return (List<T>) (List<?>) sorted;
         }
         return null;
     }
 
     // ---------- filterBy ----------
 
-    public static List<Object> filterBy(Object aa, Object key, Object value) {
+    public static <T> List<T> filterBy(Object aa, Object key, Object value) {
         List<Object> targetA;
         if (aa instanceof List) {
             targetA = (List<Object>) aa;
@@ -146,7 +146,7 @@ public class Generic {
                 out.add(elem);
             }
         }
-        return out;
+        return (List<T>) (List<?>) out;
     }
 
     // ---------- extend / Extend (shallow merge) ----------
@@ -158,13 +158,14 @@ public class Generic {
     public static Map<String, Object> Extend(Object aa, Object bb) {
         Map<String, Object> a = (Map<String, Object>) aa;
         Map<String, Object> out = new LinkedHashMap<>();
-        // Snapshot the source maps before iterating: callers commonly pass
-        // shared state like Exchange.options (Collections.synchronizedMap-wrapped)
-        // that another thread may be writing concurrently. Iterating directly
-        // would throw ConcurrentModificationException; the snapshot is cheap
-        // and decouples us from the caller's locking discipline.
-        for (Map.Entry<String, Object> e : snapshotEntries(a)) {
-            out.put(e.getKey(), e.getValue());
+        // Sources are either caller-owned or copy-on-write stores that publish an immutable
+        // map on every write, so the snapshot below needs no external lock.
+        // a may be null/undefined in transpiled code (extend(this.safeDict(...), x)) —
+        // JS Object.assign tolerates that, so must we
+        if (a != null) {
+            for (Map.Entry<String, Object> e : snapshotEntries(a)) {
+                out.put(e.getKey(), e.getValue());
+            }
         }
         if (bb != null) {
             Map<String, Object> b = (Map<String, Object>) bb;
@@ -176,12 +177,9 @@ public class Generic {
     }
 
     private static List<Map.Entry<String, Object>> snapshotEntries(Map<String, Object> map) {
-        // synchronized() is a no-op for an unwrapped HashMap and the correct
-        // lock for a Collections.synchronizedMap. Either way the returned
-        // ArrayList is detached from the source.
-        synchronized (map) {
-            return new ArrayList<>(map.entrySet());
-        }
+        // The map is owned by this thread or is an immutable published snapshot, so the
+        // returned ArrayList detaches from a source that no one mutates in place.
+        return new ArrayList<>(map.entrySet());
     }
 
     // ---------- deepExtend2 (older impl kept as-is) ----------

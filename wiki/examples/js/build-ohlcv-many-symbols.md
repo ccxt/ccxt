@@ -1,8 +1,6 @@
-- [Build Ohlcv Many Symbols](./examples/js/)
-
-
- ```javascript
- 'use strict';
+```javascript
+// @NO_AUTO_TRANSPILE
+'use strict';
 import asTable from 'as-table';
 import ccxt from '../../js/ccxt.js';
 console.log('CCXT Version:', ccxt.version);
@@ -55,5 +53,5 @@ async function main() {
     }
 }
 main();
- 
+
 ```
