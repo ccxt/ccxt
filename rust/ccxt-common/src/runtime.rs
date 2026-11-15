@@ -417,9 +417,33 @@ pub fn get_value_mut<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
     }
 }
 
-pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
-    match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => {
+/// ral-48b: the receiver of `add_element_to_object`: a boxed `Value`, a typed map local (`Dict`) or an optional one
+/// (`Option<Dict>`). The map arms run the very hooks the boxed `Value::Dict` arm ran (book meta, ws subscriptions, ws
+/// subscription fields, cache hashmap buckets) on the local's own handle, so a tagged map keeps its write-through.
+pub trait AddTarget { fn add_element(&mut self, key: &Value, val: Value); }
+impl AddTarget for Value {
+    fn add_element(&mut self, key: &Value, val: Value) {
+        match (self, key) {
+            (Value::Dict(m), _) => add_element_to_map(m, key, val),
+            (Value::Arr(a), Value::Int(i)) => {
+                let idx = *i as usize;
+                let a = Arc::make_mut(a);
+                while a.len() <= idx { a.push(Value::Null); }
+                a[idx] = val;
+            }
+            _ => {}
+        }
+    }
+}
+impl AddTarget for crate::value::Dict { fn add_element(&mut self, key: &Value, val: Value) { add_element_to_map(self, key, val) } }
+/// `None` is the boxed `Null` receiver: the write is skipped, as the helper skipped it.
+impl AddTarget for Option<crate::value::Dict> {
+    fn add_element(&mut self, key: &Value, val: Value) { if let Some(m) = self { add_element_to_map(m, key, val) } }
+}
+
+fn add_element_to_map(m: &mut crate::value::Dict, key: &Value, val: Value) {
+    match key {
+        Value::Str(k) => {
             if crate::value::try_book_meta_write(m, k, &val) { return; }
             // Persist to the live client AND update the local snapshot (see
             // set_value) so a read-back of client.subscriptions is coherent.
@@ -431,15 +455,15 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
             crate::value::try_cache_hashmap_write(m, k, &val);
             Arc::make_mut(m).insert(k.to_string(), val);
         }
-        (Value::Dict(m), other) => { Arc::make_mut(m).insert(stringify_simple(other), val); }
-        (Value::Arr(a), Value::Int(i)) => {
-            let idx = *i as usize;
-            let a = Arc::make_mut(a);
-            while a.len() <= idx { a.push(Value::Null); }
-            a[idx] = val;
-        }
-        _ => {}
+        other => { Arc::make_mut(m).insert(stringify_simple(other), val); }
     }
+}
+
+/// `obj[key] = val`. ral-48b: `obj` is any `AddTarget` (a boxed `Value`, a `Dict` or `Option<Dict>` local), `key` any
+/// `ValueKey` (a boxed `&Value` or a typed string), `val` anything that boxes into a `Value`.
+pub fn add_element_to_object(obj: &mut impl AddTarget, key: impl crate::value::ValueKey, val: impl Into<Value>) {
+    let val = val.into();
+    key.with_key(|k| obj.add_element(k, val));
 }
 
 pub fn remove(obj: &mut Value, key: &Value) {
@@ -1418,3 +1442,53 @@ pub fn to_fixed(x: &Value, digits: &Value) -> Value {
 }
 
 // ── Value helpers used by transpiled code in HashMap-construction blocks ─────
+
+#[cfg(test)]
+mod ral48b_add_target_tests {
+    use super::*;
+    use crate::value::Dict;
+
+    fn map(pairs: &[(&str, i64)]) -> HashMap<String, Value> {
+        pairs.iter().map(|(k, v)| (k.to_string(), Value::Int(*v))).collect()
+    }
+
+    /// A typed `Dict` / `Option<Dict>` receiver writes exactly what the boxed `Value::Dict` receiver wrote, for a string
+    /// key, a typed string key, a non-string key and a `None` receiver (skipped, as the boxed `Null` was).
+    #[test]
+    fn ral48b_add_target_typed_maps_write_like_the_boxed_map() {
+        for key in [Value::Str("a".into()), Value::Str("new".into()), Value::Int(3), Value::Null] {
+            let mut boxed = Value::Dict(Arc::new(map(&[("a", 1)])));
+            let mut typed: Dict = Arc::new(map(&[("a", 1)]));
+            let mut opt: Option<Dict> = Some(Arc::new(map(&[("a", 1)])));
+            add_element_to_object(&mut boxed, &key, Value::Int(9));
+            add_element_to_object(&mut typed, &key, 9i64);
+            add_element_to_object(&mut opt, &key, Value::Int(9));
+            assert_eq!(Value::Dict(typed), boxed);
+            assert_eq!(opt.map(Value::Dict).unwrap_or(Value::Null), boxed);
+        }
+        let mut typed: Dict = Arc::new(map(&[]));
+        add_element_to_object(&mut typed, "k", Value::Int(1));
+        add_element_to_object(&mut typed, Some("j"), Value::Int(2));
+        assert_eq!(Value::Dict(typed), Value::Dict(Arc::new(map(&[("k", 1), ("j", 2)]))));
+        let mut none: Option<Dict> = None;
+        let mut null = Value::Null;
+        add_element_to_object(&mut none, "k", Value::Int(1));
+        add_element_to_object(&mut null, "k", Value::Int(1));
+        assert!(none.is_none());
+        assert_eq!(null, Value::Null);
+    }
+
+    /// The `Dict` arm writes through the local's own handle: a shared map copies on write, the other holder keeps the old
+    /// map, the very copy-on-write the boxed arm made; a list receiver still writes its index.
+    #[test]
+    fn ral48b_add_target_copy_on_write_and_list_index() {
+        let shared: Dict = Arc::new(map(&[("a", 1)]));
+        let mut typed = Arc::clone(&shared);
+        add_element_to_object(&mut typed, "b", Value::Int(2));
+        assert_eq!(shared.len(), 1);
+        assert_eq!(typed.get("b"), Some(&Value::Int(2)));
+        let mut list = Value::Arr(Arc::new(vec![Value::Int(0)]));
+        add_element_to_object(&mut list, &Value::Int(2), Value::Int(5));
+        assert_eq!(list, Value::Arr(Arc::new(vec![Value::Int(0), Value::Null, Value::Int(5)])));
+    }
+}
