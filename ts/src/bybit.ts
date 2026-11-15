@@ -1699,7 +1699,7 @@ export default class bybit extends Exchange {
             // parts to avoid misclassifying ids that merely contain "-C"/"-P"
             isOption = (partsLength > 3) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.endsWith ('-C-USDT')) || (marketId.endsWith ('-P-USDT')));
         }
-        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
+        if (isOption && (marketId !== undefined) && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
