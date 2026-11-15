@@ -3039,3 +3039,35 @@ mod opt_dict_merge_operand_tests {
         assert_eq!(nops, vec![Value::Null]);
     }
 }
+
+#[cfg(test)]
+mod reader_default_split_tests {
+    // ral-41d: a reader whose default is another reader (or an `i64` / `String` expression) prints that default into a
+    // typed temp first and hands it on as `Value::from(tmp)`. The nested reader answers `Str|Null` (`Int|Null`), so the
+    // native read and the box give back the very `Value` the nested reader handed the outer one before.
+    use super::*;
+
+    fn nested(k: u8) -> Value {
+        match k {
+            0 => Value::Null, 1 => Value::Str("".into()), 2 => Value::Str("l2Vault".into()),
+            3 => Value::Str(Cow::Owned("0xabc".to_string())), 4 => Value::Int(0), 5 => Value::Int(-7), _ => Value::Int(i64::MAX),
+        }
+    }
+
+    #[test]
+    fn typed_temp_boxes_back_to_the_nested_value() {
+        for k in 0..=6u8 {
+            let held = nested(k);
+            let typed = if k < 4 { Value::from(nested(k).as_str().map(str::to_owned)) } else { Value::from(nested(k).as_i64()) };
+            assert_eq!(typed, held, "{:?}", held);
+        }
+    }
+
+    #[test]
+    fn i64_expression_default_boxes_to_the_int_the_helper_added() {
+        for (a, b) in [(0i64, 7776000i64), (1_700_000_000, 7776000), (-5, 5)] {
+            let helper = match (&Value::Int(a), &Value::Int(b)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), _ => Value::Null };
+            assert_eq!(Value::from(a + b), helper);
+        }
+    }
+}
