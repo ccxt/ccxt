@@ -230,6 +230,7 @@ class cex(ccxt.async_support.cex):
         self.handle_trades_inner(client, message)
 
     def handle_trades_inner(self, client: Client, message: dict):
+        # elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
         data = self.safe_list(message, 'data', [])
         symbol = self.safe_string(self.options['watchTrades'], 'symbol')
         if symbol is None:
@@ -242,8 +243,7 @@ class cex(ccxt.async_support.cex):
         dataLength = len(data)
         for i in range(0, dataLength):
             index = dataLength - 1 - i
-            rawTrade = data[index]
-            parsed = self.parse_ws_old_trade(rawTrade, market)
+            parsed = self.parse_ws_old_trade(data[index], market)
             stored.append(parsed)
         messageHash = 'trades'
         self.trades[symbol] = stored
