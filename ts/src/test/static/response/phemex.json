@@ -18,7 +18,7 @@
                     }
                 ],
                 "httpResponseByUrl": {
-                    "end=1792454399000": {
+                    "symbol=.JUPUSDTFR8H&limit=3&end=1792454399000": {
                         "code": 0,
                         "msg": "OK",
                         "data": {
@@ -44,7 +44,7 @@
                             ]
                         }
                     },
-                    "end=1792411199999": {
+                    "symbol=.JUPUSDTFR8H&limit=3&end=1792411199999": {
                         "code": 0,
                         "msg": "OK",
                         "data": {
