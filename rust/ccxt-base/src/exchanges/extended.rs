@@ -3854,20 +3854,21 @@ impl Extended {
             (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
             Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut nonce: Option<i64> = self.safe_integer_k(params.clone(), "nonce", &[self.nonce()]).as_i64();
-        let mut positionId: Value = self.safe_string2(params.clone(), Value::Str("positionId".into()), Value::Str("l2Vault".into()), &[(match account.get("l2Vault") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
+        let __rd_positionId: Option<String> = (match account.get("l2Vault") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut positionId: Option<String> = self.safe_string2(params.clone(), Value::Str("positionId".into()), Value::Str("l2Vault".into()), &[Value::from(__rd_positionId)]).as_str().map(str::to_owned);
         let mut recipient: Option<String> = self.safe_string_k(params.clone(), "recipient", &[address]).as_str().map(str::to_owned);
         let mut currencyInfo: crate::value::Dict = currency.get("info").cloned().unwrap_or_default().into_dict();
         let mut collateralId: Option<String> = self.safe_string_k(params.clone(), "collateralId", &[self.safe_string2(&currencyInfo, Value::Str("starkexId".into()), Value::Str("l1Id".into()), &[])]).as_str().map(str::to_owned);
         let mut resolution: Option<i64> = self.safe_integer_k(params, "resolution", &[self.safe_integer2(&currencyInfo, Value::Str("starkexResolution".into()), Value::Str("l1Resolution".into()), &[])]).as_i64();
         let mut starkKey: Option<String> = (match account.get("l2Key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        if (positionId == Value::Null) || (collateralId.is_none()) || (resolution.is_none()) || (starkKey.is_none()) {
+        if (positionId.is_none()) || (collateralId.is_none()) || (resolution.is_none()) || (starkKey.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")));
         }
         let mut amount: Option<String> = self.get_extended_stark_amount(amountString, resolution, &[]).as_str().map(str::to_owned);
         let mut settlement: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("recipient".to_string(), recipient.map(Value::from).unwrap_or(Value::Null));
-                m.insert("positionId".to_string(), positionId);
+                m.insert("positionId".to_string(), positionId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("collateralId".to_string(), collateralId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiration".to_string(), Value::Map({
@@ -3907,12 +3908,14 @@ impl Extended {
         let mut settlementExpiration: Value = self.safe_integer_k(params.clone(), "settlementExpiration", &[(match (&(Value::from(self.parse_to_int(Value::Float(((((now + 999)) as f64) / 1000.0))))), &(Value::Int(1814400))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y),
             (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
         let mut nonce: Option<i64> = self.safe_integer_k(params.clone(), "nonce", &[self.nonce()]).as_i64();
-        let mut fromVault: Value = self.safe_string2(params.clone(), Value::Str("fromVault".into()), Value::Str("senderPositionId".into()), &[(match account.get("l2Vault") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
-        let mut fromL2Key: Value = self.safe_string2(params.clone(), Value::Str("fromL2Key".into()), Value::Str("senderPublicKey".into()), &[(match account.get("l2Key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
+        let __rd_fromVault: Option<String> = (match account.get("l2Vault") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut fromVault: Option<String> = self.safe_string2(params.clone(), Value::Str("fromVault".into()), Value::Str("senderPositionId".into()), &[Value::from(__rd_fromVault)]).as_str().map(str::to_owned);
+        let __rd_fromL2Key: Option<String> = (match account.get("l2Key") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut fromL2Key: Option<String> = self.safe_string2(params.clone(), Value::Str("fromL2Key".into()), Value::Str("senderPublicKey".into()), &[Value::from(__rd_fromL2Key)]).as_str().map(str::to_owned);
         let mut currencyInfo: crate::value::Dict = currency.get("info").cloned().unwrap_or_default().into_dict();
         let mut collateralId: Option<String> = self.safe_string2(params.clone(), Value::Str("assetId".into()), Value::Str("collateralId".into()), &[self.safe_string2(&currencyInfo, Value::Str("starkexId".into()), Value::Str("l1Id".into()), &[])]).as_str().map(str::to_owned);
         let mut resolution: Option<i64> = self.safe_integer_k(params, "resolution", &[self.safe_integer2(&currencyInfo, Value::Str("starkexResolution".into()), Value::Str("l1Resolution".into()), &[])]).as_i64();
-        if (fromVault == Value::Null) || (fromL2Key == Value::Null) || (collateralId.is_none()) || (resolution.is_none()) {
+        if (fromVault.is_none()) || (fromL2Key.is_none()) || (collateralId.is_none()) || (resolution.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")));
         }
         let mut transferAmount: Option<String> = self.get_extended_stark_amount(amountString, resolution, &[]).as_str().map(str::to_owned);
@@ -3924,8 +3927,8 @@ impl Extended {
                 m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("receiverPositionId".to_string(), toVault);
                 m.insert("receiverPublicKey".to_string(), toL2Key);
-                m.insert("senderPositionId".to_string(), fromVault);
-                m.insert("senderPublicKey".to_string(), fromL2Key);
+                m.insert("senderPositionId".to_string(), fromVault.map(Value::from).unwrap_or(Value::Null));
+                m.insert("senderPublicKey".to_string(), fromL2Key.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut msgHash: Option<String> = self.get_extended_transfer_msg_hash(Value::Map(settlement.clone()));

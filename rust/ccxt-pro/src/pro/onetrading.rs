@@ -449,11 +449,11 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_557: bool = true;
             while { if !__for_first_557 { i += 1; } __for_first_557 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if self.in_array(key.clone(), &reserved) {
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            if self.in_array(Value::from(key.as_deref()), &reserved) {
                 continue;
             }
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&balance, &key)); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(key.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&balance, &Value::from(key))); }
         }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }

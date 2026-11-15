@@ -5980,15 +5980,15 @@ impl Htx {
         if (keysLength == 0) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " networkCodeToId() - markets need to be loaded at first")));
         }
-        let mut uniqueNetworkIds: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("networkChainIdsByNames")).cloned().unwrap_or(Value::Null), currencyCode.clone(), &[Value::Map({
+        let mut uniqueNetworkIds: crate::value::Dict = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("networkChainIdsByNames")).cloned().unwrap_or(Value::Null), currencyCode.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        if (matches!((&uniqueNetworkIds, &networkCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return (if let (Some(__m), Some(__k)) = (uniqueNetworkIds.as_map(), networkCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+})]).into_dict();
+        if (matches!(&networkCode, Value::Str(__k) if uniqueNetworkIds.contains_key(__k.as_ref()))) {
+            return crate::value::KeyRead::read(&&uniqueNetworkIds, &networkCode);
         }  else {
             let mut networkTitle: Value = self.super_network_code_to_id(networkCode, &[currencyCode]);
-            return self.safe_string(uniqueNetworkIds, networkTitle.clone(), &[networkTitle.clone()]);
+            return self.safe_string(&uniqueNetworkIds, networkTitle.clone(), &[networkTitle.clone()]);
         }
 
     Value::Null

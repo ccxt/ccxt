@@ -1860,7 +1860,7 @@ impl Whitebit {
 }))); }
                 }
                 add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("info".into())), &entry, feeInfo.clone());
-                let mut networkId: Value = self.safe_string(&splitEntry, Value::Int(1), &[]);
+                let mut networkId: Option<String> = self.safe_string(&splitEntry, Value::Int(1), &[]).as_str().map(str::to_owned);
                 let mut withdraw: crate::value::Dict = self.safe_dict_k(feeInfo.clone(), "withdraw", &[]).into_dict();
                 let mut deposit: crate::value::Dict = self.safe_dict_k(feeInfo, "deposit", &[]).into_dict();
                 let mut withdrawFee: Option<f64> = self.safe_number_k(&withdraw, "fixed", &[]).as_f64();
@@ -1877,12 +1877,10 @@ impl Whitebit {
                         m.insert("percentage".to_string(), (if (depositFee.is_some()) { Value::Bool(false) } else { Value::Null }));
                     m
                 });
-                if (networkId != Value::Null) {
-                    let mut networkLength: i64 = networkId.len() as i64;
-                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[(match (&(networkId), 1i64, (match &(Value::Int((networkLength - 1))) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv),
-                        __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-                        __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                        Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }), code.clone()]));
+                if (networkId.is_some()) {
+                    let mut networkLength: i64 = (networkId.as_deref().unwrap_or_default().chars().count() as i64);
+                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 1, ((networkLength - 1))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l));
+                        __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None }).map(Value::from).unwrap_or(Value::Null), code.clone()]));
                     if (networkCode != Value::Null) {
                         add_element_to_object(get_value_mut(get_value_mut(&mut depositWithdrawFees, &code), &Value::Str("networks".into())), &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2587,9 +2585,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_1158: bool = true;
                     while { if !__for_first_1158 { i += 1; } __for_first_1158 = false; i < (marketIds.len() as i64) } {
-                    let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                     let mut marketNew: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[Value::Str("_".into())]);
-                    let mut marketOrders: crate::value::List = self.safe_list(&response, marketId.map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
+                    let mut marketOrders: crate::value::List = self.safe_list(&response, Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_1157: bool = true;

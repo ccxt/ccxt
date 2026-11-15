@@ -2419,7 +2419,7 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_425: bool = true;
             while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (currencyIds.len() as i64) } {
-            let mut currencyId: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             if (codes != Value::Null) && !self.in_array(&code, codes.clone()) {
                 continue;
@@ -2567,10 +2567,10 @@ impl Bitso {
             m
         });
         let mut depositResponse: crate::value::List = self.safe_list_k(response.clone(), "deposit_fees", &[Value::from(vec![])]).into_list();
-        let mut withdrawalResponse: Value = self.safe_dict_k(response, "withdrawal_fees", &[Value::Map({
+        let mut withdrawalResponse: crate::value::Dict = self.safe_dict_k(response, "withdrawal_fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         {
                         let mut i: i64 = 0;
             let mut __for_first_426: bool = true;
@@ -2605,15 +2605,15 @@ impl Bitso {
             }
         }
         }
-        let mut withdrawalKeys: Vec<Value> = Value::Array(withdrawalResponse.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut withdrawalKeys: Vec<Value> = Value::Array(withdrawalResponse.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_427: bool = true;
             while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (withdrawalKeys.len() as i64) } {
-            let mut currencyId: Option<String> = withdrawalKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            let mut currencyId: Option<&str> = withdrawalKeys.get(i as usize).and_then(Value::as_str);
+            let mut code: Value = self.safe_currency_code(Value::from(currencyId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone())) {
-                let mut withdrawFee: Value = self.parse_number((if let (Some(__m), Some(__k)) = (withdrawalResponse.as_map(), currencyId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]);
+                let mut withdrawFee: Value = self.parse_number(crate::value::KeyRead::read(&&withdrawalResponse, &Value::from(currencyId)), &[]);
                 let mut resultValue: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]).into_opt_dict();
                 if (resultValue.is_none()) {
                     result.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({

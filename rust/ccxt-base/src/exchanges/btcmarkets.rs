@@ -2038,15 +2038,15 @@ impl Btcmarkets {
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
         let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", self.version.clone()).into()), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.keysort(self.omit(params, self.extract_params(path), &[]), &[]);
+        let mut query: crate::value::Dict = self.keysort(self.omit(params, self.extract_params(path), &[]), &[]).into_dict();
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut nonce: String = format!("{}", self.nonce());
             let mut secret: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, request).into()), nonce);
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    request.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                    request.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
                 }
             }  else {
                 let mut jsonBody: Option<String> = json_stringify(&query).as_str().map(str::to_owned);
@@ -2065,8 +2065,8 @@ impl Btcmarkets {
                 m
             }));
         }  else if (apiName.as_deref() == Some("public")) {
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                request.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                request.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
         let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);

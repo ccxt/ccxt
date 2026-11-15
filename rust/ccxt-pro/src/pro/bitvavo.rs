@@ -1485,18 +1485,19 @@ impl Bitvavo {
         let mut params: crate::value::Dict = self.safe_dict_k(subscription.clone(), "params", &[]).into_dict();
         // multi-symbol watches share one subscription object without a marketId,
         // in that case the buffered delta message identifies the market
-        let mut marketId: Value = self.safe_string2(subscription.clone(), Value::Str("marketId".into()), Value::Str("market".into()), &[(match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
-        let mut snapshotSymbol: Option<String> = self.safe_symbol(marketId.clone(), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
+        let __rd_marketId: Option<String> = (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string2(subscription.clone(), Value::Str("marketId".into()), Value::Str("market".into()), &[Value::from(__rd_marketId)]).as_str().map(str::to_owned);
+        let mut snapshotSymbol: Option<String> = self.safe_symbol(Value::from(marketId.as_deref()), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
         if !(self.orderbooks.has(&snapshotSymbol)) {
             return Value::Null;
         }
         let mut name: String = "getBook".to_string();
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, "@").into()), marketId);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, "@").into()), marketId.as_deref().unwrap_or("null"));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::from(name));
-                m.insert("market".to_string(), marketId);
+                m.insert("market".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);

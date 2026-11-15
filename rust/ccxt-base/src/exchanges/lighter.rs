@@ -1128,12 +1128,12 @@ impl Lighter {
         let mut signer: Value = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[Value::from(&paramsAccountIndex)]).await;
         let __ws_arg_3 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_create_sub_account(signer, __ws_arg_3).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
-                m.insert("tx_info".to_string(), txInfo);
+                m.insert("tx_type".to_string(), Value::from(txType));
+                m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
         return self.public_post_send_tx(&[Value::Map(request)]).await;
@@ -1717,13 +1717,13 @@ if _try_result.is_err() {
         if totalOrderRequests > 1 {
             // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
             // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
-            let mut groupOrderExpiry: Value = self.sum(&[Value::Int(self.milliseconds()), Value::Int(2419200000)]); // 28 days
+            let mut groupOrderExpiry: i64 = ((self.milliseconds()) + 2419200000); // 28 days
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_930: bool = true;
                 while { if !__for_first_930 { i += 1; } __for_first_930 = false; i < totalOrderRequests } {
                 if (self.safe_integer_k(orderRequests.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "order_expiry", &[]).as_f64() == Value::Int(-1).as_f64()) {
-                    add_element_to_object(get_value_mut(&mut orderRequests, &Value::Int(i)), &Value::Str("order_expiry".into()), groupOrderExpiry.clone());
+                    add_element_to_object(get_value_mut(&mut orderRequests, &Value::Int(i)), &Value::Str("order_expiry".into()), Value::from(groupOrderExpiry));
                 }
             }
             }
@@ -1798,13 +1798,13 @@ if _try_result.is_err() {
     m
 }));
         let txTypetxInfoorderVariable: Vec<Value> = self.sign_and_create_order("createOrder", symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).await.as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoorderVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<String> = txTypetxInfoorderVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut txInfo: Value = txTypetxInfoorderVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut order: Value = txTypetxInfoorderVariable.get(2).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
+                m.insert("tx_type".to_string(), txType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("tx_info".to_string(), txInfo);
             m
         });
@@ -1895,12 +1895,12 @@ if _try_result.is_err() {
         }
         let __ws_arg_11 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_modify_order(signer, __ws_arg_11).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
-                m.insert("tx_info".to_string(), txInfo);
+                m.insert("tx_type".to_string(), Value::from(txType));
+                m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
@@ -3712,12 +3712,12 @@ if _try_result.is_err() {
         });
         let __ws_arg_25 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_transfer(signer, __ws_arg_25).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
-                m.insert("tx_info".to_string(), txInfo);
+                m.insert("tx_type".to_string(), Value::from(txType));
+                m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
@@ -4170,12 +4170,12 @@ if _try_result.is_err() {
         });
         let __ws_arg_29 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_withdraw(signer, __ws_arg_29).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
-                m.insert("tx_info".to_string(), txInfo);
+                m.insert("tx_type".to_string(), Value::from(txType));
+                m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
@@ -4558,12 +4558,12 @@ if _try_result.is_err() {
         });
         let __ws_arg_32 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_update_leverage(signer, __ws_arg_32).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
-                m.insert("tx_info".to_string(), txInfo);
+                m.insert("tx_type".to_string(), Value::from(txType));
+                m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
         return self.public_post_send_tx(&[Value::Map(request)]).await;
@@ -4615,9 +4615,9 @@ if _try_result.is_err() {
         }
         let __ws_arg_33 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_cancel_order(signer, __ws_arg_33).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
-        return Value::from(vec![txType, txInfo]);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+        return Value::from(vec![Value::from(txType), txInfo.map(Value::from).unwrap_or(Value::Null)]);
 
     Value::Null
 }
@@ -4646,13 +4646,13 @@ if _try_result.is_err() {
     m
 }));
         let txTypetxInfoVariable: Vec<Value> = self.sign_and_cancel_order("cancelOrder", id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).await.as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
-                m.insert("tx_info".to_string(), txInfo);
+                m.insert("tx_type".to_string(), Value::from(txType));
+                m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
@@ -4696,9 +4696,9 @@ if _try_result.is_err() {
         }
         let __ws_arg_34 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_cancel_all_orders(signer, __ws_arg_34).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
-        return Value::from(vec![txType, txInfo]);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+        return Value::from(vec![Value::from(txType), txInfo.map(Value::from).unwrap_or(Value::Null)]);
 
     Value::Null
 }
@@ -4725,12 +4725,12 @@ if _try_result.is_err() {
     m
 }));
         let txTypetxInfoVariable: Vec<Value> = self.sign_and_cancel_all_orders("cancelAllOrdersWs", symbol.as_str(), &[params]).await.as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
-                m.insert("tx_info".to_string(), txInfo);
+                m.insert("tx_type".to_string(), Value::from(txType));
+                m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
@@ -4789,12 +4789,12 @@ if _try_result.is_err() {
         });
         let __ws_arg_35 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_cancel_all_orders(signer, __ws_arg_35).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
-                m.insert("tx_info".to_string(), txInfo);
+                m.insert("tx_type".to_string(), Value::from(txType));
+                m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
@@ -4926,12 +4926,12 @@ if _try_result.is_err() {
         });
         let __ws_arg_38 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
         let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_update_margin(signer, __ws_arg_38).as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("tx_type".to_string(), txType);
-                m.insert("tx_info".to_string(), txInfo);
+                m.insert("tx_type".to_string(), Value::from(txType));
+                m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();

@@ -1724,11 +1724,11 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_482: bool = true;
             while { if !__for_first_482 { i += 1; } __for_first_482 = false; i < (codes.len() as i64) } {
-            let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("total".into(), self.safe_string(Value::Map(totals.clone()), code.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-            account.insert("free".into(), self.safe_string(Value::Map(frees.clone()), code.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-            account.insert("used".into(), self.safe_string(Value::Map(useds.clone()), code.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+            account.insert("total".into(), self.safe_string(Value::Map(totals.clone()), Value::from(code.as_deref()), &[]));
+            account.insert("free".into(), self.safe_string(Value::Map(frees.clone()), Value::from(code.as_deref()), &[]));
+            account.insert("used".into(), self.safe_string(Value::Map(useds.clone()), Value::from(code.as_deref()), &[]));
             result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }

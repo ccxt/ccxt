@@ -9127,10 +9127,10 @@ impl Bingx {
                 m.insert("timestamp".to_string(), self.nonce());
             m
         })]);
-        let mut paramsSorted: Value = self.keysort(__ws_arg_82, &[]);
+        let mut paramsSorted: crate::value::Dict = self.keysort(__ws_arg_82, &[]).into_dict();
         if (access.as_deref() == Some("public")) {
-            if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsSorted.clone(), &[])).into())).into());
+            if ((Value::Array(paramsSorted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsSorted, &[])).into())).into());
             }
         }  else if (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -9138,9 +9138,9 @@ impl Bingx {
             let mut parsedParams: Value = Value::Null;
             let mut encodeRequest: Option<String> = None;
             if isJsonContentType {
-                encodeRequest = self.custom_encode(paramsSorted.clone());
+                encodeRequest = self.custom_encode(&paramsSorted);
             }  else {
-                parsedParams = self.parse_params(paramsSorted.clone());
+                parsedParams = self.parse_params(&paramsSorted);
                 encodeRequest = Some(self.rawencode(parsedParams.clone(), &[Value::Bool(true)]));
             }
             let mut encodeRequestSafe: Option<String> = (if (encodeRequest.is_none()) { Some("".to_string()) } else { encodeRequest });
@@ -9157,7 +9157,7 @@ impl Bingx {
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
                 })]);
-                add_element_to_object(&mut paramsSorted, &Value::Str("signature".into()), Value::from(signature.clone()));
+                std::sync::Arc::make_mut(&mut paramsSorted).insert("signature".into(), Value::from(signature.clone()));
                 requestBody = json_stringify(&paramsSorted).as_str().map(str::to_owned);
             }  else {
                 let mut query: String = self.urlencode(parsedParams, &[Value::Bool(true)]);

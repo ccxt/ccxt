@@ -944,9 +944,9 @@ impl Coinspot {
                                         let mut j: i64 = 0;
                     let mut __for_first_581: bool = true;
                     while { if !__for_first_581 { j += 1; } __for_first_581 = false; j < (currencyIdsList.len() as i64) } {
-                    let mut currencyId: Option<String> = currencyIdsList.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut currencyId: Option<&str> = currencyIdsList.get(j as usize).and_then(Value::as_str);
                     let mut balance: crate::value::Dict = self.safe_dict(&currencies, Value::from(currencyId.as_deref()), &[]).into_dict();
-                    let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+                    let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                     let mut account: crate::value::Dict = self.account().into_dict();
                     std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
                     if (code.is_some()) {
@@ -962,10 +962,10 @@ impl Coinspot {
                                 let mut i: i64 = 0;
                 let mut __for_first_583: bool = true;
                 while { if !__for_first_583 { i += 1; } __for_first_583 = false; i < (currencyIdsMap.len() as i64) } {
-                let mut currencyId: Option<String> = currencyIdsMap.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut currencyId: Option<&str> = currencyIdsMap.get(i as usize).and_then(Value::as_str);
                 let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
-                std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string(balances.clone(), currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
+                std::sync::Arc::make_mut(&mut account).insert("total".into(), self.safe_string(balances.clone(), Value::from(currencyId.as_deref()), &[]));
                 if (code.is_some()) {
                     result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }

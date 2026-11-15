@@ -5764,15 +5764,15 @@ pub trait ExchangeBase:
     fn filter_by_array(&self, objects: impl Rows, mut key: Value, values: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut values: Value = values.into();
         let mut indexed = get_arg(optional_args, 0, Value::Bool(true));
-        let mut objectsValue: Value = self.to_array(Rows::rows(objects));
+        let mut objectsValue: crate::value::List = self.to_array(Rows::rows(objects)).into_list();
         // return all of them if no values were passed
         if (values == Value::Null) || (values == Value::Null) || ((match &(values) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 0.0) })) || ((match &(values) { Value::Int(__x) => *__x == 0, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) || (values.as_str() == Some("")) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if indexed.as_bool() == Some(true) {
-                return self.index_by(objectsValue.clone(), key.clone());
+                return self.index_by(Value::from(&objectsValue), key.clone());
             }  else {
-                return objectsValue;
+                return Value::from(&objectsValue);
             }
         }
         let mut results: Vec<Value> = Vec::new();
@@ -5780,8 +5780,8 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_131: bool = true;
             while { if !__for_first_131 { i += 1; } __for_first_131 = false; i < (objectsValue.len() as i64) } {
-            if self.in_array(get_value(&objectsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &key), values.clone()) {
-                results.push(objectsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            if self.in_array(get_value(&crate::value::KeyRead::read(&&objectsValue, &Value::Int(i)), &key), values.clone()) {
+                results.push(crate::value::KeyRead::read(&&objectsValue, &Value::Int(i)));
             }
         }
         }
@@ -5797,15 +5797,15 @@ pub trait ExchangeBase:
     fn filter_out_by_array(&self, mut objects: Value, mut key: Value, optional_args: &[Value]) -> Value {
         let mut values = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
-        let mut objectsValue: Value = self.to_array(objects);
+        let mut objectsValue: crate::value::List = self.to_array(objects).into_list();
         // return all of them if no values were passed
         if (values == Value::Null) || (values == Value::Null) || ((match &(values) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
             Some(__y) if __y == 0.0) })) || ((match &(values) { Value::Int(__x) => *__x == 0, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) || (values.as_str() == Some("")) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if indexed.as_bool() == Some(true) {
-                return self.index_by(objectsValue.clone(), key.clone());
+                return self.index_by(Value::from(&objectsValue), key.clone());
             }  else {
-                return objectsValue;
+                return Value::from(&objectsValue);
             }
         }
         let mut results: Vec<Value> = Vec::new();
@@ -5813,8 +5813,8 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_132: bool = true;
             while { if !__for_first_132 { i += 1; } __for_first_132 = false; i < (objectsValue.len() as i64) } {
-            if !self.in_array(get_value(&objectsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &key), values.clone()) {
-                results.push(objectsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            if !self.in_array(get_value(&crate::value::KeyRead::read(&&objectsValue, &Value::Int(i)), &key), values.clone()) {
+                results.push(crate::value::KeyRead::read(&&objectsValue, &Value::Int(i)));
             }
         }
         }
@@ -7984,12 +7984,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         let mut serverTime: Value = crate::types::IntoRaw::into_raw(self.fetch_time(params).await);
-        let mut after: Value = Value::Int(self.milliseconds());
+        let mut after: i64 = self.milliseconds();
         if (serverTime == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " loadTimeDifference() missing serverTime")));
         }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("timeDifference".into(), (match (&(after), &(serverTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("timeDifference".into(), (match (&(Value::from(after)), &(serverTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64),
+            (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
         return Value::from(self.parse_to_int(self.options.as_map().and_then(|__m| __m.get("timeDifference")).cloned().unwrap_or(Value::Null)));
 
     Value::Null
@@ -8875,13 +8875,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
-        let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+        let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut lowercaseAccount: Value = (if let Some(__s) = (account).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
-        if (matches!((&accountsByType, &lowercaseAccount), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return (if let (Some(__m), Some(__k)) = (accountsByType.as_map(), lowercaseAccount.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        if (matches!(&lowercaseAccount, Value::Str(__k) if accountsByType.contains_key(__k.as_ref()))) {
+            return crate::value::KeyRead::read(&&accountsByType, &lowercaseAccount);
         }
         let mut markets: Value = self.markets.clone();
         let mut marketsById: Value = self.markets_by_id.clone();

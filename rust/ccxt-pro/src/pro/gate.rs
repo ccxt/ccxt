@@ -1963,13 +1963,13 @@ impl Gate {
             let mut __for_first_326: bool = true;
             while { if !__for_first_326 { i += 1; } __for_first_326 = false; i < (result.len() as i64) } {
             let mut ohlcv: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut subscription: Value = self.safe_string_k(&ohlcv, "n", &[Value::Str("".into())]);
-            let mut parts: crate::value::List = Value::Array(if let Some(__s) = subscription.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut subscription: String = self.safe_string_k(&ohlcv, "n", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut parts: crate::value::List = Value::Array(subscription.split("_").map(Value::from).collect()).into_list();
             let mut timeframeId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut timeframe: Option<String> = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut prefix: Value = Value::Str(format!("{}{}", timeframe.as_deref().unwrap_or("null"), "_").into());
-            let mut marketId: Value = subscription.as_str().zip(prefix.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| subscription.clone());
-            let mut symbol: Value = self.safe_symbol(marketId, None, &[Value::Str("_".into()), Value::from(marketType.clone())]);
+            let mut prefix: String = format!("{}{}", timeframe.as_deref().unwrap_or("null"), "_");
+            let mut marketId: String = subscription.replace(prefix.as_str(), "");
+            let mut symbol: Value = self.safe_symbol(Value::from(marketId), None, &[Value::Str("_".into()), Value::from(marketType.clone())]);
             let mut parsed: Value = self.parse_ohlcv(Value::from(&ohlcv), None);
             if (marketType == "spot") {
                 // spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns

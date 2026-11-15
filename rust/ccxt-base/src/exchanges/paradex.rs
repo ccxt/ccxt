@@ -1804,7 +1804,7 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -1814,12 +1814,12 @@ impl Paradex {
         let mut price: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         if (price.is_some()) {
             // the exchange names the index price "underlying" and rejects "index"
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_kind".into(), (if (price.as_deref() == Some("index")) { Value::Str("underlying".into()) } else { price.clone().map(Value::from).unwrap_or(Value::Null) })); }
+            request.insert("price_kind".into(), (if (price.as_deref() == Some("index")) { Value::Str("underlying".into()) } else { price.clone().map(Value::from).unwrap_or(Value::Null) }));
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params, &[]).as_array().cloned().unwrap_or_default();
-        let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request.clone()), params, &[]).as_array().cloned().unwrap_or_default();
+        let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut hasEnd: bool = matches!(&request, Value::Dict(__d) if __d.contains_key("end_at"));
+        let mut hasEnd: bool = request.contains_key("end_at");
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, &["price"], &[]).into_dict();
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         let mut limitResolved: Option<i64> = (if ((limit == Value::Null) || (limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64))) { Some(1000) } else { limit.as_i64() });
@@ -1827,16 +1827,16 @@ impl Paradex {
             Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("start_at".into(), since.clone());
             if !hasEnd {
                 let mut sinceInt: Option<i64> = self.parse_to_int(since.clone());
-                if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_at".into(), Value::from((if let Some(__l) = ((if let (Some(__l), Some(__r)) = (sinceInt, windowLength) { Some(__l + __r) } else { None })) { Some(__l - 1) } else { None }))); }
+                std::sync::Arc::make_mut(&mut requestUntil).insert("end_at".into(), Value::from((if let Some(__l) = ((if let (Some(__l), Some(__r)) = (sinceInt, windowLength) { Some(__l + __r) } else { None })) { Some(__l - 1) } else { None })));
             }
         }  else {
-            let mut endAtRaw: Option<i64> = self.safe_integer_k(requestUntil.clone(), "end_at", &[Value::Int(self.milliseconds())]).as_i64();
+            let mut endAtRaw: Option<i64> = self.safe_integer_k(&requestUntil, "end_at", &[Value::Int(self.milliseconds())]).as_i64();
             let mut endAt: Option<i64> = self.parse_to_int(Value::from(endAtRaw));
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_at".into(), Value::from(endAt)); }
-            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_at".into(), Value::from((if let Some(__l) = ((if let (Some(__l), Some(__r)) = (endAt, windowLength) { Some(__l - __r) } else { None })) { Some(__l + 1) } else { None }))); }
+            std::sync::Arc::make_mut(&mut requestUntil).insert("end_at".into(), Value::from(endAt));
+            std::sync::Arc::make_mut(&mut requestUntil).insert("start_at".into(), Value::from((if let Some(__l) = ((if let (Some(__l), Some(__r)) = (endAt, windowLength) { Some(__l - __r) } else { None })) { Some(__l + 1) } else { None })));
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_markets_klines(&[__ws_arg_1]).await.into_dict();

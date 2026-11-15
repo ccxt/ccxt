@@ -322,12 +322,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_192: bool = true;
             while { if !__for_first_192 { i += 1; } __for_first_192 = false; i < (chars.len() as i64) } {
-            let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
+            let mut ch: Option<String> = chars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), ch.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 if pendingSep && (s != "") {
                     s = format!("{}{}", s, " ");
                 }
-                s = format!("{}{}", s, ch);
+                s = format!("{}{}", s, ch.as_deref().unwrap_or("null"));
                 pendingSep = false;
             }  else {
                 pendingSep = true;
@@ -682,9 +682,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_199: bool = true;
             while { if !__for_first_199 { i += 1; } __for_first_199 = false; i < (chars.len() as i64) } {
-            let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
-                s = Value::Str(format!("{}{}", s, ch).into());
+            let mut ch: Option<String> = chars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), ch.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
+                s = Value::Str(format!("{}{}", s, ch.as_deref().unwrap_or("null")).into());
                 lastDash = false;
             }  else if !lastDash {
                 s = Value::Str(format!("{}{}", s, "-").into());
@@ -758,12 +758,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_202: bool = true;
             while { if !__for_first_202 { i += 1; } __for_first_202 = false; i < (chars.len() as i64) } {
-            let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
+            let mut ch: Option<String> = chars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), ch.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 if pendingSep && (label.as_str() != Some("")) {
                     label = Value::Str(format!("{}{}", label, "_").into());
                 }
-                label = Value::Str(format!("{}{}", label, ch).into());
+                label = Value::Str(format!("{}{}", label, ch.as_deref().unwrap_or("null")).into());
                 pendingSep = false;
             }  else {
                 pendingSep = true;

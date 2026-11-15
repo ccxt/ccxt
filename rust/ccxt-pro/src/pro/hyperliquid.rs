@@ -2498,7 +2498,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_410: bool = true;
             while { if !__for_first_410 { i += 1; } __for_first_410 = false; i < (keys.len() as i64) } {
-            let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&stored), innerMessageHash.as_str());
         }
@@ -2540,19 +2540,15 @@ impl Hyperliquid {
         //
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         if (channel.as_deref() == Some("error")) {
-            let mut ret_msg: Value = (match message.get("data") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-            if ret_msg.as_str().unwrap_or("").contains("Already subscribed") {
+            let mut ret_msg: String = (match message.get("data") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+            if ret_msg.contains("Already subscribed") {
                 return Value::Bool(true);
             }
-            if ret_msg.as_str().unwrap_or("").contains("Already unsubscribed") {
+            if ret_msg.contains("Already unsubscribed") {
                 // the requested state is already reached, so the unWatch call resolves through the
                 // regular unsubscription handler, the subscription is echoed only inside the text
-                let mut subscriptionStart: Value = Value::Int(ret_msg.as_str().and_then(|__s| __s.find("{")).map(|__i| __i as i64).unwrap_or(-1));
-                let mut subscription: Value = self.parse_json_value((match (&(ret_msg), (match &(subscriptionStart) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0),
-                    (match &(Value::Null) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-                    __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-                    __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                    Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null }));
+                let mut subscriptionStart: i64 = (if let (Some(__h), Some(__n)) = (Some(ret_msg.as_str()), Some("{")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+                let mut subscription: Value = self.parse_json_value(Value::from(({ let (__l, __b) = (ret_msg.chars().count() as i64, subscriptionStart); ret_msg.chars().skip((if __b < 0 { __l + __b } else { __b }).clamp(0, __l) as usize).collect::<String>() })));
                 if (subscription != Value::Null) {
                     self.handle_unsubscription(client.clone(), subscription);
                     return Value::Bool(true);

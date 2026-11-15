@@ -4006,11 +4006,11 @@ impl Poloniex {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let requestextraParamscurrencynetworkEntryVariable: Vec<Value> = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestextraParamscurrencynetworkEntryVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut extraParams: Value = requestextraParamscurrencynetworkEntryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut extraParams: crate::value::Dict = requestextraParamscurrencynetworkEntryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut currency: Value = requestextraParamscurrencynetworkEntryVariable.get(2).cloned().unwrap_or(Value::Null);
         let mut networkEntry: Value = requestextraParamscurrencynetworkEntryVariable.get(3).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = extraParams;
-        let __ws_arg_31 = self.extend(request, &[paramsValue]);
+        let mut paramsValue: crate::value::Dict = Value::from(&extraParams).into_dict();
+        let __ws_arg_31 = self.extend(request, &[&paramsValue]);
         let mut response: Value = self.private_post_wallets_address(&[__ws_arg_31]).await;
         return self.parse_deposit_address_special(response, currency, networkEntry);
         Value::Null
@@ -4040,11 +4040,11 @@ impl Poloniex {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let requestextraParamscurrencynetworkEntryVariable: Vec<Value> = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestextraParamscurrencynetworkEntryVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
-        let mut extraParams: Value = requestextraParamscurrencynetworkEntryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut extraParams: crate::value::Dict = requestextraParamscurrencynetworkEntryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut currency: Value = requestextraParamscurrencynetworkEntryVariable.get(2).cloned().unwrap_or(Value::Null);
         let mut networkEntry: Value = requestextraParamscurrencynetworkEntryVariable.get(3).cloned().unwrap_or(Value::Null);
-        let mut paramsValue: Value = extraParams;
-        let __ws_arg_32 = self.extend(request, &[paramsValue]);
+        let mut paramsValue: crate::value::Dict = Value::from(&extraParams).into_dict();
+        let __ws_arg_32 = self.extend(request, &[&paramsValue]);
         let mut response: Value = self.private_get_wallets_addresses(&[__ws_arg_32]).await;
         //
         //     {

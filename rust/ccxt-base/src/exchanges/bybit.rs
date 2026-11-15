@@ -14248,8 +14248,8 @@ impl Bybit {
                         m.insert("timestamp".to_string(), timestamp);
                     m
                 })]).into_dict();
-                let mut sortedQuery: Value = self.keysort(Value::from(&query), &[]);
-                let mut auth: Value = Value::from(self.rawencode(sortedQuery.clone(), &[Value::Bool(true)]));
+                let mut sortedQuery: crate::value::Dict = self.keysort(Value::from(&query), &[]).into_dict();
+                let mut auth: Value = Value::from(self.rawencode(&sortedQuery, &[Value::Bool(true)]));
                 let mut signature: Value = Value::Null;
                 if self.secret.as_str().unwrap_or("").contains("PRIVATE KEY") {
                     signature = Value::from(rsa(auth.clone(), self.secret.clone(), Value::Str("sha256".into())));
@@ -14279,7 +14279,7 @@ impl Bybit {
                         });
                     }
                 }  else {
-                    url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path).into()), "?").into()), self.rawencode(sortedQuery, &[Value::Bool(true)]));
+                    url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path).into()), "?").into()), self.rawencode(&sortedQuery, &[Value::Bool(true)]));
                     url.push_str(&format!("{}{}", "&sign=", signature));
                 }
             }

@@ -673,7 +673,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_523: bool = true;
             while { if !__for_first_523 { i += 1; } __for_first_523 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut timeframes: Vec<Value> = object_keys(&updates.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
@@ -681,7 +681,7 @@ impl Ndax {
                 while { if !__for_first_522 { j += 1; } __for_first_522 = false; j < (timeframes.len() as i64) } {
                 let mut timeframe: Option<String> = timeframes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), timeframe.as_deref().unwrap_or("null")).into()), ":").into()), marketId.as_deref().unwrap_or("null"));
-                let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
+                let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
                 let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut symbolOhlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
                 client.resolve(Value::from(&symbolOhlcv), messageHash.as_str());

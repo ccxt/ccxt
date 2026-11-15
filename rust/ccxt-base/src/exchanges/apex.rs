@@ -2923,8 +2923,8 @@ impl Apex {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(params.clone(), &[])));
             }
         }  else {
-            let mut sortedQuery: Value = self.keysort(params, &[]);
-            signBody = Some(self.rawencode(sortedQuery, &[]));
+            let mut sortedQuery: crate::value::Dict = self.keysort(params, &[]).into_dict();
+            signBody = Some(self.rawencode(&sortedQuery, &[]));
         }
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);

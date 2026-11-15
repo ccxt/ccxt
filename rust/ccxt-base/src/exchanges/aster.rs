@@ -5891,7 +5891,7 @@ impl Aster {
 
     pub fn encode_values_with_json(&self, values: impl Into<crate::Value>) -> Option<String> {
         let mut values: Value = values.into();
-        let mut encodedString: Value = Value::Str("".into());
+        let mut encodedString: String = "".to_string();
         let mut keys: Vec<Value> = Value::Array(values.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -5902,10 +5902,10 @@ impl Aster {
             let mut isObj: bool = (matches!(&value, Value::Arr(_))) || self.is_dictionary(value.clone()).as_bool() == Some(true);
             let mut valueJsonified: Value = (if isObj { json_stringify(&value) } else { to_string_val(&value) });
             let mut encoded: Option<String> = self.encode_uri_component(valueJsonified).as_str().map(str::to_owned);
-            encodedString = Value::Str(format!("{}{}", encodedString, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), encoded.as_deref().unwrap_or("null")).into()), "&").into())).into());
+            encodedString.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), encoded.as_deref().unwrap_or("null")).into()), "&"));
         }
         }
-        return encodedString.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return Value::from(({ let (__l, __b, __e) = (encodedString.chars().count() as i64, 0, -1); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); encodedString.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })).as_str().map(str::to_owned);
 }
 
     pub fn capitalize_keys(&self, dict: impl Into<crate::Value>) -> Value {

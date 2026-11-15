@@ -898,11 +898,11 @@ impl Predictfun {
                                 let mut mi: i64 = 0;
                 let mut __for_first_1458: bool = true;
                 while { if !__for_first_1458 { mi += 1; } __for_first_1458 = false; mi < parsedMarketsLength } {
-                let mut m: Value = parsedMarkets.get(mi as usize).cloned().unwrap_or(Value::Null);
+                let mut m: crate::value::Dict = parsedMarkets.get(mi as usize).cloned().unwrap_or(Value::Null).into_dict();
                 // prediction market rows are keyed by the unified 'market' handle
-                let mut handle: Option<String> = self.safe_string_k_opt(m.clone(), "market", &[]);
+                let mut handle: Option<String> = self.safe_string_k_opt(&m, "market", &[]);
                 if (handle.is_some()) {
-                    if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(handle.as_deref().unwrap_or("null").to_string(), m.clone()); }
+                    if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(handle.as_deref().unwrap_or("null").to_string(), Value::Dict(m)); }
                 }
             }
             }

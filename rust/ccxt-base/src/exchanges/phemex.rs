@@ -2034,15 +2034,15 @@ impl Phemex {
         let mut rawCurrency: Value = rawCurrency.into();
         let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut valueScaleString: Value = self.safe_string_k(rawCurrency.clone(), "valueScale", &[]);
-        let mut valueScale: Value = (match &valueScaleString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
+        let mut valueScaleString: Option<String> = self.safe_string_k(rawCurrency.clone(), "valueScale", &[]).as_str().map(str::to_owned);
+        let mut valueScale: Value = (match valueScaleString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null });
         let mut minValueEv: Option<String> = self.safe_string_k(rawCurrency.clone(), "minValueEv", &[]).as_str().map(str::to_owned);
         let mut maxValueEv: Option<String> = self.safe_string_k(rawCurrency.clone(), "maxValueEv", &[]).as_str().map(str::to_owned);
         let mut minAmount: Option<f64> = None;
         let mut maxAmount: Option<f64> = None;
         let mut precision: Option<f64> = None;
-        if (valueScaleString != Value::Null) {
-            let mut precisionString: Option<String> = self.parse_precision(&[valueScaleString]).as_str().map(str::to_owned);
+        if (valueScaleString.is_some()) {
+            let mut precisionString: Option<String> = self.parse_precision(&[valueScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             precision = self.parse_number(precisionString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             minAmount = self.parse_number(crate::precise::Precise::stringMul(&minValueEv, &precisionString), &[]).as_f64();
             maxAmount = self.parse_number(crate::precise::Precise::stringMul(&maxValueEv, &precisionString), &[]).as_f64();

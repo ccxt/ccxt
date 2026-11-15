@@ -790,7 +790,7 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1305: bool = true;
             while { if !__for_first_1305 { i += 1; } __for_first_1305 = false; i < (eventKeys.len() as i64) } {
-            let mut eventKey: Option<String> = eventKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut eventKey: Option<&str> = eventKeys.get(i as usize).and_then(Value::as_str);
             let mut g: Value = (if let (Some(__m), Some(__k)) = (eventGroups.as_map(), eventKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(eventKey.as_deref().unwrap_or("null").to_string(), self.parse_event(g)); }
         }
@@ -2085,7 +2085,7 @@ impl Limitless {
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: crate::value::Dict = self.outcome(outcome).into_dict();
         let mut slug: Option<String> = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "slug", &[]).as_str().map(str::to_owned);
-        let mut outcomeLabel: Option<String> = self.safe_string_upper_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "outcomeLabel", &[]);
+        let mut outcomeLabel: Option<String> = self.safe_string_upper_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "outcomeLabel", &[]).as_str().map(str::to_owned);
         let mut interval: String = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[Value::Str("1d".into())]).as_str().unwrap_or("1d").to_string();
         let __ws_arg_21 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2153,7 +2153,7 @@ impl Limitless {
                     if (false) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOHLCV() missing title")));
                     }
-                    if (outcomeLabel.is_some()) && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), (outcomeLabel.clone().map(Value::from).unwrap_or(Value::Null)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
+                    if (outcomeLabel.is_some()) && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), outcomeLabel.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                         selectedSeries = Value::Dict(series);
                         break;
                     }
@@ -3246,8 +3246,10 @@ if _try_result.is_err() {
         }
         let mut rpcUrl: Option<String> = (match params.get("rpcUrl") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "rpcUrl", &[]) }).as_str().map(str::to_owned);
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(8453)]).as_i64().unwrap_or(8453);
-        let mut token: Value = (match params.get("token") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "collateralAddress", &[]) });
-        let mut spender: Value = (match params.get("spender") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(self.options.clone(), "exchangeAddress", &[]) });
+        let __rd_token: Option<String> = self.safe_string_k(self.options.clone(), "collateralAddress", &[]).as_str().map(str::to_owned);
+        let mut token: Option<String> = (match params.get("token") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(__rd_token) }).as_str().map(str::to_owned);
+        let __rd_spender: Option<String> = self.safe_string_k(self.options.clone(), "exchangeAddress", &[]).as_str().map(str::to_owned);
+        let mut spender: Option<String> = (match params.get("spender") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(__rd_spender) }).as_str().map(str::to_owned);
         let mut owner: Option<String> = (match params.get("owner") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.walletAddress.clone() }).as_str().map(str::to_owned);
         if (owner.is_none()) {
             owner = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
@@ -3265,8 +3267,8 @@ if _try_result.is_err() {
             amountHex = format!("{:0>64}", amountBase16);
         }
         // approve(spender, amount) -> selector 0x095ea7b3
-        let mut approveData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x095ea7b3".into()), self.pad_hex_address(spender)).into()), amountHex);
-        let mut txHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), owner.map(Value::from).unwrap_or(Value::Null), token, Value::Str("0x0".into()), Value::from(approveData), Value::from(gasLimit)).await;
+        let mut approveData: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x095ea7b3".into()), self.pad_hex_address(spender.map(Value::from).unwrap_or(Value::Null))).into()), amountHex);
+        let mut txHash: Value = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(chainId), owner.map(Value::from).unwrap_or(Value::Null), token.map(Value::from).unwrap_or(Value::Null), Value::Str("0x0".into()), Value::from(approveData), Value::from(gasLimit)).await;
         return self.wait_for_transaction_receipt(rpcUrl.map(Value::from).unwrap_or(Value::Null), txHash, &[]).await;
 
     Value::Null

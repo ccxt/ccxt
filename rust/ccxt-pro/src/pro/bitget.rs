@@ -2651,7 +2651,7 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_121: bool = true;
             while { if !__for_first_121 { i += 1; } __for_first_121 = false; i < (keys.len() as i64) } {
-            let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
             if (channel.as_deref() == Some("orders-crossed")) {
                 innerMessageHash = format!("{}{}", innerMessageHash, ":cross");

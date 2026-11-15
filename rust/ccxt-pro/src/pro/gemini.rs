@@ -571,7 +571,7 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_343: bool = true;
             while { if !__for_first_343 { i += 1; } __for_first_343 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<&str> = symbols.get(i as usize).and_then(Value::as_str);
             let mut symbolStore: Value = storesForSymbols.get(symbol.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut messageHash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
             client.resolve(symbolStore, messageHash.as_str());
@@ -666,17 +666,14 @@ impl Gemini {
         //     }
         //
         let mut type_var: String = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let mut timeframeIdFull: Value = Value::from(type_var.chars().skip(8).collect::<String>());
-        let mut timeframeEndIndex: Value = Value::Int(timeframeIdFull.as_str().and_then(|__s| __s.find("_")).map(|__i| __i as i64).unwrap_or(-1));
-        let mut timeframeId: Value = (match (&(timeframeIdFull), 0i64, (match &(timeframeEndIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-            __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+        let mut timeframeIdFull: String = type_var.chars().skip(8).collect::<String>();
+        let mut timeframeEndIndex: i64 = (if let (Some(__h), Some(__n)) = (Some(timeframeIdFull.as_str()), Some("_")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+        let mut timeframeId: String = ({ let (__l, __b, __e) = (timeframeIdFull.chars().count() as i64, 0, timeframeEndIndex); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); timeframeIdFull.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() });
         let mut marketId: Value = (self.safe_string_k(message.clone(), "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId, Some(&market), &[]).as_str().map(str::to_owned);
         let mut changes: crate::value::List = __pro_message.get("changes").cloned().unwrap_or_default().into_list();
-        let mut timeframe: Option<String> = self.find_timeframe(timeframeId.clone(), &[]);
+        let mut timeframe: Option<String> = self.find_timeframe(Value::from(timeframeId.clone()), &[]);
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }

@@ -1165,13 +1165,13 @@ impl Hyperliquid {
                     std::sync::Arc::make_mut(&mut data).insert("collateralTokenName".into(), collateralTokenCode.clone().map(Value::from).unwrap_or(Value::Null));
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     let mut safeCode: Option<String> = self.safe_currency_code(name.clone().map(Value::from).unwrap_or(Value::Null), None);
-                    let mut hip3Code: Value = (if (safeCode.is_none()) { name.clone().map(Value::from).unwrap_or(Value::Null) } else { (if let Some(__s) = safeCode.as_deref() { Some(__s.replace(":", "-")) } else { None }).map(Value::from).unwrap_or(Value::Null) });
+                    let mut hip3Code: Option<String> = (if (safeCode.is_none()) { name.clone() } else { (if let Some(__s) = safeCode.as_deref() { Some(__s.replace(":", "-")) } else { None }) });
                     if let Value::Dict(__bf03d0) = &mut self.options {
                         let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("hip3TokensByName".to_string()).or_insert(Value::Null);
                         if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(name.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("quote".to_string(), collateralTokenCode.map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), hip3Code);
+        m.insert("code".to_string(), hip3Code.map(Value::from).unwrap_or(Value::Null));
     m
 }));
                         }
@@ -7299,12 +7299,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let config = config.as_map().unwrap_or(&__config_empty);
         if (config.contains_key("byType")) && (in_op(&params, &Value::Str("type".into()))) {
             let mut type_var: Value = crate::value::get_value_k(&params, "type");
-            let mut byType: Value = (match config.get("byType") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            if (matches!((&byType, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return (if let (Some(__m), Some(__k)) = (byType.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut byType: crate::value::Dict = config.get("byType").cloned().unwrap_or_default().into_dict();
+            if (matches!(&type_var, Value::Str(__k) if byType.contains_key(__k.as_ref()))) {
+                return crate::value::KeyRead::read(&&byType, &type_var);
             }
         }
         return (match config.get("cost") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Int(1), Value::Float), _ => Value::Int(1) });

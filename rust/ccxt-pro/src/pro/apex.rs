@@ -648,7 +648,7 @@ impl Apex {
         // Cache it per exchange instance.
         let mut url: Option<String> = self.safe_string_k(self.options.clone(), "wsPublicUrl", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            let mut timeStamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+            let mut timeStamp: String = format!("{}", self.milliseconds());
             let wsEndpoint: String = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[Value::Str("".into())]).unwrap_or_default();
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, "&timestamp=").into()), timeStamp).into())); }
             url = self.safe_string_k(self.options.clone(), "wsPublicUrl", &[Value::Str("".into())]).as_str().map(str::to_owned);
@@ -661,7 +661,7 @@ impl Apex {
     pub fn get_ws_private_url(&mut self) -> Value {
         let mut url: Option<String> = self.safe_string_k(self.options.clone(), "wsPrivateUrl", &[]).as_str().map(str::to_owned);
         if (url.is_none()) {
-            let mut timeStamp: Value = Value::Str(format!("{}", Value::Int(self.milliseconds())).into());
+            let mut timeStamp: String = format!("{}", self.milliseconds());
             let wsEndpoint: String = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).unwrap_or_default();
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, "&timestamp=").into()), timeStamp).into())); }
             url = self.safe_string_k(self.options.clone(), "wsPrivateUrl", &[Value::Str("".into())]).as_str().map(str::to_owned);

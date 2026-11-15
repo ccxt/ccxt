@@ -3189,28 +3189,25 @@ impl Alpaca {
             let mut __for_first_223: bool = true;
             while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (positions.len() as i64) } {
             let mut position: crate::value::Dict = self.safe_dict(&positions, Value::Int(i), &[]).into_dict();
-            let mut positionSymbol: Value = self.safe_string_k(&position, "symbol", &[Value::Str("".into())]);
-            if (positionSymbol.as_str() == Some("")) {
+            let mut positionSymbol: String = self.safe_string_k(&position, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (positionSymbol == "") {
                 continue;
             }
-            let mut baseId: Value = Value::Null;
-            if positionSymbol.as_str().unwrap_or("").contains("/") {
-                let mut parts: crate::value::List = Value::Array(if let Some(__s) = positionSymbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
-                baseId = self.safe_string(&parts, Value::Int(0), &[]);
+            let mut baseId: Option<String> = None;
+            if positionSymbol.contains("/") {
+                let mut parts: crate::value::List = Value::Array(positionSymbol.split("/").map(Value::from).collect()).into_list();
+                baseId = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             }  else {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
-                let mut baseLength: Value = (match (&(Value::Int(positionSymbol.len() as i64)), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                if (baseLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) && (positionSymbol.as_str().unwrap_or("").ends_with("USD")) {
-                    baseId = (match (&(positionSymbol), 0i64, (match &(baseLength) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-                        __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-                        __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                        Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+                let mut baseLength: i64 = (((positionSymbol.chars().count() as i64)) - 3);
+                if (baseLength > 0) && (positionSymbol.ends_with("USD")) {
+                    baseId = Some(({ let (__l, __b, __e) = (positionSymbol.chars().count() as i64, 0, baseLength); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); positionSymbol.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() }));
                 }
             }
-            if (baseId == Value::Null) {
+            if (baseId.is_none()) {
                 continue;
             }
-            let mut positionCode: Option<String> = self.safe_currency_code(baseId, None);
+            let mut positionCode: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
             if (positionCode.is_some()) && !(matches!(positionCode.as_deref(), Some(__k) if result.contains_key(__k))) {
                 let mut positionAccount: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 positionAccount.insert("free".into(), self.safe_string_k(&position, "qty_available", &[]));

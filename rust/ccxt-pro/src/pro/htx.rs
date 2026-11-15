@@ -2441,8 +2441,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_390: bool = true;
             while { if !__for_first_390 { i += 1; } __for_first_390 = false; i < (marginModes.len() as i64) } {
-            let mut marginMode: Option<String> = marginModes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut marginModePositions: Option<crate::value::List> = self.safe_list(positionsByMarginMode.clone(), marginMode.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_opt_list();
+            let mut marginMode: Option<&str> = marginModes.get(i as usize).and_then(Value::as_str);
+            let mut marginModePositions: Option<crate::value::List> = self.safe_list(positionsByMarginMode.clone(), Value::from(marginMode.as_deref()), &[Value::from(vec![])]).into_opt_list();
             let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str(format!("{}{}", marginMode.as_deref().unwrap_or("null"), ":positions::").into()));
             {
                                 let mut j: i64 = 0;

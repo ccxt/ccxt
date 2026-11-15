@@ -1520,10 +1520,10 @@ impl Gemini {
                                 let mut i: i64 = 0;
                 let mut __for_first_714: bool = true;
                 while { if !__for_first_714 { i += 1; } __for_first_714 = false; i < (marketIds.len() as i64) } {
-                let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                 let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("symbol".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
+                        m.insert("symbol".to_string(), Value::from(marketId.as_deref()));
                     m
                 });
                 let __ws_arg_1 = self.extend(Value::Map(request), &[params.clone()]);
@@ -1550,9 +1550,9 @@ impl Gemini {
                                         let mut i: i64 = 0;
                     let mut __for_first_716: bool = true;
                     while { if !__for_first_716 { i += 1; } __for_first_716 = false; i < (marketIds.len() as i64) } {
-                    let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                     let mut pairInfo: Option<crate::value::List> = self.safe_list(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), &[]).into_opt_list();
-                    if (pairInfo.is_some()) && !self.in_array(&marketId, Value::from(&brokenPairs)) {
+                    if (pairInfo.is_some()) && !self.in_array(Value::from(marketId.as_deref()), Value::from(&brokenPairs)) {
                         let mut parsed: Value = self.parse_market(pairInfo.map_or(Value::Null, Value::Arr));
                         if (parsed != Value::Null) {
                             result.push(parsed.clone());
@@ -1615,8 +1615,8 @@ impl Gemini {
         //     }
         //
         let mut marketId: Value = Value::Null;
-        let mut baseId: Value = Value::Null;
-        let mut quoteId: Value = Value::Null;
+        let mut baseId: Option<String> = None;
+        let mut quoteId: Option<String> = None;
         let mut settleId: Option<String> = None;
         let mut tickSize: Option<f64> = None;
         let mut amountPrecision: Option<f64> = None;
@@ -1634,8 +1634,8 @@ impl Gemini {
             tickSize = self.safe_number_k(response.clone(), "quote_increment", &[]).as_f64(); // this is tick-size actually
             minSize = self.safe_number_k(response.clone(), "min_order_size", &[]).as_f64();
             status = self.parse_market_active((self.safe_string_k(response.clone(), "status", &[])).as_str());
-            baseId = self.safe_string_k(response.clone(), "base_currency", &[]);
-            quoteId = self.safe_string_k(response.clone(), "quote_currency", &[]);
+            baseId = self.safe_string_k(response.clone(), "base_currency", &[]).as_str().map(str::to_owned);
+            quoteId = self.safe_string_k(response.clone(), "quote_currency", &[]).as_str().map(str::to_owned);
             settleId = self.safe_string_k(response.clone(), "contract_price_currency", &[]).as_str().map(str::to_owned);
         }  else {
             // if no detailed API was called, then parse either string or array
@@ -1649,16 +1649,16 @@ impl Gemini {
             }
             let mut marketIdUpper: Option<String> = marketId.as_str().map(str::to_uppercase);
             let mut isPerp: bool = marketIdUpper.as_deref().unwrap_or_default().contains("PERP");
-            let mut marketIdWithoutPerp: Value = (if let Some(__s) = marketIdUpper.as_deref() { Some(__s.replace("PERP", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
+            let mut marketIdWithoutPerp: Option<String> = (if let Some(__s) = marketIdUpper.as_deref() { Some(__s.replace("PERP", "")) } else { None });
             let mut conflictingMarkets: Value = self.safe_dict_k(self.options.clone(), "conflictingMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut lowerCaseId: Option<String> = marketIdWithoutPerp.as_str().map(str::to_lowercase);
+            let mut lowerCaseId: Option<String> = marketIdWithoutPerp.as_deref().map(str::to_lowercase);
             if (matches!((&conflictingMarkets, lowerCaseId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 let mut conflictingMarket: crate::value::Dict = (if let (Some(__m), Some(__k)) = (conflictingMarkets.as_map(), lowerCaseId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).into_dict();
-                baseId = self.safe_string_k(&conflictingMarket, "base", &[]);
-                quoteId = self.safe_string_k(&conflictingMarket, "quote", &[]);
+                baseId = self.safe_string_k(&conflictingMarket, "base", &[]).as_str().map(str::to_owned);
+                quoteId = self.safe_string_k(&conflictingMarket, "quote", &[]).as_str().map(str::to_owned);
                 if isPerp {
                     settleId = self.safe_string_k(&conflictingMarket, "quote", &[]).as_str().map(str::to_owned);
                 }
@@ -1668,17 +1668,14 @@ impl Gemini {
                                         let mut i: i64 = 0;
                     let mut __for_first_718: bool = true;
                     while { if !__for_first_718 { i += 1; } __for_first_718 = false; (i as f64) < get_array_length(&quoteCurrencies).as_f64().unwrap_or(f64::NAN) } {
-                    let mut quoteCurrency: Value = self.safe_string(quoteCurrencies.clone(), Value::Int(i), &[Value::Str("".into())]);
-                    if (marketIdWithoutPerp.as_str().zip(quoteCurrency.as_str()).is_some_and(|(__s, __p)| __s.ends_with(__p))) {
-                        let mut quoteLength: Option<i64> = self.parse_to_int((match (&(Value::Int(-1)), &(Value::Int(quoteCurrency.len() as i64))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                            Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
-                        baseId = (match (&(marketIdWithoutPerp), 0i64, (match &(Value::from(quoteLength)) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-                            __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-                            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-                        quoteId = quoteCurrency.clone();
+                    let mut quoteCurrency: String = self.safe_string(quoteCurrencies.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    if ((if let (Some(__h), Some(__n)) = (marketIdWithoutPerp.as_deref(), Some(quoteCurrency.as_str())) { __h.ends_with(__n) } else { false })) {
+                        let mut quoteLength: Option<i64> = self.parse_to_int(Value::Int((-1 * ((quoteCurrency.chars().count() as i64)))));
+                        baseId = (if let Some(__s) = marketIdWithoutPerp.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, quoteLength); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), match __e { Some(__k) => (if __k < 0 { __l + __k } else { __k }).clamp(0, __l), None => __l });
+                            __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
+                        quoteId = Some(quoteCurrency.clone());
                         if isPerp {
-                            settleId = quoteCurrency.into_opt_string(); // always same
+                            settleId = Some(quoteCurrency); // always same
                         }
                         break;
                     }
@@ -1686,8 +1683,8 @@ impl Gemini {
                 }
             }
         }
-        let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
-        let mut quote: Option<String> = self.safe_currency_code(quoteId.clone(), None);
+        let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.as_deref()), None);
+        let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.as_deref()), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
@@ -1712,8 +1709,8 @@ impl Gemini {
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
-        m.insert("baseId".to_string(), baseId);
-        m.insert("quoteId".to_string(), quoteId);
+        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), isSpot);

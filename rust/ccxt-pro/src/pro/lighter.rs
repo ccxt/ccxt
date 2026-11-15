@@ -692,8 +692,8 @@ impl Lighter {
                                 let mut i: i64 = 0;
                 let mut __for_first_468: bool = true;
                 while { if !__for_first_468 { i += 1; } __for_first_468 = false; i < (marketIds.len() as i64) } {
-                let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
+                let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
+                let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
                 let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
                 let mut ticker: crate::value::Dict = self.parse_ticker(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)).into_dict();
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
@@ -1953,7 +1953,7 @@ impl Lighter {
         let mut requestId: Value = Value::Str(format!("{}", nextId).into());
         let mut messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
         let txTypetxInfoorderVariable: Vec<Value> = self.parent.sign_and_create_order("createOrderWs", symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).await.as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoorderVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<String> = txTypetxInfoorderVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut txInfo: Value = txTypetxInfoorderVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut order: Value = txTypetxInfoorderVariable.get(2).cloned().unwrap_or(Value::Null);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1964,7 +1964,7 @@ impl Lighter {
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), requestId.clone());
-        m.insert("tx_type".to_string(), txType);
+        m.insert("tx_type".to_string(), txType.map(Value::from).unwrap_or(Value::Null));
         m.insert("tx_info".to_string(), parsedTx);
     m
 }));
@@ -2011,17 +2011,17 @@ impl Lighter {
         let mut requestId: Value = Value::Str(format!("{}", nextId).into());
         let mut messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
         let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_order("cancelOrderWs", id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).await.as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut parsedTx: Value = self.parse_json_value(txInfo);
+        let mut parsedTx: Value = self.parse_json_value(txInfo.map(Value::from).unwrap_or(Value::Null));
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("jsonapi/sendtx".into()));
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), requestId.clone());
-        m.insert("tx_type".to_string(), txType);
+        m.insert("tx_type".to_string(), Value::from(txType));
         m.insert("tx_info".to_string(), parsedTx);
     m
 }));
@@ -2066,16 +2066,16 @@ impl Lighter {
         let mut requestId: Value = Value::Str(format!("{}", nextId).into());
         let mut messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
         let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_all_orders("cancelAllOrdersWs", symbol.as_str(), &[params]).await.as_array().cloned().unwrap_or_default();
-        let mut txType: Value = txTypetxInfoVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut txInfo: Value = txTypetxInfoVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut parsedTx: Value = self.parse_json_value(txInfo);
+        let mut txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
+        let mut txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut parsedTx: Value = self.parse_json_value(txInfo.map(Value::from).unwrap_or(Value::Null));
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("jsonapi/sendtx".into()));
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), requestId.clone());
-        m.insert("tx_type".to_string(), txType);
+        m.insert("tx_type".to_string(), Value::from(txType));
         m.insert("tx_info".to_string(), parsedTx);
     m
 }));

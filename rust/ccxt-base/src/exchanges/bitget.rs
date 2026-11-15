@@ -5775,16 +5775,16 @@ impl Bitget {
         }
         if self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) {
             // use the api to determine if the account is uta or not
-            let mut accountIsUTa: Value = Value::Bool(false);
+            let mut accountIsUTa: bool = false;
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.private_uta_get_v3_account_settings(&[]).await;
-                accountIsUTa = Value::Bool(true);
+                accountIsUTa = true;
              #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-                accountIsUTa = Value::Bool(false);
+                accountIsUTa = false;
             }
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("uta".into(), accountIsUTa.clone()); }
-            return Value::from(vec![accountIsUTa, Value::from(&paramsUta)]);
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("uta".into(), Value::Bool(accountIsUTa)); }
+            return Value::from(vec![Value::Bool(accountIsUTa), Value::from(&paramsUta)]);
         }
         return Value::from(vec![defaultValue, Value::Dict(paramsUta)]);
 

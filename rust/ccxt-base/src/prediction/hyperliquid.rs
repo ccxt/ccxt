@@ -432,19 +432,12 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_1229: bool = true;
             while { if !__for_first_1229 { i += 1; } __for_first_1229 = false; i < (parts.len() as i64) } {
-            let mut part: Value = parts.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut colonIndex: Value = Value::Int(part.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1));
-            if colonIndex.as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
-                let mut key: Value = (match (&(part), 0i64, (match &(colonIndex) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-                    __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-                    __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                    Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-                let mut value: Value = (match (&(part), (match &((match (&(colonIndex), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
-                    _ => Value::Null })) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(Value::Null) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64),
-                    Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                    Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-                    __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-                result.insert(crate::runtime::stringify_param(&key), value);
+            let mut part: Option<String> = parts.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut colonIndex: i64 = (if let (Some(__h), Some(__n)) = (part.as_deref(), Some(":")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+            if colonIndex > -1 {
+                let mut key: Option<String> = (if let Some(__s) = part.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, colonIndex); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
+                let mut value: Option<String> = (if let Some(__s) = part.as_deref() { Some(({ let (__l, __b) = (__s.chars().count() as i64, ((colonIndex + 1))); __s.chars().skip((if __b < 0 { __l + __b } else { __b }).clamp(0, __l) as usize).collect::<String>() })) } else { None });
+                result.insert(key.as_deref().unwrap_or("null").to_string(), value.map(Value::from).unwrap_or(Value::Null));
             }
         }
         }
@@ -2824,9 +2817,9 @@ impl Hyperliquid {
                                                 let mut wi: i64 = 0;
                         let mut __for_first_1253: bool = true;
                         while { if !__for_first_1253 { wi += 1; } __for_first_1253 = false; wi < wordsLength } {
-                        let mut word: Value = words.get(wi as usize).cloned().unwrap_or(Value::Null);
+                        let mut word: Option<String> = words.get(wi as usize).and_then(Value::as_str).map(str::to_owned);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
-                        if (word.as_str() != Some("")) && (((if let (Some(__h), Some(__n)) = (Some(haystack.as_str()), (word).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) < 0) {
+                        if (word.as_deref() != Some("")) && (((if let (Some(__h), Some(__n)) = (Some(haystack.as_str()), word.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) < 0) {
                             allWords = false;
                             break;
                         }

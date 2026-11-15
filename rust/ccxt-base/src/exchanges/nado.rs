@@ -2568,9 +2568,9 @@ impl Nado {
             }
             let mut tradingStatus: Option<String> = self.safe_string_k(&market, "trading_status", &[]).as_str().map(str::to_owned);
             let mut active: bool = tradingStatus.as_deref() != Some("not_tradable");
-            let mut priceIncrement: Value = self.parse_x18(self.safe_string_k(&market, "price_increment_x18", &[]));
-            let mut amountIncrement: Value = self.parse_x18(self.safe_string_k(&market, "size_increment", &[]));
-            let mut minCost: Value = self.parse_x18(self.safe_string_k(&market, "min_size", &[]));
+            let mut priceIncrement: Option<f64> = self.parse_x18(self.safe_string_k(&market, "price_increment_x18", &[])).as_f64();
+            let mut amountIncrement: Option<f64> = self.parse_x18(self.safe_string_k(&market, "size_increment", &[])).as_f64();
+            let mut minCost: Option<f64> = self.parse_x18(self.safe_string_k(&market, "min_size", &[])).as_f64();
             markets.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -2601,8 +2601,8 @@ impl Nado {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountIncrement);
-        m.insert("price".to_string(), priceIncrement);
+        m.insert("amount".to_string(), Value::from(amountIncrement));
+        m.insert("price".to_string(), Value::from(priceIncrement));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -2627,7 +2627,7 @@ impl Nado {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minCost);
+        m.insert("min".to_string(), Value::from(minCost));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -3363,17 +3363,17 @@ impl Nado {
             }
         }
         let mut feeString: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
-        let mut feeCost: Value = Value::Null;
+        let mut feeCost: Option<f64> = None;
         if isArchiveMatch {
-            feeCost = self.parse_x18(feeString.clone().map(Value::from).unwrap_or(Value::Null));
+            feeCost = self.parse_x18(feeString.clone().map(Value::from).unwrap_or(Value::Null)).as_f64();
         }  else {
-            feeCost = self.parse_number(feeString.map(Value::from).unwrap_or(Value::Null), &[]);
+            feeCost = self.parse_number(feeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut fee: Option<crate::value::Dict> = None;
-        if (feeCost != Value::Null) {
+        if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCost);
+                    m.insert("cost".to_string(), Value::from(feeCost));
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "quote"));
                 m
             }));
@@ -3729,7 +3729,7 @@ impl Nado {
         })]).into_dict();
         let mut preAmount: String = self.safe_string_k(&preSpotBalance, "amount", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut postAmount: String = self.safe_string_k(&postSpotBalance, "amount", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let mut amount: Value = self.parse_x18(crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&postAmount, &preAmount)));
+        let mut amount: Option<f64> = self.parse_x18(crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&postAmount, &preAmount))).as_f64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -3744,7 +3744,7 @@ impl Nado {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string_k(transaction, "transaction_type", &[]));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("updated".to_string(), Value::Null);
@@ -3795,9 +3795,9 @@ impl Nado {
         let mut markPriceX18: Option<String> = self.safe_string2(&risk, Value::Str("price_x18".into()), Value::Str("oracle_price_x18".into()), &[]).as_str().map(str::to_owned);
         let mut vQuoteBalance: Option<String> = self.safe_string_k(&balance, "v_quote_balance", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = None;
-        let mut contracts: Value = Value::Null;
+        let mut contracts: Option<f64> = None;
         let mut entryPrice: Option<f64> = None;
-        let mut markPrice: Value = Value::Null;
+        let mut markPrice: Option<f64> = None;
         let mut notional: Option<f64> = None;
         if (amountString.is_some()) {
             if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -3806,12 +3806,12 @@ impl Nado {
                 side = Some("short".to_string());
             }
             let mut absoluteAmount: Option<String> = crate::precise::Precise::stringAbs(&amountString).as_str().map(str::to_owned);
-            contracts = self.parse_x18(absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null));
+            contracts = self.parse_x18(absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_f64();
             if (vQuoteBalance.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount, &Value::Str("0".into())).as_bool() == Some(true)) {
                 entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteBalance), &absoluteAmount), &[]).as_f64();
             }
             if (markPriceX18.is_some()) {
-                markPrice = self.parse_x18(markPriceX18.clone().map(Value::from).unwrap_or(Value::Null));
+                markPrice = self.parse_x18(markPriceX18.clone().map(Value::from).unwrap_or(Value::Null)).as_f64();
                 let mut notionalX36: Option<String> = crate::precise::Precise::stringMul(&absoluteAmount, &markPriceX18).as_str().map(str::to_owned);
                 notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36, &Value::Str("1000000000000000000000000000000000000".into())), &[]).as_f64();
             }
@@ -3826,10 +3826,10 @@ impl Nado {
         m.insert("isolated".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Bool(false));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("contracts".to_string(), contracts);
+        m.insert("contracts".to_string(), Value::from(contracts));
         m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
         m.insert("entryPrice".to_string(), Value::from(entryPrice));
-        m.insert("markPrice".to_string(), markPrice);
+        m.insert("markPrice".to_string(), Value::from(markPrice));
         m.insert("notional".to_string(), Value::from(notional));
         m.insert("leverage".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
@@ -3934,10 +3934,10 @@ impl Nado {
         let mut timeInForce: Option<String> = None;
         let mut postOnly: Option<bool> = None;
         let mut side: Option<String> = None;
-        let mut price: Value = Value::Null;
-        let mut amount: Value = Value::Null;
-        let mut filled: Value = Value::Null;
-        let mut remaining: Value = Value::Null;
+        let mut price: Option<f64> = None;
+        let mut amount: Option<f64> = None;
+        let mut filled: Option<f64> = None;
+        let mut remaining: Option<f64> = None;
         let mut cost: Value = Value::Null;
         let mut average: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
@@ -3954,31 +3954,31 @@ impl Nado {
             let mut amountString: Option<String> = self.safe_string_k_opt(order.clone(), "amount", &[]);
             if (amountString.is_some()) {
                 side = (if crate::precise::Precise::stringLt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
-                amount = self.parse_x18(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)));
+                amount = self.parse_x18(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null))).as_f64();
             }
-            filled = self.parse_x18(crate::precise::Precise::stringAbs(&archiveFilled));
+            filled = self.parse_x18(crate::precise::Precise::stringAbs(&archiveFilled)).as_f64();
             let mut costString: Option<String> = self.safe_string_k(order.clone(), "quote_filled", &[]).as_str().map(str::to_owned);
             cost = (if (costString.is_none()) { Value::Null } else { self.parse_x18(crate::precise::Precise::stringAbs(&costString)) });
-            if (filled != Value::Null) && (cost != Value::Null) {
-                average = crate::precise::Precise::stringDiv(&Value::from(self.number_to_string(cost.clone())), &Value::from(self.number_to_string(filled.clone()))).as_str().map(str::to_owned);
+            if (filled.is_some()) && (cost != Value::Null) {
+                average = crate::precise::Precise::stringDiv(&Value::from(self.number_to_string(cost.clone())), &Value::from(self.number_to_string(Value::from(filled)))).as_str().map(str::to_owned);
             }
             if (amountString.is_some()) && (archiveFilled.is_some()) {
-                remaining = self.parse_x18(crate::precise::Precise::stringMax(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &crate::precise::Precise::stringAbs(&archiveFilled)), &Value::Str("0".into())));
+                remaining = self.parse_x18(crate::precise::Precise::stringMax(&crate::precise::Precise::stringSub(&crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &crate::precise::Precise::stringAbs(&archiveFilled)), &Value::Str("0".into()))).as_f64();
             }
             timestamp = self.safe_timestamp_k(order.clone(), "first_fill_timestamp", &[]).as_i64();
             lastTradeTimestamp = self.safe_timestamp_k(order.clone(), "last_fill_timestamp", &[]).as_i64();
-            price = self.parse_x18(self.safe_string_k(order.clone(), "price_x18", &[]));
+            price = self.parse_x18(self.safe_string_k(order.clone(), "price_x18", &[])).as_f64();
             status = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
             if (status.is_none()) {
                 if self.is_archive_order_closed(order.clone()).as_bool() == Some(true) {
                     status = Some("closed".to_string());
                 }
             }
-            let mut feeCost: Value = self.parse_x18(self.safe_string_k(order.clone(), "fee", &[]));
-            if (feeCost != Value::Null) {
+            let mut feeCost: Option<f64> = self.parse_x18(self.safe_string_k(order.clone(), "fee", &[])).as_f64();
+            if (feeCost.is_some()) {
                 fee = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("cost".to_string(), feeCost);
+                        m.insert("cost".to_string(), Value::from(feeCost));
                         m.insert("currency".to_string(), self.safe_string_k(&marketResolved, "quote", &[]));
                     m
                 }));
@@ -3990,17 +3990,17 @@ impl Nado {
             let mut amountString: Option<String> = self.safe_string_k_opt(order.clone(), "amount", &[]);
             if (amountString.is_some()) {
                 side = (if crate::precise::Precise::stringLt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
-                amount = self.parse_x18(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)));
+                amount = self.parse_x18(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null))).as_f64();
             }
             let mut unfilledAmount: Option<String> = self.safe_string_k(order.clone(), "unfilled_amount", &[]).as_str().map(str::to_owned);
             if (unfilledAmount.is_some()) {
-                remaining = self.parse_x18(crate::precise::Precise::stringAbs(&unfilledAmount));
+                remaining = self.parse_x18(crate::precise::Precise::stringAbs(&unfilledAmount)).as_f64();
             }
             timestamp = self.safe_timestamp_k(order.clone(), "placed_at", &[]).as_i64();
             let mut orderType: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
             timeInForce = self.parse_order_time_in_force(orderType.as_deref());
             postOnly = Some(orderType.as_deref() == Some("post_only"));
-            price = self.parse_x18(self.safe_string_k(order.clone(), "price_x18", &[]));
+            price = self.parse_x18(self.safe_string_k(order.clone(), "price_x18", &[])).as_f64();
             status = self.safe_string_k(order.clone(), "status", &[Value::Str("open".into())]).as_str().map(str::to_owned);
         }  else {
             let mut placeOrder: crate::value::Dict = self.safe_dict2(order.clone(), Value::Str("place_order".into()), Value::Str("order".into()), &[Value::Map({
@@ -4026,7 +4026,7 @@ impl Nado {
             let mut amountString: Option<String> = self.safe_string_k_opt(&rawOrder, "amount", &[]);
             if (amountString.is_some()) {
                 side = (if crate::precise::Precise::stringLt(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) { Some("sell".to_string()) } else { Some("buy".to_string()) });
-                amount = self.parse_x18(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)));
+                amount = self.parse_x18(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null))).as_f64();
             }
             let mut triggerStatus: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "status", &[]).into_opt_dict();
             if (triggerStatus.is_some()) {
@@ -4043,7 +4043,7 @@ impl Nado {
                     status = Some("open".to_string());
                 }
             }
-            price = self.parse_x18(self.safe_string_k(&rawOrder, "priceX18", &[]));
+            price = self.parse_x18(self.safe_string_k(&rawOrder, "priceX18", &[])).as_f64();
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4059,14 +4059,14 @@ impl Nado {
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price);
+        m.insert("price".to_string(), Value::from(price));
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), average.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("filled".to_string(), filled);
-        m.insert("remaining".to_string(), remaining);
+        m.insert("filled".to_string(), Value::from(filled));
+        m.insert("remaining".to_string(), Value::from(remaining));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);

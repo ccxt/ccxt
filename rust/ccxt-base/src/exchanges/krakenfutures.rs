@@ -960,21 +960,17 @@ impl Krakenfutures {
             let mut future: Value = (Value::Bool(type_var.as_deref() == Some("future")));
             let mut symbol: Value = id.clone().map(Value::from).unwrap_or(Value::Null);
             let mut split: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut splitMarket: Value = self.safe_string(&split, Value::Int(1), &[Value::Str("".into())]);
-            let mut baseId: Value = (match (&(splitMarket), 0i64, (match &((match (&(Value::Int(splitMarket.len() as i64)), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-                __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-                __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+            let mut splitMarket: String = self.safe_string(&split, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut baseId: String = ({ let (__l, __b, __e) = (splitMarket.chars().count() as i64, 0, ((((splitMarket.chars().count() as i64)) - 3))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); splitMarket.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() });
             let mut quoteId: String = "usd".to_string(); // always USD
-            let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
+            let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.clone()), None);
             let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.clone()), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
             // swap == perpetual
             let mut settle: Value = Value::Null;
-            let mut settleId: Value = Value::Null;
+            let mut settleId: Option<String> = None;
             let mut cvtp: Option<String> = self.safe_string_k(&market, "contractValueTradePrecision", &[]).as_str().map(str::to_owned);
             let mut amountPrecision: Option<f64> = self.parse_number(self.integer_precision_to_amount(cvtp.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             let mut pricePrecision: Option<f64> = self.safe_number_k(&market, "tickSize", &[]).as_f64();
@@ -984,11 +980,11 @@ impl Krakenfutures {
                 let mut exchangeType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
                 if (exchangeType.as_deref() == Some("futures_inverse")) {
                     settle = base.clone().map(Value::from).unwrap_or(Value::Null);
-                    settleId = baseId.clone();
+                    settleId = Some(baseId.clone());
                     inverse = Some(true);
                 }  else {
                     settle = quote.clone().map(Value::from).unwrap_or(Value::Null);
-                    settleId = Value::from(quoteId.clone());
+                    settleId = Some(quoteId.clone());
                     inverse = Some(false);
                 }
                 linear = Some(!(inverse == Some(true)));
@@ -1004,9 +1000,9 @@ impl Krakenfutures {
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), settle);
-                    m.insert("baseId".to_string(), baseId);
+                    m.insert("baseId".to_string(), Value::from(baseId));
                     m.insert("quoteId".to_string(), Value::from(quoteId));
-                    m.insert("settleId".to_string(), settleId);
+                    m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
                     m.insert("spot".to_string(), Value::Bool(false));
                     m.insert("margin".to_string(), Value::Bool(false));

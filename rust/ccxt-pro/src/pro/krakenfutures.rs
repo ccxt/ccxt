@@ -1543,7 +1543,7 @@ impl Krakenfutures {
                                 let mut i: i64 = 0;
                 let mut __for_first_439: bool = true;
                 while { if !__for_first_439 { i += 1; } __for_first_439 = false; i < (keys.len() as i64) } {
-                let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut symbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let mut symbolMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.orders), symbolMessageHash.as_str());
             }
@@ -2079,10 +2079,10 @@ impl Krakenfutures {
                                 let mut i: i64 = 0;
                 let mut __for_first_440: bool = true;
                 while { if !__for_first_440 { i += 1; } __for_first_440 = false; i < (holdingKeys.len() as i64) } {
-                let mut key: Option<String> = holdingKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut key: Option<&str> = holdingKeys.get(i as usize).and_then(Value::as_str);
                 let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);
                 let mut newAccount: Value = self.account();
-                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(holding.clone(), key.map(Value::from).unwrap_or(Value::Null), &[])); }
+                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(holding.clone(), Value::from(key.as_deref()), &[])); }
                 if (code.is_some()) {
                     holdingCodes.insert(code.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                     if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), newAccount); } }
@@ -2110,10 +2110,10 @@ impl Krakenfutures {
                                 let mut i: i64 = 0;
                 let mut __for_first_441: bool = true;
                 while { if !__for_first_441 { i += 1; } __for_first_441 = false; i < (futuresKeys.len() as i64) } {
-                let mut key: Option<String> = futuresKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut key: Option<&str> = futuresKeys.get(i as usize).and_then(Value::as_str);
                 let mut symbol: Option<String> = self.safe_symbol(Value::from(key.as_deref()), None, &[]).as_str().map(str::to_owned);
                 let mut newAccount: crate::value::Dict = self.account().into_dict();
-                let mut future: crate::value::Dict = self.safe_dict(futures.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
+                let mut future: crate::value::Dict = self.safe_dict(futures.clone(), Value::from(key.as_deref()), &[]).into_dict();
                 let mut currencyId: Option<String> = self.safe_string_k(&future, "unit", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 std::sync::Arc::make_mut(&mut newAccount).insert("free".into(), self.safe_string_k(&future, "available", &[]));
@@ -2158,9 +2158,9 @@ impl Krakenfutures {
                                 let mut i: i64 = 0;
                 let mut __for_first_442: bool = true;
                 while { if !__for_first_442 { i += 1; } __for_first_442 = false; i < (flexFuturesKeys.len() as i64) } {
-                let mut key: Option<String> = flexFuturesKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut key: Option<&str> = flexFuturesKeys.get(i as usize).and_then(Value::as_str);
                 let mut flexFuture: crate::value::Dict = self.safe_dict(&flexFutureCurrencies, Value::from(key.as_deref()), &[]).into_dict();
-                let mut code: Option<String> = self.safe_currency_code(key.map(Value::from).unwrap_or(Value::Null), None);
+                let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);
                 let mut newAccount: Value = self.account();
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&flexFuture, "available", &[])); }
                 if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(&flexFuture, "collateral_value", &[])); }

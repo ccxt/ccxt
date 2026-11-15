@@ -1995,11 +1995,11 @@ impl Lbank {
                                 let mut i: i64 = 0;
                 let mut __for_first_919: bool = true;
                 while { if !__for_first_919 { i += 1; } __for_first_919 = false; i < (currencies.len() as i64) } {
-                let mut currencyId: Option<String> = currencies.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut currencyId: Option<&str> = currencies.get(i as usize).and_then(Value::as_str);
                 let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
                 std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string(&used, Value::from(currencyId.as_deref()), &[]));
-                std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string(&free, currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
+                std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string(&free, Value::from(currencyId.as_deref()), &[]));
                 if (code.is_some()) {
                     result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account));
                 }

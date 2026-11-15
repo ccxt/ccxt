@@ -2156,7 +2156,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_579: bool = true;
             while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (keys.len() as i64) } {
-            let mut symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut innerMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&stored), innerMessageHash.as_str());
         }

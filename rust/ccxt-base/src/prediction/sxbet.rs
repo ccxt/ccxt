@@ -1153,16 +1153,14 @@ impl Sxbet {
         m.insert("data".to_string(), Value::from(nameCallData));
     m
 }), Value::Str("latest".into())])).await;
-        let mut hex: Value = self.remove0x_prefix(result);
+        let mut hex: Option<String> = self.remove0x_prefix(result).as_str().map(str::to_owned);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
-        let mut lengthHex: Value = hex.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(64); let __j = __l.min(128); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-        let mut length: Option<i64> = self.parse_to_int(self.hex_to_int(lengthHex.as_str().unwrap_or_default()));
-        let mut dataEnd: Value = Value::from((if let Some(__m1) = ((if let Some(__l) = length { Some(__l * 2) } else { None })) { Some((128 + __m1)) } else { None }));
-        let mut dataHex: Value = (match (&(hex), 128i64, (match &(dataEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-            __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-        return self.decode(self.base16_to_binary(dataHex, &[]));
+        let mut lengthHex: Option<String> = (if let Some(__s) = hex.as_deref() { Some(__s.chars().skip(64).take(64).collect::<String>()) } else { None });
+        let mut length: Option<i64> = self.parse_to_int(self.hex_to_int(lengthHex.as_deref().unwrap_or_default()));
+        let mut dataEnd: Option<i64> = (if let Some(__m1) = ((if let Some(__l) = length { Some(__l * 2) } else { None })) { Some((128 + __m1)) } else { None });
+        let mut dataHex: Option<String> = (if let Some(__s) = hex.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 128, dataEnd); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), match __e { Some(__k) => (if __k < 0 { __l + __k } else { __k }).clamp(0, __l), None => __l });
+            __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
+        return self.decode(self.base16_to_binary(dataHex.map(Value::from).unwrap_or(Value::Null), &[]));
 
     Value::Null
 }

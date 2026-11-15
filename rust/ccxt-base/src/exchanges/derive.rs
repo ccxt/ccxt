@@ -3140,8 +3140,8 @@ impl Derive {
         let mut orderSideIsBuy: bool = orderSide == "buy"; // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         let mut nonce: Option<String> = self.nonce_string();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
-        let mut signatureExpiry: Value = self.safe_integer_k(&paramsDeriveSubaccountId, "signature_expiry_sec", &[(match (&(Value::Int(self.seconds())), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
+        let __rd_signatureExpiry: i64 = ((self.seconds()) + 7776000);
+        let mut signatureExpiry: Option<i64> = self.safe_integer_k(&paramsDeriveSubaccountId, "signature_expiry_sec", &[Value::from(__rd_signatureExpiry)]).as_i64();
         let mut ACTION_TYPEHASH: crate::value::Bytes = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut TRADE_MODULE_ADDRESS: String = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b".to_string(); // shared across mainnet and testnet in v3
         let mut priceString: Option<String> = self.number_to_string(price);
@@ -3166,7 +3166,7 @@ impl Derive {
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("createOrder", &paramsMaxFee).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let __yd1: Vec<Value> = vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(TRADE_MODULE_ADDRESS), Value::from(&tradeModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()];
+        let __yd1: Vec<Value> = vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(TRADE_MODULE_ADDRESS), Value::from(&tradeModuleDataHash), Value::from(signatureExpiry), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()];
         let mut signature: Option<String> = self.sign_order(Value::from(__yd1), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3178,7 +3178,7 @@ impl Derive {
                 m.insert("limit_price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
                 m.insert("max_fee".to_string(), maxFeeString.map(Value::from).unwrap_or(Value::Null));
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
-                m.insert("signature_expiry_sec".to_string(), signatureExpiry);
+                m.insert("signature_expiry_sec".to_string(), Value::from(signatureExpiry));
                 m.insert("referral_code".to_string(), self.safe_string_k(self.options.clone(), "id", &[Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".into())]));
                 m.insert("signer".to_string(), self.walletAddress.clone());
             m
@@ -5121,8 +5121,8 @@ impl Derive {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["max_fee_usd", "new_subaccount_manager"], &[]).into_dict();
         let mut nonce: Option<String> = self.nonce_string();
-        let mut signatureExpiry: Value = self.safe_integer_k(&paramsOmitted, "signature_expiry_sec", &[(match (&(Value::Int(self.seconds())), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
+        let __rd_signatureExpiry: i64 = ((self.seconds()) + 7776000);
+        let mut signatureExpiry: Option<i64> = self.safe_integer_k(&paramsOmitted, "signature_expiry_sec", &[Value::from(__rd_signatureExpiry)]).as_i64();
         let mut ACTION_TYPEHASH: crate::value::Bytes = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut TRANSFER_MODULE_ADDRESS: String = "0x01259207A40925b794C8ac320456F7F6c8FE2636".to_string(); // shared across mainnet and testnet in v3
         let mut transferModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("uint".into())]), Value::from(vec![Value::from(toId), Value::from(newSubaccountManager),
@@ -5130,7 +5130,7 @@ impl Derive {
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("transfer", &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let __yd1: Vec<Value> = vec![Value::from(&ACTION_TYPEHASH), Value::from(fromId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(TRANSFER_MODULE_ADDRESS), Value::from(&transferModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()];
+        let __yd1: Vec<Value> = vec![Value::from(&ACTION_TYPEHASH), Value::from(fromId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(TRANSFER_MODULE_ADDRESS), Value::from(&transferModuleDataHash), Value::from(signatureExpiry), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()];
         let mut signature: Option<String> = self.sign_order(Value::from(__yd1), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5144,7 +5144,7 @@ impl Derive {
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
-                m.insert("signature_expiry_sec".to_string(), signatureExpiry);
+                m.insert("signature_expiry_sec".to_string(), Value::from(signatureExpiry));
             m
         });
         let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
@@ -5567,8 +5567,8 @@ impl Derive {
         let mut scale: Value = pad_end(&one, &Value::from((if let Some(__l) = decimals { Some(__l + 1) } else { None })), &Value::Str("0".into()));
         let mut amountScaled: Option<String> = crate::precise::Precise::stringMul(&amountString, &scale).as_str().map(str::to_owned);
         let mut nonce: Option<String> = self.nonce_string();
-        let mut signatureExpiry: Value = self.safe_integer_k(&paramsOmitted, "signature_expiry_sec", &[(match (&(Value::Int(self.seconds())), &(Value::Int(7776000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })]);
+        let __rd_signatureExpiry: i64 = ((self.seconds()) + 7776000);
+        let mut signatureExpiry: Option<i64> = self.safe_integer_k(&paramsOmitted, "signature_expiry_sec", &[Value::from(__rd_signatureExpiry)]).as_i64();
         let mut ACTION_TYPEHASH: crate::value::Bytes = self.base16_to_binary(Value::Str("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17".into()), &[]);
         let mut WITHDRAWAL_MODULE_ADDRESS: String = "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083".to_string(); // shared across mainnet and testnet in v3
         let mut withdrawalModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("address".into()), Value::Str("uint".into()), Value::Str("bool".into())]), Value::from(vec![assetAddress.map(Value::from).unwrap_or(Value::Null),
@@ -5576,7 +5576,7 @@ impl Derive {
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_derive_wallet_address("withdraw", &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let __yd1: Vec<Value> = vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(WITHDRAWAL_MODULE_ADDRESS), Value::from(&withdrawalModuleDataHash), signatureExpiry.clone(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()];
+        let __yd1: Vec<Value> = vec![Value::from(&ACTION_TYPEHASH), Value::from(subaccountId), self.convert_to_big_int(Value::from(nonce.as_deref())), Value::from(WITHDRAWAL_MODULE_ADDRESS), Value::from(&withdrawalModuleDataHash), Value::from(signatureExpiry), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.walletAddress.clone()];
         let mut signature: Option<String> = self.sign_order(Value::from(__yd1), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5589,7 +5589,7 @@ impl Derive {
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
-                m.insert("signature_expiry_sec".to_string(), signatureExpiry);
+                m.insert("signature_expiry_sec".to_string(), Value::from(signatureExpiry));
             m
         });
         // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema

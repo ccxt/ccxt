@@ -1299,12 +1299,12 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1413: bool = true;
             while { if !__for_first_1413 { i += 1; } __for_first_1413 = false; i < (chars.len() as i64) } {
-            let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), (ch).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
+            let mut ch: Option<String> = chars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__h), Some(__n)) = (Some(allowed.as_str()), ch.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 if pendingSep && (slug != "") {
                     slug = format!("{}{}", slug, "-");
                 }
-                slug = format!("{}{}", slug, ch);
+                slug = format!("{}{}", slug, ch.as_deref().unwrap_or("null"));
                 pendingSep = false;
             }  else {
                 pendingSep = true;
@@ -1481,8 +1481,8 @@ impl Polymarket {
     pub fn parse_event_to_markets(&self, mut event: Value) -> Value {
         let __event_empty = indexmap::IndexMap::new();
         let event = event.as_map().unwrap_or(&__event_empty);
-        let mut eventSlug: Value = (match event.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => (match event.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()),
-            Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }) });
+        let __rd_eventSlug: Option<String> = (match event.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut eventSlug: Option<String> = (match event.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(__rd_eventSlug) }).as_str().map(str::to_owned);
         let mut rawMarkets: crate::value::List = event.get("markets").cloned().unwrap_or_default().into_list();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -1539,7 +1539,7 @@ impl Polymarket {
                 continue;
             }
             // Market outcome (no outcome suffix)
-            let mut marketSymbol: Option<String> = self.slug_to_market_symbol(eventSlug.clone(), Value::from(marketSlug.as_deref())).as_str().map(str::to_owned);
+            let mut marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(eventSlug.as_deref()), Value::from(marketSlug.as_deref())).as_str().map(str::to_owned);
             // Build outcomes array
             let mut outcomes: Vec<Value> = Vec::new();
             {
@@ -1552,7 +1552,7 @@ impl Polymarket {
                 if (clobTokenId == Value::Null) || (clobTokenId.as_str() == Some("")) {
                     continue;
                 }
-                let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventSlug.clone(), Value::from(marketSlug.as_deref()), outcomeLabel.clone()).as_str().map(str::to_owned);
+                let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(eventSlug.as_deref()), Value::from(marketSlug.as_deref()), outcomeLabel.clone()).as_str().map(str::to_owned);
                 let mut winnerRaw: Option<bool> = None;
                 let mut settleFractionRaw: Option<i64> = None;
                 if matches!(&marketResolved, Value::Bool(true)) && (outcomePrice.is_some()) {
@@ -4505,8 +4505,8 @@ impl Polymarket {
             let mut __for_first_1450: bool = true;
             while { if !__for_first_1450 { i += 1; } __for_first_1450 = false; i < (addrChars.len() as i64) } {
             let mut ch: Option<String> = addrChars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut hashCh: Value = hashChars.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__h), Some(__n)) = (Some(upperNibbles.as_str()), (hashCh).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
+            let mut hashCh: Option<String> = hashChars.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__h), Some(__n)) = (Some(upperNibbles.as_str()), hashCh.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                 result = format!("{}{}", result, ch.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             }  else {
                 result = format!("{}{}", result, ch.as_deref().unwrap_or("null"));

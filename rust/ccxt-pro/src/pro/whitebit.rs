@@ -1332,12 +1332,12 @@ impl Whitebit {
                                         let mut j: i64 = 0;
                     let mut __for_first_709: bool = true;
                     while { if !__for_first_709 { j += 1; } __for_first_709 = false; j < (keys.len() as i64) } {
-                    let mut currencyId: Option<String> = keys.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut currencyId: Option<&str> = keys.get(j as usize).and_then(Value::as_str);
                     let mut rawBalance: crate::value::Dict = self.safe_dict(&balanceDict, Value::from(currencyId.as_deref()), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]).into_dict();
-                    let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+                    let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                     let mut account: crate::value::Dict = self.account().into_dict();
                     std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&rawBalance, "available", &[]));
                     std::sync::Arc::make_mut(&mut account).insert("used".into(), self.safe_string_k(&rawBalance, "freeze", &[]));

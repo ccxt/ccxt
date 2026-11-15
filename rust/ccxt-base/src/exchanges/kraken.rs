@@ -2711,12 +2711,12 @@ impl Kraken {
     }
 
     pub fn find_market_by_altname_or_id(&self, mut id: Value) -> Value {
-        let mut marketsByAltname: Value = self.safe_dict_k(self.options.clone(), "marketsByAltname", &[Value::Map({
+        let mut marketsByAltname: crate::value::Dict = self.safe_dict_k(self.options.clone(), "marketsByAltname", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        if (matches!((&marketsByAltname, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            return (if let (Some(__m), Some(__k)) = (marketsByAltname.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+})]).into_dict();
+        if (matches!(&id, Value::Str(__k) if marketsByAltname.contains_key(__k.as_ref()))) {
+            return crate::value::KeyRead::read(&&marketsByAltname, &id);
         }  else {
             return crate::types::IntoRaw::into_raw(self.safe_market(id, None, &[]));
         }
@@ -4632,14 +4632,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]);
-        if (network != Value::Null) {
-            network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
+        let mut network: Option<String> = self.safe_string_upper_k(params.clone(), "network", &[]).as_str().map(str::to_owned);
+        if (network.is_some()) {
+            network = self.safe_string(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned);
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         let mut codeResolved: String = code.as_str().unwrap_or_default().to_string();
-        if (code.as_str() == Some("USDT")) && (network.as_str() == Some("TRC20")) {
-            codeResolved = format!("{}{}", Value::Str(format!("{}{}", code, "-").into()), network);
+        if (code.as_str() == Some("USDT")) && (network.as_deref() == Some("TRC20")) {
+            codeResolved = format!("{}{}", Value::Str(format!("{}{}", code, "-").into()), network.as_deref().unwrap_or("null"));
         }
         let mut defaultDepositMethods: crate::value::Dict = self.safe_dict_k(self.options.clone(), "depositMethods", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4651,7 +4651,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // we pass it as is, otherwise we take the 'network' unified param
         if (depositMethod.is_none()) {
             let mut depositMethods: crate::value::List = self.fetch_deposit_methods(codeResolved.as_str(), &[]).await.into_list();
-            if (network != Value::Null) {
+            if (network.is_some()) {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_863: bool = true;
@@ -4660,7 +4660,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     if (entry.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchDepositAddress() missing entry")));
                     }
-                    if ((if let (Some(__h), Some(__n)) = (entry.as_deref(), (network).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
+                    if ((if let (Some(__h), Some(__n)) = (entry.as_deref(), network.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
                         depositMethod = entry;
                         break;
                     }

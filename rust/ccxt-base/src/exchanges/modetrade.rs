@@ -5067,11 +5067,11 @@ impl Modetrade {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into());
-        let mut paramsSorted: Value = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]);
+        let mut paramsSorted: crate::value::Dict = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]).into_dict();
         if (access.as_deref() == Some("public")) {
             url = Value::Str(format!("{}{}", url, pathWithParams).into());
-            if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsSorted.clone(), &[])).into())).into());
+            if ((Value::Array(paramsSorted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsSorted, &[])).into())).into());
             }
         }  else {
             self.check_required_credentials(&[]);
@@ -5082,7 +5082,7 @@ impl Modetrade {
                 if !isSandboxMode {
                     let mut brokerId: String = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXTMODE".into())]).as_str().unwrap_or("CCXTMODE").to_string();
                     if (path.as_str() == Some("batch-order")) {
-                        let mut ordersList: crate::value::List = self.safe_list_k(paramsSorted.clone(), "orders", &[Value::from(vec![])]).into_list();
+                        let mut ordersList: crate::value::List = self.safe_list_k(&paramsSorted, "orders", &[Value::from(vec![])]).into_list();
                         let mut taggedOrders: crate::value::List = std::sync::Arc::new(Vec::new());
                         {
                                                         let mut i: i64 = 0;
@@ -5099,15 +5099,15 @@ impl Modetrade {
                             })]));
                         }
                         }
-                        add_element_to_object(&mut paramsSorted, &Value::Str("orders".into()), Value::Arr(taggedOrders));
+                        std::sync::Arc::make_mut(&mut paramsSorted).insert("orders".into(), Value::Arr(taggedOrders));
                     }  else {
-                        add_element_to_object(&mut paramsSorted, &Value::Str("order_tag".into()), Value::from(brokerId));
+                        std::sync::Arc::make_mut(&mut paramsSorted).insert("order_tag".into(), Value::from(brokerId));
                     }
                 }
             }
-            let mut paramsSigned: Value = paramsSorted.clone();
+            let mut paramsSigned: Value = Value::from(&paramsSorted);
             if isPostOrPut && isOrder {
-                paramsSigned = self.keysort(paramsSorted, &[]);
+                paramsSigned = self.keysort(Value::Dict(paramsSorted), &[]);
             }
             let mut ts: String = format!("{}", self.nonce());
             url = Value::Str(format!("{}{}", url, pathWithParams).into());

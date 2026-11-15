@@ -1633,12 +1633,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 __ch.add_subscription(&Value::Str("authenticated".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("key".to_string(), self.safe_string_k(&response, "data", &[]));
-        m.insert("expires".to_string(), self.sum(&[Value::Int(now.clone()), Value::Int(3300000)]));
+        m.insert("expires".to_string(), Value::Int((now + 3300000)));
     m
 }));
             }  else {
-                let mut expires: Value = self.safe_integer_k(&authenticated, "expires", &[Value::Int(0)]);
-                if expires.as_f64().unwrap_or(f64::NAN) < (now as f64) {
+                let mut expires: i64 = self.safe_integer_k(&authenticated, "expires", &[Value::Int(0)]).as_i64().unwrap_or(0);
+                if expires < now {
                     let mut request: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("subscribeKey".to_string(), crate::value::KeyRead::key_read(&&authenticated, "key"));
@@ -1653,7 +1653,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     if (result.as_deref() != Some("true")) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " failed to refresh the SubscribeKey")));
                     }
-                    add_element_to_object(get_value_mut(&mut __ch.subscriptions, &Value::Str("authenticated".into())), &Value::Str("expires".into()), self.sum(&[Value::Int(now), Value::Int(3300000)])); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                    add_element_to_object(get_value_mut(&mut __ch.subscriptions, &Value::Str("authenticated".into())), &Value::Str("expires".into()), Value::Int((now + 3300000))); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                 }
             }
             // settle the flight through the client so that every write to the

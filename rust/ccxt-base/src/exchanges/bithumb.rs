@@ -1191,7 +1191,7 @@ impl Bithumb {
                                 let mut i: i64 = 0;
                 let mut __for_first_393: bool = true;
                 while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (codes.len() as i64) } {
-                let mut code: Option<String> = codes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
                 let mut account: crate::value::Dict = self.account().into_dict();
                 let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
                 let mut lowerCurrencyId: String = self.safe_string_lower_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

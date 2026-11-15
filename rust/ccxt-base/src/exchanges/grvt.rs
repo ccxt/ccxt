@@ -1290,12 +1290,11 @@ impl Grvt {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut now: Value = Value::Int(self.milliseconds());
+        let mut now: i64 = self.milliseconds();
         // expires in 24 hours as CS suggested
-        let mut expires: Value = self.safe_integer_k(self.options.clone(), "signInExpiration", &[Value::Int(0)]);
+        let mut expires: i64 = self.safe_integer_k(self.options.clone(), "signInExpiration", &[Value::Int(0)]).as_i64().unwrap_or(0);
         // if previous sign-in not expired (give 10 seconds margin)
-        if (expires != Value::Null) && expires.as_f64().unwrap_or(f64::NAN) > (match (&(now), &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) {
+        if (true) && expires > ((now + 10000)) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1314,8 +1313,7 @@ impl Grvt {
         //        "status": "success"
         //    }
         //
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), (match (&(now), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }; // 24 hours
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), Value::Int((now + 86400000))); }; // 24 hours
         return response;
 
     Value::Null
@@ -1327,12 +1325,11 @@ impl Grvt {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut now: Value = Value::Int(self.milliseconds());
+        let mut now: i64 = self.milliseconds();
         // expires in 24 hours as CS suggested
-        let mut expires: Value = self.safe_integer_k(self.options.clone(), "signInExpiration", &[Value::Int(0)]);
+        let mut expires: i64 = self.safe_integer_k(self.options.clone(), "signInExpiration", &[Value::Int(0)]).as_i64().unwrap_or(0);
         // if previous sign-in not expired (give 10 seconds margin)
-        if (expires != Value::Null) && expires.as_f64().unwrap_or(f64::NAN) > (match (&(now), &(Value::Int(10000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) {
+        if (true) && expires > ((now + 10000)) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1353,8 +1350,7 @@ impl Grvt {
         //        "status": "success"
         //    }
         //
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), (match (&(now), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64),
-            (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }; // 24 hours
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), Value::Int((now + 86400000))); }; // 24 hours
         return response;
 
     Value::Null

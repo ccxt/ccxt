@@ -409,7 +409,7 @@ impl Polymarket {
             m
         });
         let mut pending: Value = self.extend(Value::Map(basePending), &[context]);
-        client.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", Value::from(id)).into())).into()), pending);
+        client.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), pending);
         return self.extend(Value::Map(request), &[params]);
 
     Value::Null
@@ -1160,7 +1160,7 @@ impl Polymarket {
                     m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
                 m
             });
-            client.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", Value::from(id)).into())).into()), Value::Map(pending));
+            client.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), Value::Map(pending));
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(id));

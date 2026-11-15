@@ -3621,10 +3621,10 @@ impl Dydx {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathWithParams);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
-        let mut paramsSorted: Value = self.keysort(Value::Dict(paramsOmitted), &[]);
+        let mut paramsSorted: crate::value::Dict = self.keysort(Value::Dict(paramsOmitted), &[]).into_dict();
         if (method.as_str() == Some("GET")) {
-            if ((Value::Array(paramsSorted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathWithParams).into()), "?").into()), self.urlencode(paramsSorted.clone(), &[]));
+            if ((Value::Array(paramsSorted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathWithParams).into()), "?").into()), self.urlencode(&paramsSorted, &[]));
             }
         }  else {
             requestBody = json_stringify(&paramsSorted).as_str().map(str::to_owned);

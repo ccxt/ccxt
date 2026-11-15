@@ -5084,8 +5084,8 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut sortedOrder: Value = self.keysort(Value::Dict(order), &[]);
-            let mut orderQuery: String = self.urlencode(sortedOrder, &[]);
+            let mut sortedOrder: crate::value::Dict = self.keysort(Value::Dict(order), &[]).into_dict();
+            let mut orderQuery: String = self.urlencode(&sortedOrder, &[]);
             payload.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instruction=", instruction).into()), "&").into()), orderQuery).into()), "&"));
             if (i.as_f64() == ((match (&(paramsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64()) {
                 payload.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "timestamp=", ts).into()), "&window=").into()), recvWindow));

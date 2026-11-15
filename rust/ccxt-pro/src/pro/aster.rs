@@ -2029,7 +2029,7 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut time: Value = Value::Int(self.milliseconds());
+        let mut time: i64 = self.milliseconds();
         let mut lastAuthenticatedTimeOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "lastAuthenticatedTime", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2039,9 +2039,8 @@ impl Aster {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut listenKeyRefreshRate: Value = self.safe_integer(&listenKeyRefreshRateOptions, type_var.clone(), &[Value::Int(3600000)]); // 1 hour
-        if (match (&(time), &(Value::from(lastAuthenticatedTime))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-            _ => Value::Null }).as_f64().unwrap_or(f64::NAN) > listenKeyRefreshRate.as_f64().unwrap_or(f64::NAN) {
+        let mut listenKeyRefreshRate: i64 = self.safe_integer(&listenKeyRefreshRateOptions, type_var.clone(), &[Value::Int(3600000)]).as_i64().unwrap_or(3600000); // 1 hour
+        if ((time - lastAuthenticatedTime)) > listenKeyRefreshRate {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
             // calls on a cold instance each passed the staleness check and
@@ -2078,13 +2077,13 @@ impl Aster {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() received an empty listenKey")));
                 }
                 if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("listenKey".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&type_var), listenKey.clone().map(Value::from).unwrap_or(Value::Null)); } }
-                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("lastAuthenticatedTime".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&type_var), time); } }
+                if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("lastAuthenticatedTime".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&type_var), Value::from(time)); } }
                 let mut keepAliveParams: crate::value::Dict = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("type".to_string(), type_var);
                     m
                 }), &[params]).into_dict();
-                self.delay(listenKeyRefreshRate, &[Value::Str("keep_alive_listen_key".into()).clone(), Value::Dict(keepAliveParams)]).await;
+                self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()).clone(), Value::Dict(keepAliveParams)]).await;
                 // settle the flight: client.resolve () removes the future from
                 // client.futures and wakes every waiter
                 client.resolve(listenKey.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());

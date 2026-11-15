@@ -5077,16 +5077,16 @@ if _try_result.is_err() {
                                 let mut i: i64 = 0;
                 let mut __for_first_695: bool = true;
                 while { if !__for_first_695 { i += 1; } __for_first_695 = false; i < (chainKeys.len() as i64) } {
-                let mut chainKey: Value = chainKeys.get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut chainKey: Option<&str> = chainKeys.get(i as usize).and_then(Value::as_str);
                 let mut currencyId: Option<String> = self.safe_string_k(fee.clone(), "currency", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
-                let mut networkCode: Value = Value::from(self.network_id_to_code(&[chainKey.clone(), code.map(Value::from).unwrap_or(Value::Null)]));
+                let mut networkCode: Value = Value::from(self.network_id_to_code(&[Value::from(chainKey.as_deref()), code.map(Value::from).unwrap_or(Value::Null)]));
                 if (networkCode != Value::Null) {
                     if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), self.parse_number((if let (Some(__m), Some(__k)) = (withdrawFixOnChains.as_map(), chainKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]));
+        m.insert("fee".to_string(), self.parse_number((if let (Some(__m), Some(__k)) = (withdrawFixOnChains.as_map(), chainKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
@@ -7254,22 +7254,22 @@ if _try_result.is_err() {
             priceResolved = Value::Int(0);
         }
         let mut contractAmount: Value = Value::Int(0);
-        let mut signedAmount: Value = Value::Null;
+        let mut signedAmount: Option<String> = None;
         let mut useGateFuturesDecimalSize: Value = Value::Bool(false);
         if (contract == true) {
             let mut isClose: bool = self.safe_bool_k(query.clone(), "close", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if !isClose {
-                signedAmount = self.get_gate_futures_signed_amount(symbol.as_str(), side.as_str(), amount.clone()).map(Value::from).unwrap_or(Value::Null);
+                signedAmount = self.get_gate_futures_signed_amount(symbol.as_str(), side.as_str(), amount.clone());
                 useGateFuturesDecimalSize = self.is_gate_futures_contract_with_decimal_size(Some(&market));
                 if !(useGateFuturesDecimalSize.as_bool() == Some(true)) {
-                    contractAmount = (match &signedAmount { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
+                    contractAmount = (match signedAmount.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null });
                 }
             }
         }
         let mut amountResolved: Value = (if (contract == true) { contractAmount } else { amount });
         let mut sizeRequest: Value = amountResolved.clone();
         if useGateFuturesDecimalSize.as_bool() == Some(true) {
-            sizeRequest = signedAmount.clone();
+            sizeRequest = signedAmount.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7375,7 +7375,7 @@ if _try_result.is_err() {
                     m
                 });
                 if useGateFuturesDecimalSize.as_bool() == Some(true) {
-                    initial.insert("amount".into(), signedAmount); // FuturesInitialOrder.amount takes precedence over size
+                    initial.insert("amount".into(), signedAmount.map(Value::from).unwrap_or(Value::Null)); // FuturesInitialOrder.amount takes precedence over size
                 }  else {
                     initial.insert("size".into(), amountResolved.clone());
                 }

@@ -3550,9 +3550,9 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitFapiAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut implicitFapiClientAlgoId: Value = exchange.safe_string(&implicitFapiAlgoOrderRequest, Value::Str("clientAlgoId".into()), &[]);
-            assert((implicitFapiClientAlgoId != Value::Null), &[Value::Str("binance - implicit fapi algo order must inject clientAlgoId".into())]);
-            assert((implicitFapiClientAlgoId.as_str().zip(swapId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit fapi clientAlgoId: ", implicitFapiClientAlgoId).into()), " does not start with swapId").into()), swapId).into())]);
+            let mut implicitFapiClientAlgoId: Option<String> = exchange.safe_string(&implicitFapiAlgoOrderRequest, Value::Str("clientAlgoId".into()), &[]).as_str().map(str::to_owned);
+            assert((implicitFapiClientAlgoId.is_some()), &[Value::Str("binance - implicit fapi algo order must inject clientAlgoId".into())]);
+            assert(((if let (Some(__h), Some(__n)) = (implicitFapiClientAlgoId.as_deref(), (swapId).as_str()) { __h.starts_with(__n) } else { false })), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit fapi clientAlgoId: ", implicitFapiClientAlgoId.as_deref().unwrap_or("null")).into()), " does not start with swapId").into()), swapId).into())]);
             // the papi order endpoints resolve the broker id from the path, not from the api section
             let mut implicitPapiUmOrderRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3810,13 +3810,13 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOcoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut ocoListClientOrderId: Value = exchange.safe_string(&implicitOcoListRequest, Value::Str("listClientOrderId".into()), &[]);
-            let mut ocoAboveClientOrderId: Value = exchange.safe_string(&implicitOcoListRequest, Value::Str("aboveClientOrderId".into()), &[]);
-            let mut ocoBelowClientOrderId: Value = exchange.safe_string(&implicitOcoListRequest, Value::Str("belowClientOrderId".into()), &[]);
-            assert((ocoListClientOrderId != Value::Null), &[Value::Str("binance - implicit oco list must inject listClientOrderId".into())]);
-            assert((ocoListClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit oco listClientOrderId: ", ocoListClientOrderId).into()), " does not start with spotId").into()), spotId).into())]);
-            assert(((ocoAboveClientOrderId != Value::Null) && (ocoAboveClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit oco aboveClientOrderId must inject the spot broker id".into())]);
-            assert(((ocoBelowClientOrderId != Value::Null) && (ocoBelowClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit oco belowClientOrderId must inject the spot broker id".into())]);
+            let mut ocoListClientOrderId: Option<String> = exchange.safe_string(&implicitOcoListRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut ocoAboveClientOrderId: Option<String> = exchange.safe_string(&implicitOcoListRequest, Value::Str("aboveClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut ocoBelowClientOrderId: Option<String> = exchange.safe_string(&implicitOcoListRequest, Value::Str("belowClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            assert((ocoListClientOrderId.is_some()), &[Value::Str("binance - implicit oco list must inject listClientOrderId".into())]);
+            assert(((if let (Some(__h), Some(__n)) = (ocoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false })), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit oco listClientOrderId: ", ocoListClientOrderId.as_deref().unwrap_or("null")).into()), " does not start with spotId").into()), spotId).into())]);
+            assert(((ocoAboveClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (ocoAboveClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit oco aboveClientOrderId must inject the spot broker id".into())]);
+            assert(((ocoBelowClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (ocoBelowClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit oco belowClientOrderId must inject the spot broker id".into())]);
             let mut implicitOtocoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3841,12 +3841,12 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOtocoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut otocoWorkingClientOrderId: Value = exchange.safe_string(&implicitOtocoListRequest, Value::Str("workingClientOrderId".into()), &[]);
-            let mut otocoPendingAboveClientOrderId: Value = exchange.safe_string(&implicitOtocoListRequest, Value::Str("pendingAboveClientOrderId".into()), &[]);
-            let mut otocoPendingBelowClientOrderId: Value = exchange.safe_string(&implicitOtocoListRequest, Value::Str("pendingBelowClientOrderId".into()), &[]);
-            assert(((otocoWorkingClientOrderId != Value::Null) && (otocoWorkingClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit otoco workingClientOrderId must inject the spot broker id".into())]);
-            assert(((otocoPendingAboveClientOrderId != Value::Null) && (otocoPendingAboveClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id".into())]);
-            assert(((otocoPendingBelowClientOrderId != Value::Null) && (otocoPendingBelowClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id".into())]);
+            let mut otocoWorkingClientOrderId: Option<String> = exchange.safe_string(&implicitOtocoListRequest, Value::Str("workingClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut otocoPendingAboveClientOrderId: Option<String> = exchange.safe_string(&implicitOtocoListRequest, Value::Str("pendingAboveClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut otocoPendingBelowClientOrderId: Option<String> = exchange.safe_string(&implicitOtocoListRequest, Value::Str("pendingBelowClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            assert(((otocoWorkingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otocoWorkingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit otoco workingClientOrderId must inject the spot broker id".into())]);
+            assert(((otocoPendingAboveClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otocoPendingAboveClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id".into())]);
+            assert(((otocoPendingBelowClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otocoPendingBelowClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id".into())]);
             let mut implicitSapiMarginOcoRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3865,10 +3865,10 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitSapiMarginOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut sapiMarginOcoLimitClientOrderId: Value = exchange.safe_string(&implicitSapiMarginOcoRequest, Value::Str("limitClientOrderId".into()), &[]);
-            let mut sapiMarginOcoStopClientOrderId: Value = exchange.safe_string(&implicitSapiMarginOcoRequest, Value::Str("stopClientOrderId".into()), &[]);
-            assert(((sapiMarginOcoLimitClientOrderId != Value::Null) && (sapiMarginOcoLimitClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id".into())]);
-            assert(((sapiMarginOcoStopClientOrderId != Value::Null) && (sapiMarginOcoStopClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id".into())]);
+            let mut sapiMarginOcoLimitClientOrderId: Option<String> = exchange.safe_string(&implicitSapiMarginOcoRequest, Value::Str("limitClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut sapiMarginOcoStopClientOrderId: Option<String> = exchange.safe_string(&implicitSapiMarginOcoRequest, Value::Str("stopClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            assert(((sapiMarginOcoLimitClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (sapiMarginOcoLimitClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id".into())]);
+            assert(((sapiMarginOcoStopClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (sapiMarginOcoStopClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id".into())]);
             let mut implicitPapiMarginOcoRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3887,12 +3887,12 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitPapiMarginOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut papiMarginOcoListClientOrderId: Value = exchange.safe_string(&implicitPapiMarginOcoRequest, Value::Str("listClientOrderId".into()), &[]);
-            assert(((papiMarginOcoListClientOrderId != Value::Null) && (papiMarginOcoListClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit papi margin oco listClientOrderId must inject the spot broker id".into())]);
-            let mut papiMarginOcoLimitClientOrderId: Value = exchange.safe_string(&implicitPapiMarginOcoRequest, Value::Str("limitClientOrderId".into()), &[]);
-            let mut papiMarginOcoStopClientOrderId: Value = exchange.safe_string(&implicitPapiMarginOcoRequest, Value::Str("stopClientOrderId".into()), &[]);
-            assert(((papiMarginOcoLimitClientOrderId != Value::Null) && (papiMarginOcoLimitClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit papi margin oco limitClientOrderId must inject the spot broker id".into())]);
-            assert(((papiMarginOcoStopClientOrderId != Value::Null) && (papiMarginOcoStopClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit papi margin oco stopClientOrderId must inject the spot broker id".into())]);
+            let mut papiMarginOcoListClientOrderId: Option<String> = exchange.safe_string(&implicitPapiMarginOcoRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            assert(((papiMarginOcoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (papiMarginOcoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit papi margin oco listClientOrderId must inject the spot broker id".into())]);
+            let mut papiMarginOcoLimitClientOrderId: Option<String> = exchange.safe_string(&implicitPapiMarginOcoRequest, Value::Str("limitClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut papiMarginOcoStopClientOrderId: Option<String> = exchange.safe_string(&implicitPapiMarginOcoRequest, Value::Str("stopClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            assert(((papiMarginOcoLimitClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (papiMarginOcoLimitClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit papi margin oco limitClientOrderId must inject the spot broker id".into())]);
+            assert(((papiMarginOcoStopClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (papiMarginOcoStopClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit papi margin oco stopClientOrderId must inject the spot broker id".into())]);
             let mut implicitLegacyOcoRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3911,12 +3911,12 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitLegacyOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut legacyOcoListClientOrderId: Value = exchange.safe_string(&implicitLegacyOcoRequest, Value::Str("listClientOrderId".into()), &[]);
-            let mut legacyOcoLimitClientOrderId: Value = exchange.safe_string(&implicitLegacyOcoRequest, Value::Str("limitClientOrderId".into()), &[]);
-            let mut legacyOcoStopClientOrderId: Value = exchange.safe_string(&implicitLegacyOcoRequest, Value::Str("stopClientOrderId".into()), &[]);
-            assert(((legacyOcoListClientOrderId != Value::Null) && (legacyOcoListClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit legacy oco listClientOrderId must inject the spot broker id".into())]);
-            assert(((legacyOcoLimitClientOrderId != Value::Null) && (legacyOcoLimitClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit legacy oco limitClientOrderId must inject the spot broker id".into())]);
-            assert(((legacyOcoStopClientOrderId != Value::Null) && (legacyOcoStopClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit legacy oco stopClientOrderId must inject the spot broker id".into())]);
+            let mut legacyOcoListClientOrderId: Option<String> = exchange.safe_string(&implicitLegacyOcoRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut legacyOcoLimitClientOrderId: Option<String> = exchange.safe_string(&implicitLegacyOcoRequest, Value::Str("limitClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut legacyOcoStopClientOrderId: Option<String> = exchange.safe_string(&implicitLegacyOcoRequest, Value::Str("stopClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            assert(((legacyOcoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (legacyOcoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit legacy oco listClientOrderId must inject the spot broker id".into())]);
+            assert(((legacyOcoLimitClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (legacyOcoLimitClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit legacy oco limitClientOrderId must inject the spot broker id".into())]);
+            assert(((legacyOcoStopClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (legacyOcoStopClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit legacy oco stopClientOrderId must inject the spot broker id".into())]);
             let mut implicitOtoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3938,12 +3938,12 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOtoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut otoListClientOrderId: Value = exchange.safe_string(&implicitOtoListRequest, Value::Str("listClientOrderId".into()), &[]);
-            let mut otoWorkingClientOrderId: Value = exchange.safe_string(&implicitOtoListRequest, Value::Str("workingClientOrderId".into()), &[]);
-            let mut otoPendingClientOrderId: Value = exchange.safe_string(&implicitOtoListRequest, Value::Str("pendingClientOrderId".into()), &[]);
-            assert(((otoListClientOrderId != Value::Null) && (otoListClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit oto listClientOrderId must inject the spot broker id".into())]);
-            assert(((otoWorkingClientOrderId != Value::Null) && (otoWorkingClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit oto workingClientOrderId must inject the spot broker id".into())]);
-            assert(((otoPendingClientOrderId != Value::Null) && (otoPendingClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit oto pendingClientOrderId must inject the spot broker id".into())]);
+            let mut otoListClientOrderId: Option<String> = exchange.safe_string(&implicitOtoListRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut otoWorkingClientOrderId: Option<String> = exchange.safe_string(&implicitOtoListRequest, Value::Str("workingClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut otoPendingClientOrderId: Option<String> = exchange.safe_string(&implicitOtoListRequest, Value::Str("pendingClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            assert(((otoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit oto listClientOrderId must inject the spot broker id".into())]);
+            assert(((otoWorkingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otoWorkingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit oto workingClientOrderId must inject the spot broker id".into())]);
+            assert(((otoPendingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otoPendingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit oto pendingClientOrderId must inject the spot broker id".into())]);
             let mut implicitOpoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3965,12 +3965,12 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOpoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut opoListClientOrderId: Value = exchange.safe_string(&implicitOpoListRequest, Value::Str("listClientOrderId".into()), &[]);
-            let mut opoWorkingClientOrderId: Value = exchange.safe_string(&implicitOpoListRequest, Value::Str("workingClientOrderId".into()), &[]);
-            let mut opoPendingClientOrderId: Value = exchange.safe_string(&implicitOpoListRequest, Value::Str("pendingClientOrderId".into()), &[]);
-            assert(((opoListClientOrderId != Value::Null) && (opoListClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit opo listClientOrderId must inject the spot broker id".into())]);
-            assert(((opoWorkingClientOrderId != Value::Null) && (opoWorkingClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit opo workingClientOrderId must inject the spot broker id".into())]);
-            assert(((opoPendingClientOrderId != Value::Null) && (opoPendingClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit opo pendingClientOrderId must inject the spot broker id".into())]);
+            let mut opoListClientOrderId: Option<String> = exchange.safe_string(&implicitOpoListRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut opoWorkingClientOrderId: Option<String> = exchange.safe_string(&implicitOpoListRequest, Value::Str("workingClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut opoPendingClientOrderId: Option<String> = exchange.safe_string(&implicitOpoListRequest, Value::Str("pendingClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            assert(((opoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opo listClientOrderId must inject the spot broker id".into())]);
+            assert(((opoWorkingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opoWorkingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opo workingClientOrderId must inject the spot broker id".into())]);
+            assert(((opoPendingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opoPendingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opo pendingClientOrderId must inject the spot broker id".into())]);
             let mut implicitOpocoListRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3995,14 +3995,14 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOpocoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut opocoListClientOrderId: Value = exchange.safe_string(&implicitOpocoListRequest, Value::Str("listClientOrderId".into()), &[]);
-            let mut opocoWorkingClientOrderId: Value = exchange.safe_string(&implicitOpocoListRequest, Value::Str("workingClientOrderId".into()), &[]);
-            let mut opocoPendingAboveClientOrderId: Value = exchange.safe_string(&implicitOpocoListRequest, Value::Str("pendingAboveClientOrderId".into()), &[]);
-            let mut opocoPendingBelowClientOrderId: Value = exchange.safe_string(&implicitOpocoListRequest, Value::Str("pendingBelowClientOrderId".into()), &[]);
-            assert(((opocoListClientOrderId != Value::Null) && (opocoListClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit opoco listClientOrderId must inject the spot broker id".into())]);
-            assert(((opocoWorkingClientOrderId != Value::Null) && (opocoWorkingClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit opoco workingClientOrderId must inject the spot broker id".into())]);
-            assert(((opocoPendingAboveClientOrderId != Value::Null) && (opocoPendingAboveClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id".into())]);
-            assert(((opocoPendingBelowClientOrderId != Value::Null) && (opocoPendingBelowClientOrderId.as_str().zip(spotId.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p)))), &[Value::Str("binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id".into())]);
+            let mut opocoListClientOrderId: Option<String> = exchange.safe_string(&implicitOpocoListRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut opocoWorkingClientOrderId: Option<String> = exchange.safe_string(&implicitOpocoListRequest, Value::Str("workingClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut opocoPendingAboveClientOrderId: Option<String> = exchange.safe_string(&implicitOpocoListRequest, Value::Str("pendingAboveClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut opocoPendingBelowClientOrderId: Option<String> = exchange.safe_string(&implicitOpocoListRequest, Value::Str("pendingBelowClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            assert(((opocoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opocoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opoco listClientOrderId must inject the spot broker id".into())]);
+            assert(((opocoWorkingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opocoWorkingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opoco workingClientOrderId must inject the spot broker id".into())]);
+            assert(((opocoPendingAboveClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opocoPendingAboveClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id".into())]);
+            assert(((opocoPendingBelowClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opocoPendingBelowClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opoco pendingBelowClientOrderId must inject the spot broker id".into())]);
             // the cancel-replace endpoint creates a new order and takes newClientOrderId for it
             let mut implicitCancelReplaceRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

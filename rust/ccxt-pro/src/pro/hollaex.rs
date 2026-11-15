@@ -590,7 +590,7 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_379: bool = true;
             while { if !__for_first_379 { i += 1; } __for_first_379 = false; i < (keys.len() as i64) } {
-            let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if (channel.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.myTrades), messageHash.as_str());
@@ -746,7 +746,7 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_381: bool = true;
             while { if !__for_first_381 { i += 1; } __for_first_381 = false; i < (keys.len() as i64) } {
-            let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if (channel.is_some()) {
                 let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null"));
                 client.resolve(Value::from(&self.orders), messageHash.as_str());
