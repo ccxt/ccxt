@@ -344,7 +344,7 @@ impl Bitopro {
         }  else {
             endPart = Some(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, ":").into()), Value::from(self.number_to_string(limit))));
         }
-        let mut orderbook: Value = self.watch_public("order-books", messageHash.as_str(), endPart.as_deref()).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch_public("order-books", messageHash.as_str(), endPart.as_deref()).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -424,12 +424,12 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "TRADE", ":").into()), symbolValue);
-        let mut trades: Value = self.watch_public("trades", messageHash.as_str(), (Value::from((market).id.as_deref())).as_str()).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_public("trades", messageHash.as_str(), (Value::from((market).id.as_deref())).as_str()).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

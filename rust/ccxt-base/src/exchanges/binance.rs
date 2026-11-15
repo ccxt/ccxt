@@ -7345,7 +7345,7 @@ impl Binance {
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut demoMode: bool = self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isDemoEnv: bool = (demoMode || sandboxMode);
-        let mut fetchMarkets: Value = Value::from(vec![]);
+        let mut fetchMarkets: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_272: bool = true;
@@ -7354,7 +7354,7 @@ impl Binance {
             if (type_var.as_deref() == Some("option")) && (isDemoEnv) {
                 continue;
             }
-            if let Value::Arr(__a) = &mut fetchMarkets { std::sync::Arc::make_mut(__a).push(type_var.map(Value::from).unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut fetchMarkets).push(type_var.map(Value::from).unwrap_or(Value::Null));
         }
         }
         let mut fetchMargins: bool = self.safe_bool_k(self.options.clone(), "fetchMargins", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -7362,7 +7362,7 @@ impl Binance {
                         let mut i: i64 = 0;
             let mut __for_first_273: bool = true;
             while { if !__for_first_273 { i += 1; } __for_first_273 = false; i < (fetchMarkets.len() as i64) } {
-            let mut marketType: Option<String> = self.safe_string(fetchMarkets.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut marketType: Option<String> = self.safe_string(&fetchMarkets, Value::Int(i), &[]).as_str().map(str::to_owned);
             if (marketType.as_deref() == Some("spot")) {
                 promisesRaw.push(self.public_get_exchange_info(&[params.clone()]).await);
                 if fetchMargins && self.check_required_credentials(&[Value::Bool(false)]).as_bool() == Some(true) && (!isDemoEnv) {
@@ -11450,8 +11450,8 @@ impl Binance {
         let mut stock: bool = self.safe_bool_k(&market, "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         // set by the caller: the algo order endpoints name the client id, trigger and activation fields differently
         let mut isAlgoOrder: bool = self.safe_bool_k(params.clone(), "isAlgoOrder", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsAlgo: Value = self.omit(params, Value::Str("isAlgoOrder".into()), &[]);
-        let mut clientOrderId: Option<String> = self.safe_string_n(paramsAlgo.clone(), Value::from(vec![Value::Str("clientAlgoId".into()), Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]).as_str().map(str::to_owned);
+        let mut paramsAlgo: crate::value::Dict = self.omit(params, Value::Str("isAlgoOrder".into()), &[]).into_dict();
+        let mut clientOrderId: Option<String> = self.safe_string_n(&paramsAlgo, Value::from(vec![Value::Str("clientAlgoId".into()), Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]).as_str().map(str::to_owned);
         let mut initialUppercaseType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut isMarketOrder: bool = initialUppercaseType.as_deref() == Some("MARKET");
         let mut isLimitOrder: bool = initialUppercaseType.as_deref() == Some("LIMIT");
@@ -11462,7 +11462,7 @@ impl Binance {
                 m.insert("side".to_string(), upperCaseSide.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsAlgo, Value::Str("createOrder".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let isPortfolioMarginparamsPortfolioMarginVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsAlgo, Value::Str("createOrder".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isPortfolioMargin: bool = isPortfolioMarginparamsPortfolioMarginVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPortfolioMargin: crate::value::Dict = isPortfolioMarginparamsPortfolioMarginVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let marginModeparamsPapiVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsPortfolioMargin)]).as_array().cloned().unwrap_or_default();

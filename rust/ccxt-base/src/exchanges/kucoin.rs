@@ -9952,16 +9952,16 @@ impl Kucoin {
             let mut m = indexmap::IndexMap::new();
             m
         }).into_dict();
-        let mut isContract: Value = Value::Bool(false);
+        let mut isContract: bool = false;
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut request).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
-            isContract = crate::value::KeyRead::key_read(&&market, "contract");
+            isContract = matches!(market, Some(crate::types::Market { contract: true, .. }));
         }  else if (marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")));
         }  else {
-            isContract = Value::Bool(true);
+            isContract = true;
         }
         let mut accountMode: Option<String> = Some("unified".to_string());
         { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsOmitted.clone(), Value::Str("fetchMyTrades".into()), Value::Str("accountMode".into()), &[Value::from(&accountMode)]).as_array().cloned().unwrap_or_default(); accountMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
@@ -9970,7 +9970,7 @@ impl Kucoin {
         let mut marginMode: Option<String> = None;
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchMyTrades".into()), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let mut isUnified: bool = accountMode.as_deref() == Some("unified");
-        let mut tradeType: Option<String> = self.handle_trade_type(&[isContract, marginMode.map(Value::from).unwrap_or(Value::Null), Value::Bool(isUnified), paramsOmitted.clone()]);
+        let mut tradeType: Option<String> = self.handle_trade_type(&[Value::Bool(isContract), marginMode.map(Value::from).unwrap_or(Value::Null), Value::Bool(isUnified), paramsOmitted.clone()]);
         std::sync::Arc::make_mut(&mut request).insert("tradeType".into(), tradeType.map(Value::from).unwrap_or(Value::Null));
         if (since != Value::Null) {
             std::sync::Arc::make_mut(&mut request).insert("startAt".into(), since.clone());
@@ -14805,11 +14805,11 @@ if _try_result.is_err() {
         let mut paramsRequest: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("cancelOrders".into()), Value::Str("uta".into()), &[Value::Bool(uta)]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut market: Option<crate::types::Market> = None;
-        let mut isContractMarket: Value = Value::Bool(true); // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
+        let mut isContractMarket: bool = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            isContractMarket = crate::value::KeyRead::key_read(&&market, "contract");
-            if (isContractMarket.as_bool() != Some(true)) {
+            isContractMarket = matches!(market, Some(crate::types::Market { contract: true, .. }));
+            if (!isContractMarket) {
                 if !uta {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrders() supports spot markets only for unified trading accounts")));
                 }
@@ -14867,7 +14867,7 @@ if _try_result.is_err() {
             let mut marginMode: Option<String> = None;
             { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrders".into()), &[Value::from(&paramsRequest)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             let mut isUnified: bool = accountMode.as_str() == Some("unified");
-            let mut tradeType: Option<String> = self.handle_trade_type(&[isContractMarket, marginMode.map(Value::from).unwrap_or(Value::Null), Value::Bool(isUnified), Value::from(&paramsRequest)]);
+            let mut tradeType: Option<String> = self.handle_trade_type(&[Value::Bool(isContractMarket), marginMode.map(Value::from).unwrap_or(Value::Null), Value::Bool(isUnified), Value::from(&paramsRequest)]);
             request.insert("tradeType".into(), tradeType.map(Value::from).unwrap_or(Value::Null));
             request.insert("cancelOrderList".into(), ordersRequests.clone());
             let __ws_arg_141 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);

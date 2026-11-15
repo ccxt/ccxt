@@ -7110,8 +7110,8 @@ if _try_result.is_err() {
                 m
             })]).into_dict();
             let mut extendedParams: crate::value::Dict = self.extend(&orderParams, &[params.clone()]).into_dict(); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            let mut triggerValue: Value = self.safe_value_n(&orderParams, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]);
-            if (triggerValue != Value::Null) {
+            let triggerValue: bool = self.safe_value_n(&orderParams, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]) != Value::Null;
+            if (triggerValue) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")));
             }
             std::sync::Arc::make_mut(&mut extendedParams).insert("textIsRequired".into(), Value::Bool(true)); // the exchange requires a text parameter for each order here

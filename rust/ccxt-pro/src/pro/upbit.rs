@@ -465,14 +465,14 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Value = self.watch_public_multiple(symbols, Some("trade"), &[]).await;
-        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_public_multiple(symbols, Some("trade"), &[]).await.into();
+        let mut first: crate::value::Dict = self.safe_dict(Value::from(&trades), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -499,7 +499,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orderbook: Value = self.watch_public_multiple(Value::from(vec![symbol]), Some("orderbook"), &[]).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch_public_multiple(Value::from(vec![symbol]), Some("orderbook"), &[]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -841,12 +841,12 @@ impl Upbit {
         }
         let mut channel: String = "myOrder".to_string();
         let mut messageHash: String = "myOrder".to_string();
-        let mut orders: Value = self.watch_private(symbol.as_str(), channel.as_str(), messageHash.as_str(), &[]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_private(symbol.as_str(), channel.as_str(), messageHash.as_str(), &[]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -880,12 +880,12 @@ impl Upbit {
         }
         let mut channel: String = "myOrder".to_string();
         let mut messageHash: String = "myTrades".to_string();
-        let mut trades: Value = self.watch_private(symbol.as_str(), channel.as_str(), messageHash.as_str(), &[]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_private(symbol.as_str(), channel.as_str(), messageHash.as_str(), &[]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&trades, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

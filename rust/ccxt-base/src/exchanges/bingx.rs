@@ -8228,20 +8228,20 @@ impl Bingx {
             let mut key: Value = rawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = sortedParams.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if (matches!(&value, Value::Arr(_))) {
-                let mut arrStr: Value = Value::Str("[".into());
+                let mut arrStr: String = "[".to_string();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_324: bool = true;
                     while { if !__for_first_324 { j += 1; } __for_first_324 = false; j < (value.len() as i64) } {
                     let mut arrayElement: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     if j > 0 {
-                        arrStr = Value::Str(format!("{}{}", arrStr, ",").into());
+                        arrStr.push_str(",");
                     }
-                    arrStr = Value::Str(format!("{}{}", arrStr, to_string_val(&arrayElement)).into());
+                    arrStr.push_str(&(to_string_val(&arrayElement)).to_string());
                 }
                 }
-                arrStr = Value::Str(format!("{}{}", arrStr, "]").into());
-                add_element_to_object(&mut copied, &key, arrStr);
+                arrStr.push_str("]");
+                add_element_to_object(&mut copied, &key, Value::from(arrStr));
             }
         }
         }

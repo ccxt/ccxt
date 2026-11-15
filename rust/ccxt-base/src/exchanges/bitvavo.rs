@@ -2075,10 +2075,10 @@ impl Bitvavo {
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(false), &[params.clone()]);
         let mut stopLossPrice: Option<String> = self.safe_string_k(params.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned); // trigger when price crosses from above to below this value
         let mut takeProfitPrice: Option<String> = self.safe_string_k(params.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned); // trigger when price crosses from below to above this value
-        let mut paramsOmitted: Value = self.omit(params, &["timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"], &[]);
-        let mut paramsCost: Value = paramsOmitted.clone();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"], &[]).into_dict();
+        let mut paramsCost: Value = Value::from(&paramsOmitted);
         if isMarketOrder {
-            paramsCost = self.omit(paramsOmitted.clone(), &["cost"], &[]);
+            paramsCost = self.omit(&paramsOmitted, &["cost"], &[]);
         }
         if isMarketOrder {
             let mut cost: Option<f64> = None;
@@ -2088,7 +2088,7 @@ impl Bitvavo {
                 let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                 cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             }  else {
-                cost = self.safe_number_k(paramsOmitted, "cost", &[]).as_f64();
+                cost = self.safe_number_k(&paramsOmitted, "cost", &[]).as_f64();
             }
             if (cost.is_some()) {
                 let mut precision: Option<f64> = self.safe_number_k(&self.currency(Value::from((market).quote.clone())), "precision", &[]).as_f64();

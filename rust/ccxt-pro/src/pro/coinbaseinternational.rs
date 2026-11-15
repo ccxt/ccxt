@@ -885,7 +885,7 @@ impl Coinbaseinternational {
         }
         let mut symbolsResolved: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchOrders".into()), Value::Str("interval".into()), &[Value::Str("raw".into())]).as_array().cloned().unwrap_or_default();
-        let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut interval: Option<String> = intervalparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut symbolsLength: i64 = symbolsResolved.len() as i64;
@@ -894,7 +894,7 @@ impl Coinbaseinternational {
             let mut __for_first_245: bool = true;
             while { if !__for_first_245 { i += 1; } __for_first_245 = false; i < symbolsLength } {
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default())),
-                Value::Str("id".into()), &[Value::Str("".into())])).into()), ".").into()), interval).into()));
+                Value::Str("id".into()), &[Value::Str("".into())])).into()), ".").into()), interval.as_deref().unwrap_or("null")).into()));
         }
         }
         let mut orders: Value = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
@@ -1009,7 +1009,7 @@ impl Coinbaseinternational {
         }
         let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchPositions".into()), Value::Str("interval".into()), &[Value::Str("raw".into())]).as_array().cloned().unwrap_or_default();
-        let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut interval: Option<String> = intervalparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut channels: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut symbolsLength: i64 = 0;
@@ -1022,11 +1022,11 @@ impl Coinbaseinternational {
                 let mut __for_first_247: bool = true;
                 while { if !__for_first_247 { i += 1; } __for_first_247 = false; i < symbolsLength } {
                 std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default())),
-                    Value::Str("id".into()), &[Value::Str("".into())])).into()), ".").into()), interval).into()));
+                    Value::Str("id".into()), &[Value::Str("".into())])).into()), ".").into()), interval.as_deref().unwrap_or("null")).into()));
             }
             }
         }  else {
-            std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", "user.changes.any.any.", interval).into()));
+            std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", "user.changes.any.any.", interval.as_deref().unwrap_or("null")).into()));
         }
         let mut positions: Value = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -1065,7 +1065,7 @@ impl Coinbaseinternational {
         }
         let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(&paramsResolved, Value::Str("watchPositions".into()), Value::Str("interval".into()), &[Value::Str("raw".into())]).as_array().cloned().unwrap_or_default();
-        let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut interval: Option<String> = intervalparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut channels: Vec<Value> = Vec::new();
         let mut symbolsLength: i64 = 0;
@@ -1078,11 +1078,11 @@ impl Coinbaseinternational {
                 let mut __for_first_248: bool = true;
                 while { if !__for_first_248 { i += 1; } __for_first_248 = false; i < symbolsLength } {
                 channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()),
-                    &[Value::Str("".into())])).into()), ".").into()), interval).into()));
+                    &[Value::Str("".into())])).into()), ".").into()), interval.as_deref().unwrap_or("null")).into()));
             }
             }
         }  else {
-            channels.push(Value::Str(format!("{}{}", "user.changes.any.any.", interval).into()));
+            channels.push(Value::Str(format!("{}{}", "user.changes.any.any.", interval.as_deref().unwrap_or("null")).into()));
         }
         return self.un_subscribe(Value::from(channels), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
         Value::Null

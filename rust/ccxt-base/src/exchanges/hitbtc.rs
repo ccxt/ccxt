@@ -3618,12 +3618,12 @@ impl Hitbtc {
         }  else if (type_var.as_str() == Some("stopLimit")) || (type_var.as_str() == Some("stopMarket")) || (type_var.as_str() == Some("takeProfitLimit")) || (type_var.as_str() == Some("takeProfitMarket")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")));
         }
-        let mut paramsOmitted: Value = self.omit(params, &["triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"], &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"], &[]).into_dict();
         if (marketType.as_str() == Some("swap")) {
             // set default margin mode to cross
             request.insert("margin_mode".into(), (if (marginMode == Value::Null) { Value::Str("cross".into()) } else { marginMode }));
         }
-        return Value::from(vec![Value::Map(request), paramsOmitted]);
+        return Value::from(vec![Value::Map(request), Value::Dict(paramsOmitted)]);
 
     Value::Null
 }

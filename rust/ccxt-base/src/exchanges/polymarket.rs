@@ -1942,8 +1942,8 @@ impl Polymarket {
     m
 }));
         let mut triggerPrice: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingPercent".into()), Value::Str("trailingAmount".into())]), &[]).as_str().map(str::to_owned);
-        let mut attached: Value = self.safe_value_n(params.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
-        if (triggerPrice.is_some()) || (attached != Value::Null) {
+        let attached: bool = self.safe_value_n(params.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]) != Value::Null;
+        if (triggerPrice.is_some()) || (attached) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() does not support trigger or attached stop orders yet")));
         }
         let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);

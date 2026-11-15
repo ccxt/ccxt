@@ -10465,26 +10465,26 @@ impl Bybit {
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " setMarginMode() with symbol marginMode must be either [isolated, cross]")));
                 }
-                let mut sellLeverage: Value = Value::Null;
-                let mut buyLeverage: Value = Value::Null;
+                let mut sellLeverage: Option<String> = None;
+                let mut buyLeverage: Option<String> = None;
                 let mut leverage: Option<String> = self.safe_string_k(&paramsType, "leverage", &[]).as_str().map(str::to_owned);
                 let mut paramsOmitted: Option<crate::value::Dict> = None;
                 if (leverage.is_none()) {
-                    sellLeverage = self.safe_string2(Value::from(&paramsType), Value::Str("sell_leverage".into()), Value::Str("sellLeverage".into()), &[]);
-                    buyLeverage = self.safe_string2(Value::from(&paramsType), Value::Str("buy_leverage".into()), Value::Str("buyLeverage".into()), &[]);
-                    if (sellLeverage == Value::Null) && (buyLeverage == Value::Null) {
+                    sellLeverage = self.safe_string2(Value::from(&paramsType), Value::Str("sell_leverage".into()), Value::Str("sellLeverage".into()), &[]).as_str().map(str::to_owned);
+                    buyLeverage = self.safe_string2(Value::from(&paramsType), Value::Str("buy_leverage".into()), Value::Str("buyLeverage".into()), &[]).as_str().map(str::to_owned);
+                    if (sellLeverage.is_none()) && (buyLeverage.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters")));
                     }
-                    if (buyLeverage == Value::Null) {
+                    if (buyLeverage.is_none()) {
                         buyLeverage = sellLeverage.clone();
                     }
-                    if (sellLeverage == Value::Null) {
+                    if (sellLeverage.is_none()) {
                         sellLeverage = buyLeverage.clone();
                     }
                     paramsOmitted = self.omit(&paramsType, &["buy_leverage", "sell_leverage", "sellLeverage", "buyLeverage"], &[]).into_opt_dict();
                 }  else {
-                    sellLeverage = leverage.clone().map(Value::from).unwrap_or(Value::Null);
-                    buyLeverage = leverage.map(Value::from).unwrap_or(Value::Null);
+                    sellLeverage = leverage.clone();
+                    buyLeverage = leverage;
                     paramsOmitted = self.omit(&paramsType, Value::Str("leverage".into()), &[]).into_opt_dict();
                 }
                 let mut request: crate::value::Dict = Value::Map({
@@ -10492,8 +10492,8 @@ impl Bybit {
                         m.insert("category".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
                         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "id"));
                         m.insert("tradeMode".to_string(), Value::from(tradeMode));
-                        m.insert("buyLeverage".to_string(), buyLeverage);
-                        m.insert("sellLeverage".to_string(), sellLeverage);
+                        m.insert("buyLeverage".to_string(), buyLeverage.map(Value::from).unwrap_or(Value::Null));
+                        m.insert("sellLeverage".to_string(), sellLeverage.map(Value::from).unwrap_or(Value::Null));
                     m
                 }).into_dict();
                 let __ws_arg_51 = self.extend(request, &[&paramsOmitted]);
