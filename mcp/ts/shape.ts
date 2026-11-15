@@ -24,14 +24,31 @@ function isPlainObject (value: any): value is Record<string, any> {
 
 // how a result's entries are laid out: an array of structures, or an object keyed by
 // symbol/currency whose values are structures (fetchFundingRates, fetchTickers, …)
-function entriesOf (data: any): { kind: 'array' | 'map', entries: [ string | number, any ][] } | undefined {
+// fetchBalance-style results: per-currency structures next to the free/used/total
+// aggregates (which repeat the same numbers keyed the other way) and scalar metadata
+const BALANCE_AGGREGATES = [ 'free', 'used', 'total' ];
+const BALANCE_METADATA = [ 'info', 'timestamp', 'datetime' ];
+
+function isBalance (data: Record<string, any>): boolean {
+    return BALANCE_AGGREGATES.every ((key) => isPlainObject (data[key]));
+}
+
+function entriesOf (data: any): { kind: 'array' | 'map', entries: [ string | number, any ][], balance?: boolean } | undefined {
     if (Array.isArray (data)) {
         return { 'kind': 'array', 'entries': data.map ((item, index) => [ index, item ]) };
     }
     if (!isPlainObject (data)) {
         return undefined;
     }
+    if (isBalance (data)) {
+        const skip = [ ...BALANCE_AGGREGATES, ...BALANCE_METADATA ];
+        return { 'kind': 'map', 'entries': Object.entries (data).filter (([ key ]) => !skip.includes (key)), 'balance': true };
+    }
     const entries = Object.entries (data);
+    if (entries.length === 0) {
+        // an empty symbol-keyed map (e.g. fetchFundingRates with nothing listed)
+        return { 'kind': 'map', entries };
+    }
     const structures = entries.filter (([ , value ]) => isPlainObject (value)).length;
     // a single structure (fetchTicker, fetchFundingRate) has mostly scalar fields; a map
     // keyed by symbol has (almost) only structures as values
@@ -75,7 +92,13 @@ function pick (value: Record<string, any>, fields: string[]): Record<string, any
 }
 
 function isMissing (value: any): boolean {
-    return value === undefined || value === null || (typeof value === 'number' && Number.isNaN (value));
+    return value === undefined || value === null || value === '' || (typeof value === 'number' && Number.isNaN (value));
+}
+
+// integer-like keys ("10", "2") are always enumerated first and in numeric order by JS
+// objects, so a sorted map keyed by them cannot carry its order in the object itself
+function isIntegerKey (key: string | number): boolean {
+    return /^(0|[1-9]\d*)$/.test (String (key));
 }
 
 export function shapeResult (data: any, options: ShapeOptions): Shaped {
@@ -92,9 +115,12 @@ export function shapeResult (data: any, options: ShapeOptions): Shaped {
     }
     const layout = entriesOf (data);
     if (layout === undefined) {
-        // a single structure — only a projection makes sense
+        // a single structure or a scalar — only a projection makes sense
         if (sortBy !== undefined || limit !== undefined || offset !== undefined) {
-            meta['notice'] = 'sortBy/limit/offset apply to list results only — this method returned a single structure, so they were ignored';
+            meta['notice'] = 'sortBy/limit/offset apply to list results only (an array, or an object keyed by symbol/currency) — this method returned a single structure, so they were ignored';
+        }
+        if (fields !== undefined && !isPlainObject (data)) {
+            meta['notice'] = 'fields/sortBy/limit/offset apply to structured results only — this method returned a ' + ((data === null) ? 'null' : (typeof data)) + ' value, so they were ignored';
         }
         if (fields !== undefined && isPlainObject (data)) {
             const known = Object.keys (data);
@@ -114,6 +140,12 @@ export function shapeResult (data: any, options: ShapeOptions): Shaped {
     const items = entries.map (([ , value ]) => value);
     const known = availableFields (items);
     const matched = entries.length;
+    if ((sortBy !== undefined || fields !== undefined) && entries.length > 0 && known.length === 0) {
+        throw new ArgError ('sortBy/fields need entries that are objects — this result\'s entries are ' + (Array.isArray (items[0]) ? 'arrays (e.g. OHLCV rows)' : 'scalars'), 'use limit/offset only, or a dedicated tool such as get_ohlcv');
+    }
+    if (layout.balance) {
+        meta['balance'] = 'per-currency entries only — the free/used/total aggregates repeat the same numbers keyed by field and were left out';
+    }
     if (sortBy !== undefined) {
         const descending = sortBy.startsWith ('-');
         const field = descending ? sortBy.slice (1) : sortBy;
@@ -157,9 +189,16 @@ export function shapeResult (data: any, options: ShapeOptions): Shaped {
     // "matched"/"window" rather than total/hasMore: those belong to next_page pagination,
     // which can still apply on top of a shaped result that is too large for one response
     meta['matched'] = matched;
+    if (start > 0 && start >= matched && matched > 0) {
+        meta['notice'] = 'offset ' + start + ' is past the end — the result has ' + matched + ' entries';
+    }
+    if (layout.kind === 'map' && sortBy !== undefined && entries.some (([ key ]) => isIntegerKey (key))) {
+        // the object below enumerates integer-like keys numerically, not in sort order
+        meta['keyOrder'] = entries.map (([ key ]) => key);
+    }
     if (start > 0 || start + entries.length < matched) {
         meta['window'] = { 'offset': start, 'count': entries.length };
-        if (start + entries.length < matched) {
+        if (start + entries.length < matched && entries.length > 0) {
             meta['notice'] = 'showing entries ' + start + '–' + (start + entries.length - 1) + ' of ' + matched + ' — pass "offset": ' + (start + entries.length) + ' with the same sortBy/limit for the next slice';
         }
     }

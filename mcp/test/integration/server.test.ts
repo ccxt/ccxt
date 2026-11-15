@@ -71,13 +71,13 @@ test ('call_read_method: an oversized result is paged through next_page from one
     const first = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'marketType': 'swap' });
     assert.equal (first.ok, true);
     assert.equal (first.meta.paginated, true);
-    assert.equal (first.meta.total, 700);
+    assert.equal (first.meta.page.total, 700);
     assert.equal (first.meta.method, 'fetchFundingRates');
     const merged: Record<string, any> = { ...first.data };
     let page = first;
     let pages = 1;
-    while (page.meta.hasMore) {
-        page = await call (client, 'next_page', { 'cursor': page.meta.nextCursor });
+    while (page.meta.page.hasMore) {
+        page = await call (client, 'next_page', { 'cursor': page.meta.page.nextCursor });
         assert.equal (page.ok, true);
         Object.assign (merged, page.data);
         pages += 1;

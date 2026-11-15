@@ -536,9 +536,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('next_page', {
         'title': 'Get the next page of a large result',
-        'description': 'Any tool whose result is too large for one response returns its first page with meta.paginated, meta.total, meta.hasMore and meta.nextCursor. Pass that nextCursor here to get the next page; keep going while hasMore is true. Pages are cut from one server-side snapshot taken at the original call (no extra exchange requests, no drift between pages) and expire after 10 minutes unread — on CURSOR_EXPIRED repeat the original call.',
+        'description': 'Any tool whose result is too large for one response returns its first page with meta.paginated and meta.page (offset, returned, total, hasMore, nextCursor). Pass meta.page.nextCursor here to get the next page; keep going while meta.page.hasMore is true. Pages are cut from one server-side snapshot taken at the original call (no extra exchange requests, no drift between pages) and expire after 10 minutes unread — on CURSOR_EXPIRED repeat the original call.',
         'inputSchema': {
-            'cursor': z.string ().describe ('meta.nextCursor from the previous page, unchanged'),
+            'cursor': z.string ().describe ('meta.page.nextCursor from the previous page, unchanged'),
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': false },
     }, async ({ cursor }) => run ({ 'tool': 'next_page' }, async () => nextPage (cursor)));

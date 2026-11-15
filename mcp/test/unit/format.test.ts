@@ -58,8 +58,8 @@ function parse (result: { content: { text: string }[] }): any {
 function readAllPages (first: any): any[] {
     const pages = [ first ];
     let page = first;
-    while (page.meta.hasMore) {
-        const text = toContent (nextPage (page.meta.nextCursor)).content[0].text;
+    while (page.meta.page.hasMore) {
+        const text = toContent (nextPage (page.meta.page.nextCursor)).content[0].text;
         assert.ok (estimateTokens (text) <= MAX_RESULT_TOKENS, 'every page fits the budget');
         page = JSON.parse (text);
         assert.equal (page.ok, true);
@@ -85,18 +85,18 @@ test ('a large funding-rate scan (symbol-keyed map) is paginated, not dropped', 
     assert.equal (first.ok, true);
     assert.equal (first.meta.paginated, true);
     assert.equal (first.meta.truncated, undefined, 'paging is not truncation');
-    assert.equal (first.meta.total, 700);
-    assert.equal (first.meta.offset, 0);
-    assert.equal (first.meta.hasMore, true);
+    assert.equal (first.meta.page.total, 700);
+    assert.equal (first.meta.page.offset, 0);
+    assert.equal (first.meta.page.hasMore, true);
     assert.equal (first.meta.exchange, 'okx', 'the original meta is kept');
-    assert.ok (first.meta.notice.includes ('next_page'));
-    assert.equal (Object.keys (first.data).length, first.meta.returned);
-    assert.ok (first.meta.returned > 0 && first.meta.returned < 700);
+    assert.ok (first.meta.page.notice.includes ('next_page'));
+    assert.equal (Object.keys (first.data).length, first.meta.page.returned);
+    assert.ok (first.meta.page.returned > 0 && first.meta.page.returned < 700);
     // walking the cursors returns every entry exactly once, in order, unchanged
     const pages = readAllPages (first);
     assert.ok (pages.length > 1);
-    assert.equal (pages[pages.length - 1].meta.hasMore, false);
-    assert.equal (pages[pages.length - 1].meta.nextCursor, undefined);
+    assert.equal (pages[pages.length - 1].meta.page.hasMore, false);
+    assert.equal (pages[pages.length - 1].meta.page.nextCursor, undefined);
     const merged: Record<string, any> = {};
     for (const page of pages) {
         assert.equal (page.meta.method, 'fetchFundingRates');
@@ -111,7 +111,7 @@ test ('oversized array data is paginated across every row', () => {
     const first = parse (toContent (ok (rows)));
     assert.ok (JSON.stringify (first).length <= MAX_RESULT_CHARS);
     assert.equal (first.meta.paginated, true);
-    assert.equal (first.meta.total, 5000);
+    assert.equal (first.meta.page.total, 5000);
     const indexes = readAllPages (first).flatMap ((page) => page.data.map ((row: any) => row.index));
     assert.deepEqual (indexes, rows.map ((row) => row.index));
 });
@@ -142,8 +142,8 @@ test ('a raw payload pages its nested collection and keeps the surrounding field
     const raw = { 'code': '0', 'msg': '', 'data': Array.from ({ 'length': 700 }, (_, i) => fundingRate (i)) };
     const first = parse (toContent (ok (raw, { 'method': 'publicGetPublicFundingRate' })));
     assert.equal (first.meta.paginated, true);
-    assert.equal (first.meta.pagedField, 'data.data');
-    assert.equal (first.meta.total, 700);
+    assert.equal (first.meta.page.pagedField, 'data.data');
+    assert.equal (first.meta.page.total, 700);
     const pages = readAllPages (first);
     for (const page of pages) {
         assert.equal (page.data.code, '0');
@@ -157,22 +157,22 @@ test ('an entry too large on its own is flagged and skipped, and paging continue
     const first = parse (toContent (ok (rows)));
     assert.equal (first.meta.paginated, true);
     assert.deepEqual (first.data, [ { 'i': 0 } ]);
-    const second = parse (toContent (nextPage (first.meta.nextCursor)));
+    const second = parse (toContent (nextPage (first.meta.page.nextCursor)));
     assert.equal (second.data.truncated, true);
-    assert.equal (second.meta.skipped, 1);
+    assert.equal (second.meta.page.skipped, 1);
     assert.ok (second.data.reason.includes ('offset 1'));
-    const third = parse (toContent (nextPage (second.meta.nextCursor)));
+    const third = parse (toContent (nextPage (second.meta.page.nextCursor)));
     assert.deepEqual (third.data, [ { 'i': 2 } ]);
-    assert.equal (third.meta.hasMore, false);
+    assert.equal (third.meta.page.hasMore, false);
 });
 
 test ('next_page rejects malformed, exhausted and expired cursors', () => {
     assert.equal (nextPage ('nope').error.code, 'BAD_CURSOR');
     const first = parse (toContent (ok (Array.from ({ 'length': 700 }, (_, i) => fundingRate (i)))));
-    const [ id ] = first.meta.nextCursor.split ('.');
+    const [ id ] = first.meta.page.nextCursor.split ('.');
     assert.equal (nextPage (id + '.700').error.code, 'BAD_CURSOR');
     clearSnapshots ();
-    const expired: Envelope = nextPage (first.meta.nextCursor);
+    const expired: Envelope = nextPage (first.meta.page.nextCursor);
     assert.equal (expired.ok, false);
     assert.equal (expired.error?.code, 'CURSOR_EXPIRED');
     assert.equal (toContent (expired).isError, true);
@@ -182,7 +182,7 @@ test ('the snapshot store is bounded', () => {
     clearSnapshots ();
     const cursors: string[] = [];
     for (let i = 0; i < MAX_SNAPSHOTS + 1; i++) {
-        cursors.push (parse (toContent (ok (Array.from ({ 'length': 700 }, (_, j) => fundingRate (j))))).meta.nextCursor);
+        cursors.push (parse (toContent (ok (Array.from ({ 'length': 700 }, (_, j) => fundingRate (j))))).meta.page.nextCursor);
     }
     assert.equal (nextPage (cursors[0]).error?.code, 'CURSOR_EXPIRED', 'the least recently used snapshot is evicted');
     assert.equal (nextPage (cursors[MAX_SNAPSHOTS]).ok, true);
@@ -207,4 +207,54 @@ test ('toContent marks error envelopes with isError', () => {
 test ('undefined serializes as null, never dropped silently', () => {
     const result = toContent (ok ({ 'a': undefined }));
     assert.equal (JSON.parse (result.content[0].text).data.a, null);
+});
+
+test ('paging keeps the tool\'s own meta (hasMore, notice) instead of overwriting it', () => {
+    // get_orders/get_my_trades set meta.hasMore = "the count hit the limit, more on the exchange"
+    const orders = Array.from ({ 'length': 700 }, (_, i) => fundingRate (i));
+    const toolMeta = { 'count': 700, 'hasMore': true, 'notice': 'count hit the limit — page with since for more', 'window': { 'offset': 0, 'count': 700 } };
+    const pages = readAllPages (parse (toContent (ok (orders, toolMeta))));
+    assert.ok (pages.length > 1);
+    for (const page of pages) {
+        assert.equal (page.meta.hasMore, true, 'the tool\'s hasMore survives on every page');
+        assert.equal (page.meta.notice, toolMeta.notice);
+        assert.deepEqual (page.meta.window, toolMeta.window);
+    }
+    assert.equal (pages[pages.length - 1].meta.page.hasMore, false);
+});
+
+test ('a collection nested two levels down in a raw payload is paged, not skipped', () => {
+    // bybit: {"retCode": 0, "result": {"category": "linear", "list": [...]}}
+    const list = Array.from ({ 'length': 800 }, (_, i) => fundingRate (i));
+    const raw = { 'retCode': 0, 'retMsg': 'OK', 'result': { 'category': 'linear', list }, 'time': 1 };
+    const first = parse (toContent (ok (raw)));
+    assert.equal (first.meta.page.pagedField, 'data.result.list');
+    assert.equal (first.meta.page.total, 800);
+    const pages = readAllPages (first);
+    for (const page of pages) {
+        assert.equal (page.data.retCode, 0);
+        assert.equal (page.data.result.category, 'linear');
+        assert.equal (page.meta.page.skipped, undefined);
+    }
+    assert.deepEqual (pages.flatMap ((page) => page.data.result.list), JSON.parse (JSON.stringify (list)));
+});
+
+test ('a sibling too large to repeat on every page is left out and listed, not crowding out the collection', () => {
+    const rows = Array.from ({ 'length': 1800 }, (_, i) => ({ 'i': i, 'pad': 'x'.repeat (40) }));
+    const raw = { 'code': 0, 'rows': rows, 'blob': 'y'.repeat (63000) };
+    const first = parse (toContent (ok (raw)));
+    assert.equal (first.meta.page.pagedField, 'data.rows');
+    assert.deepEqual (first.meta.page.omittedFields, [ 'data.blob' ]);
+    assert.equal (first.data.blob, undefined);
+    assert.equal (first.data.code, 0);
+    const pages = readAllPages (first);
+    assert.ok (pages.length < 10, 'pages are filled with rows, not one skip marker per row');
+    assert.equal (pages.flatMap ((page) => page.data.rows).length, 1800);
+});
+
+test ('a fully read snapshot is freed', () => {
+    clearSnapshots ();
+    const pages = readAllPages (parse (toContent (ok (Array.from ({ 'length': 700 }, (_, i) => fundingRate (i))))));
+    const [ id ] = pages[0].meta.page.nextCursor.split ('.');
+    assert.equal (nextPage (id + '.0').error?.code, 'CURSOR_EXPIRED');
 });

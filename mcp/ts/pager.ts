@@ -11,10 +11,14 @@ export interface Snapshot {
     // the collection being paged: array elements, or [key, value] entries of a map
     kind: CollectionKind;
     items: any[];
-    // when the collection is nested one level inside an object (a raw endpoint payload
-    // like {"code": "0", "data": [...]}), the surrounding object and the key it sits under
+    // when the collection is nested inside an object (a raw endpoint payload like
+    // {"code": "0", "data": [...]} or {"retCode": 0, "result": {"list": [...]}}), the
+    // surrounding object and the key path the collection sits under
     frame?: Record<string, any>;
-    path?: string;
+    path?: string[];
+    // sibling fields of the collection too large to repeat on every page: left out of the
+    // frame and listed in meta.page.omittedFields instead of crowding out the collection
+    omitted?: string[];
     // the original envelope meta (exchange, method, …), repeated on every page
     meta: Record<string, any>;
     lastAccess: number;

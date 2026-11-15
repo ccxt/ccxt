@@ -93,10 +93,102 @@ function isPageable (value: any): boolean {
     return Array.isArray (value) ? (value.length > 1) : (isPlainObject (value) && Object.keys (value).length > 1);
 }
 
+// how deep findCollection follows a dominant key into a raw payload
+const MAX_NESTING = 4;
+// the most the fields around a nested collection may take on each page; larger siblings are
+// left out (and listed) so the page has room for the collection itself
+const FRAME_BUDGET_CHARS = Math.floor (MAX_RESULT_CHARS / 4);
+
+// the child holding more than half of an object's serialized size, if it is a container
+function dominantChild (node: Record<string, any>): string | undefined {
+    const total = serializedLength (node);
+    let biggestKey: string | undefined = undefined;
+    let biggestSize = 0;
+    for (const [ key, value ] of Object.entries (node)) {
+        const size = serializedLength (value);
+        if (size > biggestSize) {
+            biggestKey = key;
+            biggestSize = size;
+        }
+    }
+    if (biggestKey === undefined || biggestSize <= total / 2) {
+        return undefined;
+    }
+    const child = node[biggestKey];
+    return (Array.isArray (child) || isPlainObject (child)) ? biggestKey : undefined;
+}
+
+// follow dominant keys down a raw payload to the collection that holds it:
+// {"code", "data": [...]} → ["data"]; {"retCode", "result": {"category", "list": [...]}} →
+// ["result", "list"]; {"code", "data": {"BTC": {...}, ...}} → ["data"]
+function nestedCollectionPath (node: Record<string, any>, depth: number): string[] | undefined {
+    if (depth >= MAX_NESTING) {
+        return undefined;
+    }
+    const key = dominantChild (node);
+    if (key === undefined) {
+        return undefined;
+    }
+    const child = node[key];
+    if (Array.isArray (child)) {
+        return isPageable (child) ? [ key ] : undefined;
+    }
+    const deeper = nestedCollectionPath (child, depth + 1);
+    if (deeper !== undefined) {
+        return [ key, ...deeper ];
+    }
+    return isPageable (child) ? [ key ] : undefined;
+}
+
+function getAtPath (value: any, path: string[]): any {
+    return path.reduce ((node, key) => node[key], value);
+}
+
+// a copy of `frame` with the collection at `path` replaced by `value` and the `omitted`
+// sibling fields (dotted paths) left out
+function setAtPath (frame: Record<string, any>, path: string[], value: any, omitted: Set<string>, prefix = ''): Record<string, any> {
+    const [ head, ...rest ] = path;
+    const result: Record<string, any> = {};
+    for (const [ key, entry ] of Object.entries (frame)) {
+        const dotted = (prefix === '') ? key : (prefix + '.' + key);
+        if (key === head) {
+            result[key] = (rest.length > 0) ? setAtPath (entry, rest, value, omitted, dotted) : value;
+        } else if (!omitted.has (dotted)) {
+            result[key] = entry;
+        }
+    }
+    return result;
+}
+
+// the sibling fields to leave out so the frame repeated on every page stays small: the
+// largest siblings along the path first, until the rest fits FRAME_BUDGET_CHARS
+function chooseOmitted (frame: Record<string, any>, path: string[], empty: any): string[] {
+    const siblings: { dotted: string, size: number }[] = [];
+    let node: Record<string, any> = frame;
+    for (let depth = 0; depth < path.length; depth++) {
+        const prefix = path.slice (0, depth).join ('.');
+        for (const [ key, entry ] of Object.entries (node)) {
+            if (key !== path[depth]) {
+                siblings.push ({ 'dotted': (prefix === '') ? key : (prefix + '.' + key), 'size': serializedLength (entry) });
+            }
+        }
+        node = node[path[depth]];
+    }
+    siblings.sort ((a, b) => b.size - a.size);
+    const omitted = new Set<string> ();
+    for (const sibling of siblings) {
+        if (serializedLength (setAtPath (frame, path, empty, omitted)) <= FRAME_BUDGET_CHARS) {
+            break;
+        }
+        omitted.add (sibling.dotted);
+    }
+    return [ ...omitted ];
+}
+
 // find the collection to page through: the data itself (an array, or an object keyed by
 // symbol/currency/… like fetchFundingRates, fetchTickers or fetchBalance), or — for raw
-// endpoint payloads like {"code": "0", "data": [...]} — a single collection nested one
-// level down that holds most of the payload
+// endpoint payloads — a collection nested up to MAX_NESTING levels down that holds most of
+// the payload
 export function findCollection (data: any): Omit<Snapshot, 'meta' | 'lastAccess'> | undefined {
     if (Array.isArray (data)) {
         return isPageable (data) ? { 'kind': 'array', 'items': data } : undefined;
@@ -104,24 +196,21 @@ export function findCollection (data: any): Omit<Snapshot, 'meta' | 'lastAccess'
     if (!isPlainObject (data)) {
         return undefined;
     }
-    const total = serializedLength (data);
-    let biggestKey: string | undefined = undefined;
-    let biggestSize = 0;
-    for (const [ key, value ] of Object.entries (data)) {
-        const size = serializedLength (value);
-        if (size > biggestSize) {
-            biggestKey = key;
-            biggestSize = size;
-        }
-    }
-    if (biggestKey !== undefined && biggestSize > total / 2 && isPageable (data[biggestKey])) {
-        const nested = data[biggestKey];
-        return {
-            'kind': Array.isArray (nested) ? 'array' : 'map',
+    const path = nestedCollectionPath (data, 0);
+    if (path !== undefined) {
+        const nested = getAtPath (data, path);
+        const kind = Array.isArray (nested) ? 'array' : 'map';
+        const collection: Omit<Snapshot, 'meta' | 'lastAccess'> = {
+            kind,
             'items': Array.isArray (nested) ? nested : Object.entries (nested),
             'frame': data,
-            'path': biggestKey,
+            path,
         };
+        const omitted = chooseOmitted (data, path, (kind === 'array') ? [] : {});
+        if (omitted.length > 0) {
+            collection.omitted = omitted;
+        }
+        return collection;
     }
     return isPageable (data) ? { 'kind': 'map', 'items': Object.entries (data) } : undefined;
 }
@@ -129,35 +218,43 @@ export function findCollection (data: any): Omit<Snapshot, 'meta' | 'lastAccess'
 function pageData (snapshot: Snapshot, offset: number, count: number): any {
     const slice = snapshot.items.slice (offset, offset + count);
     const value = (snapshot.kind === 'array') ? slice : Object.fromEntries (slice);
-    if (snapshot.path === undefined) {
+    if (snapshot.path === undefined || snapshot.frame === undefined) {
         return value;
     }
-    // keep the surrounding fields (code, msg, …) and swap in the page at the same key
-    return { ...snapshot.frame, [snapshot.path]: value };
+    // keep the surrounding fields (code, msg, …) and swap in the page at the same path
+    return setAtPath (snapshot.frame, snapshot.path, value, new Set (snapshot.omitted ?? []));
 }
 
+// pagination state lives under meta.page so it never overwrites the tool's own meta (e.g.
+// get_orders' hasMore = "the count hit the limit, more exist on the exchange", or the
+// shaping notice/window of call_read_method)
 function pageMeta (id: string, snapshot: Snapshot, offset: number, returned: number, consumed: number): Record<string, any> {
     const total = snapshot.items.length;
     const next = offset + consumed;
     const hasMore = next < total;
-    const meta: Record<string, any> = {
-        ...snapshot.meta,
-        'paginated': true,
+    const page: Record<string, any> = {
         offset,
         returned,
         total,
         hasMore,
     };
     if (snapshot.path !== undefined) {
-        meta['pagedField'] = 'data.' + snapshot.path;
+        page['pagedField'] = 'data.' + snapshot.path.join ('.');
+    }
+    const omitted = snapshot.omitted ?? [];
+    if (omitted.length > 0) {
+        page['omittedFields'] = omitted.map ((field) => 'data.' + field);
     }
     if (hasMore) {
-        meta['nextCursor'] = encodeCursor (id, next);
-        meta['notice'] = 'result split into pages to fit the host tool-result limit (' + total + ' entries in total) — call next_page with meta.nextCursor to get the next page; pages come from one snapshot and expire after ' + (SNAPSHOT_TTL_MS / 60000) + ' minutes unread';
+        page['nextCursor'] = encodeCursor (id, next);
+        page['notice'] = 'result split into pages to fit the host tool-result limit (' + total + ' entries in total) — call next_page with meta.page.nextCursor to get the next page; pages come from one snapshot and expire after ' + (SNAPSHOT_TTL_MS / 60000) + ' minutes unread';
     } else {
-        meta['notice'] = 'last page of a paginated result (' + total + ' entries in total)';
+        page['notice'] = 'last page of a paginated result (' + total + ' entries in total)';
     }
-    return meta;
+    if (omitted.length > 0) {
+        page['notice'] += '; the fields in omittedFields were too large to repeat on every page and were left out — request them with a narrower call';
+    }
+    return { ...snapshot.meta, 'paginated': true, page };
 }
 
 // the largest page starting at `offset` that fits the budget (binary search over the page
@@ -182,7 +279,7 @@ export function renderPage (id: string, snapshot: Snapshot, offset: number): Env
         return best;
     }
     const meta = pageMeta (id, snapshot, offset, 0, 1);
-    meta['skipped'] = 1;
+    meta['page']['skipped'] = 1;
     return {
         'ok': true,
         'data': { 'truncated': true, 'reason': 'the entry at offset ' + offset + ' is larger than the host tool-result limit on its own and cannot be returned — request it directly with a narrower call' },
@@ -194,22 +291,27 @@ export function renderPage (id: string, snapshot: Snapshot, offset: number): Env
 export function nextPage (cursor: string): Envelope {
     const decoded = decodeCursor (cursor);
     if (decoded === undefined) {
-        return { 'ok': false, 'error': { 'code': 'BAD_CURSOR', 'message': 'not a valid cursor: ' + JSON.stringify (cursor), 'retryable': false, 'hint': 'pass meta.nextCursor from the previous page unchanged' } };
+        return { 'ok': false, 'error': { 'code': 'BAD_CURSOR', 'message': 'not a valid cursor: ' + JSON.stringify (cursor), 'retryable': false, 'hint': 'pass meta.page.nextCursor from the previous page unchanged' } };
     }
     const snapshot = getSnapshot (decoded.id);
     if (snapshot === undefined) {
-        return { 'ok': false, 'error': { 'code': 'CURSOR_EXPIRED', 'message': 'no paginated result for this cursor — it expired or never existed', 'retryable': false, 'hint': 'snapshots expire after ' + (SNAPSHOT_TTL_MS / 60000) + ' minutes unread — repeat the original call to get a fresh first page' } };
+        return { 'ok': false, 'error': { 'code': 'CURSOR_EXPIRED', 'message': 'no paginated result for this cursor — it was fully read, expired, or never existed', 'retryable': false, 'hint': 'snapshots are freed after their last page and expire after ' + (SNAPSHOT_TTL_MS / 60000) + ' minutes unread — repeat the original call to get a fresh first page' } };
     }
     if (decoded.offset >= snapshot.items.length) {
-        return { 'ok': false, 'error': { 'code': 'BAD_CURSOR', 'message': 'cursor offset ' + decoded.offset + ' is past the end of the result (' + snapshot.items.length + ' entries)', 'retryable': false, 'hint': 'the previous page had hasMore: false — there is nothing left to read' } };
+        return { 'ok': false, 'error': { 'code': 'BAD_CURSOR', 'message': 'cursor offset ' + decoded.offset + ' is past the end of the result (' + snapshot.items.length + ' entries)', 'retryable': false, 'hint': 'the previous page had meta.page.hasMore: false — there is nothing left to read' } };
     }
-    return renderPage (decoded.id, snapshot, decoded.offset);
+    const page = renderPage (decoded.id, snapshot, decoded.offset);
+    if (!page.meta?.['page']?.['hasMore']) {
+        // fully read — free it now rather than holding it until the TTL or eviction
+        deleteSnapshot (decoded.id);
+    }
+    return page;
 }
 
 // serialize an envelope into MCP content within the global size budget. The output is
 // ALWAYS valid JSON and nothing is dropped silently: an oversized collection (array, or an
-// object keyed by symbol/currency, or one nested a level down) is snapshotted server-side
-// and returned as its first page plus a meta.nextCursor for next_page. Only a payload with
+// object keyed by symbol/currency, or one nested inside a raw payload) is snapshotted server-side
+// and returned as its first page plus a meta.page.nextCursor for next_page. Only a payload with
 // no collection to page through (one huge scalar structure) is replaced by a valid marker —
 // a raw byte-cut that produces unparseable JSON is never emitted.
 export function toContent (envelope: Envelope): Content {
@@ -230,6 +332,9 @@ export function toContent (envelope: Envelope): Content {
         const id = storeSnapshot (snapshot);
         const page = renderPage (id, { ...snapshot, 'lastAccess': Date.now () }, 0);
         if (fitsBudget (redact (jsonStringify (page)))) {
+            if (!page.meta?.['page']?.['hasMore']) {
+                deleteSnapshot (id);
+            }
             return wrap (page);
         }
         deleteSnapshot (id);

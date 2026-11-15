@@ -80,3 +80,51 @@ test ('unknown sortBy / fields fail with the available field names', () => {
     assert.throws (() => shapeResult (rates, { 'fields': [ 'nope' ] }), (error: any) => error instanceof ArgError && error.hint.includes ('markPrice'));
     assert.throws (() => shapeResult (rates, { 'limit': 0 }), ArgError);
 });
+
+test ('an empty symbol-keyed map is a list with no entries, not a single structure', () => {
+    const shaped = shapeResult ({}, { 'sortBy': '-fundingRate', 'limit': 5 });
+    assert.deepEqual (shaped.data, {});
+    assert.equal (shaped.meta.matched, 0);
+    assert.equal (shaped.meta.notice, undefined);
+});
+
+test ('a balance shapes its per-currency entries, not the free/used/total aggregates', () => {
+    const balance = {
+        'BTC': { 'free': 1, 'used': 0, 'total': 1 },
+        'ETH': { 'free': 0, 'used': 2, 'total': 2 },
+        'free': { 'BTC': 1, 'ETH': 0 },
+        'used': { 'BTC': 0, 'ETH': 2 },
+        'total': { 'BTC': 1, 'ETH': 2 },
+        'timestamp': 1,
+        'datetime': '1970-01-01T00:00:00.001Z',
+    };
+    const shaped = shapeResult (balance, { 'fields': [ 'free' ], 'sortBy': '-total' });
+    assert.deepEqual (shaped.data, { 'ETH': { 'free': 0 }, 'BTC': { 'free': 1 } });
+    assert.ok (shaped.meta.balance.includes ('aggregates'));
+});
+
+test ('empty strings sort last like missing values', () => {
+    const rows = [ { 'v': 'b' }, { 'v': '' }, { 'v': 'a' } ];
+    assert.deepEqual (shapeResult (rows, { 'sortBy': 'v' }).data.map ((row: any) => row.v), [ 'a', 'b', '' ]);
+});
+
+test ('a sorted map with integer-like keys reports its order in meta.keyOrder', () => {
+    const shaped = shapeResult ({ '10': { 'v': 1 }, '2': { 'v': 3 }, 'a': { 'v': 2 } }, { 'sortBy': '-v' });
+    assert.deepEqual (shaped.meta.keyOrder, [ '2', 'a', '10' ]);
+});
+
+test ('an offset past the end says so', () => {
+    const shaped = shapeResult (rates, { 'offset': 10 });
+    assert.equal (Object.keys (shaped.data).length, 0);
+    assert.ok (shaped.meta.notice.includes ('past the end'));
+});
+
+test ('sortBy/fields on array rows (OHLCV) explain why they do not apply', () => {
+    assert.throws (() => shapeResult ([ [ 1, 2, 3, 4, 5, 6 ], [ 2, 2, 3, 4, 5, 6 ] ], { 'sortBy': 'close' }), (error: any) => error instanceof ArgError && error.message.includes ('OHLCV'));
+});
+
+test ('fields on a scalar result is reported as ignored', () => {
+    const shaped = shapeResult (42, { 'fields': [ 'x' ] });
+    assert.equal (shaped.data, 42);
+    assert.ok (shaped.meta.notice.includes ('ignored'));
+});
