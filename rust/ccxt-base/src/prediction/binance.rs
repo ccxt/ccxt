@@ -1494,12 +1494,12 @@ impl Binance {
             let mut marketId: Option<String> = self.safe_string_k(order.clone(), "marketId", &[]).as_str().map(str::to_owned);
             let mut outcome: Option<String> = self.safe_string_upper_k(order.clone(), "outcome", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut outcomeName: Value = self.safe_string_k(&market, "market", &[]);
-            if (outcomeName == Value::Null) {
-                outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
+            let mut outcomeName: Option<String> = self.safe_string_k(&market, "market", &[]).as_str().map(str::to_owned);
+            if (outcomeName.is_none()) {
+                outcomeName = marketId;
             }
-            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", ":", outcome.as_deref().unwrap_or("null")).into())).into());
-            outcomeObjResolved = self.safe_outcome(outcomeName, None);
+            outcomeName = Some(format!("{}{}", outcomeName.as_deref().unwrap_or("null"), format!("{}{}", ":", outcome.as_deref().unwrap_or("null"))));
+            outcomeObjResolved = self.safe_outcome(outcomeName.map(Value::from).unwrap_or(Value::Null), None);
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "createTime", &[]).as_i64();
@@ -1946,12 +1946,12 @@ impl Binance {
             let mut marketId: Option<String> = self.safe_string_k(position.clone(), "marketId", &[]).as_str().map(str::to_owned);
             let mut outcome: Option<String> = self.safe_string_upper_k(position.clone(), "outcomeName", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut outcomeName: Value = self.safe_string_k(&market, "market", &[]);
-            if (outcomeName == Value::Null) {
-                outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
+            let mut outcomeName: Option<String> = self.safe_string_k(&market, "market", &[]).as_str().map(str::to_owned);
+            if (outcomeName.is_none()) {
+                outcomeName = marketId;
             }
-            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", ":", outcome.as_deref().unwrap_or("null")).into())).into());
-            outcomeObjResolved = self.safe_outcome(outcomeName, None);
+            outcomeName = Some(format!("{}{}", outcomeName.as_deref().unwrap_or("null"), format!("{}{}", ":", outcome.as_deref().unwrap_or("null"))));
+            outcomeObjResolved = self.safe_outcome(outcomeName.map(Value::from).unwrap_or(Value::Null), None);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "createdTime", &[]).as_i64();
         let mut totalCost: Option<f64> = self.parse_number(self.safe_string_k(position.clone(), "totalCost", &[]), &[]).as_f64();
@@ -2144,12 +2144,12 @@ impl Binance {
             let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "marketId", &[]).as_str().map(str::to_owned);
             let mut outcome: Option<String> = self.safe_string_upper_k(trade.clone(), "outcome", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut outcomeName: Value = self.safe_string_k(&market, "market", &[]);
-            if (outcomeName == Value::Null) {
-                outcomeName = marketId.map(Value::from).unwrap_or(Value::Null);
+            let mut outcomeName: Option<String> = self.safe_string_k(&market, "market", &[]).as_str().map(str::to_owned);
+            if (outcomeName.is_none()) {
+                outcomeName = marketId;
             }
-            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", ":", outcome.as_deref().unwrap_or("null")).into())).into());
-            outcomeObjResolved = self.safe_outcome(outcomeName, None);
+            outcomeName = Some(format!("{}{}", outcomeName.as_deref().unwrap_or("null"), format!("{}{}", ":", outcome.as_deref().unwrap_or("null"))));
+            outcomeObjResolved = self.safe_outcome(outcomeName.map(Value::from).unwrap_or(Value::Null), None);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "createTime", &[]).as_i64();
         let mut filled: Option<String> = self.safe_string_k(trade.clone(), "filledShareQty", &[]).as_str().map(str::to_owned);

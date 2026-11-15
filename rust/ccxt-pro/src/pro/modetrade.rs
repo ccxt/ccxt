@@ -1534,19 +1534,19 @@ impl Modetrade {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) });
-            if (order != Value::Null) {
-                let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
+            let mut order: Option<crate::value::Dict> = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
+            if (order.is_some()) {
+                let mut fee: Value = self.safe_value_k(&order, "fee", &[]);
                 if (fee != Value::Null) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fee".into(), fee);
                 }
-                let mut fees: Option<crate::value::List> = self.safe_list_k(order.clone(), "fees", &[]).into_opt_list();
+                let mut fees: Option<crate::value::List> = self.safe_list_k(&order, "fees", &[]).into_opt_list();
                 if (fees.is_some()) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees.map_or(Value::Null, Value::Arr));
                 }
-                std::sync::Arc::make_mut(&mut parsed).insert("trades".into(), self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]));
-                std::sync::Arc::make_mut(&mut parsed).insert("timestamp".into(), self.safe_integer_k(order.clone(), "timestamp", &[]));
-                std::sync::Arc::make_mut(&mut parsed).insert("datetime".into(), self.safe_string_k(order, "datetime", &[]));
+                std::sync::Arc::make_mut(&mut parsed).insert("trades".into(), self.safe_list_k(&order, "trades", &[Value::from(vec![])]));
+                std::sync::Arc::make_mut(&mut parsed).insert("timestamp".into(), self.safe_integer_k(&order, "timestamp", &[]));
+                std::sync::Arc::make_mut(&mut parsed).insert("datetime".into(), self.safe_string_k(&order, "datetime", &[]));
             }
             cachedOrders.append(Value::Dict(parsed));
             client.resolve(Value::from(&self.orders), &topic);

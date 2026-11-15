@@ -5097,7 +5097,8 @@ impl Aster {
         }).await?))
     }
 
-    pub fn parse_account_positions(&self, mut account: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_account_positions(&self, account: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut account: Value = account.into();
         let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let __account_empty = indexmap::IndexMap::new();
         let account = account.as_map().unwrap_or(&__account_empty);
@@ -5367,9 +5368,9 @@ impl Aster {
         }
         self.load_markets_and_sign_in().await;
         self.load_leverage_brackets(&[Value::Bool(false), params.clone()]).await;
-        let mut response: Value = self.fapi_private_get_v4_account(&[params.clone()]).await;
+        let mut response: crate::value::Dict = self.fapi_private_get_v4_account(&[params.clone()]).await.into_dict();
         let mut filterClosed: Value = self.handle_option_bool_and_params(params, Value::Str("fetchAccountPositions".into()), Value::Str("filterClosed".into()), &[Value::Bool(false)]).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut result: crate::value::List = self.parse_account_positions(response, &[filterClosed]).into_list();
+        let mut result: crate::value::List = self.parse_account_positions(&response, &[filterClosed]).into_list();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         return self.filter_by_array_positions(Value::Arr(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
 

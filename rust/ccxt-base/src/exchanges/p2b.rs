@@ -1936,9 +1936,9 @@ impl P2b {
             let mut errorCode: Option<String> = self.safe_string_k(response, "errorCode", &[]).as_str().map(str::to_owned);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-            let mut codeAsString: Value = Value::Str(format!("{}", code).into());
+            let mut codeAsString: String = format!("{}", code);
             let mut statusCode: Option<i64> = self.parse_to_int(code);
-            if ((statusCode.is_some() && statusCode < Some(400))) || !(matches!((&self.httpExceptions, &codeAsString), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if ((statusCode.is_some() && statusCode < Some(400))) || !(matches!((&self.httpExceptions, Some(codeAsString.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

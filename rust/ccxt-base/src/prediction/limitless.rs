@@ -2961,10 +2961,10 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), " createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")));
         }
-        let mut taker: Value = self.safe_string_k(self.options.clone(), "nullAddress", &[Value::Str("0x0000000000000000000000000000000000000000".into())]);
-        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("taker".into()), &[taker.clone()]).as_array().cloned().unwrap_or_default(); taker = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut taker: Option<String> = self.safe_string_k(self.options.clone(), "nullAddress", &[Value::Str("0x0000000000000000000000000000000000000000".into())]).as_str().map(str::to_owned);
+        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("taker".into()), &[Value::from(&taker)]).as_array().cloned().unwrap_or_default(); taker = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.check_address(&[taker.clone()]);
+            self.check_address(&[taker.clone().map(Value::from).unwrap_or(Value::Null)]);
          #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")));
@@ -2987,7 +2987,7 @@ if _try_result.is_err() {
                 m.insert("salt".to_string(), Value::from(nonce));
                 m.insert("maker".to_string(), maker);
                 m.insert("signer".to_string(), signer);
-                m.insert("taker".to_string(), taker);
+                m.insert("taker".to_string(), taker.map(Value::from).unwrap_or(Value::Null));
                 m.insert("tokenId".to_string(), outcomeObj.as_map().and_then(|__m| __m.get("outcomeId")).cloned().unwrap_or(Value::Null));
                 m.insert("nonce".to_string(), Value::Int(0));
                 m.insert("feeRateBps".to_string(), self.safe_integer_k(&rank, "feeRateBps", &[Value::Int(0)]));

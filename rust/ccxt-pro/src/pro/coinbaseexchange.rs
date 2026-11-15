@@ -341,12 +341,12 @@ impl Coinbaseexchange {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
-        let mut messageHash: Value = messageHashStart;
+        let mut messageHash: Option<String> = messageHashStart.as_str().map(str::to_owned);
         let mut productIds: Vec<Value> = Vec::new();
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", ":", marketId).into())).into());
+            messageHash = Some(format!("{}{}", messageHash.as_deref().unwrap_or("null"), format!("{}{}", ":", marketId)));
             productIds.push(Value::from(marketId));
         }
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
@@ -365,7 +365,7 @@ impl Coinbaseexchange {
             m
         });
         let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
-        return self.watch(url.as_deref(), &messageHash, &request, &messageHash, Value::Null).await;
+        return self.watch(url.as_deref(), (&messageHash).as_deref(), &request, (&messageHash).as_deref(), Value::Null).await;
 
     Value::Null
 }

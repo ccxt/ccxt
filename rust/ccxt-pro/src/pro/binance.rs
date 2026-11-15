@@ -4000,13 +4000,13 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             // an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
             // blind first pick, the stream url decides; only a unique match, like an
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
-            let mut tickerMarketById: Value = (if (numTickerMarkets == 1) { self.safe_dict(&tickerMarketsByIdList, Value::Int(0), &[]) } else { Value::Null });
+            let mut tickerMarketById: Option<crate::value::Dict> = (if (numTickerMarkets == 1) { self.safe_dict(&tickerMarketsByIdList, Value::Int(0), &[]) } else { Value::Null }).into_opt_dict();
             let mut isSpot: bool = self.is_spot_url(client.clone()).as_bool() == Some(true);
             let mut tickerFallbackType: String = "contract".to_string();
             if isSpot {
                 tickerFallbackType = "spot".to_string();
             }
-            let mut tickerMarketType: Value = (if (tickerMarketById != Value::Null) { self.safe_value_k(tickerMarketById, "type", &[]) } else { Value::from(tickerFallbackType) });
+            let mut tickerMarketType: Value = (if (tickerMarketById.is_some()) { self.safe_value_k(&tickerMarketById, "type", &[]) } else { Value::from(tickerFallbackType) });
             let mut parsedTicker: crate::value::Dict = self.parse_ws_ticker(&ticker, tickerMarketType).into_dict();
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsedTicker, "symbol").as_str().map(str::to_owned);
             if (symbol.is_some()) {

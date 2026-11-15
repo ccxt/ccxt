@@ -4972,19 +4972,19 @@ if _try_result.is_err() {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut url: Value = Value::Null;
+        let mut url: Option<String> = None;
         if (apiName.as_deref() == Some("root")) {
             let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("public".into()), &[]).as_str().map(str::to_owned);
             if (baseApiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
-            url = self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null));
+            url = self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else {
             let mut baseApiUrl2: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
             if (baseApiUrl2.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
-            url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl2.map(Value::from).unwrap_or(Value::Null)), Value::Str("/api/".into())).into()), self.version.clone()).into()), "/").into()), path).into());
+            url = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl2.map(Value::from).unwrap_or(Value::Null)), Value::Str("/api/".into())).into()), self.version.clone()).into()), "/").into()), path));
         }
         let mut authHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("private")) {
@@ -5003,19 +5003,19 @@ if _try_result.is_err() {
                 });
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), url.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), params.clone());
         m.insert("headers".to_string(), Value::Map(multipartHeaders));
     m
 });
             }
-            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.rawencode(params, &[])).into())).into());
+            url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("?".into()), self.rawencode(params, &[]))));
         }
         if (apiName.as_deref() == Some("private")) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), url.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), authHeaders.map_or(Value::Null, Value::Dict));
@@ -5024,7 +5024,7 @@ if _try_result.is_err() {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), url.map(Value::from).unwrap_or(Value::Null));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), Value::Null);

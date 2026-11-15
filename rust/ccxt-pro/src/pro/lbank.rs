@@ -1135,8 +1135,8 @@ if _try_result.is_err() {
             m
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
-        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_deref(), &request, messageHash.as_deref(), &request).await;
-        return self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), messageHash.as_deref(), &request, messageHash.as_deref(), &request).await.into();
+        return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

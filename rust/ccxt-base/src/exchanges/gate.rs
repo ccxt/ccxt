@@ -4805,8 +4805,8 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_wallet_get_fee(&[__ws_arg_6]).await;
-        return self.parse_trading_fee(response, Some(&market));
+        let mut response: crate::value::Dict = self.private_wallet_get_fee(&[__ws_arg_6]).await.into_dict();
+        return self.parse_trading_fee(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -4832,13 +4832,14 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_wallet_get_fee(&[params]).await;
-        return self.parse_trading_fees(response);
+        let mut response: crate::value::Dict = self.private_wallet_get_fee(&[params]).await.into_dict();
+        return self.parse_trading_fees(&response);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fees(&self, mut response: Value) -> Value {
+    pub fn parse_trading_fees(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4858,7 +4859,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_trading_fee(&self, mut info: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut info: Value = info.into();
         //
         //    {
         //        "user_id": 1486602,
@@ -5937,10 +5939,9 @@ if _try_result.is_err() {
                 let mut __for_first_698: bool = true;
                 while { if !__for_first_698 { i += 1; } __for_first_698 = false; i < (keys.len() as i64) } {
                 let mut currencyId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut content: Value = get_value(&balances, &currencyId);
-                add_element_to_object(&mut content, &Value::Str("currency".into()), currencyId.clone());
-                crate::set_value(&mut balances, &currencyId, content.clone());
-                if let Value::Arr(__a) = &mut flatBalances { std::sync::Arc::make_mut(__a).push(content); }
+                let mut content: Option<crate::value::Dict> = get_value(&balances, &currencyId).into_opt_dict();
+                if let Some(__d) = &mut content { std::sync::Arc::make_mut(__d).insert("currency".into(), currencyId); }
+                if let Value::Arr(__a) = &mut flatBalances { std::sync::Arc::make_mut(__a).push(content.map_or(Value::Null, Value::Dict)); }
             }
             }
             data = flatBalances;

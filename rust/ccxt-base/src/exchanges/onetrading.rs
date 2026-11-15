@@ -1108,13 +1108,13 @@ impl Onetrading {
             while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut tierObject: Value = (if (market).spot { firstSpotTier.clone() } else { firstFuturesTier.clone() });
+            let mut tierObject: crate::value::Dict = (if (market).spot { firstSpotTier.clone() } else { firstFuturesTier.clone() }).into_dict();
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&spotFees));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
-        m.insert("maker".to_string(), self.safe_number_k(tierObject.clone(), "maker_fee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(tierObject, "taker_fee", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&tierObject, "maker_fee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&tierObject, "taker_fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), Value::from(&spotTiers));

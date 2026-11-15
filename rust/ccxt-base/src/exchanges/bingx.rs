@@ -9095,8 +9095,8 @@ impl Bingx {
         let mut version: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut access: Option<String> = section.get(2).and_then(Value::as_str).map(str::to_owned);
         let mut isSandbox: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut url: Value = self.implode_hostname((if let (Some(__m), Some(__k)) = (self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map(), type_var.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
-        if isSandbox && (url == Value::Null) {
+        let mut url: Option<String> = self.implode_hostname((if let (Some(__m), Some(__k)) = (self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map(), type_var.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })).as_str().map(str::to_owned);
+        if isSandbox && (url.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not have a testnet/sandbox URL for ").into()), type_var.as_deref().unwrap_or("null")).into()), " endpoints")));
         }
         let mut pathValue: Value = Value::from(self.implode_params(path, params.clone()));
@@ -9114,12 +9114,12 @@ impl Bingx {
         let mut flatAccountPaths: crate::value::List = std::sync::Arc::new(vec![Value::Str("account/apiPermissions".into()), Value::Str("account/apiRestrictions".into())]);
         if !self.in_array(pathValue.clone(), &flatAccountPaths) {
             if (type_var.as_deref() == Some("spot")) && (version.as_deref() == Some("v3")) {
-                url = Value::Str(format!("{}{}", url, "/api").into());
+                url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), "/api"));
             }  else {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", "/", type_var.as_deref().unwrap_or("null")).into())).into());
+                url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), format!("{}{}", "/", type_var.as_deref().unwrap_or("null"))));
             }
         }
-        url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", version.as_deref().unwrap_or("null")).into()), "/").into()), pathValue).into())).into());
+        url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", version.as_deref().unwrap_or("null")).into()), "/").into()), pathValue)));
         let mut requestHeaders: Value = Value::Null;
         let mut requestBody: Option<String> = None;
         let __ws_arg_82 = self.extend(self.omit(params, self.extract_params(pathValue), &[]), &[Value::Map({
@@ -9130,7 +9130,7 @@ impl Bingx {
         let mut paramsSorted: crate::value::Dict = self.keysort(__ws_arg_82, &[]).into_dict();
         if (access.as_deref() == Some("public")) {
             if ((Value::Array(paramsSorted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsSorted, &[])).into())).into());
+                url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsSorted, &[]))));
             }
         }  else if (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -9161,14 +9161,14 @@ impl Bingx {
                 requestBody = json_stringify(&paramsSorted).as_str().map(str::to_owned);
             }  else {
                 let mut query: String = self.urlencode(parsedParams, &[Value::Bool(true)]);
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "?", query).into()), "&").into()), "signature=").into()), signature).into())).into());
+                url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "?", query).into()), "&").into()), "signature=").into()), signature)));
             }
         }
         let mut bodyResult: Option<String> = requestBody;
         let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), url.map(Value::from).unwrap_or(Value::Null));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult);

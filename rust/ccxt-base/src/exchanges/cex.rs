@@ -2814,8 +2814,8 @@ impl Cex {
                 panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " returned unparsed response: ").into()), body)));
             }
         }
-        let mut responseParsed: Value = (if (response == Value::Null) { responseFixed } else { response });
-        let mut error: Option<String> = self.safe_string_k(responseParsed.clone(), "error", &[]).as_str().map(str::to_owned);
+        let mut responseParsed: crate::value::Dict = (if (response == Value::Null) { responseFixed } else { response }).into_dict();
+        let mut error: Option<String> = self.safe_string_k(&responseParsed, "error", &[]).as_str().map(str::to_owned);
         if (error.is_some()) {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
@@ -2824,10 +2824,10 @@ impl Cex {
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
         if url.as_str().unwrap_or("").contains("do_my_new_order") {
-            let mut data: crate::value::Dict = self.safe_dict_k(responseParsed, "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut data: crate::value::Dict = self.safe_dict_k(&responseParsed, "data", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut rejectReason: Option<String> = self.safe_string_k(&data, "rejectReason", &[]).as_str().map(str::to_owned);
             if (rejectReason.is_some()) {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), rejectReason.clone().map(Value::from).unwrap_or(Value::Null), rejectReason.clone().map(Value::from).unwrap_or(Value::Null));

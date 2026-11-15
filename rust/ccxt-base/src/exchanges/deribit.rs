@@ -4405,13 +4405,14 @@ impl Deribit {
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_get_historical_volatility(&[__ws_arg_35]).await;
-        return self.parse_volatility_history(response);
+        let mut response: crate::value::Dict = self.public_get_get_historical_volatility(&[__ws_arg_35]).await.into_dict();
+        return self.parse_volatility_history(&response);
 
     Value::Null
 }
 
-    pub fn parse_volatility_history(&self, mut volatility: Value) -> Value {
+    pub fn parse_volatility_history(&self, volatility: impl Into<crate::Value>) -> Value {
+        let mut volatility: Value = volatility.into();
         let __volatility_empty = indexmap::IndexMap::new();
         let volatility = volatility.as_map().unwrap_or(&__volatility_empty);
         //

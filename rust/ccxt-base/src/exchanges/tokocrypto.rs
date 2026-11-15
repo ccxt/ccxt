@@ -2070,13 +2070,14 @@ impl Tokocrypto {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_open_v1_account_spot(&[__ws_arg_8]).await;
-        return self.parse_balance_custom(response, type_var.as_deref(), marginMode.as_deref());
+        let mut response: crate::value::Dict = self.private_get_open_v1_account_spot(&[__ws_arg_8]).await.into_dict();
+        return self.parse_balance_custom(&response, type_var.as_deref(), marginMode.as_deref());
         Value::Null
         }).await?))
     }
 
-    pub fn parse_balance_custom(&self, mut response: Value, type_var: Option<&str>, marginMode: Option<&str>) -> Value {
+    pub fn parse_balance_custom(&self, response: impl Into<crate::Value>, type_var: Option<&str>, marginMode: Option<&str>) -> Value {
+        let mut response: Value = response.into();
         let mut type_var: Value = type_var.into();
         let mut marginMode: Value = marginMode.into();
         let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "updateTime", &[]).as_i64();

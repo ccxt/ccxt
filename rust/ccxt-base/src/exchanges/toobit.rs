@@ -2317,8 +2317,8 @@ impl Toobit {
             }
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.common_get_quote_v1_ticker_book_ticker(&[__ws_arg_8]).await;
-        return self.parse_bids_asks_custom(response, symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Map({
+        let mut response: crate::value::List = self.common_get_quote_v1_ticker_book_ticker(&[__ws_arg_8]).await.into_list();
+        return self.parse_bids_asks_custom(&response, symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -2326,7 +2326,8 @@ impl Toobit {
         }).await?))
     }
 
-    pub fn parse_bids_asks_custom(&self, mut tickers: Value, mut symbols: Value, params: impl Into<crate::Value>) -> Value {
+    pub fn parse_bids_asks_custom(&self, tickers: impl Into<crate::Value>, mut symbols: Value, params: impl Into<crate::Value>) -> Value {
+        let mut tickers: Value = tickers.into();
         let mut params: Value = params.into();
         let __tickers_empty = Vec::new();
         let tickers = tickers.as_array().unwrap_or(&__tickers_empty);
@@ -4313,28 +4314,28 @@ impl Toobit {
             extraQuery.insert("timestamp".into(), Value::Str(format!("{}", timestamp).into()));
             let mut queryExtended: crate::value::Dict = self.extend(query.clone(), &[Value::Map(extraQuery.clone())]).into_dict();
             let mut queryString: String = "".to_string();
-            let mut privateBody: Value = Value::Str("".into());
+            let mut privateBody: Option<String> = Some("".to_string());
             if isPost || isDelete {
                 // everything else except Batch-Orders
                 if !(matches!(&params, Value::Arr(_))) {
-                    privateBody = Value::from(self.urlencode(&queryExtended, &[]));
+                    privateBody = Some(self.urlencode(&queryExtended, &[]));
                 }  else {
                     queryString = self.urlencode(Value::Map(extraQuery), &[]);
-                    privateBody = json_stringify(&query);
+                    privateBody = json_stringify(&query).as_str().map(str::to_owned);
                 }
             }  else {
                 queryString = self.urlencode(&queryExtended, &[]);
             }
             let mut payload: String = queryString.clone();
             if isPost || isDelete {
-                payload = format!("{}{}", privateBody, queryString);
+                payload = format!("{}{}", privateBody.as_deref().unwrap_or("null"), queryString);
             }
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             if (queryString != "") {
                 queryString.push_str(&format!("{}{}", "&signature=", signature));
                 url.push_str(&format!("{}{}", "?", queryString));
             }  else {
-                privateBody = Value::Str(format!("{}{}", privateBody, Value::Str(format!("{}{}", "&signature=", signature).into())).into());
+                privateBody = Some(format!("{}{}", privateBody.as_deref().unwrap_or("null"), format!("{}{}", "&signature=", signature)));
             }
             let mut privateHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -4346,7 +4347,7 @@ impl Toobit {
             });
             let mut requestBody: Option<String> = None;
             if isPost || isDelete {
-                requestBody = privateBody.into_opt_string();
+                requestBody = privateBody.take();
             }
             return Value::Map({
     let mut m = indexmap::IndexMap::new();

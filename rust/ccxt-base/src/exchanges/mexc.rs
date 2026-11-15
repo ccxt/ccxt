@@ -7694,13 +7694,14 @@ impl Mexc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.spot_private_get_capital_config_getall(&[params]).await;
-        return self.parse_transaction_fees(response, &[codes]);
+        let mut response: crate::value::List = self.spot_private_get_capital_config_getall(&[params]).await.into_list();
+        return self.parse_transaction_fees(&response, &[codes]);
 
     Value::Null
 }
 
-    pub fn parse_transaction_fees(&self, mut response: Value, optional_args: &[Value]) -> Value {
+    pub fn parse_transaction_fees(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut response: Value = response.into();
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

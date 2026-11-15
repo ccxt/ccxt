@@ -2456,7 +2456,7 @@ impl Backpack {
         //     }, ...
         //
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (market.is_none()) { crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[])) } else { crate::Value::from(market) });
+        let mut marketResolved: Option<crate::types::Market> = (if (market.is_none()) { Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[])) } else { market.cloned() });
         let mut open: Option<String> = self.safe_string_k(ticker.clone(), "firstPrice", &[]).as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "lastPrice", &[]).as_str().map(str::to_owned);
         let mut high: Option<String> = self.safe_string_k(ticker.clone(), "high", &[]).as_str().map(str::to_owned);
@@ -2472,7 +2472,7 @@ impl Backpack {
         let mut change: Option<String> = self.safe_string_k(ticker.clone(), "priceChange", &[]).as_str().map(str::to_owned);
         let mut parsedTicker: Value = self.safe_ticker(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.safe_string_k(marketResolved.clone(), "symbol", &[]));
+                m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
                 m.insert("timestamp".to_string(), Value::Null);
                 m.insert("datetime".to_string(), Value::Null);
                 m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
@@ -2495,7 +2495,7 @@ impl Backpack {
                 m.insert("indexPrice".to_string(), Value::Null);
                 m.insert("info".to_string(), ticker);
             m
-        }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
+        }), marketResolved.as_ref());
         return parsedTicker;
 
     Value::Null

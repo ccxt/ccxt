@@ -4798,7 +4798,7 @@ if _try_result.is_err() {
         //
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (symbol.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), market, &[])) } else { crate::Value::from(market) });
+        let mut marketResolved: Option<crate::types::Market> = (if (symbol.is_some()) { Some(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), market, &[])) } else { market.cloned() });
         let mut orderConfiguration: crate::value::Dict = self.safe_dict_k(order.clone(), "order_configuration", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4828,19 +4828,19 @@ if _try_result.is_err() {
             amount = self.safe_string_k(&target, "base_size", &[]).as_str().map(str::to_owned);
             postOnly = self.safe_bool_k(&target, "post_only", &[]).as_bool();
         }  else if isStop {
-            let mut stopTarget: Value = (if (stopLimitGTC != Value::Null) { stopLimitGTC } else { stopLimitGTD });
-            price = self.safe_string_k(stopTarget.clone(), "limit_price", &[]).as_str().map(str::to_owned);
-            amount = self.safe_string_k(stopTarget.clone(), "base_size", &[]).as_str().map(str::to_owned);
-            postOnly = self.safe_bool_k(stopTarget.clone(), "post_only", &[]).as_bool();
-            triggerPrice = self.safe_string_k(stopTarget, "stop_price", &[]).as_str().map(str::to_owned);
+            let mut stopTarget: crate::value::Dict = (if (stopLimitGTC != Value::Null) { stopLimitGTC } else { stopLimitGTD }).into_dict();
+            price = self.safe_string_k(&stopTarget, "limit_price", &[]).as_str().map(str::to_owned);
+            amount = self.safe_string_k(&stopTarget, "base_size", &[]).as_str().map(str::to_owned);
+            postOnly = self.safe_bool_k(&stopTarget, "post_only", &[]).as_bool();
+            triggerPrice = self.safe_string_k(&stopTarget, "stop_price", &[]).as_str().map(str::to_owned);
         }  else {
             amount = self.safe_string_k(&marketIOC, "base_size", &[]).as_str().map(str::to_owned);
         }
         let mut datetime: Option<String> = self.safe_string_k(order.clone(), "created_time", &[]).as_str().map(str::to_owned);
         let mut totalFees: Option<String> = self.safe_string_k(order.clone(), "total_fees", &[]).as_str().map(str::to_owned);
         let mut currencyFee: Option<String> = None;
-        if (totalFees.is_some()) && (marketResolved != Value::Null) {
-            currencyFee = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
+        if (totalFees.is_some()) && (marketResolved.is_some()) {
+            currencyFee = self.safe_string_k(&marketResolved, "quote", &[]).as_str().map(str::to_owned);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4871,7 +4871,7 @@ if _try_result.is_err() {
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
+}), marketResolved.as_ref());
 
     Value::Null
 }
@@ -7117,14 +7117,15 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_67 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_get_brokerage_portfolios_portfolio_uuid(&[__ws_arg_67]).await;
-        let mut result: crate::value::List = self.parse_portfolio_details(response).into_list();
+        let mut response: crate::value::Dict = self.v3_private_get_brokerage_portfolios_portfolio_uuid(&[__ws_arg_67]).await.into_dict();
+        let mut result: crate::value::List = self.parse_portfolio_details(&response).into_list();
         return Value::Arr(result);
 
     Value::Null
 }
 
-    pub fn parse_portfolio_details(&self, mut portfolioData: Value) -> Value {
+    pub fn parse_portfolio_details(&self, portfolioData: impl Into<crate::Value>) -> Value {
+        let mut portfolioData: Value = portfolioData.into();
         let __portfolioData_empty = indexmap::IndexMap::new();
         let portfolioData = portfolioData.as_map().unwrap_or(&__portfolioData_empty);
         let mut breakdown: crate::value::Dict = portfolioData.get("breakdown").cloned().unwrap_or_default().into_dict();
@@ -7213,17 +7214,14 @@ if _try_result.is_err() {
         let useEddsa: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
-        let mut uri: Value = Value::Null;
+        let mut uri: Option<String> = None;
         if (url.as_str() != Some("")) {
-            uri = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, " ").into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())).into());
-            let mut quesPos: Value = Value::Int(uri.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1));
+            uri = Some(format!("{}{}", Value::Str(format!("{}{}", method, " ").into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())));
+            let mut quesPos: i64 = (if let (Some(__h), Some(__n)) = (uri.as_deref(), Some("?")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
-            if quesPos.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                uri = (match (&(uri), 0i64, (match &(quesPos) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-                    __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-                    __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                    Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+            if quesPos > 0 {
+                uri = (if let Some(__s) = uri.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, quesPos); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
             }
         }
         // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
@@ -7246,11 +7244,11 @@ if _try_result.is_err() {
                 m.insert("iat".to_string(), seconds);
             m
         }).into_dict();
-        if (uri != Value::Null) {
+        if (uri.is_some()) {
             if !useEddsa {
-                std::sync::Arc::make_mut(&mut request).insert("uri".into(), uri.clone());
+                std::sync::Arc::make_mut(&mut request).insert("uri".into(), uri.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
-                std::sync::Arc::make_mut(&mut request).insert("uris".into(), Value::from(vec![uri]));
+                std::sync::Arc::make_mut(&mut request).insert("uris".into(), Value::from(vec![uri.map(Value::from).unwrap_or(Value::Null)]));
             }
         }
         if useEddsa {

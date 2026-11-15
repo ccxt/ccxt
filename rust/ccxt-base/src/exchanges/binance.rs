@@ -17332,7 +17332,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_179 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: Value = self.eapi_public_get_exercise_history(&[__ws_arg_179]).await;
+        let mut response: crate::value::List = self.eapi_public_get_exercise_history(&[__ws_arg_179]).await.into_list();
         //
         //     [
         //         {
@@ -17344,7 +17344,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     ]
         //
-        let mut settlements: crate::value::List = self.parse_settlements(response, market.as_ref()).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(&response, market.as_ref()).into_list();
         let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
         return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
@@ -17395,7 +17395,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_180 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: Value = self.eapi_private_get_exercise_record(&[__ws_arg_180]).await;
+        let mut response: crate::value::List = self.eapi_private_get_exercise_record(&[__ws_arg_180]).await.into_list();
         //
         //     [
         //         {
@@ -17416,7 +17416,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     ]
         //
-        let mut settlements: crate::value::List = self.parse_settlements(response, market.as_ref()).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(&response, market.as_ref()).into_list();
         let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
         return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
@@ -17469,7 +17469,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn parse_settlements(&self, mut settlements: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_settlements(&self, settlements: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut settlements: Value = settlements.into();
         //
         // fetchSettlementHistory
         //
@@ -18043,8 +18044,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         // only for http codes without a typed error in httpExceptions (e.g. 414), so 403/502/503/504 html pages keep their retryable errors from handleHttpStatusCode
-        let mut httpCodeString: Value = Value::Str(format!("{}", code).into());
-        let mut isMappedHttpCode: bool = matches!((&self.httpExceptions, &httpCodeString), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()));
+        let mut httpCodeString: String = format!("{}", code);
+        let mut isMappedHttpCode: bool = matches!((&self.httpExceptions, Some(httpCodeString.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k));
         // matching 'DOCTYPE HTML' at index 2 instead of startsWith ('<!DOCTYPE HTML'), because the "!" inside the literal gets transpiled to "not" in python
         if !isMappedHttpCode && (body != Value::Null) && (Value::Int(body.as_str().and_then(|__s| __s.find("DOCTYPE HTML")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(2.0)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), Value::Str(format!("{}", code).into())).into()), " ").into()), reason).into()), " ").into()), body)));

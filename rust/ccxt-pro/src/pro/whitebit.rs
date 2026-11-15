@@ -1514,8 +1514,8 @@ impl Whitebit {
             crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
             return authorized;
         }
-        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(subscribeHash.clone()), &[]);
-        if (authenticated != Value::Null) {
+        let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(subscribeHash.clone()), &[]) != Value::Null;
+        if (authenticated) {
             return authorized;
         }
         // register the flight BEFORE the first await, so a caller arriving

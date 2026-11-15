@@ -3330,13 +3330,13 @@ impl Nado {
         let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut rawOrder: Value = self.safe_dict_k(trade.clone(), "order", &[]);
         let mut isArchiveMatch: bool = rawOrder != Value::Null;
-        let mut order: Value = (if (rawOrder == Value::Null) { Value::Map({
+        let mut order: crate::value::Dict = (if (rawOrder == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) } else { rawOrder });
+}) } else { rawOrder }).into_dict();
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "base_filled", &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = self.safe_string_k(trade.clone(), "quote_filled", &[]).as_str().map(str::to_owned);
-        let mut rawOrderAmount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
+        let mut rawOrderAmount: Option<String> = self.safe_string_k(&order, "amount", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "trade_type", &[]).as_str().map(str::to_owned);
         if (side.is_none()) && (rawOrderAmount.is_some()) {
             if crate::precise::Precise::stringLt(&rawOrderAmount, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -3348,7 +3348,7 @@ impl Nado {
         let mut tradePrice: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = tradePrice.clone();
         if (tradePrice.is_none()) {
-            let mut orderPriceX18: Option<String> = self.safe_string_k(order, "priceX18", &[]).as_str().map(str::to_owned);
+            let mut orderPriceX18: Option<String> = self.safe_string_k(&order, "priceX18", &[]).as_str().map(str::to_owned);
             if (orderPriceX18.is_some()) {
                 price = self.number_to_string(self.parse_x18(orderPriceX18.map(Value::from).unwrap_or(Value::Null)));
             }

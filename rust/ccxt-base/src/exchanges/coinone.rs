@@ -1619,7 +1619,7 @@ impl Coinone {
         if (base.is_some()) && (quote.is_some()) {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
         }
-        let mut marketResolved: Value = (if (symbol.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("/".into())])) } else { crate::Value::from(market) });
+        let mut marketResolved: Option<crate::types::Market> = (if (symbol.is_some()) { Some(self.safe_market(symbol.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("/".into())])) } else { market.cloned() });
         let mut timestamp: Option<i64> = self.safe_timestamp2(order.clone(), Value::Str("timestamp".into()), Value::Str("updatedAt".into()), &[]).as_i64();
         if (timestamp.is_none()) {
             timestamp = self.safe_integer2(order.clone(), Value::Str("ordered_at".into()), Value::Str("updated_at".into()), &[]).as_i64(); // v2.1 sends milliseconds
@@ -1685,7 +1685,7 @@ impl Coinone {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Null);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
+}), marketResolved.as_ref());
 
     Value::Null
 }

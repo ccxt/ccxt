@@ -2166,8 +2166,8 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-        let mut idStr: Value = Value::Str(format!("{}", marketId).into());
-        let mut existing: Value = self.safe_dict(Value::Map(cached.clone()), idStr.clone(), &[]);
+        let mut idStr: String = format!("{}", marketId);
+        let mut existing: Value = self.safe_dict(Value::Map(cached.clone()), Value::from(idStr.clone()), &[]);
         if (existing != Value::Null) {
             return existing;
         }
@@ -2194,7 +2194,7 @@ impl Opinion {
         let mut marketHandle: Value = self.safe_string_k(market.clone(), "market", &[Value::Str("".into())]);
         if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketHandle), market.clone()); }
         self.index_market_outcomes(market.clone());
-        cached.insert(crate::runtime::stringify_param(&idStr), market.clone());
+        cached.insert(idStr, market.clone());
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert(cacheKey.clone(), Value::Map(cached)); }
         return market;
 

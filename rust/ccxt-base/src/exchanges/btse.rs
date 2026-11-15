@@ -3010,9 +3010,9 @@ impl Btse {
         if (positionMode.is_none()) {
             let mut hedged: bool = false;
             { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("hedged".into()), &[Value::Bool(hedged)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            let mut marginMode: Value = Value::Str("cross".into());
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("marginMode".into()), &[marginMode.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            if (marginMode.as_str() == Some("isolated")) {
+            let mut marginMode: Option<String> = Some("cross".to_string());
+            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(query.clone(), Value::Str("createOrder".into()), Value::Str("marginMode".into()), &[Value::from(&marginMode)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            if (marginMode.as_deref() == Some("isolated")) {
                 if hedged {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() cannot use isolated margin with hedged positions")));
                 }

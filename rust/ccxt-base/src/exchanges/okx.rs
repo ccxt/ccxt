@@ -8483,7 +8483,7 @@ impl Okx {
             m
         })]).into_dict();
         let mut networksById: crate::value::Dict = self.index_by(Value::Dict(networks), Value::Str("id".into())).into_dict();
-        let mut networkData: Value = (if (chain.is_none()) { Value::Null } else { self.safe_dict(&networksById, chain.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
+        let mut networkData: Option<crate::value::Dict> = (if (chain.is_none()) { Value::Null } else { self.safe_dict(&networksById, chain.clone().map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
         //
@@ -8526,9 +8526,9 @@ impl Okx {
         //     },
         //
         if (chain.as_deref() == Some("USDT-Polygon")) {
-            networkData = self.safe_dict2(&networksById, Value::Str("USDT-Polygon-Bridge".into()), Value::Str("USDT-Polygon".into()), &[]);
+            networkData = self.safe_dict2(&networksById, Value::Str("USDT-Polygon-Bridge".into()), Value::Str("USDT-Polygon".into()), &[]).into_opt_dict();
         }
-        let mut network: Option<String> = self.safe_string_k(networkData, "network", &[]).as_str().map(str::to_owned);
+        let mut network: Option<String> = self.safe_string_k(&networkData, "network", &[]).as_str().map(str::to_owned);
         let mut networkCode: Option<String> = self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -11437,12 +11437,12 @@ impl Okx {
     pub fn parse_borrow_interest(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut info: Value = info.into();
         let mut instId: Option<String> = self.safe_string_k(info.clone(), "instId", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (instId.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(instId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { crate::Value::from(market) });
+        let mut marketResolved: Option<crate::types::Market> = (if (instId.is_some()) { Some(self.safe_market(instId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { market.cloned() });
         let mut timestamp: Option<i64> = self.safe_integer_k(info.clone(), "ts", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
-        m.insert("symbol".to_string(), self.safe_string_k(marketResolved, "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(info.clone(), "ccy", &[]), None).map(Value::from).unwrap_or(Value::Null));
         m.insert("interest".to_string(), self.safe_number_k(info.clone(), "interest", &[]));
         m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "interestRate", &[]));

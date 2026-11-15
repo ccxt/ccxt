@@ -2094,10 +2094,9 @@ impl Kraken {
             let mut __for_first_849: bool = true;
             while { if !__for_first_849 { i += 1; } __for_first_849 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Value = get_value(&ledger, &key);
-            add_element_to_object(&mut value, &Value::Str("id".into()), key.clone());
-            crate::set_value(&mut ledger, &key, value.clone());
-            items.push(value);
+            let mut value: Option<crate::value::Dict> = get_value(&ledger, &key).into_opt_dict();
+            if let Some(__d) = &mut value { std::sync::Arc::make_mut(__d).insert("id".into(), key); }
+            items.push(value.map_or(Value::Null, Value::Dict));
         }
         }
         return self.parse_ledger(Value::from(items), currency.as_ref(), &[since, limit]);

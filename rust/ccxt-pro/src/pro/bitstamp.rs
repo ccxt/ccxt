@@ -1009,8 +1009,8 @@ impl Bitstamp {
         //
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut subscription: Value = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
-        let mut symbol: Option<String> = self.safe_string_k(subscription, "symbol", &[]).as_str().map(str::to_owned);
+        let mut subscription: Option<crate::value::Dict> = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
+        let mut symbol: Option<String> = self.safe_string_k(&subscription, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }
@@ -1113,8 +1113,8 @@ impl Bitstamp {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).as_map().cloned().unwrap_or_default();
-        let mut subscription: Value = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
-        let mut symbol: Option<String> = self.safe_string_k(subscription, "symbol", &[]).as_str().map(str::to_owned);
+        let mut subscription: Option<crate::value::Dict> = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
+        let mut symbol: Option<String> = self.safe_string_k(&subscription, "symbol", &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
             return;
         }

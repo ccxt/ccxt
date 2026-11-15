@@ -1962,7 +1962,8 @@ impl Ndax {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -2025,8 +2026,8 @@ impl Ndax {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_get_account_positions(&[__ws_arg_9]).await;
-        return self.parse_balance_list(response);
+        let mut response: crate::value::List = self.private_get_get_account_positions(&[__ws_arg_9]).await.into_list();
+        return self.parse_balance_list(&response);
         Value::Null
         }).await?))
     }

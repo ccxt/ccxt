@@ -1067,18 +1067,18 @@ impl Latoken {
                         let mut i: i64 = 0;
             let mut __for_first_911: bool = true;
             while { if !__for_first_911 { i += 1; } __for_first_911 = false; i < (rawCurrencies.len() as i64) } {
-            let mut rawCurrency: Value = self.safe_dict(&rawCurrencies, Value::Int(i), &[]);
-            let mut bindingEntry: crate::value::Dict = self.safe_dict(&bindingsById, self.safe_string_k(rawCurrency.clone(), "id", &[]), &[]).into_dict();
+            let mut rawCurrency: Option<crate::value::Dict> = self.safe_dict(&rawCurrencies, Value::Int(i), &[]).into_opt_dict();
+            let mut bindingEntry: crate::value::Dict = self.safe_dict(&bindingsById, self.safe_string_k(&rawCurrency, "id", &[]), &[]).into_dict();
             let mut bindings: Option<crate::value::List> = self.safe_list_k(&bindingEntry, "bindings", &[]).into_opt_list();
-            let mut mergedCurrency: Value = rawCurrency.clone();
+            let mut mergedCurrency: Option<crate::value::Dict> = rawCurrency.clone();
             if (bindings.is_some()) {
                 mergedCurrency = self.extend(rawCurrency, &[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("bindings".to_string(), bindings.map_or(Value::Null, Value::Arr));
-                    m
-                })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("bindings".to_string(), bindings.map_or(Value::Null, Value::Arr));
+    m
+})]).into_opt_dict();
             }
-            merged.push(mergedCurrency);
+            merged.push(mergedCurrency.map_or(Value::Null, Value::Dict));
         }
         }
         return self.parse_currencies(Value::from(merged));

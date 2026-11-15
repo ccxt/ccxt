@@ -2604,7 +2604,7 @@ impl Bitvavo {
         //
         let mut messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut response: crate::value::List = message.get("response").cloned().unwrap_or_default().into_list();
-        let mut balance: crate::value::Dict = self.parent.parse_balance_list(Value::Arr(response)).into_dict();
+        let mut balance: crate::value::Dict = self.parent.parse_balance_list(&response).into_dict();
         client.resolve(Value::Dict(balance), messageHash.as_deref());
 }
 

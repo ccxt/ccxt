@@ -1846,12 +1846,12 @@ impl Lighter {
             request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        let mut orders: Value = self.subscribe_private(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_16]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_16]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit.as_i64());
         }
-        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
+        return self.filter_by_symbol_since_limit(&orders, symbol.as_str(), since.as_i64(), limitResolved, &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

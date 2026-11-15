@@ -10253,18 +10253,18 @@ if _try_result.is_err() {
             let mut exchangeSpecificTifParam: Option<String> = self.safe_string_k(paramsProductType.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             let mut postOnly: Option<bool> = None;
             { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificTifParam.as_deref() == Some("post_only")), &[paramsProductType.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            let mut timeInForce: Value = Value::Null;
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsProductType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            if (timeInForce != Value::Null) {
-                timeInForce = (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+            let mut timeInForce: Option<String> = None;
+            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsProductType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            if (timeInForce.is_some()) {
+                timeInForce = timeInForce.as_deref().map(str::to_uppercase);
             }
             if (postOnly == Some(true)) {
                 request.insert("timeInForce".into(), Value::Str("post_only".into()));
-            }  else if (timeInForce.as_str() == Some("GTC")) {
+            }  else if (timeInForce.as_deref() == Some("GTC")) {
                 request.insert("timeInForce".into(), Value::Str("gtc".into()));
-            }  else if (timeInForce.as_str() == Some("FOK")) {
+            }  else if (timeInForce.as_deref() == Some("FOK")) {
                 request.insert("timeInForce".into(), Value::Str("fok".into()));
-            }  else if (timeInForce.as_str() == Some("IOC")) {
+            }  else if (timeInForce.as_deref() == Some("IOC")) {
                 request.insert("timeInForce".into(), Value::Str("ioc".into()));
             }
         }
@@ -10366,18 +10366,18 @@ if _try_result.is_err() {
         let mut exchangeSpecificTifParam: Option<String> = self.safe_string2(paramsMarketType.clone(), Value::Str("force".into()), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificTifParam.as_deref() == Some("post_only")), &[paramsMarketType.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut timeInForce: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsMarketType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (timeInForce != Value::Null) {
-            timeInForce = (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
+        let mut timeInForce: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsMarketType.clone(), Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default(); timeInForce = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        if (timeInForce.is_some()) {
+            timeInForce = timeInForce.as_deref().map(str::to_uppercase);
         }
         if (postOnly == Some(true)) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("post_only".into())); }
-        }  else if (timeInForce.as_str() == Some("GTC")) {
+        }  else if (timeInForce.as_deref() == Some("GTC")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("GTC".into())); }
-        }  else if (timeInForce.as_str() == Some("FOK")) {
+        }  else if (timeInForce.as_deref() == Some("FOK")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("FOK".into())); }
-        }  else if (timeInForce.as_str() == Some("IOC")) {
+        }  else if (timeInForce.as_deref() == Some("IOC")) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("force".into(), Value::Str("IOC".into())); }
         }
         paramsMarketType = self.omit(paramsMarketType, &["stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"], &[]);

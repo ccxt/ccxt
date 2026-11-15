@@ -2250,7 +2250,7 @@ if _try_result.is_err() {
             std::sync::Arc::make_mut(&mut requestUntil).insert("start_time".into(), since.clone());
         }
         let __ws_arg_7 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.public_get_trades_history(&[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.public_get_trades_history(&[__ws_arg_7]).await.into_dict();
         //
         // {
         //   "success": true,
@@ -2276,7 +2276,7 @@ if _try_result.is_err() {
         //   "has_more": true   // not included to info!
         // }
         //
-        let mut data: crate::value::List = self.add_pagination_cursor_to_result(response).into_list();
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response).into_list();
         return self.parse_trades(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3216,7 +3216,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsPaginate]);
-        let mut response: Value = self.public_get_funding_rate_history(&[__ws_arg_19]).await;
+        let mut response: crate::value::Dict = self.public_get_funding_rate_history(&[__ws_arg_19]).await.into_dict();
         //
         // {
         //   "success": true,
@@ -3235,7 +3235,7 @@ if _try_result.is_err() {
         //   "has_more": true
         // }
         //
-        let mut data: Vec<Value> = self.add_pagination_cursor_to_result(response).as_array().cloned().unwrap_or_default();
+        let mut data: Vec<Value> = self.add_pagination_cursor_to_result(&response).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3597,7 +3597,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let mut response: Value = self.public_get_orders_history(&[__ws_arg_21]).await;
+        let mut response: crate::value::Dict = self.public_get_orders_history(&[__ws_arg_21]).await.into_dict();
         //
         // {
         //   "success": true,
@@ -3626,13 +3626,14 @@ if _try_result.is_err() {
         //   "has_more": true
         // }
         //
-        let mut data: crate::value::List = self.add_pagination_cursor_to_result(response).into_list();
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response).into_list();
         return self.parse_orders(&data, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
 
-    pub fn add_pagination_cursor_to_result(&self, mut response: Value) -> Value {
+    pub fn add_pagination_cursor_to_result(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
         let mut data: Value = (match response.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
@@ -4482,10 +4483,10 @@ if _try_result.is_err() {
         //     }
         //
         let mut marketId: Option<String> = self.safe_string_k(interest.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (marketId.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[])) } else { crate::Value::from(market) });
+        let mut marketResolved: Option<crate::types::Market> = (if (marketId.is_some()) { Some(self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[])) } else { market.cloned() });
         let mut symbol: Option<String> = None;
         if (marketId.is_some()) {
-            symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            symbol = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut interestValue: Option<String> = None;
         let mut markPrice: Option<String> = self.safe_string_k(interest.clone(), "mark", &[]).as_str().map(str::to_owned);
@@ -4503,7 +4504,7 @@ if _try_result.is_err() {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), interest);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
+}), marketResolved.as_ref());
 
     Value::Null
 }
@@ -4557,7 +4558,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let mut response: Value = self.public_get_account_balance_history(&[__ws_arg_27]).await;
+        let mut response: crate::value::Dict = self.public_get_account_balance_history(&[__ws_arg_27]).await.into_dict();
         // {
         //   "success": true,
         //   "data": [
@@ -4573,7 +4574,7 @@ if _try_result.is_err() {
         //   "next_cursor": "11114Lz77",
         //   "has_more": true
         // }
-        let mut data: crate::value::List = self.add_pagination_cursor_to_result(response).into_list();
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response).into_list();
         return self.parse_ledger(&data, None, &[since, limit]);
         Value::Null
         }).await?))
@@ -4843,7 +4844,7 @@ if _try_result.is_err() {
             return self.fetch_paginated_call_cursor(Value::Str("fetchFundingHistory".into()), &[symbol, since.clone(), limit.clone(), Value::from(&paramsOriginAndSingleAddress), Value::Str("next_cursor".into()), Value::Str("cursor".into()), Value::Null, Value::from(defaultLimit)]).await;
         }
         let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let mut response: Value = self.public_get_funding_history(&[__ws_arg_30]).await;
+        let mut response: crate::value::Dict = self.public_get_funding_history(&[__ws_arg_30]).await.into_dict();
         // {
         //   "success": true,
         //   "data": [
@@ -4861,7 +4862,7 @@ if _try_result.is_err() {
         //   "next_cursor": "11114Lz77",
         //   "has_more": true
         // }
-        let mut data: crate::value::List = self.add_pagination_cursor_to_result(response).into_list();
+        let mut data: crate::value::List = self.add_pagination_cursor_to_result(&response).into_list();
         return self.parse_incomes(&data, &[crate::Value::from(market.as_ref()), since, limit]);
         Value::Null
         }).await?))
@@ -5331,8 +5332,8 @@ if _try_result.is_err() {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone())); // documented message prefixes are more specific than the http-status echo
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             let mut statusCode: Option<i64> = self.parse_to_int(code.clone());
-            let mut codeAsString: Value = Value::Str(format!("{}", code).into());
-            if ((statusCode.is_some() && statusCode < Some(400))) || !(matches!((&self.httpExceptions, &codeAsString), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            let mut codeAsString: String = format!("{}", code);
+            if ((statusCode.is_some() && statusCode < Some(400))) || !(matches!((&self.httpExceptions, Some(codeAsString.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

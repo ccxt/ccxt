@@ -2784,13 +2784,14 @@ impl Bittrade {
             request.insert("client-order-ids".into(), clientOrderIds);
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_order_orders_batchcancel(&[__ws_arg_15]).await;
-        return self.parse_cancel_orders(response);
+        let mut response: crate::value::Dict = self.private_post_order_orders_batchcancel(&[__ws_arg_15]).await.into_dict();
+        return self.parse_cancel_orders(&response);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_cancel_orders(&self, mut orders: Value) -> Value {
+    pub fn parse_cancel_orders(&self, orders: impl Into<crate::Value>) -> Value {
+        let mut orders: Value = orders.into();
         //
         //    {
         //        "success": [

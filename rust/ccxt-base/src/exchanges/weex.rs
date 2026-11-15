@@ -5300,13 +5300,14 @@ impl Weex {
             m
         });
         let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.contract_private_get_capi_v3_account_commission_rate(&[__ws_arg_41]).await;
-        return self.parse_trading_fee(response, Some(&market));
+        let mut response: crate::value::Dict = self.contract_private_get_capi_v3_account_commission_rate(&[__ws_arg_41]).await.into_dict();
+        return self.parse_trading_fee(&response, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         //
         // contract
         //     {

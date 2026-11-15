@@ -3280,8 +3280,8 @@ impl Sxbet {
         // per connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
-        let mut connectSent: Value = self.safe_value_k((client).subscriptions.clone(), "connect", &[]);
-        if (connectSent == Value::Null) {
+        let connectSent: bool = self.safe_value_k((client).subscriptions.clone(), "connect", &[]) != Value::Null;
+        if (!connectSent) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
             let mut token: Option<String> = self.fetch_sxbet_realtime_token().await.as_str().map(str::to_owned);
             let mut requestId: i64 = self.request_id(url.as_str());

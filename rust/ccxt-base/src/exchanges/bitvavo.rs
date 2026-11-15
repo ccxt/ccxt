@@ -1480,13 +1480,14 @@ impl Bitvavo {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_account_fees(&[__ws_arg_2]).await;
-        return self.parse_trading_fee(response, Some(&market));
+        let mut response: crate::value::Dict = self.private_get_account_fees(&[__ws_arg_2]).await.into_dict();
+        return self.parse_trading_fee(&response, Some(&market));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut fee: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut fee: Value = fee.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
@@ -1648,7 +1649,8 @@ impl Bitvavo {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1697,8 +1699,8 @@ impl Bitvavo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_balance(&[params]).await;
-        return self.parse_balance_list(response);
+        let mut response: crate::value::List = self.private_get_balance(&[params]).await.into_list();
+        return self.parse_balance_list(&response);
         Value::Null
         }).await?))
     }

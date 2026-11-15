@@ -4469,29 +4469,29 @@ impl Hashkey {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("transactTime".into()), Value::Str("time".into()), &[]).as_i64();
         let mut status: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut priceType: Option<String> = self.safe_string_k(order.clone(), "priceType", &[]).as_str().map(str::to_owned);
         if (priceType.as_deref() == Some("MARKET")) {
-            type_var = Value::Str("market".into());
+            type_var = Some("market".to_string());
         }
         let mut price: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "price", &[]));
-        if (type_var.as_str() == Some("STOP")) {
+        if (type_var.as_deref() == Some("STOP")) {
             if (price.is_none()) {
-                type_var = Value::Str("market".into());
+                type_var = Some("market".to_string());
             }  else {
-                type_var = Value::Str("limit".into());
+                type_var = Some("limit".to_string());
             }
         }
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parse_order_type_time_in_force_and_post_only(type_var.as_str(), timeInForce.as_str()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
+        { let __destr_tmp: Vec<Value> = self.parse_order_type_time_in_force_and_post_only(type_var.as_deref(), timeInForce.as_str()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
         let mut average: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "avgPrice", &[]));
         if (price.is_none()) {
             price = average.clone();
         }
-        let mut side: Value = self.safe_string_lower_k(order.clone(), "side", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
+        { let __destr_tmp: Vec<Value> = self.parse_order_side_and_reduce_only(Value::from(&side)).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
         let mut feeCurrncyId: Option<String> = self.safe_string_k(order.clone(), "feeCoin", &[]).as_str().map(str::to_owned);
         if (feeCurrncyId.as_deref() == Some("")) {
             feeCurrncyId = None;
@@ -4506,9 +4506,9 @@ impl Hashkey {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(order.clone(), "updateTime", &[]));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "origQty", &[]))));

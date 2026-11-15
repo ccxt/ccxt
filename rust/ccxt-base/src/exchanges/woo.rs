@@ -4220,12 +4220,12 @@ impl Woo {
         let mut networks: crate::value::Dict = currency.get("networks").cloned().unwrap_or_default().into_dict();
         let mut currencyCode: String = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut networkCode: Option<String> = self.network_id_to_code(&[networkCodeRaw.map(Value::from).unwrap_or(Value::Null), Value::from(currencyCode)]);
-        let mut networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(&networks, networkCode.map(Value::from).unwrap_or(Value::Null), &[]) });
-        if (networkEntry == Value::Null) {
+        let mut networkEntry: Option<crate::value::Dict> = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(&networks, networkCode.map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
+        if (networkEntry.is_none()) {
             let mut supportedNetworks: Value = Value::Array(networks.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), "  can not determine a network code, please provide unified \"network\" param, one from the following: ").into()), json_stringify(&supportedNetworks))));
         }
-        let mut currentyNetworkId: Option<String> = self.safe_string_k(networkEntry, "currencyNetworkId", &[]).as_str().map(str::to_owned);
+        let mut currentyNetworkId: Option<String> = self.safe_string_k(&networkEntry, "currencyNetworkId", &[]).as_str().map(str::to_owned);
         return Value::from(vec![currentyNetworkId.map(Value::from).unwrap_or(Value::Null), Value::Dict(paramsNetworkCode)]);
 
     Value::Null
@@ -4445,11 +4445,11 @@ impl Woo {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = networkizedCode.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut partsLength: i64 = parts.len() as i64;
             let mut firstPart: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-            let mut currencyId: Value = self.safe_string(&parts, Value::Int(1), &[firstPart.map(Value::from).unwrap_or(Value::Null)]);
+            let mut currencyId: Option<String> = self.safe_string(&parts, Value::Int(1), &[firstPart.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             if partsLength > 2 {
-                currencyId = Value::Str(format!("{}{}", currencyId, Value::Str(format!("{}{}", Value::Str("_".into()), self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())])).into())).into());
+                currencyId = Some(format!("{}{}", currencyId.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("_".into()), self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())]))));
             }
-            return crate::types::IntoRaw::into_raw(self.safe_currency(currencyId, None));
+            return crate::types::IntoRaw::into_raw(self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), None));
         }
 
     Value::Null
@@ -4995,13 +4995,13 @@ impl Woo {
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v1_private_post_interest_repay(&[__ws_arg_33]).await;
+        let mut response: crate::value::Dict = self.v1_private_post_interest_repay(&[__ws_arg_33]).await.into_dict();
         //
         //     {
         //         "success": true,
         //     }
         //
-        let mut transaction: crate::value::Dict = self.parse_margin_loan(response, Some(&currency)).into_dict();
+        let mut transaction: crate::value::Dict = self.parse_margin_loan(&response, Some(&currency)).into_dict();
         return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount);
@@ -5012,7 +5012,8 @@ impl Woo {
         }).await?))
     }
 
-    pub fn parse_margin_loan(&self, mut info: Value, currency: Option<&crate::types::Currency>) -> Value {
+    pub fn parse_margin_loan(&self, info: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+        let mut info: Value = info.into();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);

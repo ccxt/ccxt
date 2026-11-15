@@ -3045,9 +3045,9 @@ impl Bithumb {
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
         }
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (symbol.is_none()) { crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { crate::Value::from(market) });
+        let mut marketResolved: Option<crate::types::Market> = (if (symbol.is_none()) { Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { market.cloned() });
         if (symbol.is_none()) {
-            symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            symbol = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut id: Option<String> = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("order_id".into()), Value::Str("uuid".into()), Value::Str("algo_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut rawTrades: crate::value::List = self.safe_list2(order.clone(), Value::Str("contract".into()), Value::Str("trades".into()), &[Value::from(vec![])]).into_list();
@@ -3055,8 +3055,8 @@ impl Bithumb {
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
             let mut currency: Option<String> = None;
-            if (marketResolved != Value::Null) {
-                currency = self.safe_string_k(marketResolved.clone(), "quote", &[]).as_str().map(str::to_owned);
+            if (marketResolved.is_some()) {
+                currency = self.safe_string_k(&marketResolved, "quote", &[]).as_str().map(str::to_owned);
             }
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -3096,7 +3096,7 @@ impl Bithumb {
         m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
         m.insert("trades".to_string(), Value::Arr(rawTrades));
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
+}), marketResolved.as_ref());
 
     Value::Null
 }

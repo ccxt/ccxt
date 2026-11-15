@@ -1737,7 +1737,7 @@ impl Hyperliquid {
     m
 }));
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
-        let mut shouldRefresh: Value = Value::Bool((self.safe_string2(params.clone(), Value::Str("user".into()), Value::Str("address".into()), &[]) != Value::Null) && (self.safe_bool_k(params.clone(), "enableUnifiedMargin", &[]) == Value::Null));
+        let mut shouldRefresh: bool = (self.safe_string2(params.clone(), Value::Str("user".into()), Value::Str("address".into()), &[]) != Value::Null) && (self.safe_bool_k(params.clone(), "enableUnifiedMargin", &[]) == Value::Null);
         let mut userAddress: Option<String> = self.safe_string(self.handle_public_address("fetchBalance", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = self.safe_dict(self.handle_public_address("fetchBalance", params), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1749,7 +1749,7 @@ impl Hyperliquid {
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let isUnifiedEnabledparamsValueVariable: Vec<Value> = self.is_unified_enabled("fetchBalance", userAddress.as_deref(), &[shouldRefresh, Value::Dict(paramsMarginMode)]).await.as_array().cloned().unwrap_or_default();
+        let isUnifiedEnabledparamsValueVariable: Vec<Value> = self.is_unified_enabled("fetchBalance", userAddress.as_deref(), &[Value::Bool(shouldRefresh), Value::Dict(paramsMarginMode)]).await.as_array().cloned().unwrap_or_default();
         let mut isUnifiedEnabled: bool = isUnifiedEnabledparamsValueVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsValue: crate::value::Dict = isUnifiedEnabledparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut dex: Option<String> = self.safe_string_k(&paramsValue, "dex", &[]).as_str().map(str::to_owned);

@@ -2758,8 +2758,8 @@ impl Nado {
                 }
             }
             }
-            let mut subscriptionMsg: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), Value::from(messageHash.clone()), &[]);
-            if (subscriptionMsg != Value::Null) {
+            let subscriptionMsg: bool = self.safe_value(get_value(&client, &Value::Str("subscriptions".into())), Value::from(messageHash.clone()), &[]) != Value::Null;
+            if (subscriptionMsg) {
                 __ch.remove_subscription(messageHash.as_str());
             }
             CacheStore::forget(&mut self.orderbooks, &symbol);

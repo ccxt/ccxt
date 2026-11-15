@@ -4607,8 +4607,8 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.clob_private_get_auth_derive_api_key(&[params]).await;
-        return self.set_api_credentials(response);
+        let mut response: crate::value::Dict = self.clob_private_get_auth_derive_api_key(&[params]).await.into_dict();
+        return self.set_api_credentials(&response);
 
     Value::Null
 }
@@ -4627,8 +4627,8 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.clob_private_post_auth_api_key(&[params]).await;
-        return self.set_api_credentials(response);
+        let mut response: crate::value::Dict = self.clob_private_post_auth_api_key(&[params]).await.into_dict();
+        return self.set_api_credentials(&response);
 
     Value::Null
 }
@@ -4661,7 +4661,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn set_api_credentials(&self, mut response: Value) -> Value {
+    pub fn set_api_credentials(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         //
         //     { "apiKey": "...", "secret": "...", "passphrase": "..." }
         //

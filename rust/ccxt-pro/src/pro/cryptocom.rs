@@ -666,8 +666,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut marketId: Option<String> = (match message.get("instrument_name") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
-        let mut data: Value = self.safe_dict((match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }), Value::Int(0), &[]);
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "t", &[]).as_i64();
+        let mut data: Option<crate::value::Dict> = self.safe_dict((match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }), Value::Int(0), &[]).into_opt_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "t", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             let mut limit: Option<i64> = (match message.get("depth") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
             { let __cv = self.counted_order_book(&[Value::Map({
@@ -677,8 +677,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut nonce: Option<i64> = self.safe_integer2(data.clone(), Value::Str("u".into()), Value::Str("s".into()), &[]).as_i64();
-        let mut books: Value = data.clone();
+        let mut nonce: Option<i64> = self.safe_integer2(&data, Value::Str("u".into()), Value::Str("s".into()), &[]).as_i64();
+        let mut books: Option<crate::value::Dict> = data.clone();
         if (channel.as_deref() == Some("book")) {
             orderbook.reset(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -689,11 +689,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             orderbook.set_book_meta("nonce", Value::from(nonce));
         }  else {
-            books = self.safe_dict_k(data.clone(), "update", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
-            let mut previousNonce: Option<i64> = self.safe_integer_k(data, "pu", &[]).as_i64();
+            books = self.safe_dict_k(&data, "update", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_opt_dict();
+            let mut previousNonce: Option<i64> = self.safe_integer_k(&data, "pu", &[]).as_i64();
             let mut currentNonce: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]).as_i64();
             if (currentNonce != previousNonce) {
                 let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
@@ -702,8 +702,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
             }
         }
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), self.safe_list_k(books.clone(), "asks", &[Value::from(vec![])]));
-        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), self.safe_list_k(books, "bids", &[Value::from(vec![])]));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), self.safe_list_k(&books, "asks", &[Value::from(vec![])]));
+        self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), self.safe_list_k(&books, "bids", &[Value::from(vec![])]));
         orderbook.set_book_meta("nonce", Value::from(nonce));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol);

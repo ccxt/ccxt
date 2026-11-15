@@ -767,7 +767,8 @@ impl Bitflyer {
         }).await?))
     }
 
-    pub fn parse_balance_list(&self, mut response: Value) -> Value {
+    pub fn parse_balance_list(&self, response: impl Into<crate::Value>) -> Value {
+        let mut response: Value = response.into();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -814,8 +815,8 @@ impl Bitflyer {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_getbalance(&[params]).await;
-        return self.parse_balance_list(response);
+        let mut response: crate::value::List = self.private_get_getbalance(&[params]).await.into_list();
+        return self.parse_balance_list(&response);
         Value::Null
         }).await?))
     }

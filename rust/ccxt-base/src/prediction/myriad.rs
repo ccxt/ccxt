@@ -3618,8 +3618,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             });
             let __ws_arg_25 = self.extend(Value::Map(obRequest), &[params.clone()]);
-            let mut obResponse: Value = self.myriad_public_get_markets_id_orderbook(&[__ws_arg_25]).await;
-            return self.safe_prediction_order_book(self.parse_wei_order_book(obResponse, (self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()])).as_str()), &[outcomeObj.clone()]);
+            let mut obResponse: crate::value::Dict = self.myriad_public_get_markets_id_orderbook(&[__ws_arg_25]).await.into_dict();
+            return self.safe_prediction_order_book(self.parse_wei_order_book(&obResponse, (self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()])).as_str()), &[outcomeObj.clone()]);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3759,7 +3759,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string} outcome the unified outcome of the order book
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-    pub fn parse_wei_order_book(&self, mut response: Value, outcome: Option<&str>) -> Value {
+    pub fn parse_wei_order_book(&self, response: impl Into<crate::Value>, outcome: Option<&str>) -> Value {
+        let mut response: Value = response.into();
         let mut outcome: Value = outcome.into();
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);

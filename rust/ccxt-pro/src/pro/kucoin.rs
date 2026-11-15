@@ -2289,18 +2289,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             optionName = "contractMethod".to_string();
         }
         let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params2(params, Value::Str("watchOrderBook".into()), Value::from(optionName), Value::Str("method".into()), &[Value::from(defaultMethod)]).as_array().cloned().unwrap_or_default();
-        let mut methodOption: Value = methodOptionparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut methodOption: Option<String> = methodOptionparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut method: Value = methodOption;
-        if !method.as_str().unwrap_or("").contains("Depth") {
+        let mut method: Option<String> = methodOption;
+        if !method.as_deref().unwrap_or_default().contains("Depth") {
             if (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(50.0)) {
                 if !isFuturesMethod {
-                    method = Value::Str("/spotMarket/level2".into());
+                    method = Some("/spotMarket/level2".to_string());
                 }
-                method = Value::Str(format!("{}{}", method, Value::Str(format!("{}{}", Value::Str("Depth".into()), Value::Str(format!("{}", limit).into())).into())).into());
+                method = Some(format!("{}{}", method.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("Depth".into()), Value::Str(format!("{}", limit).into()))));
             }
         }
-        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method, ":").into()), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method.as_deref().unwrap_or("null"), ":").into()), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subscriptionHashes: Vec<Value> = Vec::new();
         {
@@ -2310,14 +2310,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             messageHashes.push(Value::Str(format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null")).into()));
             let mut marketId: String = self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            subscriptionHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, ":").into()), marketId).into()));
+            subscriptionHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", method.as_deref().unwrap_or("null"), ":").into()), marketId).into()));
         }
         }
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (method.as_str() == Some("/market/level2")) || (method.as_str() == Some("/contractMarket/level2")) {
+        if (method.as_deref() == Some("/market/level2")) || (method.as_deref() == Some("/contractMarket/level2")) {
             subscription = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
@@ -2377,18 +2377,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             optionName = "contractMethod".to_string();
         }
         let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params2(&paramsOmitted, Value::Str("watchOrderBook".into()), Value::from(optionName), Value::Str("method".into()), &[Value::from(defaultMethod)]).as_array().cloned().unwrap_or_default();
-        let mut methodOption: Value = methodOptionparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut methodOption: Option<String> = methodOptionparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut method: Value = methodOption;
-        if !method.as_str().unwrap_or("").contains("Depth") {
+        let mut method: Option<String> = methodOption;
+        if !method.as_deref().unwrap_or_default().contains("Depth") {
             if (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(50.0)) {
                 if !isFuturesMethod {
-                    method = Value::Str("/spotMarket/level2".into());
+                    method = Some("/spotMarket/level2".to_string());
                 }
-                method = Value::Str(format!("{}{}", method, Value::Str(format!("{}{}", Value::Str("Depth".into()), Value::Str(format!("{}", limit).into())).into())).into());
+                method = Some(format!("{}{}", method.as_deref().unwrap_or("null"), format!("{}{}", Value::Str("Depth".into()), Value::Str(format!("{}", limit).into()))));
             }
         }
-        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method, ":").into()), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+        let mut topic: String = format!("{}{}", Value::Str(format!("{}{}", method.as_deref().unwrap_or("null"), ":").into()), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut subscriptionHashes: Vec<Value> = Vec::new();
         {
@@ -2879,13 +2879,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
             let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            let mut isFuturesMethod: Value = (Value::Bool((marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("margin"))));
-            let mut url: Value = self.negotiate(true, &[isFuturesMethod.clone()]).await;
+            let mut isFuturesMethod: bool = (marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("margin"));
+            let mut url: Value = self.negotiate(true, &[Value::Bool(isFuturesMethod)]).await;
             let mut topic: String = "/spotMarket/tradeOrders".to_string();
             if (trigger == Some(true)) {
                 topic = "/spotMarket/advancedOrders".to_string();
             }
-            if matches!(&isFuturesMethod, Value::Bool(true)) {
+            if isFuturesMethod {
                 topic = (if (trigger == Some(true)) { "/contractMarket/advancedOrders".to_string() } else { "/contractMarket/tradeOrders".to_string() });
             }
             if (symbolResolved.is_none()) {
@@ -3333,7 +3333,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isFuturesMethod: Value = (Value::Bool((marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("margin"))));
+        let mut isFuturesMethod: bool = (marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("margin"));
         let mut utaEnabled: bool = self.is_uta_enabled(&[]).await.as_bool().unwrap_or_default();
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("watchMyTrades".into()), Value::Str("uta".into()), &[Value::Bool(utaEnabled)]).as_array().cloned().unwrap_or_default();
         let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -3349,13 +3349,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut channel: String = "execution.lite".to_string();
             trades = self.subscribe_private_uta(Value::from(vec![Value::from(messageHash.clone())]), channel.as_str(), channel.as_str(), None, &[Value::Dict(paramsExtended)]).await;
         }  else {
-            let mut url: Value = self.negotiate(true, &[isFuturesMethod.clone()]).await;
+            let mut url: Value = self.negotiate(true, &[Value::Bool(isFuturesMethod)]).await;
             let mut defaultTopic: String = "/spotMarket/tradeOrders".to_string();
-            if matches!(&isFuturesMethod, Value::Bool(true)) {
+            if isFuturesMethod {
                 defaultTopic = "/contractMarket/tradeOrders".to_string();
             }
             let mut optionName: String = "spotMethod".to_string();
-            if matches!(&isFuturesMethod, Value::Bool(true)) {
+            if isFuturesMethod {
                 optionName = "contractMethod".to_string();
             }
             let topicparamsTopicVariable: Vec<Value> = self.handle_option_string_and_params2(&paramsUta, Value::Str("watchMyTrades".into()), Value::from(optionName), Value::Str("method".into()), &[Value::from(defaultTopic)]).as_array().cloned().unwrap_or_default();

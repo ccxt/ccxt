@@ -2888,14 +2888,14 @@ impl Hyperliquid {
         let mut markets: crate::value::List = self.safe_list_k(raw.clone(), "markets", &[Value::from(vec![])]).into_list();
         // Extract info from first market
         let mut marketsLength: i64 = markets.len() as i64;
-        let mut firstMarket: Value = (if (marketsLength > 0) { markets.get(0).cloned().unwrap_or(Value::Null) } else { Value::Map({
+        let mut firstMarket: crate::value::Dict = (if (marketsLength > 0) { markets.get(0).cloned().unwrap_or(Value::Null) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut firstInfo: crate::value::Dict = self.safe_dict_k(firstMarket.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+}) }).into_dict();
+        let mut firstInfo: crate::value::Dict = self.safe_dict_k(&firstMarket, "info", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut desc: crate::value::Dict = self.safe_dict_k(&firstInfo, "parsedDescription", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2922,7 +2922,7 @@ impl Hyperliquid {
                 expiryDatetime = Some(isoStr);
             }
         }
-        let mut firstExpiry: Option<i64> = self.safe_integer_k(firstMarket, "expiry", &[]).as_i64();
+        let mut firstExpiry: Option<i64> = self.safe_integer_k(&firstMarket, "expiry", &[]).as_i64();
         let mut title: Option<String> = parentSymbol.clone();
         if (underlying.is_some()) {
             let mut titleSuffix: String = "".to_string();

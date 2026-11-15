@@ -1097,38 +1097,38 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 })]) }).into_dict();
-        let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) });
-        if (order != Value::Null) {
+        let mut order: Option<crate::value::Dict> = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
+        if (order.is_some()) {
             // paid_fee is cumulative, so the cached fee is only a fallback
             let mut parsedFee: Option<crate::value::Dict> = self.safe_dict_k(&parsed, "fee", &[]).into_opt_dict();
             if (parsedFee.is_none()) {
-                let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
+                let mut fee: Value = self.safe_value_k(&order, "fee", &[]);
                 if (fee != Value::Null) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fee".into(), fee);
                 }
-                let mut fees: Option<crate::value::List> = self.safe_list_k(order.clone(), "fees", &[]).into_opt_list();
+                let mut fees: Option<crate::value::List> = self.safe_list_k(&order, "fees", &[]).into_opt_list();
                 if (fees.is_some()) {
                     std::sync::Arc::make_mut(&mut parsed).insert("fees".into(), fees.map_or(Value::Null, Value::Arr));
                 }
             }
-            std::sync::Arc::make_mut(&mut parsed).insert("trades".into(), self.safe_value_k(order.clone(), "trades", &[]));
+            std::sync::Arc::make_mut(&mut parsed).insert("trades".into(), self.safe_value_k(&order, "trades", &[]));
             let mut lastTradeTimestamp: Option<i64> = self.safe_integer_k(&parsed, "lastTradeTimestamp", &[]).as_i64();
             if (lastTradeTimestamp.is_none()) {
-                std::sync::Arc::make_mut(&mut parsed).insert("lastTradeTimestamp".into(), self.safe_integer_k(order.clone(), "lastTradeTimestamp", &[]));
+                std::sync::Arc::make_mut(&mut parsed).insert("lastTradeTimestamp".into(), self.safe_integer_k(&order, "lastTradeTimestamp", &[]));
             }
             let mut timestamp: Option<i64> = self.safe_integer_k(&parsed, "timestamp", &[]).as_i64();
             if (timestamp.is_none()) {
-                std::sync::Arc::make_mut(&mut parsed).insert("timestamp".into(), self.safe_integer_k(order.clone(), "timestamp", &[]));
-                std::sync::Arc::make_mut(&mut parsed).insert("datetime".into(), self.safe_string_k(order.clone(), "datetime", &[]));
+                std::sync::Arc::make_mut(&mut parsed).insert("timestamp".into(), self.safe_integer_k(&order, "timestamp", &[]));
+                std::sync::Arc::make_mut(&mut parsed).insert("datetime".into(), self.safe_string_k(&order, "datetime", &[]));
             }
             // fill updates carry the fill price and volume instead of the order's
             let mut rawStatus: Option<String> = (match __pro_message.get("state").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (rawStatus.as_deref() == Some("trade")) {
-                let mut cachedPrice: Option<f64> = self.safe_number_k(order.clone(), "price", &[]).as_f64();
+                let mut cachedPrice: Option<f64> = self.safe_number_k(&order, "price", &[]).as_f64();
                 if (cachedPrice.is_some()) {
                     std::sync::Arc::make_mut(&mut parsed).insert("price".into(), Value::from(cachedPrice));
                 }
-                let mut cachedAmount: Option<f64> = self.safe_number_k(order, "amount", &[]).as_f64();
+                let mut cachedAmount: Option<f64> = self.safe_number_k(&order, "amount", &[]).as_f64();
                 if (cachedAmount.is_some()) {
                     std::sync::Arc::make_mut(&mut parsed).insert("amount".into(), Value::from(cachedAmount));
                 }

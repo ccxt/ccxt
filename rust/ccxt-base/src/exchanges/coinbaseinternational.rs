@@ -4480,15 +4480,12 @@ impl Coinbaseinternational {
         let mut method: Value = method.into();
         let mut url: Value = url.into();
         let useEddsa: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
-        let mut uri: Value = Value::Null;
+        let mut uri: Option<String> = None;
         if (url != Value::Null) && (method != Value::Null) {
-            uri = Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, " ").into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())).into());
-            let mut quesPos: Value = Value::Int(uri.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1));
-            if quesPos.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                uri = (match (&(uri), 0i64, (match &(quesPos) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b,
-                    __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
-                    __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-                    Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+            uri = Some(format!("{}{}", Value::Str(format!("{}{}", method, " ").into()), url.as_str().map(|__s| Value::Str(__s.replace("https://", "").into())).unwrap_or_else(|| url.clone())));
+            let mut quesPos: i64 = (if let (Some(__h), Some(__n)) = (uri.as_deref(), Some("?")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
+            if quesPos > 0 {
+                uri = (if let Some(__s) = uri.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, quesPos); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
             }
         }
         let mut nonce: String = self.random_bytes(Value::Int(16));
@@ -4510,11 +4507,11 @@ impl Coinbaseinternational {
                 m.insert("iat".to_string(), seconds);
             m
         }).into_dict();
-        if (uri != Value::Null) {
+        if (uri.is_some()) {
             if !useEddsa {
-                std::sync::Arc::make_mut(&mut request).insert("uri".into(), uri.clone());
+                std::sync::Arc::make_mut(&mut request).insert("uri".into(), uri.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
-                std::sync::Arc::make_mut(&mut request).insert("uris".into(), Value::from(vec![uri]));
+                std::sync::Arc::make_mut(&mut request).insert("uris".into(), Value::from(vec![uri.map(Value::from).unwrap_or(Value::Null)]));
             }
         }
         if useEddsa {

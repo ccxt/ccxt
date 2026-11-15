@@ -827,15 +827,15 @@ impl Hashkey {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "O", &[]).as_i64();
-        let mut side: Value = self.safe_string_lower_k(order.clone(), "S", &[]);
+        let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "S", &[]).as_str().map(str::to_owned);
         let mut reduceOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parent.parse_order_side_and_reduce_only(side.clone()).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
-        let mut type_var: Value = self.parent.parse_order_type((self.safe_string_k(order.clone(), "o", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
-        let mut timeInForce: Value = self.safe_string_k(order.clone(), "f", &[]);
+        { let __destr_tmp: Vec<Value> = self.parent.parse_order_side_and_reduce_only(Value::from(&side)).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
+        let mut type_var: Option<String> = self.parent.parse_order_type((self.safe_string_k(order.clone(), "o", &[])).as_str());
+        let mut timeInForce: Option<String> = self.safe_string_k(order.clone(), "f", &[]).as_str().map(str::to_owned);
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parent.parse_order_type_time_in_force_and_post_only(type_var.as_str(), timeInForce.as_str()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
+        { let __destr_tmp: Vec<Value> = self.parent.parse_order_type_time_in_force_and_post_only(type_var.as_deref(), timeInForce.as_deref()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); timeInForce = __destr_tmp.get(1).and_then(Value::as_str).map(str::to_owned); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
         if (marketResolved).contract {
-            type_var = Value::Null;
+            type_var = None;
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -847,9 +847,9 @@ impl Hashkey {
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parent.parse_order_status((self.safe_string_k(order.clone(), "X", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), timeInForce);
-        m.insert("side".to_string(), side);
+        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
+        m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
+        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "p", &[]));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "V", &[]));
         m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(order.clone(), "q", &[]))));

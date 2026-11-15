@@ -4086,8 +4086,8 @@ impl Derive {
         let mut timestamp: Option<i64> = self.safe_integer_k(rawOrder.clone(), "creation_timestamp", &[]).as_i64(); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         let mut orderId: Option<String> = self.safe_string_k(order.clone(), "order_id", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (marketId.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { crate::Value::from(market) });
-        let mut symbol: Option<String> = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: Option<crate::types::Market> = (if (marketId.is_some()) { Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { market.cloned() });
+        let mut symbol: Option<String> = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "limit_price", &[]).as_str().map(str::to_owned);
         let mut average: Option<String> = self.safe_string_k(order.clone(), "average_price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string2(order.clone(), Value::Str("amount".into()), Value::Str("desired_amount".into()), &[]).as_str().map(str::to_owned); // plain orders carry amount, the raw_data debug shape nests desired_amount
@@ -4151,7 +4151,7 @@ impl Derive {
 }));
         m.insert("info".to_string(), order);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
+}), marketResolved.as_ref());
 
     Value::Null
 }

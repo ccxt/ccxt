@@ -4192,14 +4192,14 @@ impl Bitrue {
                 parsedMessage = self.parse_json_value(messageInner.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut errorResponse: Value = (if (parsedMessage != Value::Null) { parsedMessage } else { response });
-        let mut message: Option<String> = self.safe_string_k(errorResponse.clone(), "msg", &[]).as_str().map(str::to_owned);
+        let mut errorResponse: crate::value::Dict = (if (parsedMessage != Value::Null) { parsedMessage } else { response }).into_dict();
+        let mut message: Option<String> = self.safe_string_k(&errorResponse, "msg", &[]).as_str().map(str::to_owned);
         if (message.is_some()) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), message.as_deref().unwrap_or("null")).into()));
         }
         // checks against error codes
-        let mut error: Option<String> = self.safe_string_k(errorResponse, "code", &[]).as_str().map(str::to_owned);
+        let mut error: Option<String> = self.safe_string_k(&errorResponse, "code", &[]).as_str().map(str::to_owned);
         if (error.is_some()) {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742

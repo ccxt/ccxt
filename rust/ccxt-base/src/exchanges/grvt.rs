@@ -4412,7 +4412,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut primaryOrderIndex: i64 = 0;
         let mut firstLeg: Option<crate::value::Dict> = self.safe_dict(&legs, Value::from(primaryOrderIndex), &[]).into_opt_dict();
         let mut legMarketId: Option<String> = self.safe_string_k(&firstLeg, "instrument", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (firstLeg.is_some()) { crate::types::IntoRaw::into_raw(self.safe_market(legMarketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { crate::Value::from(market) });
+        let mut marketResolved: Option<crate::types::Market> = (if (firstLeg.is_some()) { Some(self.safe_market(legMarketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { market.cloned() });
         if (firstLeg.is_some()) {
             size = self.safe_string_k(&firstLeg, "size", &[]).as_str().map(str::to_owned);
             let mut isBuyingAsset: bool = self.safe_bool_k(&firstLeg, "is_buying_asset", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -4431,7 +4431,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_product_k(&stateObj, "update_time", Value::Float(0.000001), &[]));
         m.insert("status".to_string(), self.parse_order_status((self.safe_string_k(&stateObj, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), self.safe_string_k(marketResolved.clone(), "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("type".to_string(), Value::from(orderType));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), isPostOnly.map_or(Value::Null, Value::Bool));
@@ -4448,7 +4448,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("reduceOnly".to_string(), isReduceOnly.map_or(Value::Null, Value::Bool));
         m.insert("info".to_string(), order);
     m
-}), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref());
+}), marketResolved.as_ref());
 
     Value::Null
 }

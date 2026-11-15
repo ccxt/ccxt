@@ -2340,7 +2340,7 @@ impl Coinbaseinternational {
         let mut channelParts: crate::value::List = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut channelPartsLength: i64 = channelParts.len() as i64;
         let mut isPrivate: bool = self.safe_string(&channelParts, Value::Int((channelPartsLength - 1)), &[]).as_str() == Some("raw");
-        let mut url: Option<String> = self.get_ws_url(&[Value::Bool(isPrivate.clone())]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_ws_url(&[Value::Bool(isPrivate)]).as_str().map(str::to_owned);
         if isPrivate {
             self.authenticate(&[]).await;
         }
