@@ -446,16 +446,23 @@ fn get_value_mut_boxed<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
 pub trait AddTarget { fn add_element(&mut self, key: &Value, val: Value); }
 impl AddTarget for Value {
     fn add_element(&mut self, key: &Value, val: Value) {
-        match (self, key) {
-            (Value::Dict(m), _) => add_element_to_map(m, key, val),
-            (Value::Arr(a), Value::Int(i)) => {
-                let idx = *i as usize;
-                let a = Arc::make_mut(a);
-                while a.len() <= idx { a.push(Value::Null); }
-                a[idx] = val;
-            }
+        match self {
+            Value::Dict(m) => add_element_to_map(m, key, val),
+            Value::Arr(a) => add_element_to_list(a, key, val),
             _ => {}
         }
+    }
+}
+/// ral-50b: a typed list local (`List`) written at an index: the boxed `Value::Arr` arm (pads with `Null`; a non-integer
+/// key writes nothing).
+impl AddTarget for crate::value::List { fn add_element(&mut self, key: &Value, val: Value) { add_element_to_list(self, key, val) } }
+
+fn add_element_to_list(a: &mut crate::value::List, key: &Value, val: Value) {
+    if let Value::Int(i) = key {
+        let idx = *i as usize;
+        let a = Arc::make_mut(a);
+        while a.len() <= idx { a.push(Value::Null); }
+        a[idx] = val;
     }
 }
 impl AddTarget for crate::value::Dict { fn add_element(&mut self, key: &Value, val: Value) { add_element_to_map(self, key, val) } }
@@ -1513,6 +1520,28 @@ mod ral48b_add_target_tests {
         let mut list = Value::Arr(Arc::new(vec![Value::Int(0)]));
         add_element_to_object(&mut list, &Value::Int(2), Value::Int(5));
         assert_eq!(list, Value::Arr(Arc::new(vec![Value::Int(0), Value::Null, Value::Int(5)])));
+    }
+}
+
+#[cfg(test)]
+mod ral50b_add_target_list_tests {
+    // ral-50b: `xs[i] = v` on a typed `List` local writes exactly what the boxed `Value::Arr` receiver wrote.
+    use super::*;
+    fn rows() -> crate::value::List { Arc::new(vec![Value::Int(0), Value::Int(1)]) }
+    #[test]
+    fn ral50b_list_target_writes_like_the_boxed_list() {
+        for key in [Value::Int(0), Value::Int(1), Value::Int(4), Value::Str("a".into()), Value::Null] {
+            let mut typed = rows();
+            let mut boxed = Value::Arr(rows());
+            add_element_to_object(&mut typed, &key, Value::Int(9));
+            add_element_to_object(&mut boxed, &key, Value::Int(9));
+            assert_eq!(Value::Arr(typed), boxed);
+        }
+        let shared = rows();
+        let mut typed = Arc::clone(&shared);
+        add_element_to_object(&mut typed, &Value::Int(0), Value::Int(7));
+        assert_eq!(shared[0], Value::Int(0));
+        assert_eq!(typed[0], Value::Int(7));
     }
 }
 
