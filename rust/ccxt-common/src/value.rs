@@ -891,6 +891,10 @@ impl ValueKey for Option<&str> { fn with_key<R>(self, f: impl FnOnce(&Value) -> 
 pub trait OmitSource { fn into_operand(self) -> Value; }
 impl OmitSource for Value { fn into_operand(self) -> Value { self } }
 impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
+/// ral-48d: an optional map local (`safeDict` with no default, a nil-declared map rewritten by its own omit): `None`
+/// answers `Value::Null` exactly as the boxed Null passed through `omit`; `Some(m)` drops keys from the shared map.
+impl OmitSource for Option<Dict> { fn into_operand(self) -> Value { self.map(Value::Dict).unwrap_or(Value::Null) } }
+impl OmitSource for &Option<Dict> { fn into_operand(self) -> Value { self.as_ref().map(|m| Value::Dict(Arc::clone(m))).unwrap_or(Value::Null) } }
 /// The keys `omit` drops: a `Value` (one string, or a list whose string items are keys; anything else drops nothing),
 /// or a literal key list printed as `&["a", "b"]`.
 pub trait OmitKeys { fn for_each_key(self, f: impl FnMut(&str)); }
@@ -3125,5 +3129,35 @@ mod reader_default_split_tests {
             let helper = match (&Value::Int(a), &Value::Int(b)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), _ => Value::Null };
             assert_eq!(Value::from(a + b), helper);
         }
+    }
+}
+
+#[cfg(test)]
+mod omit_opt_dict_source_tests {
+    use super::*;
+    fn omit(obj: impl OmitSource, keys: impl OmitKeys) -> Value {
+        match obj.into_operand() {
+            Value::Dict(mut m) => { let mm = Arc::make_mut(&mut m); keys.for_each_key(|k| { mm.shift_remove(k); }); Value::Dict(m) }
+            other => other,
+        }
+    }
+    #[test]
+    fn none_passes_null_through() {
+        let p: Option<Dict> = None;
+        assert!(omit(&p, &["a"]).is_null());
+        assert!(omit(p, &["a"]).into_opt_dict().is_none());
+    }
+    #[test]
+    fn some_drops_keys_and_keeps_the_lent_map() {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        m.insert("b".to_string(), Value::Int(2));
+        let p: Option<Dict> = Some(Arc::new(m));
+        let out = omit(&p, &["a"]).into_opt_dict().expect("map");
+        assert!(out.get("a").is_none());
+        assert!(matches!(out.get("b"), Some(Value::Int(2))));
+        assert!(matches!(p.as_ref().and_then(|x| x.get("a")), Some(Value::Int(1))));
+        let moved = omit(p, Value::Str("b".into())).into_opt_dict().expect("map");
+        assert!(moved.get("b").is_none() && moved.get("a").is_some());
     }
 }
