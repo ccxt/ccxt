@@ -13,9 +13,11 @@
 //   public/og/home.png                     home page + blog index/pagination + blog posts without their own image
 //   public/og/docs/<...slugs>/image.png    one per default-locale docs page; the URL getPageImage() emits
 //
-// Plain ESM on purpose: the Docker builder runs Node 20, which can't load the TS sources.
-// Pages are enumerated with fumadocs-core's own loader() and frontmatter parser, so the
-// slugs match what src/lib/source.ts resolves at runtime.
+// Plain ESM on purpose: it runs under plain `node` before `next build`, outside Next's
+// bundler, so it can't import the site's TS modules (they rely on `@/` path aliases and
+// the compiled fumadocs-mdx collections). Instead, pages are enumerated with
+// fumadocs-core's own loader() and frontmatter parser, so the slugs match what
+// src/lib/source.ts resolves at runtime.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
