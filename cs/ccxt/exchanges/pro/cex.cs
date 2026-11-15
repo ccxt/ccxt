@@ -257,6 +257,7 @@ public partial class cex : ccxt.cex
 
     public virtual void handleTradesInner(WebSocketClient client, Dictionary<string, object> message)
     {
+        // elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string? symbol = this.safeString((this.options != null && this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
         if ((symbol == null))
@@ -274,8 +275,7 @@ public partial class cex : ccxt.cex
         for (Int64 i = 0; i < dataLength; i++)
         {
             Int64 index = ((dataLength - 1) - i);
-            IDictionary<string, object> rawTrade = ((IDictionary<string, object>)(data != null && index < data.Count ? data[(int)index] : null));
-            Dictionary<string, object> parsed = this.parseWsOldTrade(rawTrade, market);
+            Dictionary<string, object> parsed = this.parseWsOldTrade((data != null && index < data.Count ? data[(int)index] : null), market);
             stored.append(parsed);
         }
         string messageHash = "trades";
