@@ -1875,10 +1875,10 @@ impl P2b {
         }
         let mut baseUrl: Option<String> = baseApiUrl;
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut paramsOmitted: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
         if (method.as_str() == Some("GET")) {
-            if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
+            if ((Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
             }
         }
         if (apiName.as_deref() == Some("private")) {
@@ -1886,11 +1886,11 @@ impl P2b {
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
             let __ws_arg_10 = self.incrementing_nonce();
             paramsOmitted = self.extend(paramsOmitted, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("request".to_string(), Value::Str(format!("{}{}", "/api/v2/", path).into()));
-                    m.insert("nonce".to_string(), Value::Str(format!("{}", Value::Int(__ws_arg_10)).into()));
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("request".to_string(), Value::Str(format!("{}{}", "/api/v2/", path).into()));
+        m.insert("nonce".to_string(), Value::Str(format!("{}", Value::Int(__ws_arg_10)).into()));
+    m
+})]).into_dict();
             let mut payload: String = self.string_to_base64(json_stringify(&paramsOmitted), &[]); // Body json encoded in base64
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

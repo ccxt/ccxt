@@ -1316,22 +1316,22 @@ impl Bingx {
             marketType = "swap".to_string();
         }
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(marketType.clone())]);
-        let mut candles: Value = Value::Null;
+        let mut candles: Option<crate::value::List> = None;
         if isSwap {
             if ((market).inverse == Some(true)) {
                 candles = Value::from(vec![(match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) })]);
+}) })]).into_opt_list();
             }  else {
-                candles = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
+                candles = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_opt_list();
             }
         }  else {
             let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
             candles = Value::from(vec![self.safe_dict_k(&data, "K", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})])]);
+})])]).into_opt_list();
         }
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
@@ -1356,8 +1356,8 @@ impl Bingx {
         {
                         let mut i: i64 = 0;
             let mut __for_first_91: bool = true;
-            while { if !__for_first_91 { i += 1; } __for_first_91 = false; i < (candles.len() as i64) } {
-            let mut candle: Value = candles.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_91 { i += 1; } __for_first_91 = false; i < (candles.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut candle: Value = candles.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: crate::value::List = self.parse_ws_ohlcv(candle, Some(&market)).into_list();
             stored.append(Value::Arr(parsed));
         }

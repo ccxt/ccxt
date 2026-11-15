@@ -6424,7 +6424,7 @@ impl Kucoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         // required param, cannot be used twice
         let mut clientOrderId: Option<String> = self.safe_string2(params.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[Value::from(self.uuid(&[]))]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, &["clientOid", "clientOrderId"], &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOid", "clientOrderId"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("clientOid".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -6433,14 +6433,14 @@ impl Kucoin {
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let mut quoteAmount: Option<f64> = self.safe_number2(paramsOmitted.clone(), Value::Str("cost".into()), Value::Str("funds".into()), &[]).as_f64();
+        let mut quoteAmount: Option<f64> = self.safe_number2(&paramsOmitted, Value::Str("cost".into()), Value::Str("funds".into()), &[]).as_f64();
         let mut amountString: Option<String> = None;
         let mut costString: Value = Value::Null;
         let mut marginMode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (type_var.as_str() == Some("market")) {
             if (quoteAmount.is_some()) {
-                paramsOmitted = self.omit(paramsOmitted, &["cost", "funds"], &[]);
+                paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["cost", "funds"], &[]).into_dict();
                 // kucoin uses base precision even for quote values
                 costString = self.market_order_amount_to_precision(symbol.as_str(), Value::from(quoteAmount));
                 request.insert("funds".into(), costString);
@@ -6453,14 +6453,14 @@ impl Kucoin {
             request.insert("size".into(), amountString.map(Value::from).unwrap_or(Value::Null));
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
-        let mut tradeType: Option<String> = self.safe_string_k(paramsOmitted.clone(), "tradeType", &[]).as_str().map(str::to_owned); // keep it for backward compatibility
-        self.check_trigger_prices(paramsOmitted.clone());
-        let mut triggerPrice: Option<f64> = self.safe_number2(paramsOmitted.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
-        let mut stopLossPrice: Option<f64> = self.safe_number_k(paramsOmitted.clone(), "stopLossPrice", &[]).as_f64();
-        let mut takeProfitPrice: Option<f64> = self.safe_number_k(paramsOmitted.clone(), "takeProfitPrice", &[]).as_f64();
+        let mut tradeType: Option<String> = self.safe_string_k(&paramsOmitted, "tradeType", &[]).as_str().map(str::to_owned); // keep it for backward compatibility
+        self.check_trigger_prices(&paramsOmitted);
+        let mut triggerPrice: Option<f64> = self.safe_number2(&paramsOmitted, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
+        let mut stopLossPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "stopLossPrice", &[]).as_f64();
+        let mut takeProfitPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "takeProfitPrice", &[]).as_f64();
         let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
-        paramsOmitted = self.omit(paramsOmitted, &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"], &[]);
+        paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"], &[]).into_dict();
         if isTriggerOrder {
             if (triggerPrice.is_some()) {
                 request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(triggerPrice))));
@@ -6488,11 +6488,11 @@ impl Kucoin {
             }
         }
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (postOnly == Some(true)) {
             request.insert("postOnly".into(), Value::Bool(true));
         }
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }
@@ -10070,7 +10070,7 @@ impl Kucoin {
         let mut utaOption: bool = utaOptionparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        let mut trades: Value = Value::Null;
+        let mut trades: Option<crate::value::List> = None;
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTrades".into()), Some(&market), &[Value::from(&paramsUta)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -10104,7 +10104,7 @@ impl Kucoin {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            trades = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
+            trades = self.safe_list_k(&data, "list", &[Value::from(vec![])]).into_opt_list();
         }  else if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
             let __ws_arg_88 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.public_get_market_histories(&[__ws_arg_88]).await.into_opt_dict();
@@ -10122,7 +10122,7 @@ impl Kucoin {
             //         ]
             //     }
             //
-            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_opt_list();
         }  else {
             let __ws_arg_89 = self.extend(Value::Map(request), &[&paramsMarketType]);
             response = self.futures_public_get_trade_history(&[__ws_arg_89]).await.into_opt_dict();
@@ -10143,13 +10143,13 @@ impl Kucoin {
             //          ]
             //      }
             //
-            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            trades = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_opt_list();
         }
-        let mut tradesList: Value = Value::from(vec![]);
-        if (trades != Value::Null) {
-            tradesList = trades;
+        let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
+        if (trades.is_some()) {
+            tradesList = trades.unwrap_or_default();
         }
-        return self.parse_trades(tradesList, Some(&market), &[since, limit]);
+        return self.parse_trades(&tradesList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }

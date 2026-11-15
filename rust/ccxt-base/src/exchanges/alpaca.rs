@@ -1283,7 +1283,7 @@ impl Alpaca {
             m
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["loc", "method"], &[]).into_dict();
-        let mut symbolTrades: Value = Value::Null;
+        let mut symbolTrades: Option<crate::value::List> = None;
         if (method == "marketPublicGetV1beta3CryptoLocTrades") {
             if (since != Value::Null) {
                 request.insert("start".into(), self.iso8601(since.clone()));
@@ -1313,7 +1313,7 @@ impl Alpaca {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            symbolTrades = self.safe_list(&trades, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
+            symbolTrades = self.safe_list(&trades, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]).into_opt_list();
         }  else if (method == "marketPublicGetV1beta3CryptoLocLatestTrades") {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
             let mut response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_latest_trades(&[__ws_arg_2]).await.into_dict();
@@ -1338,15 +1338,15 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            symbolTrades = Value::from(vec![Value::Dict(symbolTrade)]);
+            symbolTrades = Value::from(vec![Value::Dict(symbolTrade)]).into_opt_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchTrades() does not support ").into()), method).into()), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")));
         }
-        let mut symbolTradesList: Value = Value::from(vec![]);
-        if (symbolTrades != Value::Null) {
-            symbolTradesList = symbolTrades;
+        let mut symbolTradesList: crate::value::List = std::sync::Arc::new(Vec::new());
+        if (symbolTrades.is_some()) {
+            symbolTradesList = symbolTrades.unwrap_or_default();
         }
-        return self.parse_trades(symbolTradesList, Some(&market), &[since, limit]);
+        return self.parse_trades(&symbolTradesList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3245,11 +3245,11 @@ impl Alpaca {
             headersValue.insert("APCA-API-KEY-ID".into(), self.apiKey.clone());
             headersValue.insert("APCA-API-SECRET-KEY".into(), self.secret.clone());
         }
-        let mut query: Value = self.omit(params, self.extract_params(path), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut bodyJson: Option<String> = None;
-        if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
+        if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
             if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+                endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }  else {
                 bodyJson = json_stringify(&query).as_str().map(str::to_owned);
                 headersValue.insert("Content-Type".into(), Value::Str("application/json".into()));

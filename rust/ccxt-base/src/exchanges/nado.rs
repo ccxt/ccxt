@@ -3646,13 +3646,13 @@ impl Nado {
             while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (balances.len() as i64) } {
             let mut rawBalance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&rawBalance, "product_id", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (code.as_str() == Some("0")) {
-                code = Value::Str("USDT0".into());
-            }  else if ((currencyId.as_deref() == code.as_str())) {
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
+            if (code.as_deref() == Some("0")) {
+                code = Some("USDT0".to_string());
+            }  else if (code == currencyId) {
                 let mut market: crate::types::Market = self.safe_market(currencyId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("spot".into())]);
                 if (market).spot {
-                    code = self.safe_string_k(&market, "base", &[code.clone()]);
+                    code = self.safe_string_k(&market, "base", &[code.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
                 }
             }
             let mut balance: crate::value::Dict = self.safe_dict_k(&rawBalance, "balance", &[Value::Map({
@@ -3664,8 +3664,8 @@ impl Nado {
             account.insert("total".into(), amount.clone().map(Value::from).unwrap_or(Value::Null));
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             account.insert("free".into(), amount.map(Value::from).unwrap_or(Value::Null));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

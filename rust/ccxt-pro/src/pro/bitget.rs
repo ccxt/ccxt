@@ -3388,10 +3388,10 @@ impl Bitget {
                     while { if !__for_first_123 { j += 1; } __for_first_123 = false; j < (coins.len() as i64) } {
                     let mut entry: crate::value::Dict = self.safe_dict(&coins, Value::Int(j), &[]).into_dict();
                     let mut currencyId: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
-                    let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                    let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                     let mut account: Value = self.account();
-                    if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        account = self.safe_dict(self.balance.clone(), code.clone(), &[account.clone()]);
+                    if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                        account = self.safe_dict(self.balance.clone(), Value::from(code.as_deref()), &[account.clone()]);
                     }
                     let mut borrow: Option<String> = self.safe_string_k(&entry, "borrow", &[]).as_str().map(str::to_owned);
                     let mut debts: Option<String> = self.safe_string_k(&entry, "debts", &[]).as_str().map(str::to_owned);
@@ -3401,17 +3401,17 @@ impl Bitget {
                     add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(&entry, "available", &[]));
                     add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(&entry, "locked", &[]));
                     add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(&entry, "balance", &[]));
-                    if (code != Value::Null) {
-                        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
+                    if (code.is_some()) {
+                        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account.clone()); }
                     }
                 }
                 }
             }  else {
                 let mut currencyId: Option<String> = self.safe_string2(rawBalance.clone(), Value::Str("coin".into()), Value::Str("marginCoin".into()), &[]).as_str().map(str::to_owned);
-                let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: Value = self.account();
-                if (code != Value::Null) && (matches!((&self.balance, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    account = self.safe_dict(self.balance.clone(), code.clone(), &[account.clone()]);
+                if (code.is_some()) && (matches!((&self.balance, code.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                    account = self.safe_dict(self.balance.clone(), Value::from(code.as_deref()), &[account.clone()]);
                 }
                 let mut borrow: Option<String> = self.safe_string_k(rawBalance.clone(), "borrow", &[]).as_str().map(str::to_owned);
                 if (borrow.is_some()) {
@@ -3425,8 +3425,8 @@ impl Bitget {
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string(rawBalance.clone(), Value::from(freeQuery), &[]));
                 add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(rawBalance.clone(), "equity", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".into()), self.safe_string_k(rawBalance, "frozen", &[]));
-                if (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
+                if (code.is_some()) {
+                    if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
                 }
             }
         }

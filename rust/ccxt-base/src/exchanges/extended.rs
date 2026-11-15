@@ -5176,7 +5176,7 @@ impl Extended {
         let mut requestBody: Option<String> = None;
         let mut accessibility: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
         let mut queryPost: bool = path.as_str() == Some("user/deadmanswitch");
         let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("rest".into()), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
@@ -5198,8 +5198,8 @@ impl Extended {
             }
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/api/".into())).into()), api.get(0).cloned().unwrap_or(Value::Null)).into()), endpoint);
-        if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || queryPost) && (((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64)) {
-            url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode_with_array_repeat(query)));
+        if ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || queryPost) && (((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64)) {
+            url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode_with_array_repeat(&query)));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

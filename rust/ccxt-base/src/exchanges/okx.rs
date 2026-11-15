@@ -4110,12 +4110,12 @@ impl Okx {
         if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut types: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("future".into()), Value::Str("swap".into()), Value::Str("option".into())]);
+        let mut types: crate::value::List = std::sync::Arc::new(vec![Value::Str("spot".into()), Value::Str("future".into()), Value::Str("swap".into()), Value::Str("option".into())]);
         let mut fetchMarketsOption: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]).into_opt_dict();
         if (fetchMarketsOption.is_some()) {
-            types = self.safe_list_k(&fetchMarketsOption, "types", &[types.clone()]);
+            types = self.safe_list_k(&fetchMarketsOption, "types", &[Value::Arr(types)]).into_list();
         }  else {
-            types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types]); // backward-support
+            types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[Value::Arr(types)]).into_list(); // backward-support
         }
         let mut promises: Vec<Value> = Vec::new();
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -4123,7 +4123,7 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1001: bool = true;
             while { if !__for_first_1001 { i += 1; } __for_first_1001 = false; i < (types.len() as i64) } {
-            promises.push(self.fetch_markets_by_type((self.safe_string(types.clone(), Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default(), &[params.clone()]).await);
+            promises.push(self.fetch_markets_by_type((self.safe_string(&types, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default(), &[params.clone()]).await);
         }
         }
         let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();

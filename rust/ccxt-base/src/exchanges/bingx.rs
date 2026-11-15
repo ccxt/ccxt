@@ -7454,12 +7454,12 @@ impl Bingx {
             timestamp = self.parse8601(self.safe_string_k(transaction.clone(), "applyTime", &[]));
             datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }
-        let mut network: Option<String> = self.safe_string_k_opt(transaction.clone(), "network", &[]);
+        let mut network: Option<String> = self.safe_string_k(transaction.clone(), "network", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "coin", &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null);
-        if (code != Value::Null) && (network.is_some()) && (code.as_str() != network.as_deref()) && Value::Int(code.as_str().zip(network.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
+        if (code.is_some()) && (network.is_some()) && (code != network) && ((if let (Some(__h), Some(__n)) = (code.as_deref(), network.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0 {
             if (network.is_some()) {
-                code = code.as_str().zip(network.as_deref()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| code.clone());
+                code = (if let (Some(__s), Some(__o)) = (code.as_deref(), network.as_deref()) { Some(__s.replace(__o, "")) } else { code.clone() });
             }
         }
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
@@ -7478,8 +7478,8 @@ impl Bingx {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), self.safe_string_k(transaction.clone(), "txId", &[]));
         m.insert("type".to_string(), Value::from(type_var.clone()));
-        m.insert("currency".to_string(), code.clone());
-        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), code.clone()])));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
+        m.insert("network".to_string(), Value::from(self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())])));
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str(), Some(type_var.as_str())).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -7494,7 +7494,7 @@ impl Bingx {
         m.insert("comment".to_string(), self.safe_string_k(transaction.clone(), "info", &[]));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code);
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.safe_number_k(transaction, "transactionFee", &[]));
         m.insert("rate".to_string(), Value::Null);
     m

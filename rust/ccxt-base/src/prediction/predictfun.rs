@@ -3921,7 +3921,7 @@ impl Predictfun {
         });
         let mut url: Option<String> = self.socket_url();
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Value = self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_17, topic.as_str(), Value::Map(subscription)).await;
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_17, topic.as_str(), Value::Map(subscription)).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -4176,12 +4176,12 @@ impl Predictfun {
             // without a request once the cache is warm
             self.load_outcomes(&[]).await;
         }
-        let mut orders: Value = self.watch_wallet_events(messageHash.as_str(), &[params]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(outcomeResolved.as_deref(), limitResolved);
         }
-        return self.filter_by_outcome_since_limit(orders, &[outcomeResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(Value::from(&orders), &[outcomeResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -4222,12 +4222,12 @@ impl Predictfun {
             // a synchronous handler, so the cache is warmed here rather than on the first event
             self.load_outcomes(&[]).await;
         }
-        let mut trades: Value = self.watch_wallet_events(messageHash.as_str(), &[params]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[params]).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(outcomeResolved.as_deref(), limitResolved);
         }
-        return self.filter_by_outcome_since_limit(trades, &[outcomeResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
+        return self.filter_by_outcome_since_limit(Value::from(&trades), &[outcomeResolved.map(Value::from).unwrap_or(Value::Null), since, Value::from(limitResolved), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

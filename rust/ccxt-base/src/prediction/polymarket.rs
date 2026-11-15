@@ -1779,11 +1779,10 @@ impl Polymarket {
                 }
                 let mut chunk: Vec<Value> = Vec::new();
                 {
-                                        let mut i: Value = Value::from(startIndex);
+                                        let mut i: i64 = startIndex;
                     let mut __for_first_1425: bool = true;
-                    while { if !__for_first_1425 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                        } __for_first_1425 = false; i.as_f64().unwrap_or(f64::NAN) < endIndex.as_f64().unwrap_or(f64::NAN) } {
-                    chunk.push(get_value(&tokenIds, &i));
+                    while { if !__for_first_1425 { i += 1; } __for_first_1425 = false; (i as f64) < endIndex.as_f64().unwrap_or(f64::NAN) } {
+                    chunk.push(get_value(&tokenIds, &Value::Int(i)));
                 }
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
@@ -1948,13 +1947,12 @@ impl Polymarket {
             }
             let mut bookParams: Vec<Value> = Vec::new();
             {
-                                let mut i: Value = Value::from(startIndex);
+                                let mut i: i64 = startIndex;
                 let mut __for_first_1430: bool = true;
-                while { if !__for_first_1430 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1430 = false; i.as_f64().unwrap_or(f64::NAN) < endIndex.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1430 { i += 1; } __for_first_1430 = false; (i as f64) < endIndex.as_f64().unwrap_or(f64::NAN) } {
                 bookParams.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("token_id".to_string(), get_value(&tokenIds, &i));
+                        m.insert("token_id".to_string(), get_value(&tokenIds, &Value::Int(i)));
                     m
                 }));
             }
@@ -3990,7 +3988,7 @@ impl Polymarket {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut queriesLength: i64 = queries.len() as i64;
-        let mut rawEvents: Value = Value::from(vec![]);
+        let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
         if (requestedEventId.is_some()) || (requestedSlug.is_some()) {
             // direct lookup by event id or slug via the events endpoint (returns a list)
             let mut lookup: indexmap::IndexMap<String, Value> = ({
@@ -4004,11 +4002,11 @@ impl Polymarket {
             }
             let mut response: Value = self.gamma_public_get_events(&[Value::Map(lookup)]).await;
             let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
-            rawEvents = (if (responseIsArray) { response } else { Value::from(vec![]) });
+            rawEvents = (if (responseIsArray) { response } else { Value::from(vec![]) }).into_list();
         }  else if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[Value::from(&rest)]).await;
+            rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[Value::from(&rest)]).await.into_list();
         }  else {
-            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await;
+            rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await.into_list();
         }
         // Parse and merge into class-level caches
         if (self.exchange.events.clone() == Value::Null) {
@@ -4025,7 +4023,7 @@ impl Polymarket {
                         let mut rei: i64 = 0;
             let mut __for_first_1446: bool = true;
             while { if !__for_first_1446 { rei += 1; } __for_first_1446 = false; rei < (rawEvents.len() as i64) } {
-            let mut rawEvent: Value = rawEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(rei as usize).cloned().unwrap_or(Value::Null);
+            let mut rawEvent: Value = rawEvents.get(rei as usize).cloned().unwrap_or(Value::Null);
             let mut eventForParsing: Value = rawEvent.clone();
             let mut ccxtMarkets: Value = self.parse_event_to_markets(eventForParsing.clone());
             let mut ccxtMarketsLength: i64 = ccxtMarkets.len() as i64;

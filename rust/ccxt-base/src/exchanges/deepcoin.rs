@@ -967,12 +967,12 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut types: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
+        let mut types: crate::value::List = std::sync::Arc::new(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
         let mut fetchMarketsOption: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]).into_opt_dict();
         if (fetchMarketsOption.is_some()) {
-            types = self.safe_list_k(&fetchMarketsOption, "types", &[types.clone()]);
+            types = self.safe_list_k(&fetchMarketsOption, "types", &[Value::Arr(types)]).into_list();
         }  else {
-            types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types]); // backward-support
+            types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[Value::Arr(types)]).into_list(); // backward-support
         }
         let mut promises: Vec<Value> = Vec::new();
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -980,7 +980,7 @@ impl Deepcoin {
                         let mut i: i64 = 0;
             let mut __for_first_607: bool = true;
             while { if !__for_first_607 { i += 1; } __for_first_607 = false; i < (types.len() as i64) } {
-            promises.push(self.fetch_markets_by_type((self.safe_string(types.clone(), Value::Int(i), &[])).as_str(), &[params.clone()]).await);
+            promises.push(self.fetch_markets_by_type((self.safe_string(&types, Value::Int(i), &[])).as_str(), &[params.clone()]).await);
         }
         }
         let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();

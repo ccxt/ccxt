@@ -2488,7 +2488,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
             let mut deltaEnd: Option<i64> = self.safe_integer2(data.clone(), Value::Str("sequenceEnd".into()), Value::Str("timestamp".into()), &[]).as_i64();
             if (nonce.is_none()) {
-                let mut cacheLength: Value = Value::Int(get_value(&orderbook, &Value::Str("cache".into())).len() as i64);
+                let mut cacheLength: i64 = get_value(&orderbook, &Value::Str("cache".into())).len() as i64;
                 let mut subscriptions: Vec<Value> = __ch.subscription_keys();
                 let mut subscription: Value = Value::Null;
                 {
@@ -2510,7 +2510,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 let mut limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
                 let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(5)]);
-                if (cacheLength.as_f64() == snapshotDelay.as_f64()) {
+                if ((Some(cacheLength as f64) == snapshotDelay.as_f64())) {
                     self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), symbol.clone(), Value::from(limit), Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
@@ -2572,7 +2572,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
             let mut deltaEnd: Option<i64> = self.safe_integer_k(data.clone(), "C", &[]).as_i64();
             if (nonce.is_none()) {
-                let mut cacheLength: Value = Value::Int(get_value(&orderbook, &Value::Str("cache".into())).len() as i64);
+                let mut cacheLength: i64 = get_value(&orderbook, &Value::Str("cache".into())).len() as i64;
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -2584,7 +2584,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         m.insert("uta".to_string(), Value::Bool(true));
                     m
                 });
-                if (cacheLength.as_f64() == snapshotDelay.as_f64()) {
+                if ((Some(cacheLength as f64) == snapshotDelay.as_f64())) {
                     self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), Value::from(symbol.as_str()), Value::from(limit), Value::Map(utaParams)]);
                 }
                 crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), data.clone());

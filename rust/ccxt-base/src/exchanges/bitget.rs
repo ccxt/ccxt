@@ -14143,7 +14143,7 @@ if _try_result.is_err() {
         let mut productType: Option<String> = None;
         let mut uta: Option<bool> = None;
         let mut response: Option<crate::value::Dict> = None;
-        let mut result: Value = Value::Null;
+        let mut result: Option<crate::value::List> = None;
         let mut paramsProductType: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(Some(&market), &[params]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(&paramsProductType, Some("fetchFundingRateHistory"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -14174,7 +14174,7 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            result = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]);
+            result = self.safe_list_k(&data, "resultList", &[Value::from(vec![])]).into_opt_list();
         }  else {
             let mut paginate: bool = false;
             { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&paramsProductType, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
@@ -14202,14 +14202,14 @@ if _try_result.is_err() {
             //         ]
             //     }
             //
-            result = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
+            result = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_opt_list();
         }
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_385: bool = true;
-            while { if !__for_first_385 { i += 1; } __for_first_385 = false; i < (result.len() as i64) } {
-            let mut entry: Value = result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_385 { i += 1; } __for_first_385 = false; i < (result.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut entry: Value = result.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut symbolInner: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
             let mut timestamp: Option<i64> = self.safe_integer2(entry.clone(), Value::Str("fundingTime".into()), Value::Str("fundingRateTimestamp".into()), &[]).as_i64();

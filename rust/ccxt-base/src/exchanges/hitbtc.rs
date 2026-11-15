@@ -4544,10 +4544,10 @@ impl Hitbtc {
             m
         });
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut marketIds: Value = Value::Null;
+        let mut marketIds: Option<crate::value::List> = None;
         if (symbolsNormalized.is_some()) {
-            marketIds = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-            request.insert("symbols".into(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+            marketIds = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
+            request.insert("symbols".into(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
         let __ws_arg_65 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_futures_info(&[__ws_arg_65]).await.into_dict();

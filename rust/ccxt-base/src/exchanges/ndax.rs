@@ -3445,7 +3445,7 @@ impl Ndax {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(path.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
+        let mut query: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
         if (apiName.as_deref() == Some("public")) {
             if (path.as_str() == Some("Authenticate")) {
                 let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", self.login.clone(), ":").into()), self.password.clone());
@@ -3463,11 +3463,11 @@ impl Ndax {
                             m.insert("Pending2FaToken".to_string(), pending2faToken.map(Value::from).unwrap_or(Value::Null));
                         m
                     }));
-                    query = self.omit(query, Value::Str("pending2faToken".into()), &[]);
+                    query = self.omit(&query, Value::Str("pending2faToken".into()), &[]).into_dict();
                 }
             }
-            if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
+            if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
@@ -3514,8 +3514,8 @@ impl Ndax {
             if isPost {
                 bodySigned = json_stringify(&query).as_str().map(str::to_owned);
             }  else {
-                if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
-                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query, &[])));
+                if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
                 }
             }
         }

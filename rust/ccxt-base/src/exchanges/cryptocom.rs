@@ -2766,7 +2766,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("type".into(), uppercaseType.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut isMarketBuy: bool = (side.as_str() == Some("buy")) && ((uppercaseType.as_deref() == Some("MARKET")) || (uppercaseType.as_deref() == Some("STOP_LOSS")) || (uppercaseType.as_deref() == Some("TAKE_PROFIT")));
-        let mut paramsMarketBuy: Value = params.clone();
+        let mut paramsMarketBuy: crate::value::Dict = params.clone().into_dict();
         if isMarketBuy {
             // use createmarketBuy logic here
             let mut quoteAmount: Option<String> = None;
@@ -2774,7 +2774,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsCreateMarketBuy: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut cost: Option<f64> = self.safe_number2(Value::from(&paramsCreateMarketBuy), Value::Str("cost".into()), Value::Str("notional".into()), &[]).as_f64();
-            paramsMarketBuy = self.omit(&paramsCreateMarketBuy, Value::Str("cost".into()), &[]);
+            paramsMarketBuy = self.omit(&paramsCreateMarketBuy, Value::Str("cost".into()), &[]).into_dict();
             if (cost.is_some()) {
                 quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
             }  else if createMarketBuyOrderRequiresPrice {
@@ -2793,7 +2793,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else {
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsMarketBuy, &["postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"], &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketBuy, &["postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"], &[]).into_dict();
         return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null

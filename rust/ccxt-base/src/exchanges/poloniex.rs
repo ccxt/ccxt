@@ -4604,12 +4604,12 @@ impl Poloniex {
             let mut __for_first_1096: bool = true;
             while { if !__for_first_1096 { i += 1; } __for_first_1096 = false; i < (responseKeys.len() as i64) } {
             let mut currencyId: Option<&str> = responseKeys.get(i as usize).and_then(Value::as_str);
-            let mut code: Value = self.safe_currency_code(Value::from(currencyId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
             let mut feeInfo: Option<crate::value::Dict> = self.safe_dict(response.clone(), Value::from(currencyId.as_deref()), &[]).into_opt_dict();
-            if (code != Value::Null) && ((codesValue.is_none()) || (self.in_array(code.clone(), codesValue.clone().map_or(Value::Null, Value::Arr)))) {
-                let mut currency: crate::types::Currency = self.currency(code.clone());
-                depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.parse_deposit_withdraw_fee(&feeInfo, Some(&currency)));
-                let mut parsedFee: indexmap::IndexMap<String, Value> = self.safe_dict(&depositWithdrawFees, code.clone(), &[Value::Map({
+            if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, codesValue.clone().map_or(Value::Null, Value::Arr)))) {
+                let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
+                depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_deposit_withdraw_fee(&feeInfo, Some(&currency)));
+                let mut parsedFee: indexmap::IndexMap<String, Value> = self.safe_dict(&depositWithdrawFees, Value::from(code.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -4620,10 +4620,10 @@ impl Poloniex {
                                                 let mut j: i64 = 0;
                         let mut __for_first_1095: bool = true;
                         while { if !__for_first_1095 { j += 1; } __for_first_1095 = false; j < (childChains.len() as i64) } {
-                        let mut rawNetworkId: Value = self.safe_string(&childChains, Value::Int(j), &[Value::Str("".into())]);
-                        let mut networkId: Value = rawNetworkId.as_str().zip(code.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| rawNetworkId.clone());
-                        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(&currency, "code", &[])]);
-                        let mut networkInfo: crate::value::Dict = self.safe_dict(response.clone(), networkId, &[]).into_dict();
+                        let mut rawNetworkId: String = self.safe_string(&childChains, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                        let mut networkId: String = (if let Some(__o) = code.as_deref() { rawNetworkId.replace(__o, "") } else { rawNetworkId });
+                        let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(networkId.clone()), self.safe_string_k(&currency, "code", &[])]);
+                        let mut networkInfo: crate::value::Dict = self.safe_dict(response.clone(), Value::from(networkId), &[]).into_dict();
                         let mut networkObject: indexmap::IndexMap<String, Value> = ({
                             let mut m = indexmap::IndexMap::new();
                             m
@@ -4655,7 +4655,7 @@ impl Poloniex {
                     }
                     }
                 }
-                depositWithdrawFees.insert(crate::runtime::stringify_param(&code), Value::Map(parsedFee));
+                depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(parsedFee));
             }
         }
         }

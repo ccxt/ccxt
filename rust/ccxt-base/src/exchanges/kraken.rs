@@ -1419,7 +1419,7 @@ impl Kraken {
         // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
         //
         let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "_coin_id", &[]);
-        let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+        let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing id")));
@@ -1436,24 +1436,24 @@ impl Kraken {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing id")));
             }
             if ((altName.as_deref() != id.as_deref())) && ((id.as_deref().unwrap_or("").starts_with("X")) || (id.as_deref().unwrap_or("").starts_with("Z"))) {
-                code = self.safe_currency_code(altName.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                code = self.safe_currency_code(altName.map(Value::from).unwrap_or(Value::Null), None);
                 // also, add map in commonCurrencies:
-                if (id.is_some()) && (code != Value::Null) {
-                    if let Value::Dict(__d) = &mut self.commonCurrencies.clone() { std::sync::Arc::make_mut(__d).insert(id.as_deref().unwrap_or("null").to_string(), code.clone()); }
+                if (id.is_some()) && (code.is_some()) {
+                    if let Value::Dict(__d) = &mut self.commonCurrencies.clone() { std::sync::Arc::make_mut(__d).insert(id.as_deref().unwrap_or("null").to_string(), Value::from(code.as_deref())); }
                 }
             }  else {
-                code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+                code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
             }
         }
-        if (code == Value::Null) {
+        if (code.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing code")));
         }
-        let mut isFiat: bool = code.as_str().unwrap_or("").contains(".HOLD");
+        let mut isFiat: bool = code.as_deref().unwrap_or_default().contains(".HOLD");
         let mut rawCurrencyOmitted: Value = self.omit(rawCurrency, Value::Str("_coin_id".into()), &[]);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), code);
+        m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), rawCurrencyOmitted.clone());
         m.insert("name".to_string(), self.safe_string_k(rawCurrencyOmitted.clone(), "altname", &[]));
         m.insert("active".to_string(), Value::Bool(self.safe_string_k(rawCurrencyOmitted.clone(), "status", &[]).as_str() == Some("enabled")));

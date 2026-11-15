@@ -14,13 +14,13 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut markets: Value = crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
     assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&exchange, &Value::Str("markets".into()))))));
     assert!(ccxt::runtime::is_true(&((matches!(&get_value(&exchange, &Value::Str("symbols".into())), Value::Arr(_))))));
-    let mut symbolsLength: Value = Value::Int(get_value(&exchange, &Value::Str("symbols".into())).len() as i64);
+    let mut symbolsLength: i64 = get_value(&exchange, &Value::Str("symbols".into())).len() as i64;
     assert!(ccxt::runtime::is_true(&((get_value(&exchange, &Value::Str("markets".into())) != Value::Null))));
     let mut marketKeys: Vec<Value> = object_keys(&get_value(&exchange, &Value::Str("markets".into()))).as_array().cloned().unwrap_or_default();
-    let mut marketKeysLength: Value = Value::Int(marketKeys.len() as i64);
-    assert!(ccxt::runtime::is_true(&((symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
-    assert!(ccxt::runtime::is_true(&((marketKeysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
-    assert!(ccxt::runtime::is_true(&((symbolsLength.as_f64() == marketKeysLength.as_f64()))));
+    let mut marketKeysLength: i64 = marketKeys.len() as i64;
+    assert!(ccxt::runtime::is_true(&((symbolsLength > 0))));
+    assert!(ccxt::runtime::is_true(&((marketKeysLength > 0))));
+    assert!(ccxt::runtime::is_true(&((symbolsLength == marketKeysLength))));
     let mut marketValues: Value = object_values(&markets);
     {
                 let mut i: i64 = 0;

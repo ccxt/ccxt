@@ -3545,18 +3545,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut side: Option<String> = self.safe_string_upper_k(&rawOrder, "side", &[]).as_str().map(str::to_owned);
             let mut amount: Option<String> = self.safe_string_k(&rawOrder, "amount", &[]).as_str().map(str::to_owned);
             let mut price: Option<String> = self.safe_string_k(&rawOrder, "price", &[]).as_str().map(str::to_owned);
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut slippage: Option<String> = self.safe_string_k(orderParams.clone(), "slippage", &[Value::from(defaultSlippage.as_deref())]).as_str().map(str::to_owned);
-            if let Value::Dict(__d) = &mut orderParams { std::sync::Arc::make_mut(__d).insert("slippage".into(), slippage.map(Value::from).unwrap_or(Value::Null)); }
-            let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "stopLoss", &[]).into_opt_dict();
-            let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(orderParams.clone(), "takeProfit", &[]).into_opt_dict();
+            })]).into_dict();
+            let mut slippage: Option<String> = self.safe_string_k(&orderParams, "slippage", &[Value::from(defaultSlippage.as_deref())]).as_str().map(str::to_owned);
+            std::sync::Arc::make_mut(&mut orderParams).insert("slippage".into(), slippage.map(Value::from).unwrap_or(Value::Null));
+            let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(&orderParams, "stopLoss", &[]).into_opt_dict();
+            let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(&orderParams, "takeProfit", &[]).into_opt_dict();
             let mut hasStopLoss: bool = stopLoss.is_some();
             let mut hasTakeProfit: bool = takeProfit.is_some();
-            orderParams = self.omit(orderParams, &["stopLoss", "takeProfit"], &[]);
-            let mut mainOrderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), type_var.as_deref(), side.as_deref(), amount.clone().map(Value::from).unwrap_or(Value::Null), price.as_deref(), &[orderParams.clone()]).into_dict();
+            orderParams = self.omit(&orderParams, &["stopLoss", "takeProfit"], &[]).into_dict();
+            let mut mainOrderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), type_var.as_deref(), side.as_deref(), amount.clone().map(Value::from).unwrap_or(Value::Null), price.as_deref(), &[Value::from(&orderParams)]).into_dict();
             if hasStopLoss || hasTakeProfit {
                 // grouping opposed orders for sl/tp
                 let mut stopLossOrderTriggerPrice: Option<String> = self.safe_string2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
@@ -3565,7 +3565,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut takeProfitOrderTriggerPrice: Option<String> = self.safe_string2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
                 let mut takeProfitOrderType: String = self.safe_string_k(&takeProfit, "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
                 let mut takeProfitOrderLimitPrice: Option<String> = self.safe_string2(&takeProfit, Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[takeProfitOrderTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-                grouping = self.safe_string_k(orderParams.clone(), "grouping", &[Value::Str("normalTpsl".into())]).as_str().unwrap_or("normalTpsl").to_string();
+                grouping = self.safe_string_k(&orderParams, "grouping", &[Value::Str("normalTpsl".into())]).as_str().unwrap_or("normalTpsl").to_string();
                 if (grouping == "positionTpsl") {
                     amount = Some("0".to_string());
                     stopLossOrderType = "market".to_string();
@@ -3575,7 +3575,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }  else {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " only support grouping normalTpsl and positionTpsl.")));
                 }
-                orderParams = self.omit(orderParams, &["stopLoss", "takeProfit", "grouping"], &[]);
+                orderParams = self.omit(&orderParams, &["stopLoss", "takeProfit", "grouping"], &[]).into_dict();
                 let mut triggerOrderSide: String = "".to_string();
                 if (side.as_deref() == Some("BUY")) {
                     triggerOrderSide = "sell".to_string();
@@ -3583,7 +3583,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     triggerOrderSide = "buy".to_string();
                 }
                 if hasTakeProfit {
-                    let __ws_arg_19 = self.extend(orderParams.clone(), &[Value::Map({
+                    let __ws_arg_19 = self.extend(&orderParams, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("takeProfitPrice".to_string(), takeProfitOrderTriggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("reduceOnly".to_string(), Value::Bool(true));
@@ -4138,29 +4138,29 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut isBuy: bool = side.as_deref() == Some("BUY");
             let mut amount: Option<String> = self.safe_string_k(&rawOrder, "amount", &[]).as_str().map(str::to_owned);
             let mut price: Option<String> = self.safe_string_k(&rawOrder, "price", &[]).as_str().map(str::to_owned);
-            let mut orderParams: Value = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
+            let mut orderParams: crate::value::Dict = self.safe_dict_k(&rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
+            })]).into_dict();
             let mut defaultSlippage: Option<String> = self.safe_string_k(self.options.clone(), "defaultSlippage", &[]).as_str().map(str::to_owned);
-            let mut slippage: Option<String> = self.safe_string_k(orderParams.clone(), "slippage", &[defaultSlippage.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut slippage: Option<String> = self.safe_string_k(&orderParams, "slippage", &[defaultSlippage.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut defaultTimeInForce: String = "gtc".to_string();
             if isMarket {
                 defaultTimeInForce = "ioc".to_string();
             }
-            let mut postOnly: bool = self.safe_bool_k(orderParams.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut postOnly: bool = self.safe_bool_k(&orderParams, "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if postOnly {
                 defaultTimeInForce = "alo".to_string();
             }
-            let mut timeInForceLower: Option<String> = self.safe_string_lower_k(orderParams.clone(), "timeInForce", &[Value::from(defaultTimeInForce)]).as_str().map(str::to_owned);
+            let mut timeInForceLower: Option<String> = self.safe_string_lower_k(&orderParams, "timeInForce", &[Value::from(defaultTimeInForce)]).as_str().map(str::to_owned);
             let mut timeInForce: String = self.capitalize(timeInForceLower.map(Value::from).unwrap_or(Value::Null));
-            let mut clientOrderId: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
-            let mut triggerPrice: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
-            let mut stopLossPrice: Option<String> = self.safe_string_k(orderParams.clone(), "stopLossPrice", &[triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            let mut takeProfitPrice: Option<String> = self.safe_string_k(orderParams.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+            let mut clientOrderId: Option<String> = self.safe_string2(&orderParams, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
+            let mut triggerPrice: Option<String> = self.safe_string2(&orderParams, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+            let mut stopLossPrice: Option<String> = self.safe_string_k(&orderParams, "stopLossPrice", &[triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut takeProfitPrice: Option<String> = self.safe_string_k(&orderParams, "takeProfitPrice", &[]).as_str().map(str::to_owned);
             let mut isTrigger: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
-            let mut reduceOnly: bool = self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            orderParams = self.omit(orderParams, &["slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"], &[]);
+            let mut reduceOnly: bool = self.safe_bool_k(&orderParams, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            orderParams = self.omit(&orderParams, &["slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"], &[]).into_dict();
             let mut px: Option<String> = self.number_to_string(price.map(Value::from).unwrap_or(Value::Null));
             if isMarket {
                 px = (if isBuy { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage)).as_str().map(str::to_owned) } else { crate::precise::Precise::stringMul(&px, &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage)).as_str().map(str::to_owned) });
