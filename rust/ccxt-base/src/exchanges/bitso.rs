@@ -1691,14 +1691,14 @@ impl Bitso {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")));
         }
         // convert it to an integer unconditionally
-        let mut paramsMarker: Value = params.clone();
+        let mut paramsMarker: crate::value::Dict = params.clone().into_dict();
         if markerInParams {
             let __ws_arg_6 = self.parse_to_int(params.as_map().and_then(|__m| __m.get("marker")).cloned().unwrap_or(Value::Null));
             paramsMarker = self.extend(params, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("marker".to_string(), Value::from(__ws_arg_6));
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marker".to_string(), Value::from(__ws_arg_6));
+    m
+})]).into_dict();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1706,7 +1706,7 @@ impl Bitso {
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsMarker]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsMarker]);
         let mut response: crate::value::Dict = self.private_get_user_trades(&[__ws_arg_7]).await.into_dict();
         let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
         return self.parse_trades(&payload, Some(&market), &[since, limit]);
@@ -2030,14 +2030,14 @@ impl Bitso {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")));
         }
         // convert it to an integer unconditionally
-        let mut paramsMarker: Value = params.clone();
+        let mut paramsMarker: crate::value::Dict = params.clone().into_dict();
         if markerInParams {
             let __ws_arg_11 = self.parse_to_int(params.as_map().and_then(|__m| __m.get("marker")).cloned().unwrap_or(Value::Null));
             paramsMarker = self.extend(params, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("marker".to_string(), Value::from(__ws_arg_11));
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marker".to_string(), Value::from(__ws_arg_11));
+    m
+})]).into_dict();
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2045,7 +2045,7 @@ impl Bitso {
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsMarker]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsMarker]);
         let mut response: crate::value::Dict = self.private_get_open_orders(&[__ws_arg_12]).await.into_dict();
         let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
         return self.parse_orders(&payload, Some(&market), &[since, limit]);

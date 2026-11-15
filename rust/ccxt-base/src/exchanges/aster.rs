@@ -5520,8 +5520,8 @@ impl Aster {
                 m.insert("aster chain".to_string(), Value::Str("Mainnet".into()));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(request));
-        let mut signature: Value = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
+        let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(request));
+        let mut signature: Value = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
         return signature.as_str().map(str::to_owned);
 }
 
@@ -5856,8 +5856,8 @@ impl Aster {
                     m
                 });
             }
-            let mut encodedMessage: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), paramsToEncode);
-            let mut signature: Option<String> = self.sign_message(encodedMessage, (self.privateKey.clone()).as_str().unwrap_or_default());
+            let mut encodedMessage: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), paramsToEncode);
+            let mut signature: Option<String> = self.sign_message(Value::from(&encodedMessage), (self.privateKey.clone()).as_str().unwrap_or_default());
             let mut queryString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", paramString.as_deref().unwrap_or("null"), "&").into()), "signature=").into()), signature.as_deref().unwrap_or("null"));
             if (method.as_str() == Some("GET")) {
                 url.push_str(&format!("{}{}", "?", queryString));

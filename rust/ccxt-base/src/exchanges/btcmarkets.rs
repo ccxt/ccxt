@@ -1517,11 +1517,11 @@ impl Btcmarkets {
         if (clientOrderId.is_some()) {
             request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsTriggerPrice: Value = params.clone();
+        let mut paramsTriggerPrice: crate::value::Dict = params.clone().into_dict();
         if triggerPriceIsRequired {
-            paramsTriggerPrice = self.omit(params, Value::Str("triggerPrice".into()), &[]);
+            paramsTriggerPrice = self.omit(params, Value::Str("triggerPrice".into()), &[]).into_dict();
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsTriggerPrice, Value::Str("clientOrderId".into()), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsTriggerPrice, Value::Str("clientOrderId".into()), &[]).into_dict();
         let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_8]).await.into_dict();
         return self.parse_order(&response, Some(&market));

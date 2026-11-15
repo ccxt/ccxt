@@ -1803,8 +1803,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("verifyingContract".to_string(), exchangeAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), types, message);
-        let mut digest: Value = Value::from(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), types, message);
+        let mut digest: Value = Value::from(self.hash(&encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
         let mut signature: crate::value::Dict = ecdsa(digest, self.remove0x_prefix(self.privateKey.clone()), Value::Str("secp256k1".into()), Value::Null);
         let mut rRaw: Option<String> = crate::value::KeyRead::key_read(&&signature, "r").as_str().map(str::to_owned);
         let mut sRaw: Option<String> = crate::value::KeyRead::key_read(&&signature, "s").as_str().map(str::to_owned);

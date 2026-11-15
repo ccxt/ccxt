@@ -1952,20 +1952,20 @@ impl Hyperliquid {
         let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("type".into()), &[]).into_dict();
         let hip3OptionparamsHip3Variable: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchTickers".into()), Value::Str("hip3".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut hip3Option: Value = hip3OptionparamsHip3Variable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hip3Option: Option<bool> = hip3OptionparamsHip3Variable.get(0).and_then(Value::as_bool);
         let mut paramsHip3: crate::value::Dict = hip3OptionparamsHip3Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut hip3: Value = hip3Option;
+        let mut hip3: Option<bool> = hip3Option;
         if (symbolsNormalized.is_some()) {
             // infer from first symbol
             let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (firstSymbol.is_some()) {
                 let mut market: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 if matches!(self.safe_bool_k(self.safe_dict_k(&market, "info", &[]), "hip3", &[Value::Bool(false)]), Value::Bool(true)) {
-                    hip3 = Value::Bool(true);
+                    hip3 = Some(true);
                 }
             }
         }
-        if hip3.as_bool() == Some(true) {
+        if (hip3 == Some(true)) {
             response = self.fetch_hip3_markets(&[self.omit(&paramsHip3, Value::Str("hip3".into()), &[])]).await;
         }  else if (type_var.as_deref() == Some("spot")) {
             response = self.fetch_spot_markets(&[Value::from(&paramsHip3)]).await;
@@ -2549,8 +2549,8 @@ impl Hyperliquid {
 })]));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Dict(phantomAgent));
-        let mut signature: crate::value::Dict = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
+        let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Dict(phantomAgent));
+        let mut signature: crate::value::Dict = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
         return Value::Dict(signature);
 
     Value::Null
@@ -2568,8 +2568,8 @@ impl Hyperliquid {
                 m.insert("version".to_string(), Value::Str("1".into()));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), messageTypes, message);
-        let mut signature: crate::value::Dict = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
+        let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), messageTypes, message);
+        let mut signature: crate::value::Dict = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
         return Value::Dict(signature);
 
     Value::Null

@@ -1409,12 +1409,12 @@ impl Cryptocom {
     m
 });
         }
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            response = self.v1_private_post_private_get_currency_networks(&[Value::Dict(paramsSkipFetchCurrencies)]).await;
+            response = self.v1_private_post_private_get_currency_networks(&[Value::Dict(paramsSkipFetchCurrencies)]).await.into_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let mut erString: Option<String> = self.exception_message(e.clone(), &[]).as_str().map(str::to_owned);
@@ -1468,10 +1468,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        }
         //    }
         //
-        let mut resultData: crate::value::Dict = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut resultData: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut currencyMap: crate::value::Dict = self.safe_dict_k(&resultData, "currency_map", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

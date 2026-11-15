@@ -1579,8 +1579,8 @@ impl Opinion {
 })]));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), order);
-        let mut sig: crate::value::Dict = self.sign_message(encoded, (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), order);
+        let mut sig: crate::value::Dict = self.sign_message(Value::from(&encoded), (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
         return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(self.safe_string_k(&sig, "r", &[]))).into()), self.remove0x_prefix(self.safe_string_k(&sig, "s", &[]))).into()), self.int_to_base16(self.safe_integer_k(&sig, "v", &[]), &[])));
 }
 
@@ -2513,8 +2513,8 @@ impl Opinion {
                 m.insert("timestamp".to_string(), timestamp);
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
-        let mut sig: crate::value::Dict = self.sign_message(encoded, (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
+        let mut sig: crate::value::Dict = self.sign_message(Value::from(&encoded), (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
         return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(self.safe_string_k(&sig, "r", &[]))).into()), self.remove0x_prefix(self.safe_string_k(&sig, "s", &[]))).into()), self.int_to_base16(self.safe_integer_k(&sig, "v", &[]), &[])));
 }
 

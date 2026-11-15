@@ -1343,7 +1343,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_public_get_markets_ticker(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.kalshi_public_get_markets_ticker(&[__ws_arg_1]).await.into_dict();
         //
         //     {
         //         "market": {
@@ -1399,8 +1399,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut raw: Value = self.safe_dict_k(response.clone(), "market", &[response.clone()]);
-        return self.parse_prediction_ticker(raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
+        let mut raw: crate::value::Dict = self.safe_dict_k(&response, "market", &[Value::from(&response)]).into_dict();
+        return self.parse_prediction_ticker(&raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -1470,9 +1470,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_public_get_markets_ticker(&[__ws_arg_2]).await;
-        let mut raw: Value = self.safe_dict_k(response.clone(), "market", &[response.clone()]);
-        return self.parse_prediction_open_interest(raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
+        let mut response: crate::value::Dict = self.kalshi_public_get_markets_ticker(&[__ws_arg_2]).await.into_dict();
+        let mut raw: crate::value::Dict = self.safe_dict_k(&response, "market", &[Value::from(&response)]).into_dict();
+        return self.parse_prediction_open_interest(&raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -1788,7 +1788,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_public_get_markets_ticker_orderbook(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.kalshi_public_get_markets_ticker_orderbook(&[__ws_arg_4]).await.into_dict();
         //
         //     {
         //         "orderbook_fp": {
@@ -1801,7 +1801,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut book: crate::value::Dict = self.safe_dict_k(response.clone(), "orderbook_fp", &[response.clone()]).into_dict();
+        let mut book: crate::value::Dict = self.safe_dict_k(&response, "orderbook_fp", &[Value::from(&response)]).into_dict();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         let mut rawYes: crate::value::List = self.safe_list_k(&book, "yes_dollars", &[Value::from(vec![])]).into_list();
         let mut rawNo: crate::value::List = self.safe_list_k(&book, "no_dollars", &[Value::from(vec![])]).into_list();
@@ -2869,8 +2869,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("order_id".to_string(), id);
             m
         }), &[params]);
-        let mut response: Value = self.kalshi_private_get_portfolio_orders_order_id(&[__ws_arg_11]).await;
-        return self.parse_prediction_order(self.safe_dict_k(response.clone(), "order", &[response.clone()]), None);
+        let mut response: crate::value::Dict = self.kalshi_private_get_portfolio_orders_order_id(&[__ws_arg_11]).await.into_dict();
+        return self.parse_prediction_order(self.safe_dict_k(&response, "order", &[Value::from(&response)]), None);
         Value::Null
         }).await?))
     }
@@ -3183,10 +3183,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("order_id".to_string(), id.clone());
             m
         }), &[params]);
-        let mut response: Value = self.kalshi_private_delete_portfolio_events_orders_order_id(&[__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.kalshi_private_delete_portfolio_events_orders_order_id(&[__ws_arg_13]).await.into_dict();
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        let mut order: crate::value::Dict = self.parse_prediction_order(self.safe_dict_k(response.clone(), "order", &[response.clone()]), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
+        let mut order: crate::value::Dict = self.parse_prediction_order(self.safe_dict_k(&response, "order", &[Value::from(&response)]), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
         if (self.safe_string_k(&order, "id", &[]) == Value::Null) {
             std::sync::Arc::make_mut(&mut order).insert("id".into(), id);
         }
@@ -3472,16 +3472,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.kalshi_public_get_events_event_ticker(&[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.kalshi_public_get_events_event_ticker(&[__ws_arg_15]).await.into_dict();
         // a typed copy of the event row: the caller-facing dict is never the raw response
-        let __ws_arg_16 = self.safe_dict_k(response.clone(), "event", &[response.clone()]);
+        let __ws_arg_16 = self.safe_dict_k(&response, "event", &[Value::from(&response)]);
         let mut fullEvent: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }), &[__ws_arg_16]).into_dict();
         let mut nestedMarkets: Option<crate::value::List> = self.safe_list_k(&fullEvent, "markets", &[]).into_opt_list();
         if (nestedMarkets.is_none()) {
-            std::sync::Arc::make_mut(&mut fullEvent).insert("markets".into(), self.safe_list_k(response, "markets", &[Value::from(vec![])]));
+            std::sync::Arc::make_mut(&mut fullEvent).insert("markets".into(), self.safe_list_k(&response, "markets", &[Value::from(vec![])]));
         }
         return Value::Dict(fullEvent);
 

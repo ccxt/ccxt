@@ -4275,8 +4275,8 @@ impl Nado {
 })]));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), order);
-        return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), order);
+        return self.sign_hash(self.hash(&encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
     pub fn sign_cancellation(&self, cancellation: impl Into<crate::Value>, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
@@ -4316,8 +4316,8 @@ impl Nado {
 })]));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), cancellation);
-        return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), cancellation);
+        return self.sign_hash(self.hash(&encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
     pub fn sign_cancellation_products(&self, cancellation: impl Into<crate::Value>, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
@@ -4352,8 +4352,8 @@ impl Nado {
 })]));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), cancellation);
-        return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), cancellation);
+        return self.sign_hash(self.hash(&encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
     pub fn sign_fetch_trigger_orders(&self, tx: impl Into<crate::Value>, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
@@ -4383,8 +4383,8 @@ impl Nado {
 })]));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), tx);
-        return self.sign_hash(self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), tx);
+        return self.sign_hash(self.hash(&encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]).as_str(), (self.privateKey.clone()).as_str());
 }
 
     pub fn sign_hash(&self, hash: &str, privateKey: Option<&str>) -> Option<String> {

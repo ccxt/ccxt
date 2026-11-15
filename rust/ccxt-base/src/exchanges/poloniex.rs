@@ -2971,10 +2971,10 @@ impl Poloniex {
         let requestValueparamsValueVariable: Vec<Value> = self.order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, Value::Map(request), &[price, params]).as_array().cloned().unwrap_or_default();
         let mut requestValue: crate::value::Dict = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (market).swap || (market).future {
             let __ws_arg_12 = self.extend(&requestValue, &[&paramsValue]);
             let mut responseInitial: crate::value::Dict = self.swap_private_post_v3_trade_order(&[__ws_arg_12]).await.into_dict();
@@ -2982,17 +2982,17 @@ impl Poloniex {
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
             response = self.safe_dict_k(&responseInitial, "data", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_dict();
         }  else if (triggerPrice.is_some()) {
             let __ws_arg_13 = self.extend(&requestValue, &[&paramsValue]);
-            response = self.private_post_smartorders(&[__ws_arg_13]).await;
+            response = self.private_post_smartorders(&[__ws_arg_13]).await.into_dict();
         }  else {
             let __ws_arg_14 = self.extend(requestValue, &[&paramsValue]);
-            response = self.private_post_orders(&[__ws_arg_14]).await;
+            response = self.private_post_orders(&[__ws_arg_14]).await.into_dict();
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3283,16 +3283,16 @@ impl Poloniex {
         let requestValueparamsValueVariable: Vec<Value> = self.order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, Value::Map(request), &[price, params]).as_array().cloned().unwrap_or_default();
         let mut requestValue: crate::value::Dict = requestValueparamsValueVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsValue: crate::value::Dict = requestValueparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (triggerPrice.is_some()) {
             let __ws_arg_15 = self.extend(&requestValue, &[&paramsValue]);
-            response = self.private_put_smartorders_id(&[__ws_arg_15]).await;
+            response = self.private_put_smartorders_id(&[__ws_arg_15]).await.into_dict();
         }  else {
             let __ws_arg_16 = self.extend(requestValue, &[&paramsValue]);
-            response = self.private_put_orders_id(&[__ws_arg_16]).await;
+            response = self.private_put_orders_id(&[__ws_arg_16]).await.into_dict();
         }
         //
         //     {
@@ -3301,12 +3301,12 @@ impl Poloniex {
         //     }
         //
         response = self.extend(response, &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("side".to_string(), side);
-                m.insert("type".to_string(), type_var);
-            m
-        })]);
-        return self.parse_order(response, Some(&market));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("side".to_string(), side);
+        m.insert("type".to_string(), type_var);
+    m
+})]).into_dict();
+        return self.parse_order(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3359,18 +3359,18 @@ impl Poloniex {
         request.insert("id".into(), idValue);
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "trigger", "stop"], &[]).into_dict();
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (isTrigger == Some(true)) {
             let __ws_arg_18 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_delete_smartorders_id(&[__ws_arg_18]).await;
+            response = self.private_delete_smartorders_id(&[__ws_arg_18]).await.into_dict();
         }  else {
             let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_delete_orders_id(&[__ws_arg_19]).await;
+            response = self.private_delete_orders_id(&[__ws_arg_19]).await.into_dict();
         }
-        return self.parse_order(response, None);
+        return self.parse_order(&response, None);
         Value::Null
         }).await?))
     }

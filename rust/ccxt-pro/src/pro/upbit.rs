@@ -1090,14 +1090,14 @@ impl Upbit {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut orders: Value = (if (symbol.is_none()) { Value::Map({
+        let mut orders: crate::value::Dict = (if (symbol.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { self.safe_dict(cachedOrders.hashmap(), symbol.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) });
-        let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) });
+})]) }).into_dict();
+        let mut order: Value = (if (orderId.is_none()) { Value::Null } else { self.safe_dict(&orders, orderId.map(Value::from).unwrap_or(Value::Null), &[]) });
         if (order != Value::Null) {
             // paid_fee is cumulative, so the cached fee is only a fallback
             let mut parsedFee: Option<crate::value::Dict> = self.safe_dict_k(&parsed, "fee", &[]).into_opt_dict();

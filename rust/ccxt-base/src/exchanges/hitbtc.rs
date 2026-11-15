@@ -1736,11 +1736,11 @@ impl Hitbtc {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: Value = params.clone();
+        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
-            paramsOmitted = self.omit(params, Value::Str("network".into()), &[]);
+            paramsOmitted = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         }
-        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_wallet_crypto_address(&[__ws_arg_0]).await.into_dict();
         //
         //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
@@ -1797,11 +1797,11 @@ impl Hitbtc {
                 request.insert("currency".into(), parsedNetwork.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: Value = params.clone();
+        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
-            paramsOmitted = self.omit(params, Value::Str("network".into()), &[]);
+            paramsOmitted = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         }
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.private_get_wallet_crypto_address(&[__ws_arg_1]).await.into_list();
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]

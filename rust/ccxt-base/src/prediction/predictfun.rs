@@ -2564,14 +2564,14 @@ impl Predictfun {
 })]);
         // ethEncodeStructuredData returns the EIP-712 digest, which is both what gets signed and
         // the order hash the venue indexes the order by
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map({
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("Order".to_string(), Value::Arr(orderStruct));
             m
         }), order);
         // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
         // the digest that gets signed - and that the venue indexes the order by - is its keccak
-        let mut hash: String = format!("{}{}", Value::Str("0x".into()), self.hash(encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
+        let mut hash: String = format!("{}{}", Value::Str("0x".into()), self.hash(&encoded, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("hash".to_string(), Value::from(hash.clone()));

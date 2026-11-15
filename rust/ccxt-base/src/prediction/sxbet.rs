@@ -1344,8 +1344,8 @@ impl Sxbet {
                 m.insert("deadline".to_string(), Value::from(deadline));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
-        let mut digest: Option<String> = self.hash_eip712_digest(encoded);
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
+        let mut digest: Option<String> = self.hash_eip712_digest(Value::from(&encoded));
         let mut signature: Option<String> = self.sign_digest(digest.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1532,8 +1532,8 @@ impl Sxbet {
                 m.insert("isMakerBettingOutcomeOne".to_string(), Value::Bool(isMakerBettingOutcomeOne));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(messageData));
-        let mut digest: Option<String> = self.hash_eip712_digest(encoded);
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(messageData));
+        let mut digest: Option<String> = self.hash_eip712_digest(Value::from(&encoded));
         let mut orderSignature: Option<String> = self.sign_digest(digest.as_deref().unwrap_or_default(), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut orderItem: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();

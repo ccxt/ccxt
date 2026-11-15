@@ -2277,15 +2277,15 @@ impl Krakenfutures {
             request.insert("limitPrice".into(), price);
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_editorder(&[__ws_arg_6]).await;
-        let mut editStatus: crate::value::Dict = self.safe_dict_k(response.clone(), "editStatus", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut response: crate::value::Dict = self.private_post_editorder(&[__ws_arg_6]).await.into_dict();
+        let mut editStatus: crate::value::Dict = self.safe_dict_k(&response, "editStatus", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut status: Option<String> = self.safe_string_k(&editStatus, "status", &[]).as_str().map(str::to_owned);
         self.verify_order_action_success(status.map(Value::from).unwrap_or(Value::Null), "editOrder", &[Value::from(vec![Value::Str("filled".into())])]);
         let mut order: indexmap::IndexMap<String, Value> = self.parse_order(&editStatus, None).as_map().cloned().unwrap_or_default();
-        order.insert("info".into(), response);
+        order.insert("info".into(), Value::Dict(response));
         return Value::Map(order);
         Value::Null
         }).await?))
@@ -3886,7 +3886,7 @@ impl Krakenfutures {
         let mut type_var: Option<String> = self.safe_string2(params.clone(), Value::Str("type".into()), Value::Str("account".into()), &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_string_k(params.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["type", "account", "symbol"], &[]).into_dict();
-        let mut response: Value = self.private_get_accounts(&[Value::Dict(paramsOmitted)]).await;
+        let mut response: crate::value::Dict = self.private_get_accounts(&[Value::Dict(paramsOmitted)]).await.into_dict();
         //
         //    {
         //        "result": "success",
@@ -3974,7 +3974,7 @@ impl Krakenfutures {
         //        "serverTime": "2022-04-12T07:48:07.475Z"
         //    }
         //
-        let mut datetime: Option<String> = self.safe_string_k(response.clone(), "serverTime", &[]).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.safe_string_k(&response, "serverTime", &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("marginAccount")) || (type_var.as_deref() == Some("margin")) {
             if (symbol.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchBalance requires symbol argument for margin accounts")));
@@ -3989,7 +3989,7 @@ impl Krakenfutures {
             }
         }
         let mut accountName: Value = self.parse_kraken_account_name(type_var.as_deref().unwrap_or_default());
-        let mut accounts: crate::value::Dict = self.safe_dict_k(response.clone(), "accounts", &[]).into_dict();
+        let mut accounts: crate::value::Dict = self.safe_dict_k(&response, "accounts", &[]).into_dict();
         let mut account: Option<crate::value::Dict> = self.safe_dict(&accounts, accountName, &[]).into_opt_dict();
         if (account.is_none()) {
             if (type_var.is_none()) {
@@ -4001,7 +4001,7 @@ impl Krakenfutures {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchBalance has no account for ").into()), type_var.as_deref().unwrap_or("null"))));
         }
         let mut balance: crate::value::Dict = self.parse_balance(&account).into_dict();
-        std::sync::Arc::make_mut(&mut balance).insert("info".into(), response);
+        std::sync::Arc::make_mut(&mut balance).insert("info".into(), Value::Dict(response));
         std::sync::Arc::make_mut(&mut balance).insert("timestamp".into(), Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
         std::sync::Arc::make_mut(&mut balance).insert("datetime".into(), datetime.map(Value::from).unwrap_or(Value::Null));
         return Value::Dict(balance);

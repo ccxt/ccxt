@@ -1928,11 +1928,11 @@ impl Dydx {
 })]));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
+        let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
         if (self.privateKey.clone() == Value::Null) || (self.privateKey.as_str() == Some("")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " signOnboardingAction() requires a privateKey to be set.")));
         }
-        let mut signature: crate::value::Dict = self.sign_message(msg, self.privateKey.clone()).into_dict();
+        let mut signature: crate::value::Dict = self.sign_message(Value::from(&msg), self.privateKey.clone()).into_dict();
         return Value::Dict(signature);
 
     Value::Null

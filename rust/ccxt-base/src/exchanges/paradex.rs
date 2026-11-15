@@ -2590,8 +2590,8 @@ impl Paradex {
                     m.insert("action".to_string(), Value::Str("STARK Key".into()));
                 m
             });
-            let mut msg: Value = self.eth_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(message));
-            let mut signature: Option<String> = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default());
+            let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(message));
+            let mut signature: Option<String> = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
             let mut account: indexmap::IndexMap<String, Value> = self.retrieve_stark_account(signature.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&systemConfig, "paraclear_account_hash", &[]), self.safe_string_k(&systemConfig, "paraclear_account_proxy_hash", &[])).as_map().cloned().unwrap_or_default();
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".into(), Value::Map(account)); }
         }

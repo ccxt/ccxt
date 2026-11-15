@@ -1502,9 +1502,9 @@ if _try_result.is_err() {
         let mut nonce: Value = nonceparamsNonceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNonce: crate::value::Dict = nonceparamsNonceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let orderExpiryOptionparamsOrderExpiryVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsNonce, Value::Str("createOrder".into()), Value::Str("orderExpiry".into()), &[Value::Int(0)]).as_array().cloned().unwrap_or_default();
-        let mut orderExpiryOption: Value = orderExpiryOptionparamsOrderExpiryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut orderExpiryOption: Option<i64> = orderExpiryOptionparamsOrderExpiryVariable.get(0).and_then(Value::as_i64);
         let mut paramsOrderExpiry: crate::value::Dict = orderExpiryOptionparamsOrderExpiryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut orderExpiry: Value = orderExpiryOption;
+        let mut orderExpiry: Option<i64> = orderExpiryOption;
         if (nonce != Value::Null) {
             request.insert("nonce".into(), nonce);
         }
@@ -1537,15 +1537,15 @@ if _try_result.is_err() {
         }
         if postOnly {
             timeInForceNum = Some(2);
-            orderExpiry = Value::Int(-1);
+            orderExpiry = Some(-1);
         }  else {
             if !isMarketOrder {
                 if (timeInForce.as_deref() == Some("ioc")) {
                     timeInForceNum = Some(0);
-                    orderExpiry = Value::Int(0);
+                    orderExpiry = Some(0);
                 }  else if (timeInForce.as_deref() == Some("gtt")) {
                     timeInForceNum = Some(1);
-                    orderExpiry = Value::Int(-1);
+                    orderExpiry = Some(-1);
                 }
             }
         }
@@ -1581,7 +1581,7 @@ if _try_result.is_err() {
         }  else {
             amountStr = self.amount_to_precision(symbol.clone(), amount);
         }
-        request.insert("order_expiry".into(), orderExpiry);
+        request.insert("order_expiry".into(), Value::from(orderExpiry));
         request.insert("order_type".into(), Value::from(orderTypeNum));
         request.insert("time_in_force".into(), Value::from(timeInForceNum));
         request.insert("reduce_only".into(), (if reduceOnly { Value::Int(1) } else { Value::Int(0) }));

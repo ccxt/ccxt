@@ -1190,7 +1190,7 @@ impl Hyperliquid {
         if (parentSymbol.is_some()) {
             parentMarket = Some(self.safe_market(parentSymbol.map(Value::from).unwrap_or(Value::Null), None, &[]));
         }
-        let mut ctx: Value = (if (parentMarket.is_some()) { self.safe_dict(self.safe_dict_k(&parentMarket, "info", &[Value::Map({
+        let mut ctx: crate::value::Dict = (if (parentMarket.is_some()) { self.safe_dict(self.safe_dict_k(&parentMarket, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ctx".into()), &[Value::Map({
@@ -1199,8 +1199,8 @@ impl Hyperliquid {
 })]) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut dayVolume: Option<f64> = self.safe_number_k(ctx, "dayNtlVlm", &[]).as_f64();
+}) }).into_dict();
+        let mut dayVolume: Option<f64> = self.safe_number_k(&ctx, "dayNtlVlm", &[]).as_f64();
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), outcome.map(Value::from).unwrap_or(Value::Null));
@@ -2425,9 +2425,9 @@ impl Hyperliquid {
         let mut coin: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(coin.map(Value::from).unwrap_or(Value::Null), market).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        let mut resolvedMarket: Value = crate::Value::from(market);
+        let mut resolvedMarket: Option<crate::types::Market> = market.cloned();
         if (marketSymbol.is_some()) && (marketSymbol.as_deref() != Some("")) {
-            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(marketSymbol.map(Value::from).unwrap_or(Value::Null), market, &[]));
+            resolvedMarket = Some(self.safe_market(marketSymbol.map(Value::from).unwrap_or(Value::Null), market, &[]));
         }
         let mut sideRaw: Option<String> = self.safe_string_k(&entry, "side", &[]).as_str().map(str::to_owned);
         let mut side: String = "sell".to_string();
@@ -2474,7 +2474,7 @@ impl Hyperliquid {
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::from(vec![]));
     m
-}), &[resolvedMarket]);
+}), &[crate::Value::from(resolvedMarket.as_ref())]);
 
     Value::Null
 }
@@ -2685,9 +2685,9 @@ impl Hyperliquid {
         let mut coin: Option<String> = self.safe_string_k(trade.clone(), "coin", &[]).as_str().map(str::to_owned);
         let mut outcomeObj: crate::value::Dict = self.safe_outcome(coin.map(Value::from).unwrap_or(Value::Null), market).into_dict();
         let mut marketSymbol: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
-        let mut resolvedMarket: Value = crate::Value::from(market);
+        let mut resolvedMarket: Option<crate::types::Market> = market.cloned();
         if (marketSymbol.is_some()) && (marketSymbol.as_deref() != Some("")) {
-            resolvedMarket = crate::types::IntoRaw::into_raw(self.safe_market(marketSymbol.map(Value::from).unwrap_or(Value::Null), market, &[]));
+            resolvedMarket = Some(self.safe_market(marketSymbol.map(Value::from).unwrap_or(Value::Null), market, &[]));
         }
         let mut rawSide: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: String = "sell".to_string();
@@ -2734,7 +2734,7 @@ impl Hyperliquid {
         m.insert("cost".to_string(), Value::from(cost));
         m.insert("fee".to_string(), feeObject.map_or(Value::Null, Value::Dict));
     m
-}), &[resolvedMarket]);
+}), &[crate::Value::from(resolvedMarket.as_ref())]);
 
     Value::Null
 }
@@ -3090,8 +3090,8 @@ impl Hyperliquid {
 })]));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Dict(phantomAgent));
-        return self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Dict(phantomAgent));
+        return self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
 
     Value::Null
 }
@@ -3108,8 +3108,8 @@ impl Hyperliquid {
                 m.insert("version".to_string(), Value::Str("1".into()));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), messageTypes, message);
-        let mut signature: crate::value::Dict = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
+        let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), messageTypes, message);
+        let mut signature: crate::value::Dict = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default()).into_dict();
         return Value::Dict(signature);
 
     Value::Null

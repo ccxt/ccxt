@@ -974,12 +974,12 @@ impl Grvt {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOrderBookForSymbols() requires a non-empty array of symbols")));
         }
         let limitOptionparamsLimitOptionVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsChannel, Value::Str("watchOrderBook".into()), Value::Str("limit".into()), &[Value::Int(100)]).as_array().cloned().unwrap_or_default();
-        let mut limitOption: Value = limitOptionparamsLimitOptionVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut limitOption: Option<i64> = limitOptionparamsLimitOptionVariable.get(0).and_then(Value::as_i64);
         let mut paramsLimitOption: crate::value::Dict = limitOptionparamsLimitOptionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut limitResolved: Value = limitOption;
+        let mut limitResolved: Option<i64> = limitOption;
         let mut paramsLimit: Value = Value::Dict(paramsLimitOption);
         if (limit != Value::Null) {
-            limitResolved = limit;
+            limitResolved = limit.as_i64();
             paramsLimit = Value::Dict(paramsChannel);
         }
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
@@ -988,7 +988,7 @@ impl Grvt {
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut extraPart: Option<String> = None;
         if isSnapshot {
-            extraPart = Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(format!("{}", Value::from(interval))), Value::Str("-".into())).into()), Value::Str(format!("{}", limitResolved).into())));
+            extraPart = Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(format!("{}", Value::from(interval))), Value::Str("-".into())).into()), Value::from(format!("{}", Value::from(limitResolved)))));
         }  else {
             extraPart = Some(format!("{}", Value::from(interval)));
         }

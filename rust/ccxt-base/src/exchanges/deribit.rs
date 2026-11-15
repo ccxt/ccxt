@@ -3531,14 +3531,14 @@ impl Deribit {
         }
         let mut trailingAmount: Option<String> = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("trigger_offset".into()), &[]).as_str().map(str::to_owned);
         let mut isTrailingAmountOrder: bool = trailingAmount.is_some();
-        let mut paramsOmitted: Value = params.clone();
+        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
         if isTrailingAmountOrder {
-            paramsOmitted = self.omit(params, Value::Str("trigger_offset".into()), &[]);
+            paramsOmitted = self.omit(params, Value::Str("trigger_offset".into()), &[]).into_dict();
         }
         if isTrailingAmountOrder {
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
         }
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_edit(&[__ws_arg_16]).await.into_dict();
         let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

@@ -6488,17 +6488,17 @@ impl Mexc {
                 m
             })]).into_dict();
             if (networkUnified != Value::Null) && (matches!(&networkUnified, Value::Str(__k) if networks.contains_key(__k.as_ref()))) {
-                let mut network: Value = (if (networkUnified == Value::Null) { Value::Map({
+                let mut network: crate::value::Dict = (if (networkUnified == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { self.safe_dict(&networks, networkUnified, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) });
-                let mut networkInfo: crate::value::Dict = self.safe_dict_k(network, "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+})]) }).into_dict();
+                let mut networkInfo: crate::value::Dict = self.safe_dict_k(&network, "info", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 networkId = self.safe_string_k(&networkInfo, "network", &[]).as_str().map(str::to_owned);
             }  else {
                 networkId = self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]).as_str().map(str::to_owned);
@@ -6570,17 +6570,17 @@ impl Mexc {
             m
         })]).into_dict();
         if (networkUnified != Value::Null) && (matches!(&networkUnified, Value::Str(__k) if networks.contains_key(__k.as_ref()))) {
-            let mut network: Value = (if (networkUnified == Value::Null) { Value::Map({
+            let mut network: crate::value::Dict = (if (networkUnified == Value::Null) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { self.safe_dict(&networks, networkUnified, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) });
-            let mut networkInfo: crate::value::Dict = self.safe_dict_k(network, "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+})]) }).into_dict();
+            let mut networkInfo: crate::value::Dict = self.safe_dict_k(&network, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             networkId = self.safe_string_k(&networkInfo, "network", &[]).as_str().map(str::to_owned);
         }  else {
             networkId = self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code]).as_str().map(str::to_owned);
@@ -7401,11 +7401,11 @@ impl Mexc {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
         }
-        let mut paramsOmitted: Value = params.clone();
+        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
         if isIsolatedMargin {
-            paramsOmitted = self.omit(params, Value::Str("symbol".into()), &[]);
+            paramsOmitted = self.omit(params, Value::Str("symbol".into()), &[]).into_dict();
         }
-        let __ws_arg_57 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_57 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.spot_private_post_capital_transfer(&[__ws_arg_57]).await.into_dict();
         //
         //     {

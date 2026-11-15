@@ -1296,18 +1296,18 @@ impl Indodax {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_get_order(&[__ws_arg_4]).await;
-        let mut orders: indexmap::IndexMap<String, Value> = self.safe_dict_k(response.clone(), "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.private_post_get_order(&[__ws_arg_4]).await.into_dict();
+        let mut orders: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let __ws_arg_5 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
             m
         }), &[orders.get("order").cloned().unwrap_or(Value::Null)]);
         let mut order: indexmap::IndexMap<String, Value> = self.parse_order(__ws_arg_5, Some(&market)).as_map().cloned().unwrap_or_default();
-        order.insert("info".into(), response);
+        order.insert("info".into(), Value::Dict(response));
         return Value::Map(order);
         Value::Null
         }).await?))
@@ -1478,9 +1478,9 @@ impl Indodax {
         let mut priceIsRequired: bool = false;
         let mut quantityIsRequired: bool = false;
         let mut isMarketBuy: bool = (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy"));
-        let mut paramsOmitted: Value = params.clone();
+        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
         if isMarketBuy {
-            paramsOmitted = self.omit(params.clone(), Value::Str("cost".into()), &[]);
+            paramsOmitted = self.omit(params.clone(), Value::Str("cost".into()), &[]).into_dict();
         }
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
@@ -1517,7 +1517,7 @@ impl Indodax {
         if quantityIsRequired {
             request.insert(crate::runtime::stringify_param(&(Value::from((market).base_id.as_deref()))), Value::from(self.amount_to_precision(symbol, amount)));
         }
-        let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut result: crate::value::Dict = self.private_post_trade(&[__ws_arg_8]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&result, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1680,7 +1680,7 @@ impl Indodax {
             m
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_withdraw_fee(&[__ws_arg_11]).await;
+        let mut response: crate::value::Dict = self.private_post_withdraw_fee(&[__ws_arg_11]).await.into_dict();
         //
         //     {
         //         "success": 1,
@@ -1691,11 +1691,11 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(response).as_map().cloned().unwrap_or_default();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(Value::Dict(response)).as_map().cloned().unwrap_or_default();
         result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(&data, "withdraw_fee", &[]));

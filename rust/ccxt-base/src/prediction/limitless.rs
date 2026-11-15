@@ -1088,11 +1088,11 @@ impl Limitless {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.limitless_public_get_markets_address_or_slug(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.limitless_public_get_markets_address_or_slug(&[__ws_arg_4]).await.into_dict();
         // a group response carries its tradeable children in `markets` (each a full market row
         // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
         // and wraps as its own one-market event, which parseEvent's loop then parses
-        let mut rows: crate::value::List = self.expand_group_rows(Value::from(vec![response.clone()])).into_list();
+        let mut rows: crate::value::List = self.expand_group_rows(Value::from(vec![Value::from(&response)])).into_list();
         let mut wrapped: crate::value::Dict = self.extend(response, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("markets".to_string(), Value::Arr(rows));
@@ -3163,8 +3163,8 @@ if _try_result.is_err() {
 })]));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), signRequest);
-        return self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), signRequest);
+        return self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
 }
 
     pub fn hash_message(&self, mut message: Value) -> Option<String> {

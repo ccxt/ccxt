@@ -8718,7 +8718,7 @@ impl Okx {
         if (fee.is_none()) {
             // the network fee comes from currencies cached by loadMarkets, the endpoint does not require it
             let mut networkCodeResolved: Option<String> = self.network_id_to_code(&[network.map(Value::from).unwrap_or(Value::Null), self.safe_string_k(&currency, "code", &[])]);
-            let mut targetNetwork: Value = (if (networkCodeResolved.is_none()) { Value::Map({
+            let mut targetNetwork: crate::value::Dict = (if (networkCodeResolved.is_none()) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { self.safe_dict(self.safe_dict_k(&currency, "networks", &[Value::Map({
@@ -8727,8 +8727,8 @@ impl Okx {
 })]), networkCodeResolved.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) });
-            fee = self.safe_string_k(targetNetwork, "fee", &[]).as_str().map(str::to_owned);
+})]) }).into_dict();
+            fee = self.safe_string_k(&targetNetwork, "fee", &[]).as_str().map(str::to_owned);
         }
         if (fee.is_some()) {
             request.insert("fee".into(), Value::from(self.number_to_string(fee.map(Value::from).unwrap_or(Value::Null))));
@@ -12339,18 +12339,18 @@ impl Okx {
             request.insert("end".into(), Value::from(until));
         }
         let mut query: crate::value::Dict = self.omit(&paramsMethod, Value::Str("until".into()), &[]).into_dict();
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (method.as_deref() == Some("privateGetAccountBills")) {
             let __ws_arg_87 = self.extend(Value::Map(request.clone()), &[&query]);
-            response = self.private_get_account_bills(&[__ws_arg_87]).await;
+            response = self.private_get_account_bills(&[__ws_arg_87]).await.into_dict();
         }  else {
             let __ws_arg_88 = self.extend(Value::Map(request), &[&query]);
-            response = self.private_get_account_bills_archive(&[__ws_arg_88]).await;
+            response = self.private_get_account_bills_archive(&[__ws_arg_88]).await.into_dict();
         }
-        let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

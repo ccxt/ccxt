@@ -3551,14 +3551,14 @@ impl Kucoin {
         if fetchContractMarkets {
             contractIndex = nextIndex;
         }
-        let mut crossData: Value = (if (requestMarginables) { self.safe_dict_k(crate::value::KeyRead::read(&&responses, &crossIndex), "data", &[Value::Map({
+        let mut crossData: crate::value::Dict = (if (requestMarginables) { self.safe_dict_k(crate::value::KeyRead::read(&&responses, &crossIndex), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut crossItems: crate::value::List = self.safe_list_k(crossData, "items", &[Value::from(vec![])]).into_list();
+}) }).into_dict();
+        let mut crossItems: crate::value::List = self.safe_list_k(&crossData, "items", &[Value::from(vec![])]).into_list();
         let mut crossById: crate::value::Dict = self.index_by(Value::Arr(crossItems), Value::Str("symbol".into())).into_dict();
         let mut isolatedData: Value = (if (requestMarginables) { crate::value::KeyRead::read(&&responses, &isolatedIndex) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3566,14 +3566,14 @@ impl Kucoin {
 }) });
         let mut isolatedItems: crate::value::List = self.safe_list_k(isolatedData, "data", &[Value::from(vec![])]).into_list();
         let mut isolatedById: crate::value::Dict = self.index_by(Value::Arr(isolatedItems), Value::Str("symbol".into())).into_dict();
-        let mut tickersResponse: Value = (if fetchTickersFees.as_bool() == Some(true) { self.safe_dict(&responses, Value::from(tickersIndex), &[Value::Map({
+        let mut tickersResponse: crate::value::Dict = (if fetchTickersFees.as_bool() == Some(true) { self.safe_dict(&responses, Value::from(tickersIndex), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) });
-        let mut tickerItems: crate::value::List = self.safe_list(self.safe_dict_k(tickersResponse, "data", &[Value::Map({
+}) }).into_dict();
+        let mut tickerItems: crate::value::List = self.safe_list(self.safe_dict_k(&tickersResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ticker".into()), &[Value::from(vec![])]).into_list();

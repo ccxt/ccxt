@@ -622,14 +622,14 @@ impl Poloniex {
             m
         });
         let mut isMarketBuy: bool = (uppercaseType == "MARKET") && (uppercaseSide == "BUY");
-        let mut paramsOmitted: Value = params.clone();
+        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
         if isMarketBuy {
             let mut quoteAmount: Option<String> = None;
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
-            paramsOmitted = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
+            paramsOmitted = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]).into_dict();
             if (cost.is_some()) {
                 quoteAmount = self.cost_to_precision(symbol.clone(), Value::from(cost));
             }  else if createMarketBuyOrderRequiresPrice {
@@ -651,7 +651,7 @@ impl Poloniex {
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             }
         }
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut orders: crate::value::List = self.trade_request("createOrder", &[__ws_arg_1]).await.into_list();
         let mut order: Option<crate::value::Dict> = self.safe_dict(&orders, Value::Int(0), &[]).into_opt_dict();
         return order.map_or(Value::Null, Value::Dict);

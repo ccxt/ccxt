@@ -17557,7 +17557,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_181 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: Value = self.eapi_private_get_bill(&[__ws_arg_181]).await;
+        let mut response: crate::value::List = self.eapi_private_get_bill(&[__ws_arg_181]).await.into_list();
         //
         //     [
         //         {
@@ -17569,7 +17569,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     ]
         //
-        let mut first: Value = self.safe_dict(response.clone(), Value::Int(0), &[response]);
+        let mut first: Value = self.safe_dict(&response, Value::Int(0), &[Value::from(&response)]);
         return self.parse_ledger_entry(first, Some(&currency));
         Value::Null
         }).await?))

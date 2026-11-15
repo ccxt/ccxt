@@ -3221,12 +3221,12 @@ impl Polymarket {
         self.load_api_credentials().await;
         self.load_outcome(outcome.clone(), &[]).await;
         let mut built: crate::value::Dict = self.build_clob_order_body(outcome.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params]).into_dict();
-        let mut response: Value = self.clob_private_post_order(&[self.safe_dict_k(&built, "body", &[])]).await;
+        let mut response: crate::value::Dict = self.clob_private_post_order(&[self.safe_dict_k(&built, "body", &[])]).await.into_dict();
         // request echo first so the response's real orderID/status/success win on overlap
         let __ws_arg_12 = self.safe_dict_k(&built, "request", &[]);
-        let mut enriched: crate::value::Dict = self.extend(__ws_arg_12, &[response.clone()]).into_dict();
+        let mut enriched: crate::value::Dict = self.extend(__ws_arg_12, &[&response]).into_dict();
         let mut order: crate::value::Dict = self.parse_prediction_order(&enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_dict_k(&built, "outcome", &[])).as_ref()).into_dict();
-        std::sync::Arc::make_mut(&mut order).insert("info".into(), response); // keep info the raw exchange response, not the request echo
+        std::sync::Arc::make_mut(&mut order).insert("info".into(), Value::Dict(response)); // keep info the raw exchange response, not the request echo
         return Value::Dict(order);
         Value::Null
         }).await?))
@@ -3709,12 +3709,12 @@ impl Polymarket {
         // strict comparison, which would always wrongly select the EOA path
         if (Value::from(self.parse_to_int(sigType)).as_f64() != Some(3.0)) {
             // standard EOA EIP-712 order signature
-            let mut encoded: Value = self.eth_encode_structured_data(Value::Map(orderDomain.clone()), Value::Map({
+            let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(orderDomain.clone()), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Order".to_string(), orderStruct.clone());
                 m
             }), message.clone());
-            let mut eoaSig: indexmap::IndexMap<String, Value> = self.sign_message(encoded, (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
+            let mut eoaSig: indexmap::IndexMap<String, Value> = self.sign_message(Value::from(&encoded), (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
             let mut eoaSignature: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(eoaSig.get("r").cloned().unwrap_or(Value::Null))).into()), self.remove0x_prefix(eoaSig.get("s").cloned().unwrap_or(Value::Null))).into()), self.int_to_base16(eoaSig.get("v").cloned().unwrap_or(Value::Null), &[]));
@@ -3779,13 +3779,13 @@ impl Polymarket {
                 m.insert("salt".to_string(), Value::from(bytes32Zero));
             m
         });
-        let mut innerEncoded: Value = self.eth_encode_structured_data(Value::Map(orderDomain), Value::Map({
+        let mut innerEncoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(orderDomain), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("TypedDataSign".to_string(), Value::Arr(typedDataSignStruct));
                 m.insert("Order".to_string(), orderStruct);
             m
         }), Value::Map(innerValue));
-        let mut innerSigObj: indexmap::IndexMap<String, Value> = self.sign_message(innerEncoded, (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
+        let mut innerSigObj: indexmap::IndexMap<String, Value> = self.sign_message(Value::from(&innerEncoded), (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
         let mut innerSig: String = format!("{}{}", Value::Str(format!("{}{}", self.remove0x_prefix(self.safe_string(Value::Map(innerSigObj.clone()), Value::Str("r".into()), &[])), self.remove0x_prefix(self.safe_string(Value::Map(innerSigObj.clone()), Value::Str("s".into()), &[]))).into()), self.int_to_base16(innerSigObj.get("v").cloned().unwrap_or(Value::Null), &[]));
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
@@ -4588,8 +4588,8 @@ impl Polymarket {
                 m.insert("message".to_string(), Value::Str("This message attests that I control the given wallet".into()));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
-        let mut sig: indexmap::IndexMap<String, Value> = self.sign_message(encoded, (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(messageData));
+        let mut sig: indexmap::IndexMap<String, Value> = self.sign_message(Value::from(&encoded), (self.privateKey.clone()).as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
         return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.remove0x_prefix(sig.get("r").cloned().unwrap_or(Value::Null))).into()), self.remove0x_prefix(sig.get("s").cloned().unwrap_or(Value::Null))).into()), self.int_to_base16(sig.get("v").cloned().unwrap_or(Value::Null), &[])));
 }
 

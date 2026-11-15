@@ -2202,18 +2202,18 @@ impl Coinsph {
         request.insert("newOrderRespType".into(), Value::from(newOrderRespType));
         let mut paramsBase: Value = (if (paramsQuote != Value::Null) { paramsQuote } else { paramsType });
         let mut paramsRequest: crate::value::Dict = self.omit(paramsBase, Value::Str("price".into()), &[Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("quantity".into()), Value::Str("quoteOrderQty".into())]).into_dict();
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if testOrder {
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);
-            response = self.private_post_openapi_v1_order_test(&[__ws_arg_11]).await;
+            response = self.private_post_openapi_v1_order_test(&[__ws_arg_11]).await.into_dict();
         }  else {
             let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.private_post_openapi_v1_order(&[__ws_arg_12]).await;
+            response = self.private_post_openapi_v1_order(&[__ws_arg_12]).await.into_dict();
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
         Value::Null
         }).await?))
     }

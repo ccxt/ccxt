@@ -2624,10 +2624,10 @@ impl Backpack {
             m
         });
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(self.omit(&dataRequest, Value::Str("symbol".into()), &[]), Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("endTime".into(), Value::from(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))); // convert milliseconds to seconds
+        if (until.is_some()) {
+            request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))))); // convert milliseconds to seconds
         }
         let mut defaultLimit: i64 = 100;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -2635,23 +2635,22 @@ impl Backpack {
             limitResolved = (if let Some(__m0) = limitResolved { Some(i64::min(__m0, maxLimit)) } else { None });
         }
         let mut windowLimit: Option<i64> = (if (limitResolved.is_none()) { Some(defaultLimit) } else { limitResolved });
-        let mut now: Value = Value::Int(self.milliseconds());
-        let mut startTime: Value = since.clone();
-        let mut untilValue: Value = until;
-        if (startTime == Value::Null) {
-            if (untilValue == Value::Null) {
-                untilValue = now.clone();
+        let mut now: i64 = self.milliseconds();
+        let mut startTime: Option<i64> = since.as_i64();
+        let mut untilValue: Option<i64> = until;
+        if (startTime.is_none()) {
+            if (untilValue.is_none()) {
+                untilValue = Some(now);
             }
-            startTime = (match (&(untilValue), &((Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            startTime = (if let (Some(__l), Some(__r)) = (untilValue, ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some(__l - __r) } else { None });
         }
-        request.insert("startTime".into(), Value::from(self.parse_to_int((match ((startTime).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+        request.insert("startTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = startTime { Some((__l as f64) / 1000.0) } else { None })))));
         // set until value
-        if (untilValue == Value::Null) {
-            let mut windowEnd: Value = self.sum(&[startTime, Value::from((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))]);
-            untilValue = crate::runtime::Math::min(&now, &windowEnd);
+        if (untilValue.is_none()) {
+            let mut windowEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (startTime, ((if let Some(__l) = windowLimit { Some(__l * duration) } else { None }))) { Some((__m0 + __m1)) } else { None });
+            untilValue = (if let Some(__m1) = windowEnd { Some(i64::min(now, __m1)) } else { None });
         }
-        request.insert("endTime".into(), Value::from(self.parse_to_int((match ((untilValue).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+        request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = untilValue { Some((__l as f64) / 1000.0) } else { None })))));
         let mut price: Option<String> = self.safe_string_k(&paramsUntil, "price", &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = (if (price.is_some()) { self.omit(&paramsUntil, Value::Str("price".into()), &[]).into_dict() } else { paramsUntil });
         if (price.is_some()) {

@@ -662,7 +662,7 @@ impl Revolutx {
             request.insert("region".into(), region.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get10_public_configuration_pairs(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get10_public_configuration_pairs(&[__ws_arg_0]).await.into_dict();
         //
         //     {
         //         "BTC/USD": {
@@ -673,7 +673,7 @@ impl Revolutx {
         //         }
         //     }
         //
-        let mut markets: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[response.clone()]).into_dict();
+        let mut markets: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::from(&response)]).into_dict();
         let mut keys: Vec<Value> = Value::Array(markets.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -795,14 +795,14 @@ impl Revolutx {
             request.insert("region".into(), region.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get10_public_configuration_currencies(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.public_get10_public_configuration_currencies(&[__ws_arg_1]).await.into_dict();
         //
         //     {
         //         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
         //         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
         //     }
         //
-        let mut currencies: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[response.clone()]).into_dict();
+        let mut currencies: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::from(&response)]).into_dict();
         let mut keys: Vec<Value> = Value::Array(currencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1695,15 +1695,15 @@ impl Revolutx {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orderData: Value = (if (matches!(&data, Value::Arr(_))) { self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut orderData: crate::value::Dict = (if (matches!(&data, Value::Arr(_))) { self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) });
-        let mut venueOrderId: Option<String> = self.safe_string_k(orderData.clone(), "venue_order_id", &[]).as_str().map(str::to_owned);
-        let mut state: Option<String> = self.safe_string_k(orderData.clone(), "state", &[]).as_str().map(str::to_owned);
+})]) }).into_dict();
+        let mut venueOrderId: Option<String> = self.safe_string_k(&orderData, "venue_order_id", &[]).as_str().map(str::to_owned);
+        let mut state: Option<String> = self.safe_string_k(&orderData, "state", &[]).as_str().map(str::to_owned);
         let __ws_arg_7 = self.extend(orderData, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), venueOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -2323,15 +2323,15 @@ impl Revolutx {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orderData: Value = (if (matches!(&data, Value::Arr(_))) { self.safe_dict(data, Value::Int(0), &[Value::Map({
+        let mut orderData: crate::value::Dict = (if (matches!(&data, Value::Arr(_))) { self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) });
-        let mut newVenueOrderId: Option<String> = self.safe_string_k(orderData.clone(), "venue_order_id", &[]).as_str().map(str::to_owned);
-        let mut state: Option<String> = self.safe_string_k(orderData.clone(), "state", &[]).as_str().map(str::to_owned);
+})]) }).into_dict();
+        let mut newVenueOrderId: Option<String> = self.safe_string_k(&orderData, "venue_order_id", &[]).as_str().map(str::to_owned);
+        let mut state: Option<String> = self.safe_string_k(&orderData, "state", &[]).as_str().map(str::to_owned);
         let __ws_arg_15 = self.extend(orderData, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), newVenueOrderId.map(Value::from).unwrap_or(Value::Null));

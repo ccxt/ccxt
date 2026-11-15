@@ -1264,8 +1264,8 @@ impl Toobit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.common_get_api_v1_exchange_info(&[params]).await;
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("exchangeInfo".into(), response.clone()); }; // we store it in options for later use in fetchMarkets
+        let mut response: crate::value::Dict = self.common_get_api_v1_exchange_info(&[params]).await.into_dict();
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("exchangeInfo".into(), Value::from(&response)); }; // we store it in options for later use in fetchMarkets
         //
         //    {
         //        "timezone": "UTC",
@@ -1394,7 +1394,7 @@ impl Toobit {
         //            },
         //          ...
         //
-        let mut coins: crate::value::List = self.safe_list_k(response, "coins", &[Value::from(vec![])]).into_list();
+        let mut coins: crate::value::List = self.safe_list_k(&response, "coins", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2610,24 +2610,24 @@ impl Toobit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (market).spot {
             let requestparamsRequestVariable: Vec<Value> = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), params.clone()]).as_array().cloned().unwrap_or_default();
             let mut request: crate::value::Dict = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
             let mut paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let __ws_arg_11 = self.extend(request, &[&paramsRequest]);
-            response = self.private_post_api_v1_spot_order(&[__ws_arg_11]).await;
+            response = self.private_post_api_v1_spot_order(&[__ws_arg_11]).await.into_dict();
         }  else {
             let requestparamsRequestVariable: Vec<Value> = self.create_contract_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).as_array().cloned().unwrap_or_default();
             let mut request: crate::value::Dict = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
             let mut paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let __ws_arg_12 = self.extend(request, &[&paramsRequest]);
-            response = self.private_post_api_v1_futures_order(&[__ws_arg_12]).await;
+            response = self.private_post_api_v1_futures_order(&[__ws_arg_12]).await.into_dict();
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2970,23 +2970,23 @@ impl Toobit {
         if (marketType.as_deref() == Some("none")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")));
         }
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            response = self.private_delete_api_v1_spot_order(&[__ws_arg_13]).await;
+            response = self.private_delete_api_v1_spot_order(&[__ws_arg_13]).await.into_dict();
         }  else {
             let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_delete_api_v1_futures_order(&[__ws_arg_14]).await;
+            response = self.private_delete_api_v1_futures_order(&[__ws_arg_14]).await.into_dict();
         }
         // response same as in `createOrder`
-        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(response.clone(), "status", &[])).as_str());
+        let mut status: Option<String> = self.parse_order_status((self.safe_string_k(&response, "status", &[])).as_str());
         if (status.as_deref() != Some("open")) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " order ").into()), id).into()), " can not be canceled, ").into()), json_stringify(&response))));
         }
-        return self.parse_order(response, market.as_ref());
+        return self.parse_order(&response, market.as_ref());
         Value::Null
         }).await?))
     }
@@ -3137,18 +3137,18 @@ impl Toobit {
             m
         });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if (market).spot {
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_api_v1_spot_order(&[__ws_arg_19]).await;
+            response = self.private_get_api_v1_spot_order(&[__ws_arg_19]).await.into_dict();
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_api_v1_futures_order(&[__ws_arg_20]).await;
+            response = self.private_get_api_v1_futures_order(&[__ws_arg_20]).await.into_dict();
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
         Value::Null
         }).await?))
     }

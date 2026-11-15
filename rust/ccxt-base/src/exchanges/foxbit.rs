@@ -2633,12 +2633,12 @@ impl Foxbit {
     pub fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
         let mut symbol: Option<String> = self.safe_string_k(order.clone(), "market_symbol", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = crate::Value::from(market);
+        let mut marketResolved: Option<crate::types::Market> = market.cloned();
         if (market.is_some()) {
             symbol = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
         }  else if (symbol.is_some()) {
-            marketResolved = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            symbol = self.safe_string_k(marketResolved.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            marketResolved = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbol = self.safe_string_k(&marketResolved, "symbol", &[]).as_str().map(str::to_owned);
         }
         let mut timestamp: Value = self.parse_date(self.safe_string_k(order.clone(), "created_at", &[]), &[]);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
@@ -2656,9 +2656,9 @@ impl Foxbit {
             cost = crate::precise::Precise::stringMul(&priceToCalculate, &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut feeCurrency: Option<String> = self.safe_string_upper_k(marketResolved.clone(), "quoteId", &[]).as_str().map(str::to_owned);
+        let mut feeCurrency: Option<String> = self.safe_string_upper_k(&marketResolved, "quoteId", &[]).as_str().map(str::to_owned);
         if (side.as_deref() == Some("buy")) {
-            feeCurrency = self.safe_string_upper_k(marketResolved.clone(), "baseId", &[]).as_str().map(str::to_owned);
+            feeCurrency = self.safe_string_upper_k(&marketResolved, "baseId", &[]).as_str().map(str::to_owned);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2669,7 +2669,7 @@ impl Foxbit {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), self.safe_string_k(marketResolved, "symbol", &[]));
+        m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "type", &[]));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "time_in_force", &[]));
         m.insert("postOnly".to_string(), self.safe_bool_k(order.clone(), "post_only", &[]));

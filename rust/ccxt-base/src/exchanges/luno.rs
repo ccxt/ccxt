@@ -2396,17 +2396,17 @@ impl Luno {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_send_fee(&[__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.private_get_send_fee(&[__ws_arg_18]).await.into_dict();
         //
         //     {
         //         "currency": "XBT",
         //         "fee": "0.00015"
         //     }
         //
-        let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(response.clone()).as_map().cloned().unwrap_or_default();
+        let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(Value::from(&response)).as_map().cloned().unwrap_or_default();
         result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), self.safe_number_k(response, "fee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&response, "fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));

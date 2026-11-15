@@ -1282,7 +1282,7 @@ impl Hashkey {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_api_v1_exchange_info(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get_api_v1_exchange_info(&[__ws_arg_0]).await.into_dict();
         //
         //     {
         //         "timezone": "UTC",
@@ -1458,11 +1458,11 @@ impl Hashkey {
         //         ]
         //     }
         //
-        let mut spotMarkets: crate::value::List = self.safe_list_k(response.clone(), "symbols", &[Value::from(vec![])]).into_list();
-        let mut swapMarkets: crate::value::List = self.safe_list_k(response.clone(), "contracts", &[Value::from(vec![])]).into_list();
+        let mut spotMarkets: crate::value::List = self.safe_list_k(&response, "symbols", &[Value::from(vec![])]).into_list();
+        let mut swapMarkets: crate::value::List = self.safe_list_k(&response, "contracts", &[Value::from(vec![])]).into_list();
         let mut markets: Value = self.array_concat(&spotMarkets, &swapMarkets);
         if self.is_empty(markets.clone()).as_bool() == Some(true) {
-            markets = Value::from(vec![response]); // if user provides params.symbol the exchange returns a single object instead of list of objects
+            markets = Value::from(vec![Value::Dict(response)]); // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
         return self.parse_markets(markets);
         Value::Null
@@ -3448,19 +3448,19 @@ impl Hashkey {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() supports cost parameter for spot market buy orders only")));
         }
         let mut request: crate::value::Dict = self.create_spot_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params.clone()]).into_dict();
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         let mut test: bool = self.safe_bool_k(params, "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if test {
-            response = self.private_post_api_v1_spot_order_test(&[Value::from(&request)]).await;
+            response = self.private_post_api_v1_spot_order_test(&[Value::from(&request)]).await.into_dict();
         }  else if isMarketBuy && (cost.is_none()) {
-            response = self.private_post_api_v11_spot_order(&[Value::from(&request)]).await; // the endpoint for market buy orders by amount
+            response = self.private_post_api_v11_spot_order(&[Value::from(&request)]).await.into_dict(); // the endpoint for market buy orders by amount
         }  else {
-            response = self.private_post_api_v1_spot_order(&[Value::Dict(request)]).await; // the endpoint for market buy orders by cost and other orders
+            response = self.private_post_api_v1_spot_order(&[Value::Dict(request)]).await.into_dict(); // the endpoint for market buy orders by cost and other orders
         }
-        return self.parse_order(response, Some(&market));
+        return self.parse_order(&response, Some(&market));
 
     Value::Null
 }

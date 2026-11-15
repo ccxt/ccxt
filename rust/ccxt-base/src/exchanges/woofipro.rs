@@ -4740,8 +4740,8 @@ impl Woofipro {
                 m.insert("timestamp".to_string(), Value::from(nonce));
             m
         });
-        let mut msg: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(withdrawRequest.clone()));
-        let mut signature: Option<String> = self.sign_message(msg, (self.privateKey.clone()).as_str().unwrap_or_default());
+        let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(withdrawRequest.clone()));
+        let mut signature: Option<String> = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));

@@ -2748,28 +2748,26 @@ impl Kraken {
         if (market != Value::Null) {
             return market;
         }
-        let mut baseIdStart: Value = Value::Int(0);
-        let mut baseIdEnd: Value = Value::Int(3);
-        let mut quoteIdStart: Value = Value::Int(3);
-        let mut quoteIdEnd: Value = Value::Int(6);
+        let mut baseIdStart: i64 = 0;
+        let mut baseIdEnd: i64 = 3;
+        let mut quoteIdStart: i64 = 3;
+        let mut quoteIdEnd: i64 = 6;
         let mut idLength: i64 = (id.as_str().map(str::to_owned).as_deref().unwrap_or_default().chars().count() as i64);
         if (idLength == 8) {
-            baseIdEnd = Value::Int(4);
-            quoteIdStart = Value::Int(4);
-            quoteIdEnd = Value::Int(8);
+            baseIdEnd = 4;
+            quoteIdStart = 4;
+            quoteIdEnd = 8;
         }  else if (idLength == 7) {
-            baseIdEnd = Value::Int(4);
-            quoteIdStart = Value::Int(4);
-            quoteIdEnd = Value::Int(7);
+            baseIdEnd = 4;
+            quoteIdStart = 4;
+            quoteIdEnd = 7;
         }
-        let mut baseId: Value = (match (&(id), (match &(baseIdStart) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(baseIdEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64),
-            Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-            __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
-        let mut quoteId: Value = (match (&(id), (match &(quoteIdStart) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64), Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None }).unwrap_or(0), (match &(quoteIdEnd) { Value::Int(__n) => Some(*__n), Value::Float(__f) => Some(*__f as i64),
-            Value::Str(__s) => __s.parse::<i64>().ok(), Value::Bool(__b) => Some(if *__b { 1 } else { 0 }), _ => None })) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
-            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
-            __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+        let mut baseId: Value = (match (&(id), baseIdStart, Some(baseIdEnd)) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
+            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
+        let mut quoteId: Value = (match (&(id), quoteIdStart, Some(quoteIdEnd)) { (Value::Str(__sv), __b, __e) => match (__sv.chars().count() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i,
+            __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b, __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l,
+            Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
         let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone(), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -3384,12 +3382,12 @@ impl Kraken {
                 m.insert("txid".to_string(), id.clone());
             m
         });
-        let mut query: Value = params.clone();
+        let mut query: crate::value::Dict = params.clone().into_dict();
         if (clientOrderId != Value::Null) {
             request.insert("userref".into(), clientOrderId);
-            query = self.omit(params, &["userref", "clientOrderId"], &[]);
+            query = self.omit(params, &["userref", "clientOrderId"], &[]).into_dict();
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&query]);
         let mut response: crate::value::Dict = self.private_post_query_orders(&[__ws_arg_10]).await.into_dict();
         //
         //     {

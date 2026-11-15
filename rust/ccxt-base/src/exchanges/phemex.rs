@@ -5796,16 +5796,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Map({
+        let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        });
+        }).into_dict();
         if !((market).linear == Some(true)) {
             let __ws_arg_49 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.v1_get_md_ticker24hr(&[__ws_arg_49]).await;
+            response = self.v1_get_md_ticker24hr(&[__ws_arg_49]).await.into_dict();
         }  else {
             let __ws_arg_50 = self.extend(Value::Map(request), &[params]);
-            response = self.v2_get_md_v2_ticker24hr(&[__ws_arg_50]).await;
+            response = self.v2_get_md_v2_ticker24hr(&[__ws_arg_50]).await.into_dict();
         }
         //
         //     {
@@ -5830,10 +5830,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return self.parse_funding_rate(&result, Some(&market));
         Value::Null
         }).await?))

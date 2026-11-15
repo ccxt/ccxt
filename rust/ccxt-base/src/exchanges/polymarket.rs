@@ -1378,12 +1378,12 @@ impl Polymarket {
             request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = params;
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if (until.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_info_trades(&[__ws_arg_1]).await.into_dict();
         //
         //     {
@@ -2908,17 +2908,17 @@ impl Polymarket {
             request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = params;
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if (until.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let mut clientOrderId: Option<String> = self.safe_string_k(paramsOmitted.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&paramsOmitted, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("clientOrderId".into()), &[]);
+            paramsOmitted = self.omit(&paramsOmitted, Value::Str("clientOrderId".into()), &[]).into_dict();
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.private_get_account_orders(&[__ws_arg_7]).await.into_list();
         return self.parse_orders(&response, market.as_ref(), &[since, limit]);
         Value::Null
@@ -3019,12 +3019,12 @@ impl Polymarket {
             request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = params;
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if (until.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_account_fills(&[__ws_arg_9]).await.into_dict();
         //
         //     {
@@ -3099,12 +3099,12 @@ impl Polymarket {
             request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = params;
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if (until.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_account_funding(&[__ws_arg_10]).await.into_dict();
         //
         //     {
@@ -3276,12 +3276,12 @@ impl Polymarket {
             request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = params;
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if (until.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_account_deposits(&[__ws_arg_11]).await.into_dict();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut currency: Option<crate::types::Currency> = None;
@@ -3328,12 +3328,12 @@ impl Polymarket {
             request.insert("start_timestamp".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = params;
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
         if (until.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_account_withdrawals(&[__ws_arg_12]).await.into_dict();
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut currency: Option<crate::types::Currency> = None;
@@ -3446,8 +3446,8 @@ impl Polymarket {
                 m.insert("ts".to_string(), Value::from(ts));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
-        let mut signature: Option<String> = self.sign_message(encoded, self.privateKey.clone());
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
+        let mut signature: Option<String> = self.sign_message(Value::from(&encoded), self.privateKey.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Map({
@@ -3894,8 +3894,8 @@ impl Polymarket {
                 m.insert("ts".to_string(), Value::from(ts));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
-        let mut signature: Option<String> = self.sign_message(encoded, self.privateKey.clone());
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
+        let mut signature: Option<String> = self.sign_message(Value::from(&encoded), self.privateKey.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Map({
@@ -4022,9 +4022,9 @@ impl Polymarket {
                 m.insert("ts".to_string(), Value::from(ts));
             m
         });
-        let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
+        let mut encoded: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
         let mut proxyPrivateKey: Option<String> = self.safe_string_k(&credentials, "privateKey", &[]).as_str().map(str::to_owned);
-        let mut signature: Option<String> = self.sign_message(encoded, proxyPrivateKey.map(Value::from).unwrap_or(Value::Null));
+        let mut signature: Option<String> = self.sign_message(Value::from(&encoded), proxyPrivateKey.map(Value::from).unwrap_or(Value::Null));
         let mut envelope: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), bodyOp);

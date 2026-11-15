@@ -8914,11 +8914,11 @@ if _try_result.is_err() {
             request.insert("settle".into(), crate::value::KeyRead::key_read(&&currency, "id")); // todo: currencies have network-junctions
         }
         let mut isMarginTransfer: bool = (fromId.as_str() == Some("margin")) || (toId.as_str() == Some("margin"));
-        let mut query: Value = params.clone();
+        let mut query: crate::value::Dict = params.clone().into_dict();
         if isMarginTransfer {
-            query = self.omit(params, Value::Str("symbol".into()), &[]);
+            query = self.omit(params, Value::Str("symbol".into()), &[]).into_dict();
         }
-        let __ws_arg_75 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_75 = self.extend(Value::Map(request), &[&query]);
         let mut response: crate::value::Dict = self.private_wallet_post_transfers(&[__ws_arg_75]).await.into_dict();
         return self.parse_transfer(&response, Some(&currency));
         Value::Null
