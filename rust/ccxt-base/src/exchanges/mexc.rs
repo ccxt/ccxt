@@ -3854,8 +3854,8 @@ impl Mexc {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("test".into()), &[]);
-        let mut request: crate::value::Dict = self.create_spot_order_request(market, type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), marginMode, paramsOmitted]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("test".into()), &[]).into_dict();
+        let mut request: crate::value::Dict = self.create_spot_order_request(market, type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), marginMode, Value::Dict(paramsOmitted)]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if test {
             response = self.spot_private_post_order_test(&[Value::from(&request)]).await.into_opt_dict();

@@ -3172,7 +3172,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomeObj: Value = Value::Null;
+        let mut outcomeObj: Option<crate::types::Market> = None;
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome, &[]).await;
         }
@@ -3186,7 +3186,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut response: crate::value::Dict = self.kalshi_private_delete_portfolio_events_orders_order_id(&[__ws_arg_13]).await.into_dict();
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        let mut order: crate::value::Dict = self.parse_prediction_order(self.safe_dict_k(&response, "order", &[Value::from(&response)]), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
+        let mut order: crate::value::Dict = self.parse_prediction_order(self.safe_dict_k(&response, "order", &[Value::from(&response)]), outcomeObj.as_ref()).into_dict();
         if (self.safe_string_k(&order, "id", &[]) == Value::Null) {
             std::sync::Arc::make_mut(&mut order).insert("id".into(), id);
         }

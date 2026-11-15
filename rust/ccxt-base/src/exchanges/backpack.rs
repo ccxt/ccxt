@@ -3069,14 +3069,14 @@ impl Backpack {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut paramsOmitted: Value = Value::Dict(accountParams);
+        let mut paramsOmitted: crate::value::Dict = Value::from(&accountParams).into_dict();
         if stock {
             request.insert("assetClass".into(), Value::Str("STOCK".into()));
         }
         if (until.is_some()) {
             request.insert("to".into(), Value::from(until));
         }
-        let mut fillType: Option<String> = self.safe_string_k(paramsOmitted.clone(), "fillType", &[]).as_str().map(str::to_owned);
+        let mut fillType: Option<String> = self.safe_string_k(&paramsOmitted, "fillType", &[]).as_str().map(str::to_owned);
         if (fillType.is_none()) {
             request.insert("fillType".into(), Value::Str("User".into())); // default
         }

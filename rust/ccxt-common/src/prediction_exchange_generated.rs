@@ -1026,7 +1026,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     Value::Null
 } }
 
-    fn load_outcome(&mut self, mut outcomeSymbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn load_outcome(&mut self, mut outcomeSymbol: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Option<crate::types::Market>> + Send { async move {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         // resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
         // returns at once (pass reload=true to skip the cache and refetch the outcome's metadata).
@@ -1040,7 +1040,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         if !(reload.as_bool() == Some(true)) {
             if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                return self.safe_outcome(outcomeSymbol.clone(), None);
+                return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_outcome(outcomeSymbol.clone(), None));
             }
             let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
@@ -1049,7 +1049,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             if !wasWarm && (self.markets.clone() != Value::Null) && !(self.is_empty(self.markets.clone()).as_bool() == Some(true)) {
                 self.populate_outcomes();
                 if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                    return self.safe_outcome(outcomeSymbol.clone(), None);
+                    return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_outcome(outcomeSymbol.clone(), None));
                 }
             }
             let mut loadAll: bool = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -1060,13 +1060,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 // the whole listing (which would mask typos and clobber offline-injected markets)
                 self.load_outcomes(&[]).await;
                 if self.has_outcome(outcomeSymbol.clone()).as_bool() == Some(true) {
-                    return self.safe_outcome(outcomeSymbol.clone(), None);
+                    return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.safe_outcome(outcomeSymbol.clone(), None));
                 }
             }
         }
-        return self.fetch_outcome(outcomeSymbol).await;
-
-    Value::Null
+        return <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(self.fetch_outcome(outcomeSymbol).await);
 } }
 
     fn outcome_search_query(&self, mut outcomeSymbol: Value) -> Value {
@@ -2726,7 +2724,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             "is_prediction" => <Self as crate::prediction_exchange_generated::PredictionBase>::is_prediction(self),
             "load_events" => <Self as crate::prediction_exchange_generated::PredictionBase>::load_events(self, &args[..]).await,
             "load_events_helper" => <Self as crate::prediction_exchange_generated::PredictionBase>::load_events_helper(self, &args[..]).await,
-            "load_outcome" => <Self as crate::prediction_exchange_generated::PredictionBase>::load_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "load_outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::load_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await),
             "normalize_tag_key" => <Self as crate::prediction_exchange_generated::PredictionBase>::normalize_tag_key(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "outcome" => <Self as crate::prediction_exchange_generated::PredictionBase>::outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "outcome_search_query" => <Self as crate::prediction_exchange_generated::PredictionBase>::outcome_search_query(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),

@@ -3452,7 +3452,7 @@ if _try_result.is_err() {
         });
         let mut slug: Option<String> = self.safe_string_k(paramsValue.clone(), "slug", &[]).as_str().map(str::to_owned);
         if (outcome != Value::Null) {
-            let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
+            let mut outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome, &[]).await;
             request.insert("slug".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "slug", &[]));
         }  else if (slug.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelAllOrders requires either an outcome argument or a slug parameter")));
@@ -3495,7 +3495,7 @@ if _try_result.is_err() {
         // resolve the handle for the final filter — the caller may have passed an outcomeId
         let mut outcomeSymbol: Value = outcome.clone();
         if (outcome != Value::Null) {
-            let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome.clone(), &[]).await.into_dict();
+            let mut outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome.clone(), &[]).await;
             outcomeSymbol = self.safe_string_k(&outcomeObj, "outcome", &[]);
         }
         let mut paginate: bool = false;
@@ -4368,7 +4368,7 @@ if _try_result.is_err() {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut baseUrls: crate::value::Dict = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).into_dict();
-        let mut baseUrl: Value = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "limitless")]);
+        let mut baseUrl: Option<String> = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[crate::value::KeyRead::key_read(&&baseUrls, "limitless")]).as_str().map(str::to_owned);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut querystring: String = self.urlencode_with_array_repeat(&query);
@@ -4412,7 +4412,7 @@ if _try_result.is_err() {
             headersKey.insert(headerKey, self.apiKey.clone());
             headersValue = self.extend(headersValue, &[Value::Map(headersKey)]);
         }
-        url = format!("{}{}", baseUrl, url);
+        url = format!("{}{}", baseUrl.as_deref().unwrap_or("null"), url);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

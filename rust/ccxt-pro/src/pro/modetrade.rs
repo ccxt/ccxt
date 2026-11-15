@@ -2017,15 +2017,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut event: Option<String> = (match __pro_message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut method: Value = (if (event.is_none()) { Value::Null } else { self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]) });
-        if (method != Value::Null) {
+        let mut method: Option<String> = (if (event.is_none()) { None } else { self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned) });
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;
         }
         let mut topic: Option<String> = (match __pro_message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (topic.is_some()) {
-            method = self.safe_value(&methods, Value::from(topic.as_deref()), &[]);
-            if (method != Value::Null) {
+            method = self.safe_value(&methods, Value::from(topic.as_deref()), &[]).as_str().map(str::to_owned);
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
             }
@@ -2036,8 +2036,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (name.is_none()) {
                     return;
                 }
-                method = self.safe_value(&methods, Value::from(name.as_deref()), &[]);
-                if (method != Value::Null) {
+                method = self.safe_value(&methods, Value::from(name.as_deref()), &[]).as_str().map(str::to_owned);
+                if (method.is_some()) {
                     self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                     return;
                 }
@@ -2045,8 +2045,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut splitNameLength: i64 = splitTopic.len() as i64;
                 if (splitNameLength == 2) {
                     let mut splitNameFirst: Option<String> = self.safe_string(&splitName, Value::Int(0), &[]).as_str().map(str::to_owned);
-                    method = (if (splitNameFirst.is_none()) { Value::Null } else { self.safe_value(&methods, splitNameFirst.map(Value::from).unwrap_or(Value::Null), &[]) });
-                    if (method != Value::Null) {
+                    method = (if (splitNameFirst.is_none()) { None } else { self.safe_value(&methods, splitNameFirst.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned) });
+                    if (method.is_some()) {
                         self.dispatch_ws_handler(&method, &[client, message.clone()]);
                     }
                 }

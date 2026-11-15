@@ -727,8 +727,8 @@ impl Coinone {
                     m.insert("TRADE".to_string(), Value::Str("handle_trades".into()).clone());
                 m
             });
-            let mut exacMethod: Value = self.safe_value(Value::Map(methods.clone()), topic.clone(), &[]);
-            if (exacMethod != Value::Null) {
+            let mut exacMethod: Option<String> = self.safe_value(Value::Map(methods.clone()), topic.clone(), &[]).as_str().map(str::to_owned);
+            if (exacMethod.is_some()) {
                 self.dispatch_ws_handler(&exacMethod, &[client.clone(), message.clone()]);
                 return;
             }
@@ -739,7 +739,7 @@ impl Coinone {
                 while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (keys.len() as i64) } {
                 let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 if Value::Int(topic.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                    let mut method: Value = methods.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                    let mut method: Option<String> = methods.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
                     self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                     return;
                 }

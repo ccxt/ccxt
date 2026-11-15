@@ -2283,16 +2283,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("fund_rate".to_string(), Value::Str("handle_funding_rate".into()).clone());
                 m
             });
-            let mut method: Value = (if (topic.is_none()) { Value::Null } else { self.safe_value(&methods, topic.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
+            let mut method: Option<String> = (if (topic.is_none()) { None } else { self.safe_value(&methods, topic.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned) });
             if (topic.as_deref() == Some("trade")) {
                 let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
                 if (data != Value::Null) && ((matches!(&data, Value::Dict(__d) if __d.contains_key("oi"))) || (matches!(&data, Value::Dict(__d) if __d.contains_key("orderId")))) {
-                    method = Value::Str("handle_my_trades".into()).clone();
+                    method = Value::Str("handle_my_trades".into()).as_str().map(str::to_owned);
                 }  else {
-                    method = Value::Str("handle_trade".into()).clone();
+                    method = Value::Str("handle_trade".into()).as_str().map(str::to_owned);
                 }
             }
-            if (method != Value::Null) {
+            if (method.is_some()) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }  else {

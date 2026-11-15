@@ -12773,8 +12773,8 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_524: bool = true;
             while { if !__for_first_524 { i += 1; } __for_first_524 = false; i < (keys.len() as i64) } {
-            let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut entry: Value = get_value(&grouped, &marketId);
+            let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut entry: Value = get_value(&grouped, marketId.as_deref());
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_523: bool = true;
@@ -12783,7 +12783,7 @@ impl Bybit {
                 add_element_to_object(get_value_mut(&mut entry, &Value::Int(j)), &Value::Str("id".into()), id);
             }
             }
-            let mut market: crate::types::Market = self.safe_market(marketId, None, &[Value::Null, Value::Str("contract".into())]);
+            let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[Value::Null, Value::Str("contract".into())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             tiers.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_market_leverage_tiers(self.sort_by(entry, Value::Str("id".into()), &[]), Some(&market)));
         }

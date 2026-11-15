@@ -3413,9 +3413,9 @@ impl Bithumb {
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
         let mut useClientOrderId: bool = ((!(twap) && (generation == Some(2))) && (clientOrderId.is_some()));
-        let mut paramsRequest: Value = Value::from(&paramsOmitted);
+        let mut paramsRequest: crate::value::Dict = Value::from(&paramsOmitted).into_dict();
         if useClientOrderId {
-            paramsRequest = self.omit(&paramsOmitted, &["clientOrderId"], &[]);
+            paramsRequest = self.omit(&paramsOmitted, &["clientOrderId"], &[]).into_dict();
         }
         if twap {
             request.insert("algo_order_id".into(), id.clone());
@@ -3428,10 +3428,10 @@ impl Bithumb {
         }
         if (generation == Some(2)) {
             if twap {
-                let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
+                let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);
                 response = self.private_delete_v1_twap(&[__ws_arg_30]).await.into_opt_dict();
             }  else {
-                let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[paramsRequest.clone()]);
+                let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[&paramsRequest]);
                 response = self.private_delete_v2_order(&[__ws_arg_31]).await.into_opt_dict();
             }
         }  else {
@@ -3444,17 +3444,17 @@ impl Bithumb {
             if (base.is_none()) || (quote.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a market with defined base and quote")));
             }
-            let mut side_in_params: bool = matches!(&paramsRequest, Value::Dict(__d) if __d.contains_key("side"));
+            let mut side_in_params: bool = paramsRequest.contains_key("side");
             if !side_in_params {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a `side` parameter (sell or buy)")));
             }
             let mut side: Option<String> = None;
-            if (self.safe_string_k(paramsRequest.clone(), "side", &[]).as_str() == Some("buy")) {
+            if (self.safe_string_k(&paramsRequest, "side", &[]).as_str() == Some("buy")) {
                 side = Some("bid".to_string());
             }  else {
                 side = Some("ask".to_string());
             }
-            let mut paramsSide: crate::value::Dict = self.omit(paramsRequest, Value::Str("side".into()), &[]).into_dict();
+            let mut paramsSide: crate::value::Dict = self.omit(&paramsRequest, Value::Str("side".into()), &[]).into_dict();
             // https://github.com/ccxt/ccxt/issues/6771
             request.insert("type".into(), side.map(Value::from).unwrap_or(Value::Null));
             request.insert("order_currency".into(), base.map(Value::from).unwrap_or(Value::Null));
@@ -3621,9 +3621,9 @@ impl Bithumb {
         let mut response: Option<crate::value::Dict> = None;
         let mut destinationRequest: Option<String> = None;
         let mut requiresDestination: bool = (code.as_str() == Some("XRP")) || (code.as_str() == Some("XMR")) || (code.as_str() == Some("EOS")) || (code.as_str() == Some("STEEM")) || (code.as_str() == Some("TON"));
-        let mut paramsDestination: Value = Value::from(&paramsNetwork);
+        let mut paramsDestination: crate::value::Dict = Value::from(&paramsNetwork).into_dict();
         if requiresDestination {
-            paramsDestination = self.omit(&paramsNetwork, &["destination", "secondary_address"], &[]);
+            paramsDestination = self.omit(&paramsNetwork, &["destination", "secondary_address"], &[]).into_dict();
         }
         if requiresDestination {
             let mut destination: Option<String> = self.safe_string2(&paramsNetwork, Value::Str("destination".into()), Value::Str("secondary_address".into()), &[]).as_str().map(str::to_owned);
@@ -3635,8 +3635,8 @@ impl Bithumb {
                 destinationRequest = destination;
             }
         }
-        let mut receiverType: Option<String> = self.safe_string2(paramsDestination.clone(), Value::Str("receiver_type".into()), Value::Str("cust_type_cd".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsReceiverType: crate::value::Dict = self.omit(paramsDestination, &["receiver_type", "cust_type_cd"], &[]).into_dict();
+        let mut receiverType: Option<String> = self.safe_string2(&paramsDestination, Value::Str("receiver_type".into()), Value::Str("cust_type_cd".into()), &[]).as_str().map(str::to_owned);
+        let mut paramsReceiverType: crate::value::Dict = self.omit(&paramsDestination, &["receiver_type", "cust_type_cd"], &[]).into_dict();
         if (generation == Some(2)) {
             if (code.as_str() == Some("KRW")) {
                 let mut twoFactorType: Option<String> = self.safe_string_k(&paramsReceiverType, "two_factor_type", &[]).as_str().map(str::to_owned);

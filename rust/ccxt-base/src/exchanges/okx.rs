@@ -11913,7 +11913,7 @@ impl Okx {
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
         let mut end: Value = Value::Null;
         if (until.is_some()) {
             end = Value::from((if let Some(__m0) = until { Some((__m0 + 1)) } else { None }));
@@ -11942,7 +11942,7 @@ impl Okx {
         if (end != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), end); }
         }
-        return Value::from(vec![request, paramsOmitted]);
+        return Value::from(vec![request, Value::Dict(paramsOmitted)]);
 
     Value::Null
 }

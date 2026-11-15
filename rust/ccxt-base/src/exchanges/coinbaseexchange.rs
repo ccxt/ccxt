@@ -2477,9 +2477,9 @@ impl Coinbaseexchange {
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"], &[]).into_dict();
         let mut costParam: Option<f64> = self.safe_number2(&paramsOmitted, Value::Str("cost".into()), Value::Str("funds".into()), &[]).as_f64();
         let mut omitCost: bool = (type_var.as_str() == Some("market")) && (costParam.is_some());
-        let mut paramsCost: Value = Value::from(&paramsOmitted);
+        let mut paramsCost: crate::value::Dict = Value::from(&paramsOmitted).into_dict();
         if omitCost {
-            paramsCost = self.omit(&paramsOmitted, &["cost", "funds"], &[]);
+            paramsCost = self.omit(&paramsOmitted, &["cost", "funds"], &[]).into_dict();
         }
         if (type_var.as_str() == Some("limit")) {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
@@ -2493,7 +2493,7 @@ impl Coinbaseexchange {
                 request.insert("size".into(), Value::from(self.amount_to_precision(symbol, amount)));
             }
         }
-        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsCost]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsCost]);
         let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_18]).await.into_dict();
         return self.parse_order(&response, Some(&market));
         Value::Null

@@ -3001,8 +3001,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m.insert("ORDER_TRADE_UPDATE".to_string(), Value::Str("handle_order_update".into()).clone());
             m
         });
-        let mut method: Value = (if (event.is_none()) { Value::Null } else { self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]) });
-        if (method != Value::Null) {
+        let mut method: Option<String> = (if (event.is_none()) { None } else { self.safe_value(&methods, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned) });
+        if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client, messageInner]);
         }
 }

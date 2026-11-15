@@ -2607,7 +2607,7 @@ impl Hyperliquid {
 }));
         let mut outcomeHandle: Option<String> = None;
         if (outcome != Value::Null) {
-            let mut outcomeObj: crate::value::Dict = self.load_outcome(outcome, &[]).await.into_dict();
+            let mut outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome, &[]).await;
             outcomeHandle = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         }  else {
             // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the

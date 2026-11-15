@@ -1823,8 +1823,8 @@ impl Independentreserve {
                                 let mut i: i64 = 0;
                 let mut __for_first_837: bool = true;
                 while { if !__for_first_837 { i += 1; } __for_first_837 = false; i < (keys.len() as i64) } {
-                let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                query.insert(crate::runtime::stringify_param(&key), crate::value::KeyRead::read(&&paramsDict, &key));
+                let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+                query.insert(key.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&paramsDict, &Value::from(key)));
             }
             }
             let mut signedBody: Option<String> = json_stringify(&Value::Map(query)).as_str().map(str::to_owned);

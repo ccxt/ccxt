@@ -2093,9 +2093,9 @@ impl Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_849: bool = true;
             while { if !__for_first_849 { i += 1; } __for_first_849 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Option<crate::value::Dict> = get_value(&ledger, &key).into_opt_dict();
-            if let Some(__d) = &mut value { std::sync::Arc::make_mut(__d).insert("id".into(), key); }
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut value: Option<crate::value::Dict> = get_value(&ledger, key.as_deref()).into_opt_dict();
+            if let Some(__d) = &mut value { std::sync::Arc::make_mut(__d).insert("id".into(), Value::from(key.as_deref())); }
             items.push(value.map_or(Value::Null, Value::Dict));
         }
         }

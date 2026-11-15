@@ -5938,9 +5938,9 @@ if _try_result.is_err() {
                                 let mut i: i64 = 0;
                 let mut __for_first_698: bool = true;
                 while { if !__for_first_698 { i += 1; } __for_first_698 = false; i < (keys.len() as i64) } {
-                let mut currencyId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut content: Option<crate::value::Dict> = get_value(&balances, &currencyId).into_opt_dict();
-                if let Some(__d) = &mut content { std::sync::Arc::make_mut(__d).insert("currency".into(), currencyId); }
+                let mut currencyId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+                let mut content: Option<crate::value::Dict> = get_value(&balances, currencyId.as_deref()).into_opt_dict();
+                if let Some(__d) = &mut content { std::sync::Arc::make_mut(__d).insert("currency".into(), Value::from(currencyId.as_deref())); }
                 if let Value::Arr(__a) = &mut flatBalances { std::sync::Arc::make_mut(__a).push(content.map_or(Value::Null, Value::Dict)); }
             }
             }
@@ -6059,15 +6059,15 @@ if _try_result.is_err() {
             if isMark || isIndex {
                 std::sync::Arc::make_mut(&mut request).insert("contract".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", price.as_deref().unwrap_or("null"), "_").into()), Value::from((market).id.as_deref())).into()));
             }
-            let mut paramsContract: Value = Value::from(&paramsOmitted);
+            let mut paramsContract: crate::value::Dict = Value::from(&paramsOmitted).into_dict();
             if isMark || isIndex {
-                paramsContract = self.omit(&paramsOmitted, Value::Str("price".into()), &[]);
+                paramsContract = self.omit(&paramsOmitted, Value::Str("price".into()), &[]).into_dict();
             }
             if (market).future {
-                let __ws_arg_29 = self.extend(&request, &[paramsContract.clone()]);
+                let __ws_arg_29 = self.extend(&request, &[&paramsContract]);
                 response = self.public_delivery_get_settle_candlesticks(&[__ws_arg_29]).await;
             }  else if (market).swap {
-                let __ws_arg_30 = self.extend(&request, &[paramsContract]);
+                let __ws_arg_30 = self.extend(&request, &[&paramsContract]);
                 response = self.public_futures_get_settle_candlesticks(&[__ws_arg_30]).await;
             }
         }  else {

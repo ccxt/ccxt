@@ -16200,7 +16200,7 @@ impl Binance {
         if (leverageBrackets.is_none()) || reload {
             let mut defaultType: String = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("swap".into())]).as_str().unwrap_or("swap").to_string();
             let mut type_var: Option<String> = self.safe_string_k(params.clone(), "type", &[Value::from(defaultType)]).as_str().map(str::to_owned);
-            let mut query: Value = self.omit(params.clone(), Value::Str("type".into()), &[]);
+            let mut query: crate::value::Dict = self.omit(params.clone(), Value::Str("type".into()), &[]).into_dict();
             let mut subType: Option<String> = None;
             let mut paramsSubType: crate::value::Dict = Default::default();
             { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("loadLeverageBrackets".into()), None, &[params, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -16209,15 +16209,15 @@ impl Binance {
             let mut response: Option<crate::value::List> = None;
             if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
                 if (isPortfolioMargin == Some(true)) {
-                    response = self.papi_get_um_leverage_bracket(&[query.clone()]).await.into_opt_list();
+                    response = self.papi_get_um_leverage_bracket(&[Value::from(&query)]).await.into_opt_list();
                 }  else {
-                    response = self.fapi_private_get_leverage_bracket(&[query.clone()]).await.into_opt_list();
+                    response = self.fapi_private_get_leverage_bracket(&[Value::from(&query)]).await.into_opt_list();
                 }
             }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
                 if (isPortfolioMargin == Some(true)) {
-                    response = self.papi_get_cm_leverage_bracket(&[query.clone()]).await.into_opt_list();
+                    response = self.papi_get_cm_leverage_bracket(&[Value::from(&query)]).await.into_opt_list();
                 }  else {
-                    response = self.dapi_private_v2_get_leverage_bracket(&[query]).await.into_opt_list();
+                    response = self.dapi_private_v2_get_leverage_bracket(&[Value::Dict(query)]).await.into_opt_list();
                 }
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " loadLeverageBrackets() supports linear and inverse contracts only")));

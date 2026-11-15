@@ -2642,14 +2642,14 @@ impl Bittrade {
             request.insert("client-order-id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "client-order-id"], &[]).into_dict();
-        let mut paramsOrder: Value = Value::from(&paramsOmitted);
+        let mut paramsOrder: crate::value::Dict = Value::from(&paramsOmitted).into_dict();
         if (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy")) {
             let mut quoteAmount: Option<String> = None;
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let mut cost: Option<f64> = self.safe_number_k(&paramsRequiresPrice, "cost", &[]).as_f64();
-            paramsOrder = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]);
+            paramsOrder = self.omit(&paramsRequiresPrice, Value::Str("cost".into()), &[]).into_dict();
             if (cost.is_some()) {
                 quoteAmount = self.amount_to_precision(symbol.clone(), Value::from(cost));
             }  else if createMarketBuyOrderRequiresPrice {
@@ -2679,7 +2679,7 @@ impl Bittrade {
         let mut method: String = self.safe_string(self.options.as_map().and_then(|__m| __m.get("createOrder")).cloned().unwrap_or(Value::Null), Value::Str("method".into()), &[Value::Str("privatePostOrderOrdersPlace".into())]).as_str().unwrap_or("privatePostOrderOrdersPlace").to_string();
         let mut response: Option<crate::value::Dict> = None;
         if (method == "privatePostOrderOrdersPlace") {
-            let __ws_arg_13 = self.extend(Value::Map(request), &[paramsOrder]);
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOrder]);
             response = self.private_post_order_orders_place(&[__ws_arg_13]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() does not support the ").into()), method).into()), " method")));

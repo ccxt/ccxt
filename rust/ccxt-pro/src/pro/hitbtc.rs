@@ -739,10 +739,10 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_362: bool = true;
             while { if !__for_first_362 { i += 1; } __for_first_362 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
-            let mut symbol: Value = self.safe_symbol(marketId.clone(), Some(&market), &[]);
-            let mut item: crate::value::Dict = get_value(&data, &marketId).into_dict();
+            let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
+            let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
+            let mut symbol: Value = self.safe_symbol(Value::from(marketId.as_deref()), Some(&market), &[]);
+            let mut item: crate::value::Dict = get_value(&data, marketId.as_deref()).into_dict();
             let mut messageHash: String = format!("{}{}", "orderbooks::", symbol);
             if !(self.orderbooks.has(&symbol)) {
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
