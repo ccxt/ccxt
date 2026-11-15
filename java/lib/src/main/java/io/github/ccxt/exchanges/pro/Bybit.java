@@ -261,8 +261,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 }
             }
             url = this.implodeHostname(url);
-            return url;
-        }).thenApply(res -> (String) res);
+            return (String) url;
+        });
 
     }
 
