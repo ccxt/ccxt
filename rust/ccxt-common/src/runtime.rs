@@ -381,7 +381,7 @@ fn error_parent(class: &str) -> Option<&'static str> {
 
 // ── element access ───────────────────────────────────────────────────────────
 
-pub fn get_value(obj: &Value, key: &Value) -> Value {
+pub fn get_value(obj: &Value, key: impl crate::value::ValueKey) -> Value {
     crate::value::get_value(obj, key)
 }
 

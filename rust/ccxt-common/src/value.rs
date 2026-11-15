@@ -874,6 +874,18 @@ impl ExtendHead for Value { fn into_head(self) -> HashMap<String, Value> { if le
 impl ExtendHead for &Value { fn into_head(self) -> HashMap<String, Value> { if let Value::Dict(m) = self { (**m).clone() } else { HashMap::new() } } }
 impl ExtendHead for Dict { fn into_head(self) -> HashMap<String, Value> { Arc::try_unwrap(self).unwrap_or_else(|x| (*x).clone()) } }
 impl ExtendHead for &Dict { fn into_head(self) -> HashMap<String, Value> { (**self).clone() } }
+/// ral-43c: an optional map (`safeDict` with no default, a nil-declared endpoint answer): `None` merges onto an empty map,
+/// exactly as the boxed `Value::Null` head did.
+impl ExtendHead for Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.map(ExtendHead::into_head).unwrap_or_default() } }
+impl ExtendHead for &Option<Dict> { fn into_head(self) -> HashMap<String, Value> { self.as_ref().map(ExtendHead::into_head).unwrap_or_default() } }
+
+/// ral-43c: the key of the runtime `get_value`: a boxed `&Value`, or a typed string local (`&str`, `Option<&str>`) that is
+/// boxed here to the same `Str` / `Null` key the boxed read used, so the lookup is unchanged.
+pub trait ValueKey { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R; }
+impl ValueKey for &Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
+impl ValueKey for &&Value { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(self) } }
+impl ValueKey for &str { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { f(&Value::from(self)) } }
+impl ValueKey for Option<&str> { fn with_key<R>(self, f: impl FnOnce(&Value) -> R) -> R { match self { Some(s) => f(&Value::from(s)), None => f(&Value::Null) } } }
 
 /// The object `omit` drops keys from: a `Value` by value, or a dict local lent by reference (shares the map).
 pub trait OmitSource { fn into_operand(self) -> Value; }
@@ -931,7 +943,12 @@ pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
 
 /// Access a value in a map by string key, or array by integer key encoded as
 /// a `Value::Str` / `Value::Int`. Returns `Value::Null` on miss.
-pub fn get_value(obj: &Value, key: &Value) -> Value {
+/// ral-43c: the key is `impl ValueKey` (a boxed `&Value`, or a typed `&str` / `Option<&str>` boxed to the same key).
+pub fn get_value(obj: &Value, key: impl ValueKey) -> Value {
+    key.with_key(|key| get_value_boxed(obj, key))
+}
+
+fn get_value_boxed(obj: &Value, key: &Value) -> Value {
     match (obj, key) {
         (Value::Dict(m), _) => get_map_value(m, key),
         (Value::Arr(a), _) => get_list_value(a, key),
@@ -3061,6 +3078,45 @@ mod reader_default_split_tests {
             let typed = if k < 4 { Value::from(nested(k).as_str().map(str::to_owned)) } else { Value::from(nested(k).as_i64()) };
             assert_eq!(typed, held, "{:?}", held);
         }
+    }
+
+    #[test]
+    fn ral43c_value_key_typed_keys_read_like_the_boxed_key() {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        m.insert("2".to_string(), Value::Int(7));
+        let d = Value::Dict(Arc::new(m));
+        let l = Value::Arr(Arc::new(vec![Value::Int(10), Value::Int(11), Value::Int(12)]));
+        for (obj, k) in [(&d, "a"), (&d, "zz"), (&d, "2"), (&l, "1"), (&l, "x")] {
+            let boxed = crate::runtime::get_value(obj, &Value::Str(k.into()));
+            assert_eq!(crate::runtime::get_value(obj, k), boxed);
+            assert_eq!(crate::runtime::get_value(obj, Some(k)), boxed);
+        }
+        // a None key reads exactly as the boxed Null key
+        assert_eq!(crate::runtime::get_value(&d, None::<&str>), crate::runtime::get_value(&d, &Value::Null));
+        assert_eq!(crate::runtime::get_value(&l, None::<&str>), crate::runtime::get_value(&l, &Value::Null));
+        let s: Option<String> = Some("a".into());
+        assert_eq!(crate::runtime::get_value(&d, s.as_deref()), Value::Int(1));
+    }
+
+    #[test]
+    fn ral43c_extend_head_option_dict() {
+        let mut m = HashMap::new();
+        m.insert("a".to_string(), Value::Int(1));
+        let d: Dict = Arc::new(m);
+        let some: Option<Dict> = Some(Arc::clone(&d));
+        // lent: the shared map is copied, the local keeps it
+        let h = ExtendHead::into_head(&some);
+        assert_eq!(h.get("a"), Some(&Value::Int(1)));
+        assert!(some.is_some());
+        // owned: same keys as the boxed head
+        let boxed = ExtendHead::into_head(Value::Dict(Arc::clone(&d)));
+        assert_eq!(ExtendHead::into_head(some), boxed);
+        // None merges nothing, exactly as the boxed Null head
+        let none: Option<Dict> = None;
+        assert!(ExtendHead::into_head(&none).is_empty());
+        assert!(ExtendHead::into_head(none).is_empty());
+        assert_eq!(ExtendHead::into_head(Value::Null), HashMap::new());
     }
 
     #[test]
