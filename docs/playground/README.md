@@ -267,7 +267,8 @@ Three ccxt-rust specifics the runner handles:
 - **Panic noise.** ccxt-rust signals exchange errors by panicking inside a
   `catch_unwind` and returning `Err`, so the default panic hook prints every
   *handled* error too. The runner appends a hidden module to `main.rs` (after
-  the user's code, so line numbers hold) whose `.init_array` constructor installs
+  the user's code, so line numbers hold) whose static constructor (`.init_array`
+  on Linux, `__mod_init_func` on macOS) installs
   a hook that drops panics raised inside the ccxt crates and keeps the default
   output for everything else, so the user's own `unwrap()` panics still show. If
   a ccxt panic is ever *not* caught (exit 101), the runner prints the dropped

@@ -102,10 +102,10 @@ function rustEnv(): Record<string, string> {
 // hook, but a blanket silence would also hide the user's own unwrap() panics.
 //
 // So the runner appends this module to main.rs (after the user's code, so
-// rustc's line numbers are unchanged). An .init_array constructor installs a
-// hook before main that drops panics raised INSIDE the ccxt crates (their
-// source lives under cargo's registry) and keeps the default output for
-// everything else. The dropped message is recorded in the run dir: if a ccxt
+// rustc's line numbers are unchanged). A static constructor (.init_array on
+// Linux, __mod_init_func on macOS) installs a hook before main that drops
+// panics raised INSIDE the ccxt crates (their source lives under cargo's
+// registry) and keeps the default output for everything else. The dropped message is recorded in the run dir: if a ccxt
 // panic is ever NOT caught (untyped Core calls) and kills the process, the
 // runner prints it so the run never dies silently.
 const PANIC_FILE = ".ccxt-panic";
@@ -115,8 +115,11 @@ const SHIM = `
 #[doc(hidden)]
 #[allow(dead_code, non_upper_case_globals)]
 mod __ccxt_playground {
+    // ELF (Linux, the Docker image) runs .init_array before main; Mach-O
+    // (a macOS dev box) rejects that section name and uses __mod_init_func.
     #[used]
-    #[link_section = ".init_array"]
+    #[cfg_attr(target_vendor = "apple", link_section = "__DATA,__mod_init_func")]
+    #[cfg_attr(not(target_vendor = "apple"), link_section = ".init_array")]
     static __ccxt_playground_init: extern "C" fn() = init;
 
     extern "C" fn init() {
